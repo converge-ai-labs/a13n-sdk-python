@@ -29,6 +29,7 @@ line-length = 120
 
 [tool.ruff.lint]
 select = ["B", "E", "F", "I", "RUF", "UP"]
+ignore = ["E501"]
 
 [tool.pyright]
 include = ["converge_foundation_sdk"]
