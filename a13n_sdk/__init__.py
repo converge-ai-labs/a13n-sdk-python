@@ -3,7 +3,7 @@
 from importlib.metadata import PackageNotFoundError, version
 
 try:
-    __version__ = version("converge-foundation-sdk")
+    __version__ = version("a13n-sdk")
 except PackageNotFoundError:  # pragma: no cover - source-tree imports without installation
     __version__ = "0.0.0"
 
