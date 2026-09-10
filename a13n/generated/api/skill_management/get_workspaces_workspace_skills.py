@@ -6,6 +6,7 @@ import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
 from ...models.error_response import ErrorResponse
+from ...models.get_workspaces_workspace_skills_source_kind_type_0 import GetWorkspacesWorkspaceSkillsSourceKindType0
 from ...models.skill_collection import SkillCollection
 from ...types import UNSET, Response, Unset
 
@@ -15,6 +16,8 @@ def build_request(
     *,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
+    q: str | Unset | None = UNSET,
+    source_kind: GetWorkspacesWorkspaceSkillsSourceKindType0 | Unset | None = UNSET,
 ) -> dict[str, Any]:
 
     params: dict[str, Any] = {}
@@ -27,6 +30,22 @@ def build_request(
     else:
         json_cursor = cursor
     params["cursor"] = json_cursor
+
+    json_q: str | Unset | None
+    if isinstance(q, Unset):
+        json_q = UNSET
+    else:
+        json_q = q
+    params["q"] = json_q
+
+    json_source_kind: str | Unset | None
+    if isinstance(source_kind, Unset):
+        json_source_kind = UNSET
+    elif isinstance(source_kind, GetWorkspacesWorkspaceSkillsSourceKindType0):
+        json_source_kind = source_kind.value
+    else:
+        json_source_kind = source_kind
+    params["source_kind"] = json_source_kind
 
     params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
 
@@ -76,6 +95,8 @@ def sync_detailed(
     client: AuthenticatedClient,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
+    q: str | Unset | None = UNSET,
+    source_kind: GetWorkspacesWorkspaceSkillsSourceKindType0 | Unset | None = UNSET,
 ) -> Response[ErrorResponse | SkillCollection]:
     """List Skills
 
@@ -83,6 +104,8 @@ def sync_detailed(
         workspace (str):
         limit (int | Unset):
         cursor (None | str | Unset):
+        q (None | str | Unset):
+        source_kind (GetWorkspacesWorkspaceSkillsSourceKindType0 | None | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -96,6 +119,8 @@ def sync_detailed(
         workspace=workspace,
         limit=limit,
         cursor=cursor,
+        q=q,
+        source_kind=source_kind,
     )
 
     response = client.get_httpx_client().request(
@@ -111,6 +136,8 @@ def sync(
     client: AuthenticatedClient,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
+    q: str | Unset | None = UNSET,
+    source_kind: GetWorkspacesWorkspaceSkillsSourceKindType0 | Unset | None = UNSET,
 ) -> ErrorResponse | SkillCollection | None:
     """List Skills
 
@@ -118,6 +145,8 @@ def sync(
         workspace (str):
         limit (int | Unset):
         cursor (None | str | Unset):
+        q (None | str | Unset):
+        source_kind (GetWorkspacesWorkspaceSkillsSourceKindType0 | None | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -132,6 +161,8 @@ def sync(
         client=client,
         limit=limit,
         cursor=cursor,
+        q=q,
+        source_kind=source_kind,
     ).parsed
 
 
@@ -141,6 +172,8 @@ async def asyncio_detailed(
     client: AuthenticatedClient,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
+    q: str | Unset | None = UNSET,
+    source_kind: GetWorkspacesWorkspaceSkillsSourceKindType0 | Unset | None = UNSET,
 ) -> Response[ErrorResponse | SkillCollection]:
     """List Skills
 
@@ -148,6 +181,8 @@ async def asyncio_detailed(
         workspace (str):
         limit (int | Unset):
         cursor (None | str | Unset):
+        q (None | str | Unset):
+        source_kind (GetWorkspacesWorkspaceSkillsSourceKindType0 | None | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -161,6 +196,8 @@ async def asyncio_detailed(
         workspace=workspace,
         limit=limit,
         cursor=cursor,
+        q=q,
+        source_kind=source_kind,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -174,6 +211,8 @@ async def asyncio(
     client: AuthenticatedClient,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
+    q: str | Unset | None = UNSET,
+    source_kind: GetWorkspacesWorkspaceSkillsSourceKindType0 | Unset | None = UNSET,
 ) -> ErrorResponse | SkillCollection | None:
     """List Skills
 
@@ -181,6 +220,8 @@ async def asyncio(
         workspace (str):
         limit (int | Unset):
         cursor (None | str | Unset):
+        q (None | str | Unset):
+        source_kind (GetWorkspacesWorkspaceSkillsSourceKindType0 | None | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -196,5 +237,7 @@ async def asyncio(
             client=client,
             limit=limit,
             cursor=cursor,
+            q=q,
+            source_kind=source_kind,
         )
     ).parsed

@@ -5,30 +5,30 @@ from urllib.parse import quote
 import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
-from ...models.environment_provider_definition import EnvironmentProviderDefinition
 from ...models.error_response import ErrorResponse
+from ...models.skill import Skill
 from ...types import Response
 
 
 def build_request(
-    provider_type: str,
+    workspace: str,
+    skill_key: str,
 ) -> dict[str, Any]:
 
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": "/api/v1/environment-provider-types/{provider_type}".format(
-            provider_type=quote(str(provider_type), safe=""),
+        "url": "/api/v1/workspaces/{workspace}/skills/{skill_key}".format(
+            workspace=quote(str(workspace), safe=""),
+            skill_key=quote(str(skill_key), safe=""),
         ),
     }
 
     return _kwargs
 
 
-def _parse_response(
-    *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> EnvironmentProviderDefinition | ErrorResponse:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> ErrorResponse | Skill:
     if response.status_code == 200:
-        response_200 = EnvironmentProviderDefinition.from_dict(response.json())
+        response_200 = Skill.from_dict(response.json())
 
         return response_200
 
@@ -44,7 +44,7 @@ def _parse_response(
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[EnvironmentProviderDefinition | ErrorResponse]:
+) -> Response[ErrorResponse | Skill]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -54,25 +54,28 @@ def _build_response(
 
 
 def sync_detailed(
-    provider_type: str,
+    workspace: str,
+    skill_key: str,
     *,
     client: AuthenticatedClient,
-) -> Response[EnvironmentProviderDefinition | ErrorResponse]:
-    """Get Provider Type
+) -> Response[ErrorResponse | Skill]:
+    """Get Skill By Key
 
     Args:
-        provider_type (str):
+        workspace (str):
+        skill_key (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[EnvironmentProviderDefinition | ErrorResponse]
+        Response[ErrorResponse | Skill]
     """
 
     kwargs = build_request(
-        provider_type=provider_type,
+        workspace=workspace,
+        skill_key=skill_key,
     )
 
     response = client.get_httpx_client().request(
@@ -83,49 +86,55 @@ def sync_detailed(
 
 
 def sync(
-    provider_type: str,
+    workspace: str,
+    skill_key: str,
     *,
     client: AuthenticatedClient,
-) -> EnvironmentProviderDefinition | ErrorResponse | None:
-    """Get Provider Type
+) -> ErrorResponse | Skill | None:
+    """Get Skill By Key
 
     Args:
-        provider_type (str):
+        workspace (str):
+        skill_key (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        EnvironmentProviderDefinition | ErrorResponse
+        ErrorResponse | Skill
     """
 
     return sync_detailed(
-        provider_type=provider_type,
+        workspace=workspace,
+        skill_key=skill_key,
         client=client,
     ).parsed
 
 
 async def asyncio_detailed(
-    provider_type: str,
+    workspace: str,
+    skill_key: str,
     *,
     client: AuthenticatedClient,
-) -> Response[EnvironmentProviderDefinition | ErrorResponse]:
-    """Get Provider Type
+) -> Response[ErrorResponse | Skill]:
+    """Get Skill By Key
 
     Args:
-        provider_type (str):
+        workspace (str):
+        skill_key (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[EnvironmentProviderDefinition | ErrorResponse]
+        Response[ErrorResponse | Skill]
     """
 
     kwargs = build_request(
-        provider_type=provider_type,
+        workspace=workspace,
+        skill_key=skill_key,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -134,26 +143,29 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    provider_type: str,
+    workspace: str,
+    skill_key: str,
     *,
     client: AuthenticatedClient,
-) -> EnvironmentProviderDefinition | ErrorResponse | None:
-    """Get Provider Type
+) -> ErrorResponse | Skill | None:
+    """Get Skill By Key
 
     Args:
-        provider_type (str):
+        workspace (str):
+        skill_key (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        EnvironmentProviderDefinition | ErrorResponse
+        ErrorResponse | Skill
     """
 
     return (
         await asyncio_detailed(
-            provider_type=provider_type,
+            workspace=workspace,
+            skill_key=skill_key,
             client=client,
         )
     ).parsed

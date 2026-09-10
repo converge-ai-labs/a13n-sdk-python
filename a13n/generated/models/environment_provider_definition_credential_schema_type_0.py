@@ -6,11 +6,11 @@ from typing import Any, TypeVar
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
-T = TypeVar("T", bound="CollectionDictItemsItem")
+T = TypeVar("T", bound="EnvironmentProviderDefinitionCredentialSchemaType0")
 
 
 @_attrs_define(repr=False)
-class CollectionDictItemsItem:
+class EnvironmentProviderDefinitionCredentialSchemaType0:
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -23,10 +23,10 @@ class CollectionDictItemsItem:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        collection_dict_items_item = cls()
+        environment_provider_definition_credential_schema_type_0 = cls()
 
-        collection_dict_items_item.additional_properties = d
-        return collection_dict_items_item
+        environment_provider_definition_credential_schema_type_0.additional_properties = d
+        return environment_provider_definition_credential_schema_type_0
 
     @property
     def additional_keys(self) -> list[str]:

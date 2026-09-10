@@ -63,10 +63,9 @@ from .client_tool_definition import ClientToolDefinition
 from .client_tool_definition_metadata import ClientToolDefinitionMetadata
 from .client_tool_definition_parameters_json_schema import ClientToolDefinitionParametersJsonSchema
 from .client_tool_policy import ClientToolPolicy
-from .collection_dict import CollectionDict
-from .collection_dict_items_item import CollectionDictItemsItem
 from .collection_environment import CollectionEnvironment
 from .collection_environment_provider import CollectionEnvironmentProvider
+from .collection_environment_provider_definition import CollectionEnvironmentProviderDefinition
 from .collection_environment_template import CollectionEnvironmentTemplate
 from .collection_environment_template_revision import CollectionEnvironmentTemplateRevision
 from .complete_connector_setup_request import CompleteConnectorSetupRequest
@@ -162,6 +161,9 @@ from .environment_command_status import EnvironmentCommandStatus
 from .environment_ownership import EnvironmentOwnership
 from .environment_provider import EnvironmentProvider
 from .environment_provider_configuration import EnvironmentProviderConfiguration
+from .environment_provider_definition import EnvironmentProviderDefinition
+from .environment_provider_definition_configuration_schema import EnvironmentProviderDefinitionConfigurationSchema
+from .environment_provider_definition_credential_schema_type_0 import EnvironmentProviderDefinitionCredentialSchemaType0
 from .environment_retention_condition import EnvironmentRetentionCondition
 from .environment_state import EnvironmentState
 from .environment_status import EnvironmentStatus
@@ -178,9 +180,7 @@ from .extended_agent_card_policy import ExtendedAgentCardPolicy
 from .fork_run_request import ForkRunRequest
 from .function_call import FunctionCall
 from .get_auth_csrf_response_browser_proof_api_v1_auth_csrf_get import GetAuthCsrfResponseBrowserProofApiV1AuthCsrfGet
-from .get_environment_provider_types_provider_type_response_get_provider_type_api_v1_environment_provider_types_provider_type_get import (
-    GetEnvironmentProviderTypesProviderTypeResponseGetProviderTypeApiV1EnvironmentProviderTypesProviderTypeGet,
-)
+from .get_workspaces_workspace_skills_source_kind_type_0 import GetWorkspacesWorkspaceSkillsSourceKindType0
 from .git_hub_revision_source import GitHubRevisionSource
 from .git_hub_skill_import_provenance import GitHubSkillImportProvenance
 from .grant import Grant
@@ -392,6 +392,8 @@ from .skill import Skill
 from .skill_agent_reference import SkillAgentReference
 from .skill_agent_reference_collection import SkillAgentReferenceCollection
 from .skill_collection import SkillCollection
+from .skill_list_item import SkillListItem
+from .skill_list_item_source_kind import SkillListItemSourceKind
 from .skill_package_file import SkillPackageFile
 from .skill_package_manifest import SkillPackageManifest
 from .skill_publication_receipt import SkillPublicationReceipt
@@ -445,6 +447,7 @@ from .update_account_request_provider_policy_type_0 import UpdateAccountRequestP
 from .update_agent_request import UpdateAgentRequest
 from .update_connector_connection_request import UpdateConnectorConnectionRequest
 from .update_connector_provider_request import UpdateConnectorProviderRequest
+from .update_connector_provider_request_credentials_type_0 import UpdateConnectorProviderRequestCredentialsType0
 from .update_hook_subscription_request import UpdateHookSubscriptionRequest
 from .update_hook_subscription_state_request import UpdateHookSubscriptionStateRequest
 from .update_mcp_connection_request import UpdateMCPConnectionRequest
@@ -454,6 +457,7 @@ from .update_model_request import UpdateModelRequest
 from .update_model_request_settings_type_0 import UpdateModelRequestSettingsType0
 from .update_profile_request import UpdateProfileRequest
 from .update_provider_request import UpdateProviderRequest
+from .update_provider_request_credential_type_0 import UpdateProviderRequestCredentialType0
 from .update_queued_submission_request import UpdateQueuedSubmissionRequest
 from .update_resource_profile_request import UpdateResourceProfileRequest
 from .update_search_provider_request import UpdateSearchProviderRequest
@@ -544,10 +548,9 @@ __all__ = (
     "ClientToolDefinitionMetadata",
     "ClientToolDefinitionParametersJsonSchema",
     "ClientToolPolicy",
-    "CollectionDict",
-    "CollectionDictItemsItem",
     "CollectionEnvironment",
     "CollectionEnvironmentProvider",
+    "CollectionEnvironmentProviderDefinition",
     "CollectionEnvironmentTemplate",
     "CollectionEnvironmentTemplateRevision",
     "CompleteConnectorSetupRequest",
@@ -643,6 +646,9 @@ __all__ = (
     "EnvironmentOwnership",
     "EnvironmentProvider",
     "EnvironmentProviderConfiguration",
+    "EnvironmentProviderDefinition",
+    "EnvironmentProviderDefinitionConfigurationSchema",
+    "EnvironmentProviderDefinitionCredentialSchemaType0",
     "EnvironmentRetentionCondition",
     "EnvironmentState",
     "EnvironmentStatus",
@@ -659,7 +665,7 @@ __all__ = (
     "ForkRunRequest",
     "FunctionCall",
     "GetAuthCsrfResponseBrowserProofApiV1AuthCsrfGet",
-    "GetEnvironmentProviderTypesProviderTypeResponseGetProviderTypeApiV1EnvironmentProviderTypesProviderTypeGet",
+    "GetWorkspacesWorkspaceSkillsSourceKindType0",
     "GitHubRevisionSource",
     "GitHubSkillImportProvenance",
     "Grant",
@@ -867,6 +873,8 @@ __all__ = (
     "SkillAgentReference",
     "SkillAgentReferenceCollection",
     "SkillCollection",
+    "SkillListItem",
+    "SkillListItemSourceKind",
     "SkillPackageFile",
     "SkillPackageManifest",
     "SkillPublicationReceipt",
@@ -920,6 +928,7 @@ __all__ = (
     "UpdateAgentRequest",
     "UpdateConnectorConnectionRequest",
     "UpdateConnectorProviderRequest",
+    "UpdateConnectorProviderRequestCredentialsType0",
     "UpdateHookSubscriptionRequest",
     "UpdateHookSubscriptionStateRequest",
     "UpdateMCPConnectionRequest",
@@ -929,6 +938,7 @@ __all__ = (
     "UpdateModelRequestSettingsType0",
     "UpdateProfileRequest",
     "UpdateProviderRequest",
+    "UpdateProviderRequestCredentialType0",
     "UpdateQueuedSubmissionRequest",
     "UpdateResourceProfileRequest",
     "UpdateSearchProviderRequest",

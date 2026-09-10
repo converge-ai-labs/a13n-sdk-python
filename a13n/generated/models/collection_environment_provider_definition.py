@@ -8,21 +8,21 @@ from attrs import define as _attrs_define
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
-    from ..models.collection_dict_items_item import CollectionDictItemsItem
+    from ..models.environment_provider_definition import EnvironmentProviderDefinition
 
 
-T = TypeVar("T", bound="CollectionDict")
+T = TypeVar("T", bound="CollectionEnvironmentProviderDefinition")
 
 
 @_attrs_define(repr=False)
-class CollectionDict:
+class CollectionEnvironmentProviderDefinition:
     """
     Attributes:
-        items (list[CollectionDictItemsItem]):
+        items (list[EnvironmentProviderDefinition]):
         next_cursor (None | str | Unset):
     """
 
-    items: list[CollectionDictItemsItem]
+    items: list[EnvironmentProviderDefinition]
     next_cursor: str | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
@@ -51,13 +51,13 @@ class CollectionDict:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.collection_dict_items_item import CollectionDictItemsItem
+        from ..models.environment_provider_definition import EnvironmentProviderDefinition
 
         d = dict(src_dict)
         items = []
         _items = d.pop("items")
         for items_item_data in _items:
-            items_item = CollectionDictItemsItem.from_dict(items_item_data)
+            items_item = EnvironmentProviderDefinition.from_dict(items_item_data)
 
             items.append(items_item)
 
@@ -70,9 +70,9 @@ class CollectionDict:
 
         next_cursor = _parse_next_cursor(d.pop("next_cursor", UNSET))
 
-        collection_dict = cls(
+        collection_environment_provider_definition = cls(
             items=items,
             next_cursor=next_cursor,
         )
 
-        return collection_dict
+        return collection_environment_provider_definition

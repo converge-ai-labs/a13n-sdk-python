@@ -6,14 +6,11 @@ from typing import Any, TypeVar
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
-T = TypeVar(
-    "T",
-    bound="GetEnvironmentProviderTypesProviderTypeResponseGetProviderTypeApiV1EnvironmentProviderTypesProviderTypeGet",
-)
+T = TypeVar("T", bound="EnvironmentProviderDefinitionConfigurationSchema")
 
 
 @_attrs_define(repr=False)
-class GetEnvironmentProviderTypesProviderTypeResponseGetProviderTypeApiV1EnvironmentProviderTypesProviderTypeGet:
+class EnvironmentProviderDefinitionConfigurationSchema:
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -26,10 +23,10 @@ class GetEnvironmentProviderTypesProviderTypeResponseGetProviderTypeApiV1Environ
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        get_environment_provider_types_provider_type_response_get_provider_type_api_v1_environment_provider_types_provider_type_get = cls()
+        environment_provider_definition_configuration_schema = cls()
 
-        get_environment_provider_types_provider_type_response_get_provider_type_api_v1_environment_provider_types_provider_type_get.additional_properties = d
-        return get_environment_provider_types_provider_type_response_get_provider_type_api_v1_environment_provider_types_provider_type_get
+        environment_provider_definition_configuration_schema.additional_properties = d
+        return environment_provider_definition_configuration_schema
 
     @property
     def additional_keys(self) -> list[str]:

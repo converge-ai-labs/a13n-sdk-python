@@ -20,6 +20,7 @@ class SessionResource:
         created_at (datetime.datetime):
         id (str):
         preview (None | SessionPreview):
+        run_count (int | None):
         updated_at (datetime.datetime):
         workspace_id (str):
     """
@@ -27,6 +28,7 @@ class SessionResource:
     created_at: datetime.datetime
     id: str
     preview: SessionPreview | None
+    run_count: int | None
     updated_at: datetime.datetime
     workspace_id: str
 
@@ -43,6 +45,9 @@ class SessionResource:
         else:
             preview = self.preview
 
+        run_count: int | None
+        run_count = self.run_count
+
         updated_at = self.updated_at.isoformat()
 
         workspace_id = self.workspace_id
@@ -54,6 +59,7 @@ class SessionResource:
                 "created_at": created_at,
                 "id": id,
                 "preview": preview,
+                "run_count": run_count,
                 "updated_at": updated_at,
                 "workspace_id": workspace_id,
             }
@@ -85,6 +91,13 @@ class SessionResource:
 
         preview = _parse_preview(d.pop("preview"))
 
+        def _parse_run_count(data: object) -> int | None:
+            if data is None:
+                return data
+            return cast(int | None, data)
+
+        run_count = _parse_run_count(d.pop("run_count"))
+
         updated_at = datetime.datetime.fromisoformat(d.pop("updated_at"))
 
         workspace_id = d.pop("workspace_id")
@@ -93,6 +106,7 @@ class SessionResource:
             created_at=created_at,
             id=id,
             preview=preview,
+            run_count=run_count,
             updated_at=updated_at,
             workspace_id=workspace_id,
         )

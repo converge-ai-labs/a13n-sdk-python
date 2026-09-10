@@ -4,7 +4,7 @@ from typing import Any
 import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
-from ...models.collection_dict import CollectionDict
+from ...models.collection_environment_provider_definition import CollectionEnvironmentProviderDefinition
 from ...models.error_response import ErrorResponse
 from ...types import Response
 
@@ -21,9 +21,9 @@ def build_request() -> dict[str, Any]:
 
 def _parse_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> CollectionDict | ErrorResponse:
+) -> CollectionEnvironmentProviderDefinition | ErrorResponse:
     if response.status_code == 200:
-        response_200 = CollectionDict.from_dict(response.json())
+        response_200 = CollectionEnvironmentProviderDefinition.from_dict(response.json())
 
         return response_200
 
@@ -34,7 +34,7 @@ def _parse_response(
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[CollectionDict | ErrorResponse]:
+) -> Response[CollectionEnvironmentProviderDefinition | ErrorResponse]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -46,7 +46,7 @@ def _build_response(
 def sync_detailed(
     *,
     client: AuthenticatedClient,
-) -> Response[CollectionDict | ErrorResponse]:
+) -> Response[CollectionEnvironmentProviderDefinition | ErrorResponse]:
     """Provider Types
 
     Raises:
@@ -54,7 +54,7 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[CollectionDict | ErrorResponse]
+        Response[CollectionEnvironmentProviderDefinition | ErrorResponse]
     """
 
     kwargs = build_request()
@@ -69,7 +69,7 @@ def sync_detailed(
 def sync(
     *,
     client: AuthenticatedClient,
-) -> CollectionDict | ErrorResponse | None:
+) -> CollectionEnvironmentProviderDefinition | ErrorResponse | None:
     """Provider Types
 
     Raises:
@@ -77,7 +77,7 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        CollectionDict | ErrorResponse
+        CollectionEnvironmentProviderDefinition | ErrorResponse
     """
 
     return sync_detailed(
@@ -88,7 +88,7 @@ def sync(
 async def asyncio_detailed(
     *,
     client: AuthenticatedClient,
-) -> Response[CollectionDict | ErrorResponse]:
+) -> Response[CollectionEnvironmentProviderDefinition | ErrorResponse]:
     """Provider Types
 
     Raises:
@@ -96,7 +96,7 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[CollectionDict | ErrorResponse]
+        Response[CollectionEnvironmentProviderDefinition | ErrorResponse]
     """
 
     kwargs = build_request()
@@ -109,7 +109,7 @@ async def asyncio_detailed(
 async def asyncio(
     *,
     client: AuthenticatedClient,
-) -> CollectionDict | ErrorResponse | None:
+) -> CollectionEnvironmentProviderDefinition | ErrorResponse | None:
     """Provider Types
 
     Raises:
@@ -117,7 +117,7 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        CollectionDict | ErrorResponse
+        CollectionEnvironmentProviderDefinition | ErrorResponse
     """
 
     return (

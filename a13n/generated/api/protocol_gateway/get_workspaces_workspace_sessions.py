@@ -1,3 +1,4 @@
+import datetime
 from http import HTTPStatus
 from typing import Any
 from urllib.parse import quote
@@ -6,6 +7,7 @@ import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
 from ...models.error_response import ErrorResponse
+from ...models.run_status import RunStatus
 from ...models.session_collection import SessionCollection
 from ...types import UNSET, Response, Unset
 
@@ -13,11 +15,64 @@ from ...types import UNSET, Response, Unset
 def build_request(
     workspace: str,
     *,
+    q: str | Unset | None = UNSET,
+    agent_id: str | Unset | None = UNSET,
+    status: list[RunStatus] | Unset = UNSET,
+    trigger_type: list[str] | Unset = UNSET,
+    updated_after: datetime.datetime | Unset | None = UNSET,
+    updated_before: datetime.datetime | Unset | None = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
 ) -> dict[str, Any]:
 
     params: dict[str, Any] = {}
+
+    json_q: str | Unset | None
+    if isinstance(q, Unset):
+        json_q = UNSET
+    else:
+        json_q = q
+    params["q"] = json_q
+
+    json_agent_id: str | Unset | None
+    if isinstance(agent_id, Unset):
+        json_agent_id = UNSET
+    else:
+        json_agent_id = agent_id
+    params["agent_id"] = json_agent_id
+
+    json_status: list[str] | Unset = UNSET
+    if not isinstance(status, Unset):
+        json_status = []
+        for status_item_data in status:
+            status_item = status_item_data.value
+            json_status.append(status_item)
+
+    params["status"] = json_status
+
+    json_trigger_type: list[str] | Unset = UNSET
+    if not isinstance(trigger_type, Unset):
+        json_trigger_type = trigger_type
+
+    params["trigger_type"] = json_trigger_type
+
+    json_updated_after: str | Unset | None
+    if isinstance(updated_after, Unset):
+        json_updated_after = UNSET
+    elif isinstance(updated_after, datetime.datetime):
+        json_updated_after = updated_after.isoformat()
+    else:
+        json_updated_after = updated_after
+    params["updated_after"] = json_updated_after
+
+    json_updated_before: str | Unset | None
+    if isinstance(updated_before, Unset):
+        json_updated_before = UNSET
+    elif isinstance(updated_before, datetime.datetime):
+        json_updated_before = updated_before.isoformat()
+    else:
+        json_updated_before = updated_before
+    params["updated_before"] = json_updated_before
 
     params["limit"] = limit
 
@@ -74,6 +129,12 @@ def sync_detailed(
     workspace: str,
     *,
     client: AuthenticatedClient,
+    q: str | Unset | None = UNSET,
+    agent_id: str | Unset | None = UNSET,
+    status: list[RunStatus] | Unset = UNSET,
+    trigger_type: list[str] | Unset = UNSET,
+    updated_after: datetime.datetime | Unset | None = UNSET,
+    updated_before: datetime.datetime | Unset | None = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
 ) -> Response[ErrorResponse | SessionCollection]:
@@ -81,6 +142,12 @@ def sync_detailed(
 
     Args:
         workspace (str):
+        q (None | str | Unset):
+        agent_id (None | str | Unset):
+        status (list[RunStatus] | Unset):
+        trigger_type (list[str] | Unset):
+        updated_after (datetime.datetime | None | Unset):
+        updated_before (datetime.datetime | None | Unset):
         limit (int | Unset):
         cursor (None | str | Unset):
 
@@ -94,6 +161,12 @@ def sync_detailed(
 
     kwargs = build_request(
         workspace=workspace,
+        q=q,
+        agent_id=agent_id,
+        status=status,
+        trigger_type=trigger_type,
+        updated_after=updated_after,
+        updated_before=updated_before,
         limit=limit,
         cursor=cursor,
     )
@@ -109,6 +182,12 @@ def sync(
     workspace: str,
     *,
     client: AuthenticatedClient,
+    q: str | Unset | None = UNSET,
+    agent_id: str | Unset | None = UNSET,
+    status: list[RunStatus] | Unset = UNSET,
+    trigger_type: list[str] | Unset = UNSET,
+    updated_after: datetime.datetime | Unset | None = UNSET,
+    updated_before: datetime.datetime | Unset | None = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
 ) -> ErrorResponse | SessionCollection | None:
@@ -116,6 +195,12 @@ def sync(
 
     Args:
         workspace (str):
+        q (None | str | Unset):
+        agent_id (None | str | Unset):
+        status (list[RunStatus] | Unset):
+        trigger_type (list[str] | Unset):
+        updated_after (datetime.datetime | None | Unset):
+        updated_before (datetime.datetime | None | Unset):
         limit (int | Unset):
         cursor (None | str | Unset):
 
@@ -130,6 +215,12 @@ def sync(
     return sync_detailed(
         workspace=workspace,
         client=client,
+        q=q,
+        agent_id=agent_id,
+        status=status,
+        trigger_type=trigger_type,
+        updated_after=updated_after,
+        updated_before=updated_before,
         limit=limit,
         cursor=cursor,
     ).parsed
@@ -139,6 +230,12 @@ async def asyncio_detailed(
     workspace: str,
     *,
     client: AuthenticatedClient,
+    q: str | Unset | None = UNSET,
+    agent_id: str | Unset | None = UNSET,
+    status: list[RunStatus] | Unset = UNSET,
+    trigger_type: list[str] | Unset = UNSET,
+    updated_after: datetime.datetime | Unset | None = UNSET,
+    updated_before: datetime.datetime | Unset | None = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
 ) -> Response[ErrorResponse | SessionCollection]:
@@ -146,6 +243,12 @@ async def asyncio_detailed(
 
     Args:
         workspace (str):
+        q (None | str | Unset):
+        agent_id (None | str | Unset):
+        status (list[RunStatus] | Unset):
+        trigger_type (list[str] | Unset):
+        updated_after (datetime.datetime | None | Unset):
+        updated_before (datetime.datetime | None | Unset):
         limit (int | Unset):
         cursor (None | str | Unset):
 
@@ -159,6 +262,12 @@ async def asyncio_detailed(
 
     kwargs = build_request(
         workspace=workspace,
+        q=q,
+        agent_id=agent_id,
+        status=status,
+        trigger_type=trigger_type,
+        updated_after=updated_after,
+        updated_before=updated_before,
         limit=limit,
         cursor=cursor,
     )
@@ -172,6 +281,12 @@ async def asyncio(
     workspace: str,
     *,
     client: AuthenticatedClient,
+    q: str | Unset | None = UNSET,
+    agent_id: str | Unset | None = UNSET,
+    status: list[RunStatus] | Unset = UNSET,
+    trigger_type: list[str] | Unset = UNSET,
+    updated_after: datetime.datetime | Unset | None = UNSET,
+    updated_before: datetime.datetime | Unset | None = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
 ) -> ErrorResponse | SessionCollection | None:
@@ -179,6 +294,12 @@ async def asyncio(
 
     Args:
         workspace (str):
+        q (None | str | Unset):
+        agent_id (None | str | Unset):
+        status (list[RunStatus] | Unset):
+        trigger_type (list[str] | Unset):
+        updated_after (datetime.datetime | None | Unset):
+        updated_before (datetime.datetime | None | Unset):
         limit (int | Unset):
         cursor (None | str | Unset):
 
@@ -194,6 +315,12 @@ async def asyncio(
         await asyncio_detailed(
             workspace=workspace,
             client=client,
+            q=q,
+            agent_id=agent_id,
+            status=status,
+            trigger_type=trigger_type,
+            updated_after=updated_after,
+            updated_before=updated_before,
             limit=limit,
             cursor=cursor,
         )

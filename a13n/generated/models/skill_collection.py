@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 from attrs import define as _attrs_define
 
 if TYPE_CHECKING:
-    from ..models.skill import Skill
+    from ..models.skill_list_item import SkillListItem
 
 
 T = TypeVar("T", bound="SkillCollection")
@@ -16,11 +16,11 @@ T = TypeVar("T", bound="SkillCollection")
 class SkillCollection:
     """
     Attributes:
-        items (list[Skill]):
+        items (list[SkillListItem]):
         next_cursor (None | str):
     """
 
-    items: list[Skill]
+    items: list[SkillListItem]
     next_cursor: str | None
 
     def to_dict(self) -> dict[str, Any]:
@@ -45,13 +45,13 @@ class SkillCollection:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.skill import Skill
+        from ..models.skill_list_item import SkillListItem
 
         d = dict(src_dict)
         items = []
         _items = d.pop("items")
         for items_item_data in _items:
-            items_item = Skill.from_dict(items_item_data)
+            items_item = SkillListItem.from_dict(items_item_data)
 
             items.append(items_item)
 
