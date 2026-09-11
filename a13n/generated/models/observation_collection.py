@@ -6,21 +6,21 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 from attrs import define as _attrs_define
 
 if TYPE_CHECKING:
-    from ..models.trace import Trace
+    from ..models.observation import Observation
 
 
-T = TypeVar("T", bound="TraceCollection")
+T = TypeVar("T", bound="ObservationCollection")
 
 
 @_attrs_define(repr=False)
-class TraceCollection:
+class ObservationCollection:
     """
     Attributes:
-        items (list[Trace]):
+        items (list[Observation]):
         next_cursor (None | str):
     """
 
-    items: list[Trace]
+    items: list[Observation]
     next_cursor: str | None
 
     def to_dict(self) -> dict[str, Any]:
@@ -45,13 +45,13 @@ class TraceCollection:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.trace import Trace
+        from ..models.observation import Observation
 
         d = dict(src_dict)
         items = []
         _items = d.pop("items")
         for items_item_data in _items:
-            items_item = Trace.from_dict(items_item_data)
+            items_item = Observation.from_dict(items_item_data)
 
             items.append(items_item)
 
@@ -62,9 +62,9 @@ class TraceCollection:
 
         next_cursor = _parse_next_cursor(d.pop("next_cursor"))
 
-        trace_collection = cls(
+        observation_collection = cls(
             items=items,
             next_cursor=next_cursor,
         )
 
-        return trace_collection
+        return observation_collection

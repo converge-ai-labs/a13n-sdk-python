@@ -6,43 +6,29 @@ import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
 from ...models.error_response import ErrorResponse
-from ...models.trace import Trace
-from ...models.trace_view import TraceView
-from ...types import UNSET, Response, Unset
+from ...models.trace_query_descriptor import TraceQueryDescriptor
+from ...types import Response
 
 
 def build_request(
     workspace: str,
-    trace_id: str,
-    *,
-    view: TraceView | Unset = UNSET,
 ) -> dict[str, Any]:
-
-    params: dict[str, Any] = {}
-
-    json_view: str | Unset = UNSET
-    if not isinstance(view, Unset):
-        json_view = view.value
-
-    params["view"] = json_view
-
-    params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
 
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": "/api/v1/workspaces/{workspace}/traces/{trace_id}".format(
+        "url": "/api/v1/workspaces/{workspace}/trace-query".format(
             workspace=quote(str(workspace), safe=""),
-            trace_id=quote(str(trace_id), safe=""),
         ),
-        "params": params,
     }
 
     return _kwargs
 
 
-def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> ErrorResponse | Trace:
+def _parse_response(
+    *, client: AuthenticatedClient | Client, response: httpx.Response
+) -> ErrorResponse | TraceQueryDescriptor:
     if response.status_code == 200:
-        response_200 = Trace.from_dict(response.json())
+        response_200 = TraceQueryDescriptor.from_dict(response.json())
 
         return response_200
 
@@ -58,7 +44,7 @@ def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Res
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[ErrorResponse | Trace]:
+) -> Response[ErrorResponse | TraceQueryDescriptor]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -69,30 +55,24 @@ def _build_response(
 
 def sync_detailed(
     workspace: str,
-    trace_id: str,
     *,
     client: AuthenticatedClient,
-    view: TraceView | Unset = UNSET,
-) -> Response[ErrorResponse | Trace]:
-    """Get Trace
+) -> Response[ErrorResponse | TraceQueryDescriptor]:
+    """Get Trace Query
 
     Args:
         workspace (str):
-        trace_id (str):
-        view (TraceView | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorResponse | Trace]
+        Response[ErrorResponse | TraceQueryDescriptor]
     """
 
     kwargs = build_request(
         workspace=workspace,
-        trace_id=trace_id,
-        view=view,
     )
 
     response = client.get_httpx_client().request(
@@ -104,60 +84,48 @@ def sync_detailed(
 
 def sync(
     workspace: str,
-    trace_id: str,
     *,
     client: AuthenticatedClient,
-    view: TraceView | Unset = UNSET,
-) -> ErrorResponse | Trace | None:
-    """Get Trace
+) -> ErrorResponse | TraceQueryDescriptor | None:
+    """Get Trace Query
 
     Args:
         workspace (str):
-        trace_id (str):
-        view (TraceView | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorResponse | Trace
+        ErrorResponse | TraceQueryDescriptor
     """
 
     return sync_detailed(
         workspace=workspace,
-        trace_id=trace_id,
         client=client,
-        view=view,
     ).parsed
 
 
 async def asyncio_detailed(
     workspace: str,
-    trace_id: str,
     *,
     client: AuthenticatedClient,
-    view: TraceView | Unset = UNSET,
-) -> Response[ErrorResponse | Trace]:
-    """Get Trace
+) -> Response[ErrorResponse | TraceQueryDescriptor]:
+    """Get Trace Query
 
     Args:
         workspace (str):
-        trace_id (str):
-        view (TraceView | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorResponse | Trace]
+        Response[ErrorResponse | TraceQueryDescriptor]
     """
 
     kwargs = build_request(
         workspace=workspace,
-        trace_id=trace_id,
-        view=view,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -167,31 +135,25 @@ async def asyncio_detailed(
 
 async def asyncio(
     workspace: str,
-    trace_id: str,
     *,
     client: AuthenticatedClient,
-    view: TraceView | Unset = UNSET,
-) -> ErrorResponse | Trace | None:
-    """Get Trace
+) -> ErrorResponse | TraceQueryDescriptor | None:
+    """Get Trace Query
 
     Args:
         workspace (str):
-        trace_id (str):
-        view (TraceView | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorResponse | Trace
+        ErrorResponse | TraceQueryDescriptor
     """
 
     return (
         await asyncio_detailed(
             workspace=workspace,
-            trace_id=trace_id,
             client=client,
-            view=view,
         )
     ).parsed

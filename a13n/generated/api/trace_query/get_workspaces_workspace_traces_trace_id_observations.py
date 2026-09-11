@@ -6,7 +6,7 @@ import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
 from ...models.error_response import ErrorResponse
-from ...models.trace import Trace
+from ...models.observation_collection import ObservationCollection
 from ...models.trace_view import TraceView
 from ...types import UNSET, Response, Unset
 
@@ -16,6 +16,8 @@ def build_request(
     trace_id: str,
     *,
     view: TraceView | Unset = UNSET,
+    limit: int | Unset = UNSET,
+    cursor: str | Unset | None = UNSET,
 ) -> dict[str, Any]:
 
     params: dict[str, Any] = {}
@@ -26,11 +28,20 @@ def build_request(
 
     params["view"] = json_view
 
+    params["limit"] = limit
+
+    json_cursor: str | Unset | None
+    if isinstance(cursor, Unset):
+        json_cursor = UNSET
+    else:
+        json_cursor = cursor
+    params["cursor"] = json_cursor
+
     params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
 
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": "/api/v1/workspaces/{workspace}/traces/{trace_id}".format(
+        "url": "/api/v1/workspaces/{workspace}/traces/{trace_id}/observations".format(
             workspace=quote(str(workspace), safe=""),
             trace_id=quote(str(trace_id), safe=""),
         ),
@@ -40,9 +51,11 @@ def build_request(
     return _kwargs
 
 
-def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> ErrorResponse | Trace:
+def _parse_response(
+    *, client: AuthenticatedClient | Client, response: httpx.Response
+) -> ErrorResponse | ObservationCollection:
     if response.status_code == 200:
-        response_200 = Trace.from_dict(response.json())
+        response_200 = ObservationCollection.from_dict(response.json())
 
         return response_200
 
@@ -58,7 +71,7 @@ def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Res
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[ErrorResponse | Trace]:
+) -> Response[ErrorResponse | ObservationCollection]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -73,26 +86,32 @@ def sync_detailed(
     *,
     client: AuthenticatedClient,
     view: TraceView | Unset = UNSET,
-) -> Response[ErrorResponse | Trace]:
-    """Get Trace
+    limit: int | Unset = UNSET,
+    cursor: str | Unset | None = UNSET,
+) -> Response[ErrorResponse | ObservationCollection]:
+    """List Trace Observations
 
     Args:
         workspace (str):
         trace_id (str):
         view (TraceView | Unset):
+        limit (int | Unset):
+        cursor (None | str | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorResponse | Trace]
+        Response[ErrorResponse | ObservationCollection]
     """
 
     kwargs = build_request(
         workspace=workspace,
         trace_id=trace_id,
         view=view,
+        limit=limit,
+        cursor=cursor,
     )
 
     response = client.get_httpx_client().request(
@@ -108,20 +127,24 @@ def sync(
     *,
     client: AuthenticatedClient,
     view: TraceView | Unset = UNSET,
-) -> ErrorResponse | Trace | None:
-    """Get Trace
+    limit: int | Unset = UNSET,
+    cursor: str | Unset | None = UNSET,
+) -> ErrorResponse | ObservationCollection | None:
+    """List Trace Observations
 
     Args:
         workspace (str):
         trace_id (str):
         view (TraceView | Unset):
+        limit (int | Unset):
+        cursor (None | str | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorResponse | Trace
+        ErrorResponse | ObservationCollection
     """
 
     return sync_detailed(
@@ -129,6 +152,8 @@ def sync(
         trace_id=trace_id,
         client=client,
         view=view,
+        limit=limit,
+        cursor=cursor,
     ).parsed
 
 
@@ -138,26 +163,32 @@ async def asyncio_detailed(
     *,
     client: AuthenticatedClient,
     view: TraceView | Unset = UNSET,
-) -> Response[ErrorResponse | Trace]:
-    """Get Trace
+    limit: int | Unset = UNSET,
+    cursor: str | Unset | None = UNSET,
+) -> Response[ErrorResponse | ObservationCollection]:
+    """List Trace Observations
 
     Args:
         workspace (str):
         trace_id (str):
         view (TraceView | Unset):
+        limit (int | Unset):
+        cursor (None | str | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorResponse | Trace]
+        Response[ErrorResponse | ObservationCollection]
     """
 
     kwargs = build_request(
         workspace=workspace,
         trace_id=trace_id,
         view=view,
+        limit=limit,
+        cursor=cursor,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -171,20 +202,24 @@ async def asyncio(
     *,
     client: AuthenticatedClient,
     view: TraceView | Unset = UNSET,
-) -> ErrorResponse | Trace | None:
-    """Get Trace
+    limit: int | Unset = UNSET,
+    cursor: str | Unset | None = UNSET,
+) -> ErrorResponse | ObservationCollection | None:
+    """List Trace Observations
 
     Args:
         workspace (str):
         trace_id (str):
         view (TraceView | Unset):
+        limit (int | Unset):
+        cursor (None | str | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorResponse | Trace
+        ErrorResponse | ObservationCollection
     """
 
     return (
@@ -193,5 +228,7 @@ async def asyncio(
             trace_id=trace_id,
             client=client,
             view=view,
+            limit=limit,
+            cursor=cursor,
         )
     ).parsed
