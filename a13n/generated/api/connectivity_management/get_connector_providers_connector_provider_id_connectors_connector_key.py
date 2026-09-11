@@ -5,53 +5,30 @@ from urllib.parse import quote
 import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
-from ...models.connector_collection import ConnectorCollection
+from ...models.connector import Connector
 from ...models.error_response import ErrorResponse
-from ...types import UNSET, Response, Unset
+from ...types import Response
 
 
 def build_request(
     connector_provider_id: str,
-    *,
-    query: str | Unset = UNSET,
-    cursor: str | Unset | None = UNSET,
-    limit: int | Unset = UNSET,
-    refresh: bool | Unset = UNSET,
+    connector_key: str,
 ) -> dict[str, Any]:
 
-    params: dict[str, Any] = {}
-
-    params["query"] = query
-
-    json_cursor: str | Unset | None
-    if isinstance(cursor, Unset):
-        json_cursor = UNSET
-    else:
-        json_cursor = cursor
-    params["cursor"] = json_cursor
-
-    params["limit"] = limit
-
-    params["refresh"] = refresh
-
-    params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
-
     _kwargs: dict[str, Any] = {
-        "method": "post",
-        "url": "/api/v1/connector-providers/{connector_provider_id}/discover-connectors".format(
+        "method": "get",
+        "url": "/api/v1/connector-providers/{connector_provider_id}/connectors/{connector_key}".format(
             connector_provider_id=quote(str(connector_provider_id), safe=""),
+            connector_key=quote(str(connector_key), safe=""),
         ),
-        "params": params,
     }
 
     return _kwargs
 
 
-def _parse_response(
-    *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> ConnectorCollection | ErrorResponse:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Connector | ErrorResponse:
     if response.status_code == 200:
-        response_200 = ConnectorCollection.from_dict(response.json())
+        response_200 = Connector.from_dict(response.json())
 
         return response_200
 
@@ -67,7 +44,7 @@ def _parse_response(
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[ConnectorCollection | ErrorResponse]:
+) -> Response[Connector | ErrorResponse]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -78,36 +55,27 @@ def _build_response(
 
 def sync_detailed(
     connector_provider_id: str,
+    connector_key: str,
     *,
     client: AuthenticatedClient,
-    query: str | Unset = UNSET,
-    cursor: str | Unset | None = UNSET,
-    limit: int | Unset = UNSET,
-    refresh: bool | Unset = UNSET,
-) -> Response[ConnectorCollection | ErrorResponse]:
-    """Discover Connectors
+) -> Response[Connector | ErrorResponse]:
+    """Get Connector
 
     Args:
         connector_provider_id (str):
-        query (str | Unset):
-        cursor (None | str | Unset):
-        limit (int | Unset):
-        refresh (bool | Unset):
+        connector_key (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ConnectorCollection | ErrorResponse]
+        Response[Connector | ErrorResponse]
     """
 
     kwargs = build_request(
         connector_provider_id=connector_provider_id,
-        query=query,
-        cursor=cursor,
-        limit=limit,
-        refresh=refresh,
+        connector_key=connector_key,
     )
 
     response = client.get_httpx_client().request(
@@ -119,72 +87,54 @@ def sync_detailed(
 
 def sync(
     connector_provider_id: str,
+    connector_key: str,
     *,
     client: AuthenticatedClient,
-    query: str | Unset = UNSET,
-    cursor: str | Unset | None = UNSET,
-    limit: int | Unset = UNSET,
-    refresh: bool | Unset = UNSET,
-) -> ConnectorCollection | ErrorResponse | None:
-    """Discover Connectors
+) -> Connector | ErrorResponse | None:
+    """Get Connector
 
     Args:
         connector_provider_id (str):
-        query (str | Unset):
-        cursor (None | str | Unset):
-        limit (int | Unset):
-        refresh (bool | Unset):
+        connector_key (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ConnectorCollection | ErrorResponse
+        Connector | ErrorResponse
     """
 
     return sync_detailed(
         connector_provider_id=connector_provider_id,
+        connector_key=connector_key,
         client=client,
-        query=query,
-        cursor=cursor,
-        limit=limit,
-        refresh=refresh,
     ).parsed
 
 
 async def asyncio_detailed(
     connector_provider_id: str,
+    connector_key: str,
     *,
     client: AuthenticatedClient,
-    query: str | Unset = UNSET,
-    cursor: str | Unset | None = UNSET,
-    limit: int | Unset = UNSET,
-    refresh: bool | Unset = UNSET,
-) -> Response[ConnectorCollection | ErrorResponse]:
-    """Discover Connectors
+) -> Response[Connector | ErrorResponse]:
+    """Get Connector
 
     Args:
         connector_provider_id (str):
-        query (str | Unset):
-        cursor (None | str | Unset):
-        limit (int | Unset):
-        refresh (bool | Unset):
+        connector_key (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ConnectorCollection | ErrorResponse]
+        Response[Connector | ErrorResponse]
     """
 
     kwargs = build_request(
         connector_provider_id=connector_provider_id,
-        query=query,
-        cursor=cursor,
-        limit=limit,
-        refresh=refresh,
+        connector_key=connector_key,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -194,37 +144,28 @@ async def asyncio_detailed(
 
 async def asyncio(
     connector_provider_id: str,
+    connector_key: str,
     *,
     client: AuthenticatedClient,
-    query: str | Unset = UNSET,
-    cursor: str | Unset | None = UNSET,
-    limit: int | Unset = UNSET,
-    refresh: bool | Unset = UNSET,
-) -> ConnectorCollection | ErrorResponse | None:
-    """Discover Connectors
+) -> Connector | ErrorResponse | None:
+    """Get Connector
 
     Args:
         connector_provider_id (str):
-        query (str | Unset):
-        cursor (None | str | Unset):
-        limit (int | Unset):
-        refresh (bool | Unset):
+        connector_key (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ConnectorCollection | ErrorResponse
+        Connector | ErrorResponse
     """
 
     return (
         await asyncio_detailed(
             connector_provider_id=connector_provider_id,
+            connector_key=connector_key,
             client=client,
-            query=query,
-            cursor=cursor,
-            limit=limit,
-            refresh=refresh,
         )
     ).parsed

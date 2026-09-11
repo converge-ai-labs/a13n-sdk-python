@@ -4,34 +4,28 @@ from typing import Any
 import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
+from ...models.complete_mcpo_auth_request import CompleteMCPOAuthRequest
 from ...models.error_response import ErrorResponse
 from ...models.mcp_connection import MCPConnection
-from ...types import UNSET, Response
+from ...types import Response
 
 
 def build_request(
     *,
-    code: str,
-    state: str,
-    iss: str,
+    body: CompleteMCPOAuthRequest,
 ) -> dict[str, Any]:
-
-    params: dict[str, Any] = {}
-
-    params["code"] = code
-
-    params["state"] = state
-
-    params["iss"] = iss
-
-    params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
+    headers: dict[str, Any] = {}
 
     _kwargs: dict[str, Any] = {
-        "method": "get",
-        "url": "/api/v1/oauth/mcp/callback",
-        "params": params,
+        "method": "post",
+        "url": "/api/v1/oauth/mcp/complete",
     }
 
+    _kwargs["json"] = body.to_dict()
+
+    headers["Content-Type"] = "application/json"
+
+    _kwargs["headers"] = headers
     return _kwargs
 
 
@@ -65,16 +59,12 @@ def _build_response(
 def sync_detailed(
     *,
     client: AuthenticatedClient,
-    code: str,
-    state: str,
-    iss: str,
+    body: CompleteMCPOAuthRequest,
 ) -> Response[ErrorResponse | MCPConnection]:
-    """Mcp Oauth Callback
+    """Complete Mcp Oauth
 
     Args:
-        code (str):
-        state (str):
-        iss (str):
+        body (CompleteMCPOAuthRequest):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -85,9 +75,7 @@ def sync_detailed(
     """
 
     kwargs = build_request(
-        code=code,
-        state=state,
-        iss=iss,
+        body=body,
     )
 
     response = client.get_httpx_client().request(
@@ -100,16 +88,12 @@ def sync_detailed(
 def sync(
     *,
     client: AuthenticatedClient,
-    code: str,
-    state: str,
-    iss: str,
+    body: CompleteMCPOAuthRequest,
 ) -> ErrorResponse | MCPConnection | None:
-    """Mcp Oauth Callback
+    """Complete Mcp Oauth
 
     Args:
-        code (str):
-        state (str):
-        iss (str):
+        body (CompleteMCPOAuthRequest):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -121,25 +105,19 @@ def sync(
 
     return sync_detailed(
         client=client,
-        code=code,
-        state=state,
-        iss=iss,
+        body=body,
     ).parsed
 
 
 async def asyncio_detailed(
     *,
     client: AuthenticatedClient,
-    code: str,
-    state: str,
-    iss: str,
+    body: CompleteMCPOAuthRequest,
 ) -> Response[ErrorResponse | MCPConnection]:
-    """Mcp Oauth Callback
+    """Complete Mcp Oauth
 
     Args:
-        code (str):
-        state (str):
-        iss (str):
+        body (CompleteMCPOAuthRequest):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -150,9 +128,7 @@ async def asyncio_detailed(
     """
 
     kwargs = build_request(
-        code=code,
-        state=state,
-        iss=iss,
+        body=body,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -163,16 +139,12 @@ async def asyncio_detailed(
 async def asyncio(
     *,
     client: AuthenticatedClient,
-    code: str,
-    state: str,
-    iss: str,
+    body: CompleteMCPOAuthRequest,
 ) -> ErrorResponse | MCPConnection | None:
-    """Mcp Oauth Callback
+    """Complete Mcp Oauth
 
     Args:
-        code (str):
-        state (str):
-        iss (str):
+        body (CompleteMCPOAuthRequest):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -185,8 +157,6 @@ async def asyncio(
     return (
         await asyncio_detailed(
             client=client,
-            code=code,
-            state=state,
-            iss=iss,
+            body=body,
         )
     ).parsed

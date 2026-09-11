@@ -70,6 +70,7 @@ from .collection_environment_template import CollectionEnvironmentTemplate
 from .collection_environment_template_revision import CollectionEnvironmentTemplateRevision
 from .complete_connector_setup_request import CompleteConnectorSetupRequest
 from .complete_email_change_request import CompleteEmailChangeRequest
+from .complete_mcpo_auth_request import CompleteMCPOAuthRequest
 from .complete_password_reset_request import CompletePasswordResetRequest
 from .complete_pending_resolution import CompletePendingResolution
 from .connection_cleanup_receipt import ConnectionCleanupReceipt
@@ -558,6 +559,7 @@ __all__ = (
     "CollectionEnvironmentTemplateRevision",
     "CompleteConnectorSetupRequest",
     "CompleteEmailChangeRequest",
+    "CompleteMCPOAuthRequest",
     "CompletePasswordResetRequest",
     "CompletePendingResolution",
     "ConnectionCleanupReceipt",
