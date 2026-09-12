@@ -6,38 +6,27 @@ import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
 from ...models.error_response import ErrorResponse
-from ...models.mcpo_auth_discovery import MCPOAuthDiscovery
-from ...models.mcpo_auth_setup_request import MCPOAuthSetupRequest
+from ...models.mcp_server import MCPServer
 from ...types import Response
 
 
 def build_request(
-    connection_id: str,
-    *,
-    body: MCPOAuthSetupRequest,
+    server_key: str,
 ) -> dict[str, Any]:
-    headers: dict[str, Any] = {}
 
     _kwargs: dict[str, Any] = {
-        "method": "post",
-        "url": "/api/v1/connections/{connection_id}/mcp/oauth-discovery".format(
-            connection_id=quote(str(connection_id), safe=""),
+        "method": "get",
+        "url": "/api/v1/mcp-servers/{server_key}".format(
+            server_key=quote(str(server_key), safe=""),
         ),
     }
 
-    _kwargs["json"] = body.to_dict()
-
-    headers["Content-Type"] = "application/json"
-
-    _kwargs["headers"] = headers
     return _kwargs
 
 
-def _parse_response(
-    *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> ErrorResponse | MCPOAuthDiscovery:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> ErrorResponse | MCPServer:
     if response.status_code == 200:
-        response_200 = MCPOAuthDiscovery.from_dict(response.json())
+        response_200 = MCPServer.from_dict(response.json())
 
         return response_200
 
@@ -53,7 +42,7 @@ def _parse_response(
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[ErrorResponse | MCPOAuthDiscovery]:
+) -> Response[ErrorResponse | MCPServer]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -63,28 +52,25 @@ def _build_response(
 
 
 def sync_detailed(
-    connection_id: str,
+    server_key: str,
     *,
     client: AuthenticatedClient,
-    body: MCPOAuthSetupRequest,
-) -> Response[ErrorResponse | MCPOAuthDiscovery]:
-    """Discover Mcp Oauth
+) -> Response[ErrorResponse | MCPServer]:
+    """Get Mcp Server
 
     Args:
-        connection_id (str):
-        body (MCPOAuthSetupRequest):
+        server_key (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorResponse | MCPOAuthDiscovery]
+        Response[ErrorResponse | MCPServer]
     """
 
     kwargs = build_request(
-        connection_id=connection_id,
-        body=body,
+        server_key=server_key,
     )
 
     response = client.get_httpx_client().request(
@@ -95,55 +81,49 @@ def sync_detailed(
 
 
 def sync(
-    connection_id: str,
+    server_key: str,
     *,
     client: AuthenticatedClient,
-    body: MCPOAuthSetupRequest,
-) -> ErrorResponse | MCPOAuthDiscovery | None:
-    """Discover Mcp Oauth
+) -> ErrorResponse | MCPServer | None:
+    """Get Mcp Server
 
     Args:
-        connection_id (str):
-        body (MCPOAuthSetupRequest):
+        server_key (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorResponse | MCPOAuthDiscovery
+        ErrorResponse | MCPServer
     """
 
     return sync_detailed(
-        connection_id=connection_id,
+        server_key=server_key,
         client=client,
-        body=body,
     ).parsed
 
 
 async def asyncio_detailed(
-    connection_id: str,
+    server_key: str,
     *,
     client: AuthenticatedClient,
-    body: MCPOAuthSetupRequest,
-) -> Response[ErrorResponse | MCPOAuthDiscovery]:
-    """Discover Mcp Oauth
+) -> Response[ErrorResponse | MCPServer]:
+    """Get Mcp Server
 
     Args:
-        connection_id (str):
-        body (MCPOAuthSetupRequest):
+        server_key (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorResponse | MCPOAuthDiscovery]
+        Response[ErrorResponse | MCPServer]
     """
 
     kwargs = build_request(
-        connection_id=connection_id,
-        body=body,
+        server_key=server_key,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -152,29 +132,26 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    connection_id: str,
+    server_key: str,
     *,
     client: AuthenticatedClient,
-    body: MCPOAuthSetupRequest,
-) -> ErrorResponse | MCPOAuthDiscovery | None:
-    """Discover Mcp Oauth
+) -> ErrorResponse | MCPServer | None:
+    """Get Mcp Server
 
     Args:
-        connection_id (str):
-        body (MCPOAuthSetupRequest):
+        server_key (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorResponse | MCPOAuthDiscovery
+        ErrorResponse | MCPServer
     """
 
     return (
         await asyncio_detailed(
-            connection_id=connection_id,
+            server_key=server_key,
             client=client,
-            body=body,
         )
     ).parsed

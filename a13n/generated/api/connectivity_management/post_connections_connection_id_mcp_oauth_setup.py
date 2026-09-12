@@ -6,7 +6,7 @@ import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
 from ...models.error_response import ErrorResponse
-from ...models.mcpo_auth_discovery import MCPOAuthDiscovery
+from ...models.mcpo_auth_setup import MCPOAuthSetup
 from ...models.mcpo_auth_setup_request import MCPOAuthSetupRequest
 from ...types import Response
 
@@ -20,7 +20,7 @@ def build_request(
 
     _kwargs: dict[str, Any] = {
         "method": "post",
-        "url": "/api/v1/connections/{connection_id}/mcp/oauth-discovery".format(
+        "url": "/api/v1/connections/{connection_id}/mcp/oauth-setup".format(
             connection_id=quote(str(connection_id), safe=""),
         ),
     }
@@ -33,11 +33,9 @@ def build_request(
     return _kwargs
 
 
-def _parse_response(
-    *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> ErrorResponse | MCPOAuthDiscovery:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> ErrorResponse | MCPOAuthSetup:
     if response.status_code == 200:
-        response_200 = MCPOAuthDiscovery.from_dict(response.json())
+        response_200 = MCPOAuthSetup.from_dict(response.json())
 
         return response_200
 
@@ -53,7 +51,7 @@ def _parse_response(
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[ErrorResponse | MCPOAuthDiscovery]:
+) -> Response[ErrorResponse | MCPOAuthSetup]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -67,8 +65,8 @@ def sync_detailed(
     *,
     client: AuthenticatedClient,
     body: MCPOAuthSetupRequest,
-) -> Response[ErrorResponse | MCPOAuthDiscovery]:
-    """Discover Mcp Oauth
+) -> Response[ErrorResponse | MCPOAuthSetup]:
+    """Get Mcp Oauth Setup
 
     Args:
         connection_id (str):
@@ -79,7 +77,7 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorResponse | MCPOAuthDiscovery]
+        Response[ErrorResponse | MCPOAuthSetup]
     """
 
     kwargs = build_request(
@@ -99,8 +97,8 @@ def sync(
     *,
     client: AuthenticatedClient,
     body: MCPOAuthSetupRequest,
-) -> ErrorResponse | MCPOAuthDiscovery | None:
-    """Discover Mcp Oauth
+) -> ErrorResponse | MCPOAuthSetup | None:
+    """Get Mcp Oauth Setup
 
     Args:
         connection_id (str):
@@ -111,7 +109,7 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorResponse | MCPOAuthDiscovery
+        ErrorResponse | MCPOAuthSetup
     """
 
     return sync_detailed(
@@ -126,8 +124,8 @@ async def asyncio_detailed(
     *,
     client: AuthenticatedClient,
     body: MCPOAuthSetupRequest,
-) -> Response[ErrorResponse | MCPOAuthDiscovery]:
-    """Discover Mcp Oauth
+) -> Response[ErrorResponse | MCPOAuthSetup]:
+    """Get Mcp Oauth Setup
 
     Args:
         connection_id (str):
@@ -138,7 +136,7 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorResponse | MCPOAuthDiscovery]
+        Response[ErrorResponse | MCPOAuthSetup]
     """
 
     kwargs = build_request(
@@ -156,8 +154,8 @@ async def asyncio(
     *,
     client: AuthenticatedClient,
     body: MCPOAuthSetupRequest,
-) -> ErrorResponse | MCPOAuthDiscovery | None:
-    """Discover Mcp Oauth
+) -> ErrorResponse | MCPOAuthSetup | None:
+    """Get Mcp Oauth Setup
 
     Args:
         connection_id (str):
@@ -168,7 +166,7 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorResponse | MCPOAuthDiscovery
+        ErrorResponse | MCPOAuthSetup
     """
 
     return (
