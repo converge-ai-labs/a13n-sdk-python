@@ -5,33 +5,29 @@ from urllib.parse import quote
 import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
-from ...models.create_managed_environment_request import CreateManagedEnvironmentRequest
 from ...models.environment import Environment
 from ...models.error_response import ErrorResponse
-from ...models.register_environment_request import RegisterEnvironmentRequest
+from ...models.update_environment_request import UpdateEnvironmentRequest
 from ...types import Response
 
 
 def build_request(
-    workspace: str,
+    environment_id: str,
     *,
-    body: CreateManagedEnvironmentRequest | RegisterEnvironmentRequest,
-    idempotency_key: str,
+    body: UpdateEnvironmentRequest,
+    if_match: str,
 ) -> dict[str, Any]:
     headers: dict[str, Any] = {}
-    headers["Idempotency-Key"] = idempotency_key
+    headers["If-Match"] = if_match
 
     _kwargs: dict[str, Any] = {
-        "method": "post",
-        "url": "/api/v1/workspaces/{workspace}/environments".format(
-            workspace=quote(str(workspace), safe=""),
+        "method": "patch",
+        "url": "/api/v1/environments/{environment_id}".format(
+            environment_id=quote(str(environment_id), safe=""),
         ),
     }
 
-    if isinstance(body, CreateManagedEnvironmentRequest):
-        _kwargs["json"] = body.to_dict()
-    else:
-        _kwargs["json"] = body.to_dict()
+    _kwargs["json"] = body.to_dict()
 
     headers["Content-Type"] = "application/json"
 
@@ -40,10 +36,10 @@ def build_request(
 
 
 def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Environment | ErrorResponse:
-    if response.status_code == 201:
-        response_201 = Environment.from_dict(response.json())
+    if response.status_code == 200:
+        response_200 = Environment.from_dict(response.json())
 
-        return response_201
+        return response_200
 
     if response.status_code == 400:
         response_400 = ErrorResponse.from_dict(response.json())
@@ -67,18 +63,18 @@ def _build_response(
 
 
 def sync_detailed(
-    workspace: str,
+    environment_id: str,
     *,
     client: AuthenticatedClient,
-    body: CreateManagedEnvironmentRequest | RegisterEnvironmentRequest,
-    idempotency_key: str,
+    body: UpdateEnvironmentRequest,
+    if_match: str,
 ) -> Response[Environment | ErrorResponse]:
-    """Create Environment
+    """Update Environment
 
     Args:
-        workspace (str):
-        idempotency_key (str):
-        body (CreateManagedEnvironmentRequest | RegisterEnvironmentRequest):
+        environment_id (str):
+        if_match (str):
+        body (UpdateEnvironmentRequest):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -89,9 +85,9 @@ def sync_detailed(
     """
 
     kwargs = build_request(
-        workspace=workspace,
+        environment_id=environment_id,
         body=body,
-        idempotency_key=idempotency_key,
+        if_match=if_match,
     )
 
     response = client.get_httpx_client().request(
@@ -102,18 +98,18 @@ def sync_detailed(
 
 
 def sync(
-    workspace: str,
+    environment_id: str,
     *,
     client: AuthenticatedClient,
-    body: CreateManagedEnvironmentRequest | RegisterEnvironmentRequest,
-    idempotency_key: str,
+    body: UpdateEnvironmentRequest,
+    if_match: str,
 ) -> Environment | ErrorResponse | None:
-    """Create Environment
+    """Update Environment
 
     Args:
-        workspace (str):
-        idempotency_key (str):
-        body (CreateManagedEnvironmentRequest | RegisterEnvironmentRequest):
+        environment_id (str):
+        if_match (str):
+        body (UpdateEnvironmentRequest):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -124,26 +120,26 @@ def sync(
     """
 
     return sync_detailed(
-        workspace=workspace,
+        environment_id=environment_id,
         client=client,
         body=body,
-        idempotency_key=idempotency_key,
+        if_match=if_match,
     ).parsed
 
 
 async def asyncio_detailed(
-    workspace: str,
+    environment_id: str,
     *,
     client: AuthenticatedClient,
-    body: CreateManagedEnvironmentRequest | RegisterEnvironmentRequest,
-    idempotency_key: str,
+    body: UpdateEnvironmentRequest,
+    if_match: str,
 ) -> Response[Environment | ErrorResponse]:
-    """Create Environment
+    """Update Environment
 
     Args:
-        workspace (str):
-        idempotency_key (str):
-        body (CreateManagedEnvironmentRequest | RegisterEnvironmentRequest):
+        environment_id (str):
+        if_match (str):
+        body (UpdateEnvironmentRequest):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -154,9 +150,9 @@ async def asyncio_detailed(
     """
 
     kwargs = build_request(
-        workspace=workspace,
+        environment_id=environment_id,
         body=body,
-        idempotency_key=idempotency_key,
+        if_match=if_match,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -165,18 +161,18 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    workspace: str,
+    environment_id: str,
     *,
     client: AuthenticatedClient,
-    body: CreateManagedEnvironmentRequest | RegisterEnvironmentRequest,
-    idempotency_key: str,
+    body: UpdateEnvironmentRequest,
+    if_match: str,
 ) -> Environment | ErrorResponse | None:
-    """Create Environment
+    """Update Environment
 
     Args:
-        workspace (str):
-        idempotency_key (str):
-        body (CreateManagedEnvironmentRequest | RegisterEnvironmentRequest):
+        environment_id (str):
+        if_match (str):
+        body (UpdateEnvironmentRequest):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -188,9 +184,9 @@ async def asyncio(
 
     return (
         await asyncio_detailed(
-            workspace=workspace,
+            environment_id=environment_id,
             client=client,
             body=body,
-            idempotency_key=idempotency_key,
+            if_match=if_match,
         )
     ).parsed
