@@ -31,6 +31,11 @@ from .agent_input import AgentInput
 from .agent_input_schema_version import AgentInputSchemaVersion
 from .agent_model import AgentModel
 from .agent_model_settings import AgentModelSettings
+from .agent_reviewer import AgentReviewer
+from .agent_reviewer_model_settings_type_0 import AgentReviewerModelSettingsType0
+from .agent_reviewer_on_error import AgentReviewerOnError
+from .agent_reviewer_on_flagged import AgentReviewerOnFlagged
+from .agent_reviewer_rules import AgentReviewerRules
 from .agent_revision import AgentRevision
 from .agent_revision_collection import AgentRevisionCollection
 from .agent_revision_create_result import AgentRevisionCreateResult
@@ -478,6 +483,12 @@ from .thread_run_submission_request import ThreadRunSubmissionRequest
 from .tool import Tool
 from .tool_call import ToolCall
 from .tool_message import ToolMessage
+from .tool_permission_mode import ToolPermissionMode
+from .tool_permissions import ToolPermissions
+from .tool_permissions_rules import ToolPermissionsRules
+from .tool_review_rule import ToolReviewRule
+from .tool_review_rule_on_flagged_type_0 import ToolReviewRuleOnFlaggedType0
+from .tool_risk_level import ToolRiskLevel
 from .trace import Trace
 from .trace_collection import TraceCollection
 from .trace_correlation import TraceCorrelation
@@ -559,6 +570,11 @@ __all__ = (
     "AgentInputSchemaVersion",
     "AgentModel",
     "AgentModelSettings",
+    "AgentReviewer",
+    "AgentReviewerModelSettingsType0",
+    "AgentReviewerOnError",
+    "AgentReviewerOnFlagged",
+    "AgentReviewerRules",
     "AgentRevision",
     "AgentRevisionCollection",
     "AgentRevisionCreateResult",
@@ -994,6 +1010,12 @@ __all__ = (
     "Tool",
     "ToolCall",
     "ToolMessage",
+    "ToolPermissionMode",
+    "ToolPermissions",
+    "ToolPermissionsRules",
+    "ToolReviewRule",
+    "ToolReviewRuleOnFlaggedType0",
+    "ToolRiskLevel",
     "Trace",
     "TraceCollection",
     "TraceCorrelation",
