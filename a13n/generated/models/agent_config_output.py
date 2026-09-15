@@ -10,9 +10,9 @@ from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.agent_config_output_subagents import AgentConfigOutputSubagents
+    from ..models.agent_config_output_toolsets import AgentConfigOutputToolsets
     from ..models.agent_model import AgentModel
     from ..models.agent_reviewer import AgentReviewer
-    from ..models.asset_publication_config import AssetPublicationConfig
     from ..models.client_tool_definition import ClientToolDefinition
     from ..models.connection_tool_selection import ConnectionToolSelection
     from ..models.input_adapter_config import InputAdapterConfig
@@ -21,10 +21,8 @@ if TYPE_CHECKING:
     from ..models.plugin_selection import PluginSelection
     from ..models.protocol_config import ProtocolConfig
     from ..models.retry_config import RetryConfig
-    from ..models.search_selection import SearchSelection
     from ..models.secret_requirement import SecretRequirement
     from ..models.skill_selection import SkillSelection
-    from ..models.tool_permissions import ToolPermissions
 
 
 T = TypeVar("T", bound="AgentConfigOutput")
@@ -37,64 +35,49 @@ class AgentConfigOutput:
         input_adapter (InputAdapterConfig):
         model (AgentModel):
         protocol (ProtocolConfig):
-        asset_publication (AssetPublicationConfig | None | Unset):
         client_tools (list[ClientToolDefinition] | Unset):
         connection_tools (list[ConnectionToolSelection] | Unset):
         instructions (str | Unset):
         memory (MemorySelection | None | Unset):
         output_spec (None | OutputSpec | Unset):
-        permissions (None | ToolPermissions | Unset):
         plugins (list[PluginSelection] | Unset):
         retries (None | RetryConfig | Unset):
         reviewer (AgentReviewer | None | Unset):
-        search (None | SearchSelection | Unset):
         secret_requirements (list[SecretRequirement] | Unset):
         skills (list[SkillSelection] | Unset):
         subagent_mode (AgentConfigOutputSubagentMode | Unset):
         subagents (AgentConfigOutputSubagents | Unset):
+        toolsets (AgentConfigOutputToolsets | Unset):
     """
 
     input_adapter: InputAdapterConfig
     model: AgentModel
     protocol: ProtocolConfig
-    asset_publication: AssetPublicationConfig | Unset | None = UNSET
     client_tools: list[ClientToolDefinition] | Unset = UNSET
     connection_tools: list[ConnectionToolSelection] | Unset = UNSET
     instructions: str | Unset = UNSET
     memory: MemorySelection | Unset | None = UNSET
     output_spec: OutputSpec | Unset | None = UNSET
-    permissions: ToolPermissions | Unset | None = UNSET
     plugins: list[PluginSelection] | Unset = UNSET
     retries: RetryConfig | Unset | None = UNSET
     reviewer: AgentReviewer | Unset | None = UNSET
-    search: SearchSelection | Unset | None = UNSET
     secret_requirements: list[SecretRequirement] | Unset = UNSET
     skills: list[SkillSelection] | Unset = UNSET
     subagent_mode: AgentConfigOutputSubagentMode | Unset = UNSET
     subagents: AgentConfigOutputSubagents | Unset = UNSET
+    toolsets: AgentConfigOutputToolsets | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
         from ..models.agent_reviewer import AgentReviewer
-        from ..models.asset_publication_config import AssetPublicationConfig
         from ..models.memory_selection import MemorySelection
         from ..models.output_spec import OutputSpec
         from ..models.retry_config import RetryConfig
-        from ..models.search_selection import SearchSelection
-        from ..models.tool_permissions import ToolPermissions
 
         input_adapter = self.input_adapter.to_dict()
 
         model = self.model.to_dict()
 
         protocol = self.protocol.to_dict()
-
-        asset_publication: dict[str, Any] | Unset | None
-        if isinstance(self.asset_publication, Unset):
-            asset_publication = UNSET
-        elif isinstance(self.asset_publication, AssetPublicationConfig):
-            asset_publication = self.asset_publication.to_dict()
-        else:
-            asset_publication = self.asset_publication
 
         client_tools: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.client_tools, Unset):
@@ -128,14 +111,6 @@ class AgentConfigOutput:
         else:
             output_spec = self.output_spec
 
-        permissions: dict[str, Any] | Unset | None
-        if isinstance(self.permissions, Unset):
-            permissions = UNSET
-        elif isinstance(self.permissions, ToolPermissions):
-            permissions = self.permissions.to_dict()
-        else:
-            permissions = self.permissions
-
         plugins: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.plugins, Unset):
             plugins = []
@@ -159,14 +134,6 @@ class AgentConfigOutput:
         else:
             reviewer = self.reviewer
 
-        search: dict[str, Any] | Unset | None
-        if isinstance(self.search, Unset):
-            search = UNSET
-        elif isinstance(self.search, SearchSelection):
-            search = self.search.to_dict()
-        else:
-            search = self.search
-
         secret_requirements: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.secret_requirements, Unset):
             secret_requirements = []
@@ -189,6 +156,10 @@ class AgentConfigOutput:
         if not isinstance(self.subagents, Unset):
             subagents = self.subagents.to_dict()
 
+        toolsets: dict[str, Any] | Unset = UNSET
+        if not isinstance(self.toolsets, Unset):
+            toolsets = self.toolsets.to_dict()
+
         field_dict: dict[str, Any] = {}
 
         field_dict.update(
@@ -198,8 +169,6 @@ class AgentConfigOutput:
                 "protocol": protocol,
             }
         )
-        if asset_publication is not UNSET:
-            field_dict["asset_publication"] = asset_publication
         if client_tools is not UNSET:
             field_dict["client_tools"] = client_tools
         if connection_tools is not UNSET:
@@ -210,16 +179,12 @@ class AgentConfigOutput:
             field_dict["memory"] = memory
         if output_spec is not UNSET:
             field_dict["output_spec"] = output_spec
-        if permissions is not UNSET:
-            field_dict["permissions"] = permissions
         if plugins is not UNSET:
             field_dict["plugins"] = plugins
         if retries is not UNSET:
             field_dict["retries"] = retries
         if reviewer is not UNSET:
             field_dict["reviewer"] = reviewer
-        if search is not UNSET:
-            field_dict["search"] = search
         if secret_requirements is not UNSET:
             field_dict["secret_requirements"] = secret_requirements
         if skills is not UNSET:
@@ -228,15 +193,17 @@ class AgentConfigOutput:
             field_dict["subagent_mode"] = subagent_mode
         if subagents is not UNSET:
             field_dict["subagents"] = subagents
+        if toolsets is not UNSET:
+            field_dict["toolsets"] = toolsets
 
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.agent_config_output_subagents import AgentConfigOutputSubagents
+        from ..models.agent_config_output_toolsets import AgentConfigOutputToolsets
         from ..models.agent_model import AgentModel
         from ..models.agent_reviewer import AgentReviewer
-        from ..models.asset_publication_config import AssetPublicationConfig
         from ..models.client_tool_definition import ClientToolDefinition
         from ..models.connection_tool_selection import ConnectionToolSelection
         from ..models.input_adapter_config import InputAdapterConfig
@@ -245,10 +212,8 @@ class AgentConfigOutput:
         from ..models.plugin_selection import PluginSelection
         from ..models.protocol_config import ProtocolConfig
         from ..models.retry_config import RetryConfig
-        from ..models.search_selection import SearchSelection
         from ..models.secret_requirement import SecretRequirement
         from ..models.skill_selection import SkillSelection
-        from ..models.tool_permissions import ToolPermissions
 
         d = dict(src_dict)
         input_adapter = InputAdapterConfig.from_dict(d.pop("input_adapter"))
@@ -256,23 +221,6 @@ class AgentConfigOutput:
         model = AgentModel.from_dict(d.pop("model"))
 
         protocol = ProtocolConfig.from_dict(d.pop("protocol"))
-
-        def _parse_asset_publication(data: object) -> AssetPublicationConfig | Unset | None:
-            if data is None:
-                return data
-            if isinstance(data, Unset):
-                return data
-            try:
-                if not isinstance(data, dict):
-                    raise TypeError()
-                asset_publication_type_0 = AssetPublicationConfig.from_dict(data)
-
-                return asset_publication_type_0
-            except (TypeError, ValueError, AttributeError, KeyError):
-                pass
-            return cast(AssetPublicationConfig | Unset | None, data)
-
-        asset_publication = _parse_asset_publication(d.pop("asset_publication", UNSET))
 
         _client_tools = d.pop("client_tools", UNSET)
         client_tools: list[ClientToolDefinition] | Unset = UNSET
@@ -328,23 +276,6 @@ class AgentConfigOutput:
 
         output_spec = _parse_output_spec(d.pop("output_spec", UNSET))
 
-        def _parse_permissions(data: object) -> ToolPermissions | Unset | None:
-            if data is None:
-                return data
-            if isinstance(data, Unset):
-                return data
-            try:
-                if not isinstance(data, dict):
-                    raise TypeError()
-                permissions_type_0 = ToolPermissions.from_dict(data)
-
-                return permissions_type_0
-            except (TypeError, ValueError, AttributeError, KeyError):
-                pass
-            return cast(ToolPermissions | Unset | None, data)
-
-        permissions = _parse_permissions(d.pop("permissions", UNSET))
-
         _plugins = d.pop("plugins", UNSET)
         plugins: list[PluginSelection] | Unset = UNSET
         if _plugins is not UNSET:
@@ -388,23 +319,6 @@ class AgentConfigOutput:
 
         reviewer = _parse_reviewer(d.pop("reviewer", UNSET))
 
-        def _parse_search(data: object) -> SearchSelection | Unset | None:
-            if data is None:
-                return data
-            if isinstance(data, Unset):
-                return data
-            try:
-                if not isinstance(data, dict):
-                    raise TypeError()
-                search_type_0 = SearchSelection.from_dict(data)
-
-                return search_type_0
-            except (TypeError, ValueError, AttributeError, KeyError):
-                pass
-            return cast(SearchSelection | Unset | None, data)
-
-        search = _parse_search(d.pop("search", UNSET))
-
         _secret_requirements = d.pop("secret_requirements", UNSET)
         secret_requirements: list[SecretRequirement] | Unset = UNSET
         if _secret_requirements is not UNSET:
@@ -437,25 +351,30 @@ class AgentConfigOutput:
         else:
             subagents = AgentConfigOutputSubagents.from_dict(_subagents)
 
+        _toolsets = d.pop("toolsets", UNSET)
+        toolsets: AgentConfigOutputToolsets | Unset
+        if isinstance(_toolsets, Unset):
+            toolsets = UNSET
+        else:
+            toolsets = AgentConfigOutputToolsets.from_dict(_toolsets)
+
         agent_config_output = cls(
             input_adapter=input_adapter,
             model=model,
             protocol=protocol,
-            asset_publication=asset_publication,
             client_tools=client_tools,
             connection_tools=connection_tools,
             instructions=instructions,
             memory=memory,
             output_spec=output_spec,
-            permissions=permissions,
             plugins=plugins,
             retries=retries,
             reviewer=reviewer,
-            search=search,
             secret_requirements=secret_requirements,
             skills=skills,
             subagent_mode=subagent_mode,
             subagents=subagents,
+            toolsets=toolsets,
         )
 
         return agent_config_output
