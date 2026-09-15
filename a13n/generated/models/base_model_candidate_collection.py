@@ -6,20 +6,20 @@ from typing import TYPE_CHECKING, Any, TypeVar
 from attrs import define as _attrs_define
 
 if TYPE_CHECKING:
-    from ..models.model_candidate import ModelCandidate
+    from ..models.base_model_candidate import BaseModelCandidate
 
 
-T = TypeVar("T", bound="ModelDiscovery")
+T = TypeVar("T", bound="BaseModelCandidateCollection")
 
 
 @_attrs_define(repr=False)
-class ModelDiscovery:
+class BaseModelCandidateCollection:
     """
     Attributes:
-        items (list[ModelCandidate]):
+        items (list[BaseModelCandidate]):
     """
 
-    items: list[ModelCandidate]
+    items: list[BaseModelCandidate]
 
     def to_dict(self) -> dict[str, Any]:
         items = []
@@ -39,18 +39,18 @@ class ModelDiscovery:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.model_candidate import ModelCandidate
+        from ..models.base_model_candidate import BaseModelCandidate
 
         d = dict(src_dict)
         items = []
         _items = d.pop("items")
         for items_item_data in _items:
-            items_item = ModelCandidate.from_dict(items_item_data)
+            items_item = BaseModelCandidate.from_dict(items_item_data)
 
             items.append(items_item)
 
-        model_discovery = cls(
+        base_model_candidate_collection = cls(
             items=items,
         )
 
-        return model_discovery
+        return base_model_candidate_collection
