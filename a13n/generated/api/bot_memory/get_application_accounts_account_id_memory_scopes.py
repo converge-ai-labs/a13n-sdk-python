@@ -5,20 +5,23 @@ from urllib.parse import quote
 import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
-from ...models.account_collection import AccountCollection
 from ...models.error_response import ErrorResponse
+from ...models.scope_collection import ScopeCollection
 from ...types import UNSET, Response, Unset
 
 
 def build_request(
-    workspace: str,
+    account_id: str,
     *,
+    provider_id: str,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
-    bots_only: bool | Unset = UNSET,
+    target_id: str | Unset | None = UNSET,
 ) -> dict[str, Any]:
 
     params: dict[str, Any] = {}
+
+    params["provider_id"] = provider_id
 
     params["limit"] = limit
 
@@ -29,14 +32,19 @@ def build_request(
         json_cursor = cursor
     params["cursor"] = json_cursor
 
-    params["bots_only"] = bots_only
+    json_target_id: str | Unset | None
+    if isinstance(target_id, Unset):
+        json_target_id = UNSET
+    else:
+        json_target_id = target_id
+    params["target_id"] = json_target_id
 
     params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
 
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": "/api/v1/workspaces/{workspace}/application-accounts".format(
-            workspace=quote(str(workspace), safe=""),
+        "url": "/api/v1/application-accounts/{account_id}/memory-scopes".format(
+            account_id=quote(str(account_id), safe=""),
         ),
         "params": params,
     }
@@ -46,9 +54,9 @@ def build_request(
 
 def _parse_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> AccountCollection | ErrorResponse:
+) -> ErrorResponse | ScopeCollection:
     if response.status_code == 200:
-        response_200 = AccountCollection.from_dict(response.json())
+        response_200 = ScopeCollection.from_dict(response.json())
 
         return response_200
 
@@ -64,7 +72,7 @@ def _parse_response(
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[AccountCollection | ErrorResponse]:
+) -> Response[ErrorResponse | ScopeCollection]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -74,34 +82,37 @@ def _build_response(
 
 
 def sync_detailed(
-    workspace: str,
+    account_id: str,
     *,
     client: AuthenticatedClient,
+    provider_id: str,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
-    bots_only: bool | Unset = UNSET,
-) -> Response[AccountCollection | ErrorResponse]:
-    """List Accounts
+    target_id: str | Unset | None = UNSET,
+) -> Response[ErrorResponse | ScopeCollection]:
+    """Scopes
 
     Args:
-        workspace (str):
+        account_id (str):
+        provider_id (str):
         limit (int | Unset):
         cursor (None | str | Unset):
-        bots_only (bool | Unset):
+        target_id (None | str | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[AccountCollection | ErrorResponse]
+        Response[ErrorResponse | ScopeCollection]
     """
 
     kwargs = build_request(
-        workspace=workspace,
+        account_id=account_id,
+        provider_id=provider_id,
         limit=limit,
         cursor=cursor,
-        bots_only=bots_only,
+        target_id=target_id,
     )
 
     response = client.get_httpx_client().request(
@@ -112,67 +123,73 @@ def sync_detailed(
 
 
 def sync(
-    workspace: str,
+    account_id: str,
     *,
     client: AuthenticatedClient,
+    provider_id: str,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
-    bots_only: bool | Unset = UNSET,
-) -> AccountCollection | ErrorResponse | None:
-    """List Accounts
+    target_id: str | Unset | None = UNSET,
+) -> ErrorResponse | ScopeCollection | None:
+    """Scopes
 
     Args:
-        workspace (str):
+        account_id (str):
+        provider_id (str):
         limit (int | Unset):
         cursor (None | str | Unset):
-        bots_only (bool | Unset):
+        target_id (None | str | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        AccountCollection | ErrorResponse
+        ErrorResponse | ScopeCollection
     """
 
     return sync_detailed(
-        workspace=workspace,
+        account_id=account_id,
         client=client,
+        provider_id=provider_id,
         limit=limit,
         cursor=cursor,
-        bots_only=bots_only,
+        target_id=target_id,
     ).parsed
 
 
 async def asyncio_detailed(
-    workspace: str,
+    account_id: str,
     *,
     client: AuthenticatedClient,
+    provider_id: str,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
-    bots_only: bool | Unset = UNSET,
-) -> Response[AccountCollection | ErrorResponse]:
-    """List Accounts
+    target_id: str | Unset | None = UNSET,
+) -> Response[ErrorResponse | ScopeCollection]:
+    """Scopes
 
     Args:
-        workspace (str):
+        account_id (str):
+        provider_id (str):
         limit (int | Unset):
         cursor (None | str | Unset):
-        bots_only (bool | Unset):
+        target_id (None | str | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[AccountCollection | ErrorResponse]
+        Response[ErrorResponse | ScopeCollection]
     """
 
     kwargs = build_request(
-        workspace=workspace,
+        account_id=account_id,
+        provider_id=provider_id,
         limit=limit,
         cursor=cursor,
-        bots_only=bots_only,
+        target_id=target_id,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -181,35 +198,38 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    workspace: str,
+    account_id: str,
     *,
     client: AuthenticatedClient,
+    provider_id: str,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
-    bots_only: bool | Unset = UNSET,
-) -> AccountCollection | ErrorResponse | None:
-    """List Accounts
+    target_id: str | Unset | None = UNSET,
+) -> ErrorResponse | ScopeCollection | None:
+    """Scopes
 
     Args:
-        workspace (str):
+        account_id (str):
+        provider_id (str):
         limit (int | Unset):
         cursor (None | str | Unset):
-        bots_only (bool | Unset):
+        target_id (None | str | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        AccountCollection | ErrorResponse
+        ErrorResponse | ScopeCollection
     """
 
     return (
         await asyncio_detailed(
-            workspace=workspace,
+            account_id=account_id,
             client=client,
+            provider_id=provider_id,
             limit=limit,
             cursor=cursor,
-            bots_only=bots_only,
+            target_id=target_id,
         )
     ).parsed
