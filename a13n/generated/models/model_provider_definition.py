@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 
+from ..types import UNSET, Unset
+
 if TYPE_CHECKING:
     from ..models.model_provider_definition_configuration_schema import ModelProviderDefinitionConfigurationSchema
     from ..models.model_provider_definition_credential_schema import ModelProviderDefinitionCredentialSchema
@@ -26,8 +28,8 @@ class ModelProviderDefinition:
         model_api_labels (ModelProviderDefinitionModelApiLabels):
         settings_schemas (ModelProviderDefinitionSettingsSchemas):
         supported_model_apis (list[str]):
-        supports_model_discovery (bool):
         type_ (str):
+        catalog_providers (list[str] | Unset):
     """
 
     configuration_schema: ModelProviderDefinitionConfigurationSchema
@@ -37,8 +39,8 @@ class ModelProviderDefinition:
     model_api_labels: ModelProviderDefinitionModelApiLabels
     settings_schemas: ModelProviderDefinitionSettingsSchemas
     supported_model_apis: list[str]
-    supports_model_discovery: bool
     type_: str
+    catalog_providers: list[str] | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
         configuration_schema = self.configuration_schema.to_dict()
@@ -55,9 +57,11 @@ class ModelProviderDefinition:
 
         supported_model_apis = self.supported_model_apis
 
-        supports_model_discovery = self.supports_model_discovery
-
         type_ = self.type_
+
+        catalog_providers: list[str] | Unset = UNSET
+        if not isinstance(self.catalog_providers, Unset):
+            catalog_providers = self.catalog_providers
 
         field_dict: dict[str, Any] = {}
 
@@ -70,10 +74,11 @@ class ModelProviderDefinition:
                 "model_api_labels": model_api_labels,
                 "settings_schemas": settings_schemas,
                 "supported_model_apis": supported_model_apis,
-                "supports_model_discovery": supports_model_discovery,
                 "type": type_,
             }
         )
+        if catalog_providers is not UNSET:
+            field_dict["catalog_providers"] = catalog_providers
 
         return field_dict
 
@@ -107,9 +112,9 @@ class ModelProviderDefinition:
 
         supported_model_apis = cast(list[str], d.pop("supported_model_apis"))
 
-        supports_model_discovery = d.pop("supports_model_discovery")
-
         type_ = d.pop("type")
+
+        catalog_providers = cast(list[str], d.pop("catalog_providers", UNSET))
 
         model_provider_definition = cls(
             configuration_schema=configuration_schema,
@@ -119,8 +124,8 @@ class ModelProviderDefinition:
             model_api_labels=model_api_labels,
             settings_schemas=settings_schemas,
             supported_model_apis=supported_model_apis,
-            supports_model_discovery=supports_model_discovery,
             type_=type_,
+            catalog_providers=catalog_providers,
         )
 
         return model_provider_definition

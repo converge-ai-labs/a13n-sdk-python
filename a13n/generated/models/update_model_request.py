@@ -8,7 +8,8 @@ from attrs import define as _attrs_define
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
-    from ..models.model_declarations import ModelDeclarations
+    from ..models.catalog_ref import CatalogRef
+    from ..models.model_declarations_input import ModelDeclarationsInput
     from ..models.update_model_request_settings_type_0 import UpdateModelRequestSettingsType0
 
 
@@ -19,8 +20,8 @@ T = TypeVar("T", bound="UpdateModelRequest")
 class UpdateModelRequest:
     """
     Attributes:
-        base_model (None | str | Unset):
-        declarations (ModelDeclarations | None | Unset):
+        catalog_ref (CatalogRef | None | Unset):
+        declarations (ModelDeclarationsInput | None | Unset):
         description (None | str | Unset):
         enabled (bool | None | Unset):
         model_api (None | str | Unset):
@@ -29,8 +30,8 @@ class UpdateModelRequest:
         upstream_model (None | str | Unset):
     """
 
-    base_model: str | Unset | None = UNSET
-    declarations: ModelDeclarations | Unset | None = UNSET
+    catalog_ref: CatalogRef | Unset | None = UNSET
+    declarations: ModelDeclarationsInput | Unset | None = UNSET
     description: str | Unset | None = UNSET
     enabled: bool | Unset | None = UNSET
     model_api: str | Unset | None = UNSET
@@ -39,19 +40,22 @@ class UpdateModelRequest:
     upstream_model: str | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.model_declarations import ModelDeclarations
+        from ..models.catalog_ref import CatalogRef
+        from ..models.model_declarations_input import ModelDeclarationsInput
         from ..models.update_model_request_settings_type_0 import UpdateModelRequestSettingsType0
 
-        base_model: str | Unset | None
-        if isinstance(self.base_model, Unset):
-            base_model = UNSET
+        catalog_ref: dict[str, Any] | Unset | None
+        if isinstance(self.catalog_ref, Unset):
+            catalog_ref = UNSET
+        elif isinstance(self.catalog_ref, CatalogRef):
+            catalog_ref = self.catalog_ref.to_dict()
         else:
-            base_model = self.base_model
+            catalog_ref = self.catalog_ref
 
         declarations: dict[str, Any] | Unset | None
         if isinstance(self.declarations, Unset):
             declarations = UNSET
-        elif isinstance(self.declarations, ModelDeclarations):
+        elif isinstance(self.declarations, ModelDeclarationsInput):
             declarations = self.declarations.to_dict()
         else:
             declarations = self.declarations
@@ -97,8 +101,8 @@ class UpdateModelRequest:
         field_dict: dict[str, Any] = {}
 
         field_dict.update({})
-        if base_model is not UNSET:
-            field_dict["base_model"] = base_model
+        if catalog_ref is not UNSET:
+            field_dict["catalog_ref"] = catalog_ref
         if declarations is not UNSET:
             field_dict["declarations"] = declarations
         if description is not UNSET:
@@ -118,21 +122,13 @@ class UpdateModelRequest:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.model_declarations import ModelDeclarations
+        from ..models.catalog_ref import CatalogRef
+        from ..models.model_declarations_input import ModelDeclarationsInput
         from ..models.update_model_request_settings_type_0 import UpdateModelRequestSettingsType0
 
         d = dict(src_dict)
 
-        def _parse_base_model(data: object) -> str | Unset | None:
-            if data is None:
-                return data
-            if isinstance(data, Unset):
-                return data
-            return cast(str | Unset | None, data)
-
-        base_model = _parse_base_model(d.pop("base_model", UNSET))
-
-        def _parse_declarations(data: object) -> ModelDeclarations | Unset | None:
+        def _parse_catalog_ref(data: object) -> CatalogRef | Unset | None:
             if data is None:
                 return data
             if isinstance(data, Unset):
@@ -140,12 +136,29 @@ class UpdateModelRequest:
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
-                declarations_type_0 = ModelDeclarations.from_dict(data)
+                catalog_ref_type_0 = CatalogRef.from_dict(data)
+
+                return catalog_ref_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(CatalogRef | Unset | None, data)
+
+        catalog_ref = _parse_catalog_ref(d.pop("catalog_ref", UNSET))
+
+        def _parse_declarations(data: object) -> ModelDeclarationsInput | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                declarations_type_0 = ModelDeclarationsInput.from_dict(data)
 
                 return declarations_type_0
             except (TypeError, ValueError, AttributeError, KeyError):
                 pass
-            return cast(ModelDeclarations | Unset | None, data)
+            return cast(ModelDeclarationsInput | Unset | None, data)
 
         declarations = _parse_declarations(d.pop("declarations", UNSET))
 
@@ -212,7 +225,7 @@ class UpdateModelRequest:
         upstream_model = _parse_upstream_model(d.pop("upstream_model", UNSET))
 
         update_model_request = cls(
-            base_model=base_model,
+            catalog_ref=catalog_ref,
             declarations=declarations,
             description=description,
             enabled=enabled,
