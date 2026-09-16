@@ -1,0 +1,87 @@
+name: Review Service contract update
+
+on:
+  repository_dispatch:
+    types: [service-contract-updated]
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Complete Service main-line commit SHA
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: service-contract-update
+  queue: max
+
+jobs:
+  propose:
+    if: github.ref == 'refs/heads/main' && vars.SERVICE_CONTRACT_APP_CLIENT_ID != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate immutable source identity
+        id: source
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          MANUAL_SHA: ${{ inputs.source_sha }}
+        run: |
+          if [[ "$EVENT_NAME" == repository_dispatch ]]; then
+            jq -e '.client_payload.repository == "converge-ai-labs/agent-foundation"' "$GITHUB_EVENT_PATH" >/dev/null
+            source_sha=$(jq -er '.client_payload.commit' "$GITHUB_EVENT_PATH")
+          else
+            source_sha=$MANUAL_SHA
+          fi
+          [[ "$source_sha" =~ ^[0-9a-f]{40}$ ]] || { echo 'A full Service SHA is required' >&2; exit 1; }
+          echo "sha=$source_sha" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          path: sdk
+          persist-credentials: false
+
+      - name: Read-only Service installation token
+        uses: actions/create-github-app-token@v3
+        id: source-token
+        with:
+          client-id: ${{ vars.SERVICE_CONTRACT_APP_CLIENT_ID }}
+          private-key: ${{ secrets.SERVICE_CONTRACT_APP_PRIVATE_KEY }}
+          owner: converge-ai-labs
+          repositories: agent-foundation
+          permission-contents: read
+
+      - name: Read Service Git history without executing it
+        uses: actions/checkout@v6
+        with:
+          repository: converge-ai-labs/agent-foundation
+          ref: main
+          fetch-depth: 0
+          path: service-source
+          token: ${{ steps.source-token.outputs.token }}
+          persist-credentials: false
+
+      - name: Verify provenance and copy committed evidence
+        working-directory: sdk
+        env:
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+        run: bash scripts/sync-contract.sh ../service-source "$SOURCE_SHA"
+
+      - name: SDK-scoped PR installation token
+        uses: actions/create-github-app-token@v3
+        id: pr-token
+        with:
+          client-id: ${{ vars.SERVICE_CONTRACT_APP_CLIENT_ID }}
+          private-key: ${{ secrets.SERVICE_CONTRACT_APP_PRIVATE_KEY }}
+          owner: converge-ai-labs
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Propose a reviewed update, never release or auto-merge
+        working-directory: sdk
+        env:
+          GH_TOKEN: ${{ steps.pr-token.outputs.token }}
+        run: bash scripts/open-contract-pr.sh

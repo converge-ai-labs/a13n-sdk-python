@@ -5,11 +5,11 @@ from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 
-T = TypeVar("T", bound="DeleteQueuedSubmissionRequest")
+T = TypeVar("T", bound="DiscardDraftRequest")
 
 
 @_attrs_define(repr=False)
-class DeleteQueuedSubmissionRequest:
+class DiscardDraftRequest:
     """
     Attributes:
         expected_version (int):
@@ -35,8 +35,8 @@ class DeleteQueuedSubmissionRequest:
         d = dict(src_dict)
         expected_version = d.pop("expected_version")
 
-        delete_queued_submission_request = cls(
+        discard_draft_request = cls(
             expected_version=expected_version,
         )
 
-        return delete_queued_submission_request
+        return discard_draft_request

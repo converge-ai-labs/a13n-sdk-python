@@ -1,0 +1,34 @@
+{
+  "repository": "converge-ai-labs/agent-foundation",
+  "commit": "b9dee50c8fbe64086b3bbe20135b40193b200dba",
+  "files": {
+    "openapi.json": {
+      "source_path": "proto/a13n-service/openapi.json",
+      "sha256": "81fa873b2ff9c9fce473982df89322496a70ee6d0a36c347efdf58494a7e1397"
+    },
+    "notification-client.schema.json": {
+      "source_path": "proto/a13n-service/notification-client.schema.json",
+      "sha256": "37c0b3fd4df1613d44b8de3a64b591506ee0f17a9ab6a20750264632bd4aff73"
+    },
+    "run-stream-event.schema.json": {
+      "source_path": "proto/a13n-service/run-stream-event.schema.json",
+      "sha256": "aa40647226f360c667d5a04508dc3eb0ac3028362dff3f713d10b421cae79e93"
+    },
+    "fixtures/wire.json": {
+      "source_path": "proto/a13n-service/fixtures/wire.json",
+      "sha256": "b02d49652bb9a0704d11cbfd6d0c5167f1341be3ec89b014240ffe2aa5d324f9"
+    },
+    "semantics/api-conventions.md": {
+      "source_path": "spec/api-conventions.md",
+      "sha256": "654b9b68132752fa2b905580a132aed7b1480656d9478614e174ec13371835a6"
+    },
+    "semantics/native-streaming-and-notifications.md": {
+      "source_path": "spec/a13n-service/21-native-streaming-and-notifications.md",
+      "sha256": "22cdcc8d45c3e18cdb521a119d735b58d544e9595a98e31675e6b11c87865cbb"
+    },
+    "semantics/queued-submissions.md": {
+      "source_path": "spec/a13n-service/20-agent-control-queued-submissions.md",
+      "sha256": "20e0ff8ce0d97ac8eb5eb53d5ee4709f26cddc1fdacf2be3557a103a9d4c6207"
+    }
+  }
+}

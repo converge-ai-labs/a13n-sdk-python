@@ -28,7 +28,7 @@ from a13n.generated.models import (
 )
 from a13n.generated.types import UNSET
 
-FIXTURES = json.loads((Path(__file__).parents[2] / "fixtures/wire.json").read_text())
+FIXTURES = json.loads((Path(__file__).parents[1] / "contract/fixtures/wire.json").read_text())
 
 
 def test_wire_fixtures_roundtrip() -> None:

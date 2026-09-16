@@ -1,45 +1,50 @@
 from http import HTTPStatus
-from typing import Any, cast
+from typing import Any
 from urllib.parse import quote
 
 import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
+from ...models.configuration_draft import ConfigurationDraft
 from ...models.error_response import ErrorResponse
-from ...types import UNSET, Response
+from ...models.update_configuration_draft_request import UpdateConfigurationDraftRequest
+from ...types import Response
 
 
 def build_request(
-    queued_submission_id: str,
+    draft_id: str,
     *,
-    expected_version: int,
+    body: UpdateConfigurationDraftRequest,
     idempotency_key: str,
+    if_match: str,
 ) -> dict[str, Any]:
     headers: dict[str, Any] = {}
     headers["Idempotency-Key"] = idempotency_key
 
-    params: dict[str, Any] = {}
-
-    params["expected_version"] = expected_version
-
-    params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
+    headers["If-Match"] = if_match
 
     _kwargs: dict[str, Any] = {
-        "method": "delete",
-        "url": "/api/v1/queued-submissions/{queued_submission_id}".format(
-            queued_submission_id=quote(str(queued_submission_id), safe=""),
+        "method": "patch",
+        "url": "/api/v1/configuration-drafts/{draft_id}".format(
+            draft_id=quote(str(draft_id), safe=""),
         ),
-        "params": params,
     }
+
+    _kwargs["json"] = body.to_dict()
+
+    headers["Content-Type"] = "application/json"
 
     _kwargs["headers"] = headers
     return _kwargs
 
 
-def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Any | ErrorResponse:
-    if response.status_code == 204:
-        response_204 = cast(Any, None)
-        return response_204
+def _parse_response(
+    *, client: AuthenticatedClient | Client, response: httpx.Response
+) -> ConfigurationDraft | ErrorResponse:
+    if response.status_code == 200:
+        response_200 = ConfigurationDraft.from_dict(response.json())
+
+        return response_200
 
     if response.status_code == 400:
         response_400 = ErrorResponse.from_dict(response.json())
@@ -51,7 +56,9 @@ def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Res
     return response_default
 
 
-def _build_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Response[Any | ErrorResponse]:
+def _build_response(
+    *, client: AuthenticatedClient | Client, response: httpx.Response
+) -> Response[ConfigurationDraft | ErrorResponse]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -61,31 +68,34 @@ def _build_response(*, client: AuthenticatedClient | Client, response: httpx.Res
 
 
 def sync_detailed(
-    queued_submission_id: str,
+    draft_id: str,
     *,
     client: AuthenticatedClient,
-    expected_version: int,
+    body: UpdateConfigurationDraftRequest,
     idempotency_key: str,
-) -> Response[Any | ErrorResponse]:
-    """Delete Queued Submission
+    if_match: str,
+) -> Response[ConfigurationDraft | ErrorResponse]:
+    """Update Draft
 
     Args:
-        queued_submission_id (str):
-        expected_version (int):
+        draft_id (str):
         idempotency_key (str):
+        if_match (str):
+        body (UpdateConfigurationDraftRequest):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Any | ErrorResponse]
+        Response[ConfigurationDraft | ErrorResponse]
     """
 
     kwargs = build_request(
-        queued_submission_id=queued_submission_id,
-        expected_version=expected_version,
+        draft_id=draft_id,
+        body=body,
         idempotency_key=idempotency_key,
+        if_match=if_match,
     )
 
     response = client.get_httpx_client().request(
@@ -96,61 +106,67 @@ def sync_detailed(
 
 
 def sync(
-    queued_submission_id: str,
+    draft_id: str,
     *,
     client: AuthenticatedClient,
-    expected_version: int,
+    body: UpdateConfigurationDraftRequest,
     idempotency_key: str,
-) -> Any | ErrorResponse | None:
-    """Delete Queued Submission
+    if_match: str,
+) -> ConfigurationDraft | ErrorResponse | None:
+    """Update Draft
 
     Args:
-        queued_submission_id (str):
-        expected_version (int):
+        draft_id (str):
         idempotency_key (str):
+        if_match (str):
+        body (UpdateConfigurationDraftRequest):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Any | ErrorResponse
+        ConfigurationDraft | ErrorResponse
     """
 
     return sync_detailed(
-        queued_submission_id=queued_submission_id,
+        draft_id=draft_id,
         client=client,
-        expected_version=expected_version,
+        body=body,
         idempotency_key=idempotency_key,
+        if_match=if_match,
     ).parsed
 
 
 async def asyncio_detailed(
-    queued_submission_id: str,
+    draft_id: str,
     *,
     client: AuthenticatedClient,
-    expected_version: int,
+    body: UpdateConfigurationDraftRequest,
     idempotency_key: str,
-) -> Response[Any | ErrorResponse]:
-    """Delete Queued Submission
+    if_match: str,
+) -> Response[ConfigurationDraft | ErrorResponse]:
+    """Update Draft
 
     Args:
-        queued_submission_id (str):
-        expected_version (int):
+        draft_id (str):
         idempotency_key (str):
+        if_match (str):
+        body (UpdateConfigurationDraftRequest):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Any | ErrorResponse]
+        Response[ConfigurationDraft | ErrorResponse]
     """
 
     kwargs = build_request(
-        queued_submission_id=queued_submission_id,
-        expected_version=expected_version,
+        draft_id=draft_id,
+        body=body,
         idempotency_key=idempotency_key,
+        if_match=if_match,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -159,32 +175,35 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    queued_submission_id: str,
+    draft_id: str,
     *,
     client: AuthenticatedClient,
-    expected_version: int,
+    body: UpdateConfigurationDraftRequest,
     idempotency_key: str,
-) -> Any | ErrorResponse | None:
-    """Delete Queued Submission
+    if_match: str,
+) -> ConfigurationDraft | ErrorResponse | None:
+    """Update Draft
 
     Args:
-        queued_submission_id (str):
-        expected_version (int):
+        draft_id (str):
         idempotency_key (str):
+        if_match (str):
+        body (UpdateConfigurationDraftRequest):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Any | ErrorResponse
+        ConfigurationDraft | ErrorResponse
     """
 
     return (
         await asyncio_detailed(
-            queued_submission_id=queued_submission_id,
+            draft_id=draft_id,
             client=client,
-            expected_version=expected_version,
+            body=body,
             idempotency_key=idempotency_key,
+            if_match=if_match,
         )
     ).parsed
