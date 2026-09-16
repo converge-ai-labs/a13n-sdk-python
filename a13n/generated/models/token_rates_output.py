@@ -7,45 +7,45 @@ from attrs import define as _attrs_define
 
 from ..types import UNSET, Unset
 
-T = TypeVar("T", bound="ModelPricing")
+T = TypeVar("T", bound="TokenRatesOutput")
 
 
 @_attrs_define(repr=False)
-class ModelPricing:
-    """Editable USD prices per million tokens.
+class TokenRatesOutput:
+    """USD per million tokens; null is unknown, never free.
 
     Attributes:
-        cache_read (float | None | Unset):
-        cache_write (float | None | Unset):
-        input_ (float | None | Unset):
-        output (float | None | Unset):
+        cache_read (None | str | Unset):
+        cache_write (None | str | Unset):
+        input_ (None | str | Unset):
+        output (None | str | Unset):
     """
 
-    cache_read: float | Unset | None = UNSET
-    cache_write: float | Unset | None = UNSET
-    input_: float | Unset | None = UNSET
-    output: float | Unset | None = UNSET
+    cache_read: str | Unset | None = UNSET
+    cache_write: str | Unset | None = UNSET
+    input_: str | Unset | None = UNSET
+    output: str | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
-        cache_read: float | Unset | None
+        cache_read: str | Unset | None
         if isinstance(self.cache_read, Unset):
             cache_read = UNSET
         else:
             cache_read = self.cache_read
 
-        cache_write: float | Unset | None
+        cache_write: str | Unset | None
         if isinstance(self.cache_write, Unset):
             cache_write = UNSET
         else:
             cache_write = self.cache_write
 
-        input_: float | Unset | None
+        input_: str | Unset | None
         if isinstance(self.input_, Unset):
             input_ = UNSET
         else:
             input_ = self.input_
 
-        output: float | Unset | None
+        output: str | Unset | None
         if isinstance(self.output, Unset):
             output = UNSET
         else:
@@ -69,47 +69,47 @@ class ModelPricing:
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
 
-        def _parse_cache_read(data: object) -> float | Unset | None:
+        def _parse_cache_read(data: object) -> str | Unset | None:
             if data is None:
                 return data
             if isinstance(data, Unset):
                 return data
-            return cast(float | Unset | None, data)
+            return cast(str | Unset | None, data)
 
         cache_read = _parse_cache_read(d.pop("cache_read", UNSET))
 
-        def _parse_cache_write(data: object) -> float | Unset | None:
+        def _parse_cache_write(data: object) -> str | Unset | None:
             if data is None:
                 return data
             if isinstance(data, Unset):
                 return data
-            return cast(float | Unset | None, data)
+            return cast(str | Unset | None, data)
 
         cache_write = _parse_cache_write(d.pop("cache_write", UNSET))
 
-        def _parse_input_(data: object) -> float | Unset | None:
+        def _parse_input_(data: object) -> str | Unset | None:
             if data is None:
                 return data
             if isinstance(data, Unset):
                 return data
-            return cast(float | Unset | None, data)
+            return cast(str | Unset | None, data)
 
         input_ = _parse_input_(d.pop("input", UNSET))
 
-        def _parse_output(data: object) -> float | Unset | None:
+        def _parse_output(data: object) -> str | Unset | None:
             if data is None:
                 return data
             if isinstance(data, Unset):
                 return data
-            return cast(float | Unset | None, data)
+            return cast(str | Unset | None, data)
 
         output = _parse_output(d.pop("output", UNSET))
 
-        model_pricing = cls(
+        token_rates_output = cls(
             cache_read=cache_read,
             cache_write=cache_write,
             input_=input_,
             output=output,
         )
 
-        return model_pricing
+        return token_rates_output

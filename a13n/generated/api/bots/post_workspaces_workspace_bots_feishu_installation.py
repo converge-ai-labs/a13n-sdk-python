@@ -5,23 +5,23 @@ from urllib.parse import quote
 import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
+from ...models.discover_feishu_installation_request import DiscoverFeishuInstallationRequest
 from ...models.error_response import ErrorResponse
-from ...models.model_catalog_match import ModelCatalogMatch
-from ...models.model_catalog_suggestion_request import ModelCatalogSuggestionRequest
+from ...models.installation_info import InstallationInfo
 from ...types import Response
 
 
 def build_request(
-    organization: str,
+    workspace: str,
     *,
-    body: ModelCatalogSuggestionRequest,
+    body: DiscoverFeishuInstallationRequest,
 ) -> dict[str, Any]:
     headers: dict[str, Any] = {}
 
     _kwargs: dict[str, Any] = {
         "method": "post",
-        "url": "/api/v1/organizations/{organization}/model-catalog/suggestions".format(
-            organization=quote(str(organization), safe=""),
+        "url": "/api/v1/workspaces/{workspace}/bots/feishu/installation".format(
+            workspace=quote(str(workspace), safe=""),
         ),
     }
 
@@ -35,9 +35,9 @@ def build_request(
 
 def _parse_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> ErrorResponse | ModelCatalogMatch:
+) -> ErrorResponse | InstallationInfo:
     if response.status_code == 200:
-        response_200 = ModelCatalogMatch.from_dict(response.json())
+        response_200 = InstallationInfo.from_dict(response.json())
 
         return response_200
 
@@ -53,7 +53,7 @@ def _parse_response(
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[ErrorResponse | ModelCatalogMatch]:
+) -> Response[ErrorResponse | InstallationInfo]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -63,27 +63,27 @@ def _build_response(
 
 
 def sync_detailed(
-    organization: str,
+    workspace: str,
     *,
     client: AuthenticatedClient,
-    body: ModelCatalogSuggestionRequest,
-) -> Response[ErrorResponse | ModelCatalogMatch]:
-    """Suggest Organization Model Declarations
+    body: DiscoverFeishuInstallationRequest,
+) -> Response[ErrorResponse | InstallationInfo]:
+    """Discover Feishu Installation
 
     Args:
-        organization (str):
-        body (ModelCatalogSuggestionRequest):
+        workspace (str):
+        body (DiscoverFeishuInstallationRequest):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorResponse | ModelCatalogMatch]
+        Response[ErrorResponse | InstallationInfo]
     """
 
     kwargs = build_request(
-        organization=organization,
+        workspace=workspace,
         body=body,
     )
 
@@ -95,54 +95,54 @@ def sync_detailed(
 
 
 def sync(
-    organization: str,
+    workspace: str,
     *,
     client: AuthenticatedClient,
-    body: ModelCatalogSuggestionRequest,
-) -> ErrorResponse | ModelCatalogMatch | None:
-    """Suggest Organization Model Declarations
+    body: DiscoverFeishuInstallationRequest,
+) -> ErrorResponse | InstallationInfo | None:
+    """Discover Feishu Installation
 
     Args:
-        organization (str):
-        body (ModelCatalogSuggestionRequest):
+        workspace (str):
+        body (DiscoverFeishuInstallationRequest):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorResponse | ModelCatalogMatch
+        ErrorResponse | InstallationInfo
     """
 
     return sync_detailed(
-        organization=organization,
+        workspace=workspace,
         client=client,
         body=body,
     ).parsed
 
 
 async def asyncio_detailed(
-    organization: str,
+    workspace: str,
     *,
     client: AuthenticatedClient,
-    body: ModelCatalogSuggestionRequest,
-) -> Response[ErrorResponse | ModelCatalogMatch]:
-    """Suggest Organization Model Declarations
+    body: DiscoverFeishuInstallationRequest,
+) -> Response[ErrorResponse | InstallationInfo]:
+    """Discover Feishu Installation
 
     Args:
-        organization (str):
-        body (ModelCatalogSuggestionRequest):
+        workspace (str):
+        body (DiscoverFeishuInstallationRequest):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorResponse | ModelCatalogMatch]
+        Response[ErrorResponse | InstallationInfo]
     """
 
     kwargs = build_request(
-        organization=organization,
+        workspace=workspace,
         body=body,
     )
 
@@ -152,28 +152,28 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    organization: str,
+    workspace: str,
     *,
     client: AuthenticatedClient,
-    body: ModelCatalogSuggestionRequest,
-) -> ErrorResponse | ModelCatalogMatch | None:
-    """Suggest Organization Model Declarations
+    body: DiscoverFeishuInstallationRequest,
+) -> ErrorResponse | InstallationInfo | None:
+    """Discover Feishu Installation
 
     Args:
-        organization (str):
-        body (ModelCatalogSuggestionRequest):
+        workspace (str):
+        body (DiscoverFeishuInstallationRequest):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorResponse | ModelCatalogMatch
+        ErrorResponse | InstallationInfo
     """
 
     return (
         await asyncio_detailed(
-            organization=organization,
+            workspace=workspace,
             client=client,
             body=body,
         )

@@ -5,32 +5,39 @@ from urllib.parse import quote
 import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
+from ...models.account_memory_settings import AccountMemorySettings
 from ...models.error_response import ErrorResponse
-from ...models.model_discovery import ModelDiscovery
+from ...models.replace_memory_settings import ReplaceMemorySettings
 from ...types import Response
 
 
 def build_request(
-    workspace: str,
-    provider_id: str,
+    account_id: str,
+    *,
+    body: ReplaceMemorySettings,
 ) -> dict[str, Any]:
+    headers: dict[str, Any] = {}
 
     _kwargs: dict[str, Any] = {
-        "method": "post",
-        "url": "/api/v1/workspaces/{workspace}/model-providers/{provider_id}/discover-models".format(
-            workspace=quote(str(workspace), safe=""),
-            provider_id=quote(str(provider_id), safe=""),
+        "method": "put",
+        "url": "/api/v1/application-accounts/{account_id}/bot/memory-settings".format(
+            account_id=quote(str(account_id), safe=""),
         ),
     }
 
+    _kwargs["json"] = body.to_dict()
+
+    headers["Content-Type"] = "application/json"
+
+    _kwargs["headers"] = headers
     return _kwargs
 
 
 def _parse_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> ErrorResponse | ModelDiscovery:
+) -> AccountMemorySettings | ErrorResponse:
     if response.status_code == 200:
-        response_200 = ModelDiscovery.from_dict(response.json())
+        response_200 = AccountMemorySettings.from_dict(response.json())
 
         return response_200
 
@@ -46,7 +53,7 @@ def _parse_response(
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[ErrorResponse | ModelDiscovery]:
+) -> Response[AccountMemorySettings | ErrorResponse]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -56,28 +63,28 @@ def _build_response(
 
 
 def sync_detailed(
-    workspace: str,
-    provider_id: str,
+    account_id: str,
     *,
     client: AuthenticatedClient,
-) -> Response[ErrorResponse | ModelDiscovery]:
-    """Discover Provider Models
+    body: ReplaceMemorySettings,
+) -> Response[AccountMemorySettings | ErrorResponse]:
+    """Update Memory Settings
 
     Args:
-        workspace (str):
-        provider_id (str):
+        account_id (str):
+        body (ReplaceMemorySettings):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorResponse | ModelDiscovery]
+        Response[AccountMemorySettings | ErrorResponse]
     """
 
     kwargs = build_request(
-        workspace=workspace,
-        provider_id=provider_id,
+        account_id=account_id,
+        body=body,
     )
 
     response = client.get_httpx_client().request(
@@ -88,55 +95,55 @@ def sync_detailed(
 
 
 def sync(
-    workspace: str,
-    provider_id: str,
+    account_id: str,
     *,
     client: AuthenticatedClient,
-) -> ErrorResponse | ModelDiscovery | None:
-    """Discover Provider Models
+    body: ReplaceMemorySettings,
+) -> AccountMemorySettings | ErrorResponse | None:
+    """Update Memory Settings
 
     Args:
-        workspace (str):
-        provider_id (str):
+        account_id (str):
+        body (ReplaceMemorySettings):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorResponse | ModelDiscovery
+        AccountMemorySettings | ErrorResponse
     """
 
     return sync_detailed(
-        workspace=workspace,
-        provider_id=provider_id,
+        account_id=account_id,
         client=client,
+        body=body,
     ).parsed
 
 
 async def asyncio_detailed(
-    workspace: str,
-    provider_id: str,
+    account_id: str,
     *,
     client: AuthenticatedClient,
-) -> Response[ErrorResponse | ModelDiscovery]:
-    """Discover Provider Models
+    body: ReplaceMemorySettings,
+) -> Response[AccountMemorySettings | ErrorResponse]:
+    """Update Memory Settings
 
     Args:
-        workspace (str):
-        provider_id (str):
+        account_id (str):
+        body (ReplaceMemorySettings):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorResponse | ModelDiscovery]
+        Response[AccountMemorySettings | ErrorResponse]
     """
 
     kwargs = build_request(
-        workspace=workspace,
-        provider_id=provider_id,
+        account_id=account_id,
+        body=body,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -145,29 +152,29 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    workspace: str,
-    provider_id: str,
+    account_id: str,
     *,
     client: AuthenticatedClient,
-) -> ErrorResponse | ModelDiscovery | None:
-    """Discover Provider Models
+    body: ReplaceMemorySettings,
+) -> AccountMemorySettings | ErrorResponse | None:
+    """Update Memory Settings
 
     Args:
-        workspace (str):
-        provider_id (str):
+        account_id (str):
+        body (ReplaceMemorySettings):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorResponse | ModelDiscovery
+        AccountMemorySettings | ErrorResponse
     """
 
     return (
         await asyncio_detailed(
-            workspace=workspace,
-            provider_id=provider_id,
+            account_id=account_id,
             client=client,
+            body=body,
         )
     ).parsed
