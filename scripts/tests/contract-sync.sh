@@ -20,6 +20,7 @@ commit_source() {
 hash() { shasum -a 256 "$1" | cut -d ' ' -f 1; }
 reject() {
   if "$@" > "$work/rejected.log" 2>&1; then
+    cat "$work/rejected.log" >&2
     echo "Expected failure: $*" >&2; exit 1
   fi
 }
@@ -120,7 +121,17 @@ reject check
 cp "$work/current/source.json" "$sdk/contract/"
 check
 
-# PR operations use only local bare Git and a fake gh; never a real API/token.
+# PR operations use only local bare Git and fake gh/make; never a real API/token.
+# Language-specific generated ownership; the remainder of this suite is shared.
+export TEST_GENERATED=a13n/generated/current.py TEST_ADDED=a13n/generated/new.py TEST_REMOVED=a13n/generated/obsolete.py
+mkdir -p "$sdk/$(dirname "$TEST_GENERATED")" "$sdk/$(dirname "$TEST_ADDED")"
+cp "$sdk/contract/openapi.json" "$sdk/$TEST_GENERATED"
+if [[ -n "$TEST_REMOVED" ]]; then
+  echo obsolete > "$sdk/$TEST_REMOVED"
+else
+  cp "$sdk/contract/openapi.json" "$sdk/$TEST_ADDED"
+fi
+printf 'handwritten\n' > "$sdk/handwritten.txt"
 git init -q -b main "$sdk"
 git -C "$sdk" config user.name Test
 git -C "$sdk" config user.email test@example.invalid
@@ -131,15 +142,35 @@ git -C "$sdk" commit -qm 'Accepted snapshot'
 git init -q --bare "$work/remote.git"
 git -C "$sdk" remote add origin "$work/remote.git"
 git -C "$sdk" push -q origin main
-cp "$work/current/source.json" "$sdk/contract/"
-cp "$work/current/semantics/api-conventions.md" "$sdk/contract/semantics/"
+cat > "$work/bin/make" <<'MAKE'
+#!/usr/bin/env bash
+set -euo pipefail
+[[ "$*" == generate && -z ${GH_TOKEN:-} ]]
+echo generate >> "$TEST_GENERATE_LOG"
+# Simulate partial writes and unrelated build/handwritten changes before failure.
+printf 'partial output\n' > "$TEST_GENERATED"
+printf 'not a generated file\n' > handwritten.txt
+printf 'untracked build output\n' > unexpected.txt
+if [[ ${TEST_GENERATE_FAIL:-false} != false ]]; then exit 1; fi
+cp contract/openapi.json "$TEST_GENERATED"
+if [[ $(jq '.paths | length' contract/openapi.json) != 0 ]]; then
+  cp contract/openapi.json "$TEST_ADDED"
+  if [[ -n "$TEST_REMOVED" ]]; then rm -f "$TEST_REMOVED"; fi
+elif [[ -z "$TEST_REMOVED" ]]; then
+  cp contract/openapi.json "$TEST_ADDED"
+fi
+MAKE
+chmod +x "$work/bin/make"
 cat > "$work/bin/gh" <<'GH'
 #!/usr/bin/env bash
 set -euo pipefail
 if [[ "$1 $2" == 'pr list' ]]; then
+  [[ " $* " == *' --state all '* ]]
   printf '%s\n' "${TEST_PRS:-[]}"
 elif [[ "$1 $2" == 'pr create' ]]; then
   [[ " $* " == *' --draft '* && " $* " == *' --base main '* ]]
+  while [[ "$1" != --body-file ]]; do shift; done
+  grep -q 'Full SDK CI runs while this PR is still a draft' "$2"
   echo created >> "$TEST_PR_LOG"
   if [[ ${TEST_CREATE_FAIL:-false} == true ]]; then exit 1; fi
 else
@@ -148,23 +179,86 @@ fi
 GH
 chmod +x "$work/bin/gh"
 export PATH="$work/bin:$PATH" TEST_PR_LOG="$work/pr.log" GITHUB_REPOSITORY=converge-ai-labs/a13n-sdk-test
-export TEST_CREATE_FAIL=true
-reject bash "$sdk/scripts/open-contract-pr.sh"
-branch="sync/service-contract-$runtime"
-first_head=$(git --git-dir="$work/remote.git" rev-parse "refs/heads/$branch")
-# Retry from a fresh main checkout after push succeeded but PR creation failed.
-git -C "$sdk" switch -q main
+export TEST_GENERATE_LOG="$work/generate.log" GH_TOKEN=not-a-real-token
+: > "$TEST_GENERATE_LOG"
+: > "$TEST_PR_LOG"
+# An accepted pin is a no-op, even if generation would fail.
+export TEST_GENERATE_FAIL=true
+bash "$sdk/scripts/open-contract-pr.sh"
+[[ ! -s "$TEST_GENERATE_LOG" && ! -s "$TEST_PR_LOG" ]]
+
+# A semantic/runtime-only update still creates a reviewable pin update.
 cp "$work/current/source.json" "$sdk/contract/"
 cp "$work/current/semantics/api-conventions.md" "$sdk/contract/semantics/"
-export TEST_CREATE_FAIL=false
+export TEST_GENERATE_FAIL=false
 bash "$sdk/scripts/open-contract-pr.sh"
-[[ $(git --git-dir="$work/remote.git" rev-parse "refs/heads/$branch") == "$first_head" ]]
-[[ $(wc -l < "$TEST_PR_LOG" | tr -d ' ') == 2 ]]
+[[ -z $(git -C "$sdk" diff main HEAD -- "$TEST_GENERATED" "$TEST_ADDED") ]]
+[[ $(git -C "$sdk" show HEAD:contract/source.json | jq -r .commit) == "$runtime" ]]
+[[ $(git -C "$sdk" show HEAD:handwritten.txt) == handwritten ]]
+! git -C "$sdk" cat-file -e HEAD:unexpected.txt 2>/dev/null
+
+# Fresh ephemeral checkout and a real input change (generation is stubbed here).
+git -C "$sdk" reset --hard -q
+git -C "$sdk" switch -q main
+git -C "$sdk" clean -fdq
+cp "$work/initial/run-stream-event.schema.json" "$upstream/proto/a13n-service/run-stream-event.schema.json"
+jq '.paths["/api/v1/probe"] = {get:{operationId:"probe",responses:{"204":{description:"No content"}}}}' \
+  "$upstream/proto/a13n-service/openapi.json" > "$work/http.json"
+cp "$work/http.json" "$upstream/proto/a13n-service/openapi.json"
+http=$(commit_source 'HTTP operation added')
+sync "$http"
+branch="sync/service-contract-$http"
+base=$(git -C "$sdk" rev-parse HEAD)
+export TEST_GENERATE_FAIL=true
+reject bash "$sdk/scripts/open-contract-pr.sh"
+[[ $(git -C "$sdk" rev-parse HEAD) == "$base" ]]
+[[ -z $(git -C "$sdk" diff --cached) ]]
+[[ $(cat "$sdk/$TEST_GENERATED") == 'partial output' ]]
+! git --git-dir="$work/remote.git" show-ref --verify --quiet "refs/heads/$branch"
+[[ $(wc -l < "$TEST_PR_LOG" | tr -d ' ') == 1 ]]
+
+# Retry succeeds; the commit includes generated changes/deletions, not other files.
+export TEST_GENERATE_FAIL=false TEST_CREATE_FAIL=true
+reject bash "$sdk/scripts/open-contract-pr.sh"
+first_head=$(git --git-dir="$work/remote.git" rev-parse "refs/heads/$branch")
+[[ $(git -C "$sdk" show HEAD:contract/source.json | jq -r .commit) == "$http" ]]
+for output in "$TEST_GENERATED" "$TEST_ADDED"; do
+  git -C "$sdk" show "HEAD:$output" > "$work/actual"
+  cmp "$work/actual" "$work/http.json"
+done
+if [[ -n "$TEST_REMOVED" ]]; then ! git -C "$sdk" cat-file -e "HEAD:$TEST_REMOVED" 2>/dev/null; fi
+[[ $(git -C "$sdk" show HEAD:handwritten.txt) == handwritten ]]
+! git -C "$sdk" cat-file -e HEAD:unexpected.txt 2>/dev/null
+
+# Reviewer edits survive a retry after push succeeded but PR creation failed.
+printf 'reviewer adaptation\n' > "$sdk/$TEST_GENERATED"
+git -C "$sdk" add -- "$TEST_GENERATED"
+git -C "$sdk" commit -qm 'Reviewer adaptation'
+git -C "$sdk" push -q origin "HEAD:refs/heads/$branch"
+reviewed_head=$(git --git-dir="$work/remote.git" rev-parse "refs/heads/$branch")
+[[ "$reviewed_head" != "$first_head" ]]
+git -C "$sdk" reset --hard -q
+git -C "$sdk" switch -q main
+git -C "$sdk" clean -fdq
+sync "$http"
+export TEST_CREATE_FAIL=false TEST_GENERATE_FAIL=true
+before=$(wc -l < "$TEST_GENERATE_LOG")
+bash "$sdk/scripts/open-contract-pr.sh"
+[[ $(wc -l < "$TEST_GENERATE_LOG") == "$before" ]]
+[[ $(git --git-dir="$work/remote.git" rev-parse "refs/heads/$branch") == "$reviewed_head" ]]
+[[ $(wc -l < "$TEST_PR_LOG" | tr -d ' ') == 3 ]]
 export TEST_PRS='[{"number":1}]'
 bash "$sdk/scripts/open-contract-pr.sh"
-[[ $(wc -l < "$TEST_PR_LOG" | tr -d ' ') == 2 ]]
-[[ $(git --git-dir="$work/remote.git" rev-parse "refs/heads/$branch") == "$first_head" ]]
+[[ $(wc -l < "$TEST_GENERATE_LOG") == "$before" ]]
+[[ $(wc -l < "$TEST_PR_LOG" | tr -d ' ') == 3 ]]
+[[ $(git --git-dir="$work/remote.git" rev-parse "refs/heads/$branch") == "$reviewed_head" ]]
 [[ -z $(git --git-dir="$work/remote.git" tag -l) ]]
+
+# Drafts use the same complete CI gate; no draft-specific condition may skip it.
+ci="$scripts/../.github/workflows/ci.yml"
+grep -q 'types: \[opened, synchronize, reopened, ready_for_review\]' "$ci"
+grep -q 'run: make check-all' "$ci"
+! grep -q 'if:.*draft' "$ci"
 # Execute the workflow's actual input-validation block with synthetic event files.
 awk '/^        run: \|$/ {capture=1; next} capture && /^$/ {exit} capture {print substr($0,11)}' \
   "$scripts/../.github/workflows/sync-service-contract.yml" > "$work/read-event.sh"

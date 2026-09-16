@@ -2,7 +2,7 @@
 
 Write code, documentation, commit messages, Issues and pull requests in English. Use Issues for unresolved product, architecture, compatibility or scope decisions, and pull requests for reviewed changes. Accepted design belongs in `spec/`; proposals and progress do not.
 
-Use short-lived, descriptive branches from `main` and Conventional Commit PR titles. Draft PRs skip code CI; mark ready when review and validation are useful. Merge through pull requests with resolved review threads. Keep changes focused and preserve unrelated work. Repository settings retain the parent project's squash-only merge, protected main and immutable release-tag policies.
+Use short-lived, descriptive branches from `main` and Conventional Commit PR titles. Draft PRs run the full CI gate; mark ready after compatibility review and resolving failures. Merge through pull requests with resolved review threads. Keep changes focused and preserve unrelated work. Repository settings retain the parent project's squash-only merge, protected main and immutable release-tag policies.
 
 ## Development
 
@@ -45,10 +45,14 @@ make check-all
 
 Sync copies Git blobs, never working-tree files or executable Service code. It requires a complete main-line SHA, forward ancestry from the old pin, and byte-accurate old provenance. Missing/malformed inputs fail before writes; same-SHA retries do nothing. Inspect any interrupted local write and restore only the affected snapshot before retrying. The snapshot includes OpenAPI, both wire schemas, fixtures, API conventions, Native streaming and queue semantics. The source compare exposes runtime-only changes too. Follow recorded upstream paths for related specifications; accepted specs take precedence over inconsistent implementation.
 
-`sync-service-contract.yml` receives Service dispatches or a manual full SHA and opens a **draft PR** containing the snapshot. Maintainers generate, adapt and test, then mark it ready for ordinary CI and review. It never merges, tags or releases. Each SHA has one branch; retries preserve existing open/closed PRs and reviewer edits. If push succeeded before PR creation failed, a retry creates the missing draft without rewriting the branch. Run `open-contract-pr.sh` only in an ephemeral CI checkout.
+`sync-service-contract.yml` receives Service dispatches or a manual full SHA, prepares the SDK toolchain and invokes `open-contract-pr.sh` in an ephemeral checkout. For a new proposal the script runs `make generate`, then opens a **draft PR** containing the snapshot and generated output. Only `contract/` and `a13n/generated/` are staged. It never merges, tags or releases.
+
+Generation failure stops before committing or pushing; discard the ephemeral checkout and retry after fixing the cause. There is no contract-only fallback. Full SDK CI runs on drafts, so compilation/test failures remain visible for maintainer adaptation. Review compatibility and generated changes, fix templates or handwritten code as needed, regenerate and resolve CI failures before marking ready.
+
+Each SHA has one branch. An unchanged pin or existing open/closed PR skips generation and PR creation. If push succeeded before PR creation failed, retry creates the missing draft without regenerating or rewriting that branch. Reviewer changes and closed decisions remain untouched.
 
 ### Setup
 
 Install both repositories' workflows on their default branches first. Use a dedicated GitHub App installed only on Service and the four SDK repos, with Contents and Pull requests read/write. Configure variable `SERVICE_CONTRACT_APP_CLIENT_ID` and secret `SERVICE_CONTRACT_APP_PRIVATE_KEY` in those repos (or restrict an organization secret to them). Never copy a developer's OAuth token. Workflows request separate Service-read and destination-write tokens and do not persist checkout credentials. Without a client ID the job is skipped; configuration enables it without another feature flag.
 
-Verify one known main SHA end to end before relying on notifications: dispatch, draft, provenance, adaptation and ready-PR CI. Source import is not compatibility acceptance. Offline tests use temporary Git repos and fake GitHub responses; they do not prove App installation or delivery. Registry credentials and release authorization remain separate.
+Verify one known main SHA end to end before relying on notifications: dispatch, generation, draft contents, provenance and draft CI. Successful generation is not compatibility acceptance. Offline tests use temporary Git repos and fake GitHub responses; they do not prove App installation or delivery. Registry credentials and release authorization remain separate.
