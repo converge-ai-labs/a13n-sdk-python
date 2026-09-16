@@ -348,6 +348,7 @@ from .mcpo_auth_setup_action_token_endpoint_auth_methods_item import MCPOAuthSet
 from .mcpo_auth_setup_action_type import MCPOAuthSetupActionType
 from .mcpo_auth_setup_request import MCPOAuthSetupRequest
 from .memory import Memory
+from .memory_access import MemoryAccess
 from .memory_collection import MemoryCollection
 from .memory_index import MemoryIndex
 from .memory_pagination import MemoryPagination
@@ -1026,6 +1027,7 @@ __all__ = (
     "MCPToolInputSchema",
     "MCPToolOutputSchemaType0",
     "Memory",
+    "MemoryAccess",
     "MemoryCollection",
     "MemoryIndex",
     "MemoryPagination",
