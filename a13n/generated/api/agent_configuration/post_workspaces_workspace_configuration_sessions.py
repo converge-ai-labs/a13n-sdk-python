@@ -1,45 +1,47 @@
 from http import HTTPStatus
-from typing import Any, cast
+from typing import Any
 from urllib.parse import quote
 
 import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
+from ...models.configuration_session_view import ConfigurationSessionView
+from ...models.create_session_request import CreateSessionRequest
 from ...models.error_response import ErrorResponse
-from ...types import UNSET, Response
+from ...types import Response
 
 
 def build_request(
-    queued_submission_id: str,
+    workspace: str,
     *,
-    expected_version: int,
+    body: CreateSessionRequest,
     idempotency_key: str,
 ) -> dict[str, Any]:
     headers: dict[str, Any] = {}
     headers["Idempotency-Key"] = idempotency_key
 
-    params: dict[str, Any] = {}
-
-    params["expected_version"] = expected_version
-
-    params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
-
     _kwargs: dict[str, Any] = {
-        "method": "delete",
-        "url": "/api/v1/queued-submissions/{queued_submission_id}".format(
-            queued_submission_id=quote(str(queued_submission_id), safe=""),
+        "method": "post",
+        "url": "/api/v1/workspaces/{workspace}/configuration-sessions".format(
+            workspace=quote(str(workspace), safe=""),
         ),
-        "params": params,
     }
+
+    _kwargs["json"] = body.to_dict()
+
+    headers["Content-Type"] = "application/json"
 
     _kwargs["headers"] = headers
     return _kwargs
 
 
-def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Any | ErrorResponse:
-    if response.status_code == 204:
-        response_204 = cast(Any, None)
-        return response_204
+def _parse_response(
+    *, client: AuthenticatedClient | Client, response: httpx.Response
+) -> ConfigurationSessionView | ErrorResponse:
+    if response.status_code == 201:
+        response_201 = ConfigurationSessionView.from_dict(response.json())
+
+        return response_201
 
     if response.status_code == 400:
         response_400 = ErrorResponse.from_dict(response.json())
@@ -51,7 +53,9 @@ def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Res
     return response_default
 
 
-def _build_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Response[Any | ErrorResponse]:
+def _build_response(
+    *, client: AuthenticatedClient | Client, response: httpx.Response
+) -> Response[ConfigurationSessionView | ErrorResponse]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -61,30 +65,30 @@ def _build_response(*, client: AuthenticatedClient | Client, response: httpx.Res
 
 
 def sync_detailed(
-    queued_submission_id: str,
+    workspace: str,
     *,
     client: AuthenticatedClient,
-    expected_version: int,
+    body: CreateSessionRequest,
     idempotency_key: str,
-) -> Response[Any | ErrorResponse]:
-    """Delete Queued Submission
+) -> Response[ConfigurationSessionView | ErrorResponse]:
+    """Create Session
 
     Args:
-        queued_submission_id (str):
-        expected_version (int):
+        workspace (str):
         idempotency_key (str):
+        body (CreateSessionRequest):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Any | ErrorResponse]
+        Response[ConfigurationSessionView | ErrorResponse]
     """
 
     kwargs = build_request(
-        queued_submission_id=queued_submission_id,
-        expected_version=expected_version,
+        workspace=workspace,
+        body=body,
         idempotency_key=idempotency_key,
     )
 
@@ -96,60 +100,60 @@ def sync_detailed(
 
 
 def sync(
-    queued_submission_id: str,
+    workspace: str,
     *,
     client: AuthenticatedClient,
-    expected_version: int,
+    body: CreateSessionRequest,
     idempotency_key: str,
-) -> Any | ErrorResponse | None:
-    """Delete Queued Submission
+) -> ConfigurationSessionView | ErrorResponse | None:
+    """Create Session
 
     Args:
-        queued_submission_id (str):
-        expected_version (int):
+        workspace (str):
         idempotency_key (str):
+        body (CreateSessionRequest):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Any | ErrorResponse
+        ConfigurationSessionView | ErrorResponse
     """
 
     return sync_detailed(
-        queued_submission_id=queued_submission_id,
+        workspace=workspace,
         client=client,
-        expected_version=expected_version,
+        body=body,
         idempotency_key=idempotency_key,
     ).parsed
 
 
 async def asyncio_detailed(
-    queued_submission_id: str,
+    workspace: str,
     *,
     client: AuthenticatedClient,
-    expected_version: int,
+    body: CreateSessionRequest,
     idempotency_key: str,
-) -> Response[Any | ErrorResponse]:
-    """Delete Queued Submission
+) -> Response[ConfigurationSessionView | ErrorResponse]:
+    """Create Session
 
     Args:
-        queued_submission_id (str):
-        expected_version (int):
+        workspace (str):
         idempotency_key (str):
+        body (CreateSessionRequest):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Any | ErrorResponse]
+        Response[ConfigurationSessionView | ErrorResponse]
     """
 
     kwargs = build_request(
-        queued_submission_id=queued_submission_id,
-        expected_version=expected_version,
+        workspace=workspace,
+        body=body,
         idempotency_key=idempotency_key,
     )
 
@@ -159,32 +163,32 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    queued_submission_id: str,
+    workspace: str,
     *,
     client: AuthenticatedClient,
-    expected_version: int,
+    body: CreateSessionRequest,
     idempotency_key: str,
-) -> Any | ErrorResponse | None:
-    """Delete Queued Submission
+) -> ConfigurationSessionView | ErrorResponse | None:
+    """Create Session
 
     Args:
-        queued_submission_id (str):
-        expected_version (int):
+        workspace (str):
         idempotency_key (str):
+        body (CreateSessionRequest):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Any | ErrorResponse
+        ConfigurationSessionView | ErrorResponse
     """
 
     return (
         await asyncio_detailed(
-            queued_submission_id=queued_submission_id,
+            workspace=workspace,
             client=client,
-            expected_version=expected_version,
+            body=body,
             idempotency_key=idempotency_key,
         )
     ).parsed

@@ -32,11 +32,11 @@ select = ["B", "E", "F", "I", "RUF", "UP"]
 ignore = ["E501"]
 
 [tool.pyright]
-include = ["a13n"]
+include = ["a13n", "codegen", "scripts"]
 exclude = ["**/tests", "**/__pycache__", ".venv"]
 pythonVersion = "3.13"
 typeCheckingMode = "standard"
 
 [tool.pytest.ini_options]
 addopts = ["--import-mode=importlib"]
-testpaths = ["tests"]
+testpaths = ["tests", "scripts/tests"]
