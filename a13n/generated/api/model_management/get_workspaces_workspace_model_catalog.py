@@ -1,19 +1,24 @@
 from http import HTTPStatus
 from typing import Any
+from urllib.parse import quote
 
 import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
-from ...models.base_model_candidate_collection import BaseModelCandidateCollection
 from ...models.error_response import ErrorResponse
+from ...models.model_catalog_collection import ModelCatalogCollection
 from ...types import Response
 
 
-def build_request() -> dict[str, Any]:
+def build_request(
+    workspace: str,
+) -> dict[str, Any]:
 
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": "/api/v1/base-models",
+        "url": "/api/v1/workspaces/{workspace}/model-catalog".format(
+            workspace=quote(str(workspace), safe=""),
+        ),
     }
 
     return _kwargs
@@ -21,11 +26,16 @@ def build_request() -> dict[str, Any]:
 
 def _parse_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> BaseModelCandidateCollection | ErrorResponse:
+) -> ErrorResponse | ModelCatalogCollection:
     if response.status_code == 200:
-        response_200 = BaseModelCandidateCollection.from_dict(response.json())
+        response_200 = ModelCatalogCollection.from_dict(response.json())
 
         return response_200
+
+    if response.status_code == 400:
+        response_400 = ErrorResponse.from_dict(response.json())
+
+        return response_400
 
     response_default = ErrorResponse.from_dict(response.json())
 
@@ -34,7 +44,7 @@ def _parse_response(
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[BaseModelCandidateCollection | ErrorResponse]:
+) -> Response[ErrorResponse | ModelCatalogCollection]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -44,20 +54,26 @@ def _build_response(
 
 
 def sync_detailed(
+    workspace: str,
     *,
     client: AuthenticatedClient,
-) -> Response[BaseModelCandidateCollection | ErrorResponse]:
-    """List Base Models
+) -> Response[ErrorResponse | ModelCatalogCollection]:
+    """List Model Catalog
+
+    Args:
+        workspace (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[BaseModelCandidateCollection | ErrorResponse]
+        Response[ErrorResponse | ModelCatalogCollection]
     """
 
-    kwargs = build_request()
+    kwargs = build_request(
+        workspace=workspace,
+    )
 
     response = client.get_httpx_client().request(
         **kwargs,
@@ -67,39 +83,50 @@ def sync_detailed(
 
 
 def sync(
+    workspace: str,
     *,
     client: AuthenticatedClient,
-) -> BaseModelCandidateCollection | ErrorResponse | None:
-    """List Base Models
+) -> ErrorResponse | ModelCatalogCollection | None:
+    """List Model Catalog
+
+    Args:
+        workspace (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        BaseModelCandidateCollection | ErrorResponse
+        ErrorResponse | ModelCatalogCollection
     """
 
     return sync_detailed(
+        workspace=workspace,
         client=client,
     ).parsed
 
 
 async def asyncio_detailed(
+    workspace: str,
     *,
     client: AuthenticatedClient,
-) -> Response[BaseModelCandidateCollection | ErrorResponse]:
-    """List Base Models
+) -> Response[ErrorResponse | ModelCatalogCollection]:
+    """List Model Catalog
+
+    Args:
+        workspace (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[BaseModelCandidateCollection | ErrorResponse]
+        Response[ErrorResponse | ModelCatalogCollection]
     """
 
-    kwargs = build_request()
+    kwargs = build_request(
+        workspace=workspace,
+    )
 
     response = await client.get_async_httpx_client().request(**kwargs)
 
@@ -107,21 +134,26 @@ async def asyncio_detailed(
 
 
 async def asyncio(
+    workspace: str,
     *,
     client: AuthenticatedClient,
-) -> BaseModelCandidateCollection | ErrorResponse | None:
-    """List Base Models
+) -> ErrorResponse | ModelCatalogCollection | None:
+    """List Model Catalog
+
+    Args:
+        workspace (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        BaseModelCandidateCollection | ErrorResponse
+        ErrorResponse | ModelCatalogCollection
     """
 
     return (
         await asyncio_detailed(
+            workspace=workspace,
             client=client,
         )
     ).parsed
