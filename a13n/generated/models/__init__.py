@@ -71,8 +71,6 @@ from .authorization_action import AuthorizationAction
 from .authorization_action_type import AuthorizationActionType
 from .authorization_redirect import AuthorizationRedirect
 from .authorization_status import AuthorizationStatus
-from .base_model_candidate import BaseModelCandidate
-from .base_model_candidate_collection import BaseModelCandidateCollection
 from .binary_content import BinaryContent
 from .binary_content_delivery import BinaryContentDelivery
 from .binary_input_content import BinaryInputContent
@@ -92,6 +90,8 @@ from .bot_test import BotTest
 from .bot_test_history import BotTestHistory
 from .bot_thread import BotThread
 from .bot_thread_collection import BotThreadCollection
+from .catalog_model import CatalogModel
+from .catalog_ref import CatalogRef
 from .change_password_request import ChangePasswordRequest
 from .change_role_request import ChangeRoleRequest
 from .change_role_request_role import ChangeRoleRequestRole
@@ -396,27 +396,16 @@ from .messaging_policy import MessagingPolicy
 from .messaging_policy_interaction_mode import MessagingPolicyInteractionMode
 from .messaging_policy_reply_mode import MessagingPolicyReplyMode
 from .model import Model
-from .model_candidate import ModelCandidate
-from .model_candidate_parameter_support import ModelCandidateParameterSupport
-from .model_candidate_parameter_support_additional_property import ModelCandidateParameterSupportAdditionalProperty
-from .model_candidate_suggested_settings import ModelCandidateSuggestedSettings
 from .model_capability import ModelCapability
-from .model_catalog_match import ModelCatalogMatch
-from .model_catalog_match_source import ModelCatalogMatchSource
-from .model_catalog_suggestion import ModelCatalogSuggestion
-from .model_catalog_suggestion_request import ModelCatalogSuggestionRequest
+from .model_catalog_collection import ModelCatalogCollection
+from .model_catalog_collection_status import ModelCatalogCollectionStatus
 from .model_collection import ModelCollection
 from .model_connection_test_result import ModelConnectionTestResult
-from .model_declarations import ModelDeclarations
-from .model_declarations_thinking_efforts_item import ModelDeclarationsThinkingEffortsItem
-from .model_discovery import ModelDiscovery
+from .model_declarations_input import ModelDeclarationsInput
+from .model_declarations_output import ModelDeclarationsOutput
 from .model_identity import ModelIdentity
-from .model_limits import ModelLimits
 from .model_override import ModelOverride
 from .model_override_settings_type_0 import ModelOverrideSettingsType0
-from .model_pricing import ModelPricing
-from .model_profile import ModelProfile
-from .model_profile_input_modalities_type_0_item import ModelProfileInputModalitiesType0Item
 from .model_provider import ModelProvider
 from .model_provider_collection import ModelProviderCollection
 from .model_provider_configuration import ModelProviderConfiguration
@@ -627,6 +616,12 @@ from .thread_run_submission_receipt import ThreadRunSubmissionReceipt
 from .thread_run_submission_receipt_outcome import ThreadRunSubmissionReceiptOutcome
 from .thread_run_submission_request import ThreadRunSubmissionRequest
 from .thread_run_submission_request_labels import ThreadRunSubmissionRequestLabels
+from .token_price_tier_input import TokenPriceTierInput
+from .token_price_tier_output import TokenPriceTierOutput
+from .token_pricing_input import TokenPricingInput
+from .token_pricing_output import TokenPricingOutput
+from .token_rates_input import TokenRatesInput
+from .token_rates_output import TokenRatesOutput
 from .tool import Tool
 from .tool_call import ToolCall
 from .tool_definition import ToolDefinition
@@ -797,8 +792,6 @@ __all__ = (
     "AuthorizationActionType",
     "AuthorizationRedirect",
     "AuthorizationStatus",
-    "BaseModelCandidate",
-    "BaseModelCandidateCollection",
     "BinaryContent",
     "BinaryContentDelivery",
     "BinaryInputContent",
@@ -818,6 +811,8 @@ __all__ = (
     "BotTestHistory",
     "BotThread",
     "BotThreadCollection",
+    "CatalogModel",
+    "CatalogRef",
     "ChangePasswordRequest",
     "ChangeRoleRequest",
     "ChangeRoleRequestRole",
@@ -1112,27 +1107,16 @@ __all__ = (
     "MessagingPolicyInteractionMode",
     "MessagingPolicyReplyMode",
     "Model",
-    "ModelCandidate",
-    "ModelCandidateParameterSupport",
-    "ModelCandidateParameterSupportAdditionalProperty",
-    "ModelCandidateSuggestedSettings",
     "ModelCapability",
-    "ModelCatalogMatch",
-    "ModelCatalogMatchSource",
-    "ModelCatalogSuggestion",
-    "ModelCatalogSuggestionRequest",
+    "ModelCatalogCollection",
+    "ModelCatalogCollectionStatus",
     "ModelCollection",
     "ModelConnectionTestResult",
-    "ModelDeclarations",
-    "ModelDeclarationsThinkingEffortsItem",
-    "ModelDiscovery",
+    "ModelDeclarationsInput",
+    "ModelDeclarationsOutput",
     "ModelIdentity",
-    "ModelLimits",
     "ModelOverride",
     "ModelOverrideSettingsType0",
-    "ModelPricing",
-    "ModelProfile",
-    "ModelProfileInputModalitiesType0Item",
     "ModelProvider",
     "ModelProviderCollection",
     "ModelProviderConfiguration",
@@ -1337,6 +1321,12 @@ __all__ = (
     "ThreadRunSubmissionReceiptOutcome",
     "ThreadRunSubmissionRequest",
     "ThreadRunSubmissionRequestLabels",
+    "TokenPriceTierInput",
+    "TokenPriceTierOutput",
+    "TokenPricingInput",
+    "TokenPricingOutput",
+    "TokenRatesInput",
+    "TokenRatesOutput",
     "Tool",
     "ToolCall",
     "ToolDefinition",
