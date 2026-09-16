@@ -9,7 +9,8 @@ from attrs import define as _attrs_define
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
-    from ..models.model_declarations import ModelDeclarations
+    from ..models.catalog_ref import CatalogRef
+    from ..models.model_declarations_output import ModelDeclarationsOutput
     from ..models.model_settings import ModelSettings
     from ..models.principal_ref import PrincipalRef
 
@@ -35,9 +36,9 @@ class Model:
         updated_by (PrincipalRef):
         upstream_model (str):
         workspace_id (None | str):
-        base_model (None | str | Unset):
-        declarations (ModelDeclarations | Unset): Harness-facing facts and authoring choices declared for one saved
-            Model.
+        catalog_ref (CatalogRef | None | Unset):
+        declarations (ModelDeclarationsOutput | Unset): Harness-facing facts and authoring choices declared for one
+            saved Model.
         settings (ModelSettings | Unset):
     """
 
@@ -55,11 +56,13 @@ class Model:
     updated_by: PrincipalRef
     upstream_model: str
     workspace_id: str | None
-    base_model: str | Unset | None = UNSET
-    declarations: ModelDeclarations | Unset = UNSET
+    catalog_ref: CatalogRef | Unset | None = UNSET
+    declarations: ModelDeclarationsOutput | Unset = UNSET
     settings: ModelSettings | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.catalog_ref import CatalogRef
+
         created_at = self.created_at.isoformat()
 
         created_by = self.created_by.to_dict()
@@ -90,11 +93,13 @@ class Model:
         workspace_id: str | None
         workspace_id = self.workspace_id
 
-        base_model: str | Unset | None
-        if isinstance(self.base_model, Unset):
-            base_model = UNSET
+        catalog_ref: dict[str, Any] | Unset | None
+        if isinstance(self.catalog_ref, Unset):
+            catalog_ref = UNSET
+        elif isinstance(self.catalog_ref, CatalogRef):
+            catalog_ref = self.catalog_ref.to_dict()
         else:
-            base_model = self.base_model
+            catalog_ref = self.catalog_ref
 
         declarations: dict[str, Any] | Unset = UNSET
         if not isinstance(self.declarations, Unset):
@@ -124,8 +129,8 @@ class Model:
                 "workspace_id": workspace_id,
             }
         )
-        if base_model is not UNSET:
-            field_dict["base_model"] = base_model
+        if catalog_ref is not UNSET:
+            field_dict["catalog_ref"] = catalog_ref
         if declarations is not UNSET:
             field_dict["declarations"] = declarations
         if settings is not UNSET:
@@ -135,7 +140,8 @@ class Model:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.model_declarations import ModelDeclarations
+        from ..models.catalog_ref import CatalogRef
+        from ..models.model_declarations_output import ModelDeclarationsOutput
         from ..models.model_settings import ModelSettings
         from ..models.principal_ref import PrincipalRef
 
@@ -178,21 +184,29 @@ class Model:
 
         workspace_id = _parse_workspace_id(d.pop("workspace_id"))
 
-        def _parse_base_model(data: object) -> str | Unset | None:
+        def _parse_catalog_ref(data: object) -> CatalogRef | Unset | None:
             if data is None:
                 return data
             if isinstance(data, Unset):
                 return data
-            return cast(str | Unset | None, data)
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                catalog_ref_type_0 = CatalogRef.from_dict(data)
 
-        base_model = _parse_base_model(d.pop("base_model", UNSET))
+                return catalog_ref_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(CatalogRef | Unset | None, data)
+
+        catalog_ref = _parse_catalog_ref(d.pop("catalog_ref", UNSET))
 
         _declarations = d.pop("declarations", UNSET)
-        declarations: ModelDeclarations | Unset
+        declarations: ModelDeclarationsOutput | Unset
         if isinstance(_declarations, Unset):
             declarations = UNSET
         else:
-            declarations = ModelDeclarations.from_dict(_declarations)
+            declarations = ModelDeclarationsOutput.from_dict(_declarations)
 
         _settings = d.pop("settings", UNSET)
         settings: ModelSettings | Unset
@@ -216,7 +230,7 @@ class Model:
             updated_by=updated_by,
             upstream_model=upstream_model,
             workspace_id=workspace_id,
-            base_model=base_model,
+            catalog_ref=catalog_ref,
             declarations=declarations,
             settings=settings,
         )
