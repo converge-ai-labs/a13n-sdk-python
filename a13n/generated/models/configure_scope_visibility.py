@@ -1,9 +1,9 @@
 from enum import StrEnum
 
 
-class DocumentAccessReasonKind(StrEnum):
+class ConfigureScopeVisibility(StrEnum):
+    GROUP = "group"
     INSTALLATION = "installation"
-    OWNER = "owner"
 
     def __str__(self) -> str:
         return str(self.value)

@@ -5,6 +5,7 @@ from .accept_invitation_request import AcceptInvitationRequest
 from .account import Account
 from .account_collection import AccountCollection
 from .account_command_request import AccountCommandRequest
+from .account_memory_settings import AccountMemorySettings
 from .account_provider_config import AccountProviderConfig
 from .account_provider_definition import AccountProviderDefinition
 from .account_provider_definition_collection import AccountProviderDefinitionCollection
@@ -71,8 +72,6 @@ from .authorization_action import AuthorizationAction
 from .authorization_action_type import AuthorizationActionType
 from .authorization_redirect import AuthorizationRedirect
 from .authorization_status import AuthorizationStatus
-from .base_model_candidate import BaseModelCandidate
-from .base_model_candidate_collection import BaseModelCandidateCollection
 from .binary_content import BinaryContent
 from .binary_content_delivery import BinaryContentDelivery
 from .binary_input_content import BinaryInputContent
@@ -92,6 +91,8 @@ from .bot_test import BotTest
 from .bot_test_history import BotTestHistory
 from .bot_thread import BotThread
 from .bot_thread_collection import BotThreadCollection
+from .catalog_model import CatalogModel
+from .catalog_ref import CatalogRef
 from .change_password_request import ChangePasswordRequest
 from .change_role_request import ChangeRoleRequest
 from .change_role_request_role import ChangeRoleRequestRole
@@ -132,6 +133,7 @@ from .configuration_thread_view import ConfigurationThreadView
 from .configuration_validation import ConfigurationValidation
 from .configure_mcpo_auth_client_request import ConfigureMCPOAuthClientRequest
 from .configure_scope import ConfigureScope
+from .configure_scope_visibility import ConfigureScopeVisibility
 from .connection import Connection
 from .connection_check import ConnectionCheck
 from .connection_check_scope import ConnectionCheckScope
@@ -240,6 +242,7 @@ from .delegation_context_policy_history import DelegationContextPolicyHistory
 from .delegation_context_policy_task_state import DelegationContextPolicyTaskState
 from .developer_message import DeveloperMessage
 from .discard_draft_request import DiscardDraftRequest
+from .discover_feishu_installation_request import DiscoverFeishuInstallationRequest
 from .document import Document
 from .document_access_reason import DocumentAccessReason
 from .document_access_reason_kind import DocumentAccessReasonKind
@@ -396,27 +399,16 @@ from .messaging_policy import MessagingPolicy
 from .messaging_policy_interaction_mode import MessagingPolicyInteractionMode
 from .messaging_policy_reply_mode import MessagingPolicyReplyMode
 from .model import Model
-from .model_candidate import ModelCandidate
-from .model_candidate_parameter_support import ModelCandidateParameterSupport
-from .model_candidate_parameter_support_additional_property import ModelCandidateParameterSupportAdditionalProperty
-from .model_candidate_suggested_settings import ModelCandidateSuggestedSettings
 from .model_capability import ModelCapability
-from .model_catalog_match import ModelCatalogMatch
-from .model_catalog_match_source import ModelCatalogMatchSource
-from .model_catalog_suggestion import ModelCatalogSuggestion
-from .model_catalog_suggestion_request import ModelCatalogSuggestionRequest
+from .model_catalog_collection import ModelCatalogCollection
+from .model_catalog_collection_status import ModelCatalogCollectionStatus
 from .model_collection import ModelCollection
 from .model_connection_test_result import ModelConnectionTestResult
-from .model_declarations import ModelDeclarations
-from .model_declarations_thinking_efforts_item import ModelDeclarationsThinkingEffortsItem
-from .model_discovery import ModelDiscovery
+from .model_declarations_input import ModelDeclarationsInput
+from .model_declarations_output import ModelDeclarationsOutput
 from .model_identity import ModelIdentity
-from .model_limits import ModelLimits
 from .model_override import ModelOverride
 from .model_override_settings_type_0 import ModelOverrideSettingsType0
-from .model_pricing import ModelPricing
-from .model_profile import ModelProfile
-from .model_profile_input_modalities_type_0_item import ModelProfileInputModalitiesType0Item
 from .model_provider import ModelProvider
 from .model_provider_collection import ModelProviderCollection
 from .model_provider_configuration import ModelProviderConfiguration
@@ -482,9 +474,6 @@ from .protocol_config_context_schema_type_0 import ProtocolConfigContextSchemaTy
 from .protocol_config_input_data_schema_type_0 import ProtocolConfigInputDataSchemaType0
 from .protocol_config_state_schema_type_0 import ProtocolConfigStateSchemaType0
 from .protocol_limits import ProtocolLimits
-from .publication_access import PublicationAccess
-from .publication_audience import PublicationAudience
-from .publish_document import PublishDocument
 from .queued_submission import QueuedSubmission
 from .queued_submission_collection import QueuedSubmissionCollection
 from .queued_submission_consumption_receipt import QueuedSubmissionConsumptionReceipt
@@ -510,8 +499,7 @@ from .replace_connector_provider_credentials_request_credentials import (
 )
 from .replace_credential_request import ReplaceCredentialRequest
 from .replace_credential_request_credential_type_0 import ReplaceCredentialRequestCredentialType0
-from .replace_sharing_policy import ReplaceSharingPolicy
-from .replace_sharing_policy_kinds_item import ReplaceSharingPolicyKindsItem
+from .replace_memory_settings import ReplaceMemorySettings
 from .replace_target_request import ReplaceTargetRequest
 from .replace_target_request_provider_policy_type_0 import ReplaceTargetRequestProviderPolicyType0
 from .replace_target_request_target_kind import ReplaceTargetRequestTargetKind
@@ -553,6 +541,7 @@ from .safe_failure_retry_hint import SafeFailureRetryHint
 from .scope import Scope
 from .scope_audience import ScopeAudience
 from .scope_collection import ScopeCollection
+from .scope_visibility import ScopeVisibility
 from .search_documents import SearchDocuments
 from .search_in import SearchIn
 from .secret_requirement import SecretRequirement
@@ -567,12 +556,6 @@ from .session_resource_labels import SessionResourceLabels
 from .set_operation import SetOperation
 from .set_role_request import SetRoleRequest
 from .set_role_request_role import SetRoleRequestRole
-from .sharing_participant import SharingParticipant
-from .sharing_policy import SharingPolicy
-from .sharing_policy_collection import SharingPolicyCollection
-from .sharing_policy_input import SharingPolicyInput
-from .sharing_policy_input_kinds_item import SharingPolicyInputKindsItem
-from .sharing_policy_kinds_item import SharingPolicyKindsItem
 from .skill import Skill
 from .skill_agent_reference import SkillAgentReference
 from .skill_agent_reference_collection import SkillAgentReferenceCollection
@@ -627,6 +610,12 @@ from .thread_run_submission_receipt import ThreadRunSubmissionReceipt
 from .thread_run_submission_receipt_outcome import ThreadRunSubmissionReceiptOutcome
 from .thread_run_submission_request import ThreadRunSubmissionRequest
 from .thread_run_submission_request_labels import ThreadRunSubmissionRequestLabels
+from .token_price_tier_input import TokenPriceTierInput
+from .token_price_tier_output import TokenPriceTierOutput
+from .token_pricing_input import TokenPricingInput
+from .token_pricing_output import TokenPricingOutput
+from .token_rates_input import TokenRatesInput
+from .token_rates_output import TokenRatesOutput
 from .tool import Tool
 from .tool_call import ToolCall
 from .tool_definition import ToolDefinition
@@ -718,7 +707,6 @@ from .web_provider_reference import WebProviderReference
 from .web_provider_reference_collection import WebProviderReferenceCollection
 from .web_provider_test_result import WebProviderTestResult
 from .webhook_destination_config import WebhookDestinationConfig
-from .withdraw_publication import WithdrawPublication
 from .workspace import Workspace
 from .workspace_event_page import WorkspaceEventPage
 from .workspace_secret_credential import WorkspaceSecretCredential
@@ -731,6 +719,7 @@ __all__ = (
     "Account",
     "AccountCollection",
     "AccountCommandRequest",
+    "AccountMemorySettings",
     "AccountProviderConfig",
     "AccountProviderDefinition",
     "AccountProviderDefinitionCollection",
@@ -797,8 +786,6 @@ __all__ = (
     "AuthorizationActionType",
     "AuthorizationRedirect",
     "AuthorizationStatus",
-    "BaseModelCandidate",
-    "BaseModelCandidateCollection",
     "BinaryContent",
     "BinaryContentDelivery",
     "BinaryInputContent",
@@ -818,6 +805,8 @@ __all__ = (
     "BotTestHistory",
     "BotThread",
     "BotThreadCollection",
+    "CatalogModel",
+    "CatalogRef",
     "ChangePasswordRequest",
     "ChangeRoleRequest",
     "ChangeRoleRequestRole",
@@ -858,6 +847,7 @@ __all__ = (
     "ConfigurationValidation",
     "ConfigureMCPOAuthClientRequest",
     "ConfigureScope",
+    "ConfigureScopeVisibility",
     "Connection",
     "ConnectionCheck",
     "ConnectionCheckScope",
@@ -966,6 +956,7 @@ __all__ = (
     "DelegationContextPolicyTaskState",
     "DeveloperMessage",
     "DiscardDraftRequest",
+    "DiscoverFeishuInstallationRequest",
     "Document",
     "DocumentAccessReason",
     "DocumentAccessReasonKind",
@@ -1112,27 +1103,16 @@ __all__ = (
     "MessagingPolicyInteractionMode",
     "MessagingPolicyReplyMode",
     "Model",
-    "ModelCandidate",
-    "ModelCandidateParameterSupport",
-    "ModelCandidateParameterSupportAdditionalProperty",
-    "ModelCandidateSuggestedSettings",
     "ModelCapability",
-    "ModelCatalogMatch",
-    "ModelCatalogMatchSource",
-    "ModelCatalogSuggestion",
-    "ModelCatalogSuggestionRequest",
+    "ModelCatalogCollection",
+    "ModelCatalogCollectionStatus",
     "ModelCollection",
     "ModelConnectionTestResult",
-    "ModelDeclarations",
-    "ModelDeclarationsThinkingEffortsItem",
-    "ModelDiscovery",
+    "ModelDeclarationsInput",
+    "ModelDeclarationsOutput",
     "ModelIdentity",
-    "ModelLimits",
     "ModelOverride",
     "ModelOverrideSettingsType0",
-    "ModelPricing",
-    "ModelProfile",
-    "ModelProfileInputModalitiesType0Item",
     "ModelProvider",
     "ModelProviderCollection",
     "ModelProviderConfiguration",
@@ -1194,9 +1174,6 @@ __all__ = (
     "ProtocolConfigInputDataSchemaType0",
     "ProtocolConfigStateSchemaType0",
     "ProtocolLimits",
-    "PublicationAccess",
-    "PublicationAudience",
-    "PublishDocument",
     "QueuedSubmission",
     "QueuedSubmissionCollection",
     "QueuedSubmissionConsumptionReceipt",
@@ -1220,8 +1197,7 @@ __all__ = (
     "ReplaceConnectorProviderCredentialsRequestCredentials",
     "ReplaceCredentialRequest",
     "ReplaceCredentialRequestCredentialType0",
-    "ReplaceSharingPolicy",
-    "ReplaceSharingPolicyKindsItem",
+    "ReplaceMemorySettings",
     "ReplaceTargetRequest",
     "ReplaceTargetRequestProviderPolicyType0",
     "ReplaceTargetRequestTargetKind",
@@ -1263,6 +1239,7 @@ __all__ = (
     "Scope",
     "ScopeAudience",
     "ScopeCollection",
+    "ScopeVisibility",
     "SearchDocuments",
     "SearchIn",
     "SecretRequirement",
@@ -1277,12 +1254,6 @@ __all__ = (
     "SetOperation",
     "SetRoleRequest",
     "SetRoleRequestRole",
-    "SharingParticipant",
-    "SharingPolicy",
-    "SharingPolicyCollection",
-    "SharingPolicyInput",
-    "SharingPolicyInputKindsItem",
-    "SharingPolicyKindsItem",
     "Skill",
     "SkillAgentReference",
     "SkillAgentReferenceCollection",
@@ -1337,6 +1308,12 @@ __all__ = (
     "ThreadRunSubmissionReceiptOutcome",
     "ThreadRunSubmissionRequest",
     "ThreadRunSubmissionRequestLabels",
+    "TokenPriceTierInput",
+    "TokenPriceTierOutput",
+    "TokenPricingInput",
+    "TokenPricingOutput",
+    "TokenRatesInput",
+    "TokenRatesOutput",
     "Tool",
     "ToolCall",
     "ToolDefinition",
@@ -1428,7 +1405,6 @@ __all__ = (
     "WebProviderReferenceCollection",
     "WebProviderTestResult",
     "WebhookDestinationConfig",
-    "WithdrawPublication",
     "Workspace",
     "WorkspaceEventPage",
     "WorkspaceSecretCredential",

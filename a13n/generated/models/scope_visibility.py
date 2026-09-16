@@ -1,9 +1,9 @@
 from enum import StrEnum
 
 
-class SharingPolicyKindsItem(StrEnum):
-    DAILY = "daily"
-    LONG_TERM = "long_term"
+class ScopeVisibility(StrEnum):
+    GROUP = "group"
+    INSTALLATION = "installation"
 
     def __str__(self) -> str:
         return str(self.value)
