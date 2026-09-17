@@ -11,12 +11,6 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-# Script execution and importlib-based generator tests use different roots.
-if __name__ == "__main__":
-    from resources import generate_resources
-else:
-    from codegen.resources import generate_resources
-
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = ROOT / "codegen"
 TARGET = ROOT / "a13n/generated"
@@ -58,29 +52,12 @@ def prepare(document: dict) -> dict:
                 visit(child)
 
     visit(document)
-    # The pinned queue semantics explicitly specify 200 for submission_failed.
-    # Adapt that known export omission without modifying the vendored evidence.
-    consume = document.get("paths", {}).get("/api/v1/threads/{thread_id}/queued-submissions/consume", {}).get("post")
-    if consume and "200" not in consume["responses"] and "202" in consume["responses"]:
-        consume["responses"]["200"] = json.loads(json.dumps(consume["responses"]["202"]))
-    # Two pinned binary routes lack response media annotations. These are
-    # verified against the pinned skills/router.py and agents/router.py (which
-    # uses http_images.image_response), not inferred from endpoint names.
-    binary_responses = {
-        "/api/v1/skill-revisions/{skill_revision_id}/content": "application/zip",
-        "/api/v1/workspaces/{workspace}/agents/{agent}/avatar/{image_id}": "image/webp",
-    }
-    for path, media_type in binary_responses.items():
-        response = document.get("paths", {}).get(path, {}).get("get", {}).get("responses", {}).get("200", {})
-        if response.get("content") == {"application/json": {"schema": {}}}:
-            response["content"] = {media_type: {"schema": {"type": "string", "format": "binary"}}}
     return document
 
 
 def generate(document: dict, work: Path) -> Path:
-    document = prepare(document)
     source = work / "openapi.json"
-    source.write_text(json.dumps(document))
+    source.write_text(json.dumps(prepare(document)))
     output = work / "output"
     run(
         "uv",
@@ -133,7 +110,6 @@ def generate(document: dict, work: Path) -> Path:
                 .replace("__aexit__(*args, **kwargs)", "__aexit__(exc_type, exc_value, traceback)")
             )
         path.write_text(text)
-    generate_resources(document, output)
     run(
         "uv",
         "tool",

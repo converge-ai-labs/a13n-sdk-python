@@ -38,11 +38,6 @@ def build_request(
 def _parse_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
 ) -> ErrorResponse | QueuedSubmissionConsumptionReceipt:
-    if response.status_code == 200:
-        response_200 = QueuedSubmissionConsumptionReceipt.from_dict(response.json())
-
-        return response_200
-
     if response.status_code == 202:
         response_202 = QueuedSubmissionConsumptionReceipt.from_dict(response.json())
 

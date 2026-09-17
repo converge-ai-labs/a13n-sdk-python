@@ -1,5 +1,4 @@
 from http import HTTPStatus
-from io import BytesIO
 from typing import Any
 from urllib.parse import quote
 
@@ -7,7 +6,7 @@ import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
 from ...models.error_response import ErrorResponse
-from ...types import File, Response
+from ...types import Response
 
 
 def build_request(
@@ -28,10 +27,9 @@ def build_request(
     return _kwargs
 
 
-def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> ErrorResponse | File:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Any | ErrorResponse:
     if response.status_code == 200:
-        response_200 = File(payload=BytesIO(response.content))
-
+        response_200 = response.json()
         return response_200
 
     if response.status_code == 400:
@@ -44,9 +42,7 @@ def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Res
     return response_default
 
 
-def _build_response(
-    *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[ErrorResponse | File]:
+def _build_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Response[Any | ErrorResponse]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -61,7 +57,7 @@ def sync_detailed(
     image_id: str,
     *,
     client: AuthenticatedClient,
-) -> Response[ErrorResponse | File]:
+) -> Response[Any | ErrorResponse]:
     """Get Agent Avatar
 
     Args:
@@ -74,7 +70,7 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorResponse | File]
+        Response[Any | ErrorResponse]
     """
 
     kwargs = build_request(
@@ -96,7 +92,7 @@ def sync(
     image_id: str,
     *,
     client: AuthenticatedClient,
-) -> ErrorResponse | File | None:
+) -> Any | ErrorResponse | None:
     """Get Agent Avatar
 
     Args:
@@ -109,7 +105,7 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorResponse | File
+        Any | ErrorResponse
     """
 
     return sync_detailed(
@@ -126,7 +122,7 @@ async def asyncio_detailed(
     image_id: str,
     *,
     client: AuthenticatedClient,
-) -> Response[ErrorResponse | File]:
+) -> Response[Any | ErrorResponse]:
     """Get Agent Avatar
 
     Args:
@@ -139,7 +135,7 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorResponse | File]
+        Response[Any | ErrorResponse]
     """
 
     kwargs = build_request(
@@ -159,7 +155,7 @@ async def asyncio(
     image_id: str,
     *,
     client: AuthenticatedClient,
-) -> ErrorResponse | File | None:
+) -> Any | ErrorResponse | None:
     """Get Agent Avatar
 
     Args:
@@ -172,7 +168,7 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorResponse | File
+        Any | ErrorResponse
     """
 
     return (
