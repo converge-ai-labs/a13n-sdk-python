@@ -9,6 +9,11 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+if __name__ == "__main__":
+    from resources import generate_resources
+else:
+    from codegen.resources import generate_resources
+
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = ROOT / "codegen"
 TARGET = ROOT / "a13n/generated"
@@ -108,6 +113,7 @@ def generate(document: dict, work: Path) -> Path:
                 .replace("__aexit__(*args, **kwargs)", "__aexit__(exc_type, exc_value, traceback)")
             )
         path.write_text(text)
+    generate_resources(document, output)
     run(
         "uv",
         "tool",
