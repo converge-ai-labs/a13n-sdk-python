@@ -34,7 +34,6 @@ class Document:
         title (str):
         access_reasons (list[DocumentAccessReason] | Unset):
         correction_of (None | str | Unset):
-        more_access_reasons (bool | Unset):
         owner_name (None | str | Unset):
         publication_source_id (None | str | Unset):
         shared (bool | Unset):
@@ -54,7 +53,6 @@ class Document:
     title: str
     access_reasons: list[DocumentAccessReason] | Unset = UNSET
     correction_of: str | Unset | None = UNSET
-    more_access_reasons: bool | Unset = UNSET
     owner_name: str | Unset | None = UNSET
     publication_source_id: str | Unset | None = UNSET
     shared: bool | Unset = UNSET
@@ -100,8 +98,6 @@ class Document:
         else:
             correction_of = self.correction_of
 
-        more_access_reasons = self.more_access_reasons
-
         owner_name: str | Unset | None
         if isinstance(self.owner_name, Unset):
             owner_name = UNSET
@@ -139,8 +135,6 @@ class Document:
             field_dict["access_reasons"] = access_reasons
         if correction_of is not UNSET:
             field_dict["correction_of"] = correction_of
-        if more_access_reasons is not UNSET:
-            field_dict["more_access_reasons"] = more_access_reasons
         if owner_name is not UNSET:
             field_dict["owner_name"] = owner_name
         if publication_source_id is not UNSET:
@@ -210,8 +204,6 @@ class Document:
 
         correction_of = _parse_correction_of(d.pop("correction_of", UNSET))
 
-        more_access_reasons = d.pop("more_access_reasons", UNSET)
-
         def _parse_owner_name(data: object) -> str | Unset | None:
             if data is None:
                 return data
@@ -248,7 +240,6 @@ class Document:
             title=title,
             access_reasons=access_reasons,
             correction_of=correction_of,
-            more_access_reasons=more_access_reasons,
             owner_name=owner_name,
             publication_source_id=publication_source_id,
             shared=shared,
