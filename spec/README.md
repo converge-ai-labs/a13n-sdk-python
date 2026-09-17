@@ -25,14 +25,14 @@ The SDK consumes public Service protocols. It does not import Service startup, s
 
 ## Specification Catalog
 
-| Document                                                                | Owning contract                                                                                           |
-| ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| [00 Overview](00-overview.md)                                           | Architecture, dependency direction, end-to-end flow, and completion boundaries                            |
-| [01 Resources and Client Lifetime](01-resources-and-client-lifetime.md) | Python object roles, local bindings, typed values, response evidence, and transport ownership             |
-| [02 Interaction and Control](02-interaction-and-control.md)             | Agent start, Thread submission, queued intent, exact-Run waiting, feedback, continuation, fork, and retry |
-| [03 Observation and Data Access](03-observation-and-data-access.md)     | Run SSE, applied cursors, replay gaps, Item snapshots, pagination, and binary transfer                    |
-| [04 Resource Management](04-resource-management.md)                     | Management-family coverage, owning scopes, configuration provenance, and independent resource lifecycles  |
-| [05 Protocol and Compatibility](05-protocol-and-compatibility.md)       | Wire fidelity, errors, concurrency, idempotency, diagnostics, contract generation, and compatibility axes |
+| Document                                                                | Owning contract                                                                                                 |
+| ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| [00 Overview](00-overview.md)                                           | Architecture, dependency direction, end-to-end flow, and completion boundaries                                  |
+| [01 Resources and Client Lifetime](01-resources-and-client-lifetime.md) | Python reference/snapshot roles, `Result[T]`, return contracts, local bindings, and transport ownership         |
+| [02 Interaction and Control](02-interaction-and-control.md)             | Typed acceptance, Run/queue waiting, steer/cancel, feedback, continuation, fork, and retry                      |
+| [03 Observation and Data Access](03-observation-and-data-access.md)     | `RunStream` interface and lifetime, concurrent control, applied cursors, replay gaps, snapshots, and pagination |
+| [04 Resource Management](04-resource-management.md)                     | Management-family coverage, owning scopes, configuration provenance, and independent resource lifecycles        |
+| [05 Protocol and Compatibility](05-protocol-and-compatibility.md)       | Wire fidelity, errors, concurrency, idempotency, diagnostics, contract generation, and compatibility axes       |
 
 ## Reading Paths
 

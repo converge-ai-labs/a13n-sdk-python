@@ -21,13 +21,112 @@ These surfaces do not share a synthetic event envelope or checkpoint. Their deli
 
 ## Run SSE Attachment
 
-- A Run stream is an explicit async context manager yielding a typed async iterator.
+- `Run.stream` returns a concrete `RunStream`: an explicit async context manager and typed async iterator for one exact Run.
 - Each observation preserves the SSE cursor separately from the `RunStreamEvent.event_id`.
 - Heartbeats are not yielded as domain observations.
 - Invalid framing, malformed payloads, incompatible schema versions, and mismatched Run identity are explicit protocol failures.
 - Event buffering is bounded; exceeding a configured bound fails rather than accumulating unbounded data.
-- Exiting the scope, including early iteration exit, releases the streaming response.
+- Exiting the scope, including after early iteration exit, releases the streaming response.
 - End-of-stream does not prove Run completion.
+
+### RunStream Public Interface
+
+The following conceptual Python interface defines the resource-level stream, not the compatible raw `Client.stream` interface. Control signatures and receipt meanings are owned by [Interaction and Control](02-interaction-and-control.md#steer-and-cancel).
+
+```python
+class StreamObservation:
+    cursor: str
+    event: RunStreamEvent
+
+
+class StreamResponse:
+    status_code: int
+    headers: Mapping[str, str]
+    request_id: str | None
+
+
+class RunStream:
+    run: Run
+    response: StreamResponse | None
+    is_closed: bool
+    last_received_cursor: str | None
+
+    async def __aenter__(self) -> Self: ...
+    async def __aexit__(self, exc_type, exc, traceback) -> None: ...
+    def __aiter__(self) -> Self: ...
+    async def __anext__(self) -> StreamObservation: ...
+
+    async def steer(self, input: str | AgentInput, *, idempotency_key: str) -> Result[SteerReceipt]: ...
+
+    async def cancel(
+        self,
+        *,
+        expected_run_version: int,
+        expected_thread_version: int,
+        idempotency_key: str,
+    ) -> Result[InterruptReceipt]: ...
+
+    async def wait(self, *, timeout: float, poll_interval: float) -> Result[RunResource]: ...
+
+    async def aclose(self) -> None: ...
+```
+
+- `run.stream(*, after: str | None = None)` is a synchronous, I/O-free factory. `after` is the caller's applied Run Stream cursor and maps to the `Last-Event-ID` header (omitted for `None`); it is not an event ID. Each call creates an independent attachment object.
+- `async with run.stream(...) as stream` enters and returns that same object. `async for observation in stream` is the primary consumption form; no redundant `events()` iterator or implicit awaiting of the stream is required.
+- `StreamObservation` is read-only and separates its opaque cursor from the generated event envelope. Event payload typing does not exceed what the pin declares; the SDK does not manufacture a closed event-payload union.
+- `response` is read-only successful handshake metadata, initially `None`, available after successful entry and retained after closure. It has case-insensitive headers and no live body reader or buffered copy of the SSE body.
+- `last_received_cursor` is initially `None` and advances only when an observation is delivered by `__anext__`, not on prefetch or heartbeats. It is diagnostic delivery evidence, never a saved applied checkpoint.
+- `run`, `response`, `is_closed`, and `last_received_cursor` are read-only local properties. No property performs network I/O.
+
+### Attachment Lifetime
+
+| State  | Entry / iteration                                                                 | Local close                                      |
+| ------ | --------------------------------------------------------------------------------- | ------------------------------------------------ |
+| New    | Entry performs one attachment request; reading before entry raises `RuntimeError` | Closes without sending a request                 |
+| Open   | One active reader; no implicit replay or reconnection                             | Releases the response and ends local observation |
+| Closed | Re-entry raises `RuntimeError`; subsequent iteration is exhausted                 | Idempotent no-op                                 |
+
+- Entry is single-use, including a failed or cancelled entry. A second or concurrent entry fails locally; create another `RunStream` to attach again.
+- `is_closed` is false for a new or open attachment and becomes true on failed entry, EOF, read failure, caller cancellation of a read, explicit `aclose`, or context exit.
+- EOF closes the response and ends iteration without inventing a final Run value. A read failure closes the response and raises its original typed error on that read; later reads are exhausted.
+- `aclose()` can run while a read is pending. It releases blocked local I/O and makes that pending read end with `StopAsyncIteration`; independently cancelling the consumer task still propagates `asyncio.CancelledError`, not normal EOF.
+- Breaking an `async for` does not by itself exit the surrounding context. Cleanup is guaranteed when that context exits or `aclose()` is awaited; callers must not rely on garbage collection.
+- Context exit never suppresses the consumer's exception, drains unread events, waits for Run completion, or sends cancel. Cleanup does not replace an existing consumer exception with a synthetic execution result.
+- The parent Client owns the transport. Client closure releases the attachment and rejects further requests, without remote cancellation.
+
+### Commands During Observation
+
+- `steer`, `cancel`, and `wait` delegate to `stream.run`; they do not read from the SSE iterator, acquire its single-reader slot, or require a next event to complete.
+- They can run from another task while the one consumer is awaiting an event. Concurrent `__anext__` calls fail locally with `RuntimeError`; the SDK does not broadcast, split, or reorder one attachment among readers.
+- Delegated calls are available before entry and after attachment closure while the Client remains open. Stream closure affects attachment I/O, not the exact Run reference or its explicit command authority.
+- Successful `cancel` neither calls `aclose` nor drains the stream. Callers can keep reading available evidence or close immediately; neither choice changes the cancellation receipt.
+- A command failure is raised to its caller and does not independently close an otherwise healthy stream. Local closure does not cancel an in-flight command; closing the Client can end all its owned I/O with the usual unknown-outcome rules.
+- Concurrent command order is Service order, not task creation or event-delivery order. Callers sequence dependent commands explicitly and retain required versions and idempotency keys.
+- `wait` performs bounded Run reads independently of the attachment. It neither pumps events nor advances `last_received_cursor`; a sealed read can coexist with unread or incomplete display events.
+
+### Completion and Retained Evidence
+
+`RunStream` exposes remote observation and explicit commands, not an embedded Harness execution. It has no live Agent context, `export_state()`, synthesized usage total, cached successful `result`, or local execution `outcome`. These would imply authority or completeness absent from the Service attachment. Exact Run reads, exported usage resources, and retained Item snapshots remain the corresponding evidence sources.
+
+The representative flow separates acceptance, observation, and durable state:
+
+```python
+accepted = await agent.start("Review this change", idempotency_key=start_key)
+run = accepted.run
+
+async with run.stream(after=applied_cursor) as stream:
+    async for observation in stream:
+        await apply_and_checkpoint(observation)
+        if should_redirect(observation):
+            receipt = await stream.steer("Focus on compatibility", idempotency_key=steer_key)
+            steer = run.steers(receipt.value.steer_id)
+            break
+
+# Exiting above only detached. This read can also run concurrently with streaming.
+sealed = await run.wait(timeout=60.0, poll_interval=0.5)
+```
+
+The application supplies the policy, keys, and applied checkpoint in this conceptual flow. Nothing in the stream automatically issues the steer or interprets a sealed waiting Run as business completion.
 
 ### Applied Checkpoints
 
@@ -69,6 +168,16 @@ Run sealing and display finalization are independent. A sealed Run can still hav
 - Pagination does not invent snapshot isolation or flatten every Thread Run into one linear conversation.
 - Resource-sequence reads are not relabeled as opaque-cursor pagination.
 
+### Collection Call Shape
+
+- `await collection.list(...)` fetches exactly one typed page as `Result[PageT]`.
+- `collection.pages(...)` returns a lazy `AsyncIterator[Result[PageT]]`; creating it sends no request. Each advance fetches only the next required page.
+- `collection.iter(...)` is the explicit flattened `AsyncIterator[ItemT]` convenience for ordinary collections. It yields wire values, not live references or mutable active-record objects.
+- A collection itself is neither awaitable nor implicitly iterable: the caller chooses one-page, page-wise, or value-wise access and supplies its filters there. No implicit total count, indexing, or network-backed `len()` is provided.
+- Each traversal has its own cursor and filter snapshot. Independent traversals do not share progress. One traversal does not support concurrent reader calls or implicit restart after exhaustion.
+- Page iteration is canonical when page-level evidence matters. Item snapshots and other specialized projection collections retain their full page representation; ordinary flattened iteration is not a snapshot-reconciliation interface.
+- Server-owned resource scope and identity remain available in yielded representations. Creating a mutation reference from a value uses that reported ownership, not merely the collection's discovery scope.
+
 ## Binary Transfer
 
 - Large downloads use an explicit streaming response scope with caller-visible status and headers.
@@ -95,9 +204,9 @@ Vendoring a notification schema does not claim an implemented attachment or reco
 
 ## Invariants
 
-1. Observation performs no mutation or client-tool execution.
+1. Attachment, iteration, wait, and local cleanup perform no mutation or client-tool execution; explicit stream control calls retain ordinary Run command semantics.
 2. Receiving an event never commits an application checkpoint.
 3. SSE cursors, event IDs, lifecycle sequences, and snapshot versions remain distinct.
 4. Empty pages with continuation cursors are traversed.
 5. Snapshot recovery is not represented as exact replay.
-6. Early exit releases owned I/O without cancelling a durable Run.
+6. Early scope exit releases owned I/O without cancelling a durable Run.

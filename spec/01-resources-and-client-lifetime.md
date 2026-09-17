@@ -32,6 +32,16 @@ Read-only projections and command receipts do not need mutable resource objects.
 - Nested collections and named commands remain statically typed and discoverable. Required protocol preconditions remain explicit.
 - Mutations address the actual owning scope under [Resource Management](04-resource-management.md#scope-and-authority), not an ownership assumption derived from a list query.
 
+### References and Snapshots
+
+- Public interaction references are named `Agent`, `Session`, `Thread`, `Run`, and `QueuedSubmission`. Their names describe remote resources, not local execution engines.
+- A reference's Client, scope, and selector are read-only. Reading or updating a resource returns a new snapshot and never retargets an existing reference.
+- `await ref.get()` performs a fresh read where that endpoint exists. There is no implicit cache, property-triggered refresh, or active-record `save()`.
+- Mutable fields such as Run status, Thread versions, and Agent current Revision belong to returned representations, not apparently live reference properties.
+- Navigation that needs unknown relationship IDs requires a representation or receipt first. A Run bound by ID does not fetch a Thread merely because a property is accessed.
+- References have no independent transport context manager or `aclose()`. Closing a reference must not accidentally close the shared Client.
+- A reference is not awaitable. Factories bind locally, `await` marks a request or wait, and `async with` marks an owned I/O scope.
+
 ## Values and Response Evidence
 
 Resource calls return typed values together with HTTP evidence:
@@ -41,7 +51,23 @@ Resource calls return typed values together with HTTP evidence:
 - the original response content;
 - the actual command receipt or resource representation.
 
-A `Result[T]` is a snapshot envelope, not a second durable resource. Mutating a local value does not persist a remote change.
+`Result[T]` has this conceptual public Python shape; it is not a serialized Service schema:
+
+```python
+class Result[T]:
+    value: T
+    status_code: int
+    headers: Mapping[str, str]
+    content: bytes
+    etag: str | None
+    request_id: str | None
+```
+
+- The envelope is read-only. `value` is the declared successful representation, receipt, binary value, or `None` for an empty/null success, not an optional parse attempt.
+- Header lookup is case-insensitive. `etag` preserves the complete header value, including quoting; absent metadata is `None`.
+- A `Result[T]` is a snapshot envelope, not a second durable resource. Generated model mutability does not confer persistence; mutating a local value causes no remote write and does not rewrite original `content`.
+- Failure uses the resource exception contract rather than a false-valued envelope. No truthiness, tuple unpacking, or attribute forwarding substitutes for explicit `.value` access.
+- Acceptance helpers return a [typed disposition](02-interaction-and-control.md#acceptance-values), containing the full `Result` receipt and its corresponding references. They do not hide the receipt on a mutable Run handle.
 
 Complete request and response models remain available under `a13n.generated.models`. A resource reference and a similarly named wire representation are distinct types. Existing Pydantic Web/configuration models and `Representation` remain compatible; the resource interface does not silently replace them with another model family.
 
@@ -49,6 +75,8 @@ Complete request and response models remain available under `a13n.generated.mode
 
 - A Client owns its authenticated asynchronous HTTP pool, including a transport supplied to that Client.
 - References derived from the Client share configuration, transport, and lifetime.
+- One Client supports concurrent asynchronous requests on its owning event loop, including commands while a stream is open. It does not promise cross-thread or cross-event-loop use.
+- `aclose()` is idempotent and final; a closed Client cannot be reopened. Local reference binding and inspection of already returned evidence remain possible after closure, but further I/O fails locally.
 - `async with Client(...)` and `aclose()` provide explicit shutdown.
 - Closing the Client rejects further owned I/O, cancels active owned transport work, and releases open streaming responses.
 - Nested requests inside a streaming scope do not end the outer scope's ownership.
@@ -59,13 +87,19 @@ Closing, timing out, or cancelling local work does not interrupt a durable Run, 
 
 ## Compatibility
 
-The resource interface preserves:
+The resource interface preserves these distinct return contracts:
 
-- `Client.execute` and its generated response semantics;
-- `Client.stream` and caller-visible streaming lifetime;
-- asynchronous `Client.workspace()` discovery;
-- the existing Pydantic Web facade;
-- independently constructed generated synchronous clients.
+| Call                                                   | Return contract                                                                            | Ownership                                                                                               |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `await client.execute(...)`                            | Generated `Response[T]`, including its typed success/error union and optional parsed value | Retained low-level HTTP                                                                                 |
+| `client.stream(request)`                               | Async context manager yielding raw `httpx2.Response`                                       | Caller handles status and consumes response bytes                                                       |
+| `await client.workspace(...)`                          | Existing `WorkspaceClient` discovery result                                                | Compatible Pydantic Web facade and shared Client lifetime                                               |
+| Resource `get`, ordinary commands, and one-page `list` | `Result[T]`                                                                                | Typed successful value and original HTTP evidence                                                       |
+| `agent.start(...)` and `thread.submit(...)`            | Awaitable typed acceptance/disposition result                                              | Receipt and references; not completion                                                                  |
+| `run.stream(...)`                                      | Concrete `RunStream`, without awaiting the factory                                         | Domain SSE attachment under [Observation](03-observation-and-data-access.md#runstream-public-interface) |
+| Collection `pages(...)` / `iter(...)`                  | Lazy asynchronous iterators                                                                | Page evidence / explicitly flattened values                                                             |
+
+The existing Pydantic Web facade, its `Representation` values, and independently constructed generated synchronous clients remain available. `Client.stream` is not changed to return `RunStream`, and a `RunStream` does not expose a raw response body for competing consumption.
 
 Operation-specific response bounds and exception behavior are not silently imposed on the retained low-level surface. Detailed error ownership belongs to [Protocol and Compatibility](05-protocol-and-compatibility.md#failure-semantics).
 
@@ -75,5 +109,5 @@ Operation-specific response bounds and exception behavior are not silently impos
 2. An existing reference's identity does not change after another command succeeds.
 3. A snapshot mutation causes no remote write.
 4. All derived references respect the parent Client's closure.
-5. Early exit from an observation releases its local response lifetime.
+5. Early exit from an observation scope releases its local response lifetime.
 6. Local cancellation or shutdown performs no remote lifecycle command.

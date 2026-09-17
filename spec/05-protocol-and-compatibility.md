@@ -42,6 +42,15 @@ The resource interface retains the evidence described by [Resources and Client L
 
 The retained low-level `Client.execute` surface keeps its generated typed success/error union, status, headers, and content. Resource-level exception mapping and the existing Web facade's response-size bound are not silently imposed on it.
 
+### Python Exceptions and Cancellation
+
+- Local invalid helper arguments, such as a non-positive or non-finite wait budget, raise `ValueError` before dispatch.
+- Invalid local lifecycle use, including I/O through a closed Client, repeated stream entry, or concurrent reads of one iterator, raises `RuntimeError` without a remote command.
+- Exhaustion uses `StopAsyncIteration`. An in-stream replay gap raises `ReplayGap` with its metadata and closes the attachment; it is neither normal exhaustion nor a checkpoint-bearing domain event.
+- An SDK wait deadline raises built-in `TimeoutError`. Cancellation of the caller's task propagates `asyncio.CancelledError`; the SDK does not wrap it as `ApiError`, turn it into successful EOF, or send a compensating interrupt.
+- A read of a failed/cancelled/waiting Run is still a successful read of that resource, not an API exception for its execution outcome.
+- Stream-control calls use the same exception mapping as their corresponding Run methods. A lost cancel response can have an unknown outcome even though a received successful interrupt receipt establishes durable cancellation.
+
 Applications reconcile unknown outcomes using Service state, retained intent, and idempotency evidence. Retry guidance in an error does not itself authorize automatic mutation replay.
 
 ## Diagnostics
@@ -82,9 +91,10 @@ Validation establishes the relevant contract at distinct levels:
 
 - **Coverage:** every pinned Native operation has typed resource navigation and a low-level binding.
 - **Wire behavior:** fixtures preserve omission, null, unions, decimals, extensible status, and declared success/error bodies.
-- **Public typing:** positive and negative examples exercise accepted and rejected request shapes.
+- **Public typing:** positive and negative examples exercise accepted and rejected request shapes, acceptance-union narrowing, the non-awaitable stream factory, and direct asynchronous iteration.
 - **Transport:** tests preserve base URL prefixes, escaping, authentication, headers, cancellation, nested I/O ownership, and shutdown.
-- **Interaction and observation:** tests establish the invariants in the owning interaction and observation contracts.
+- **Interaction and observation:** tests establish the invariants in the owning interaction and observation contracts: exact identity forwarding; required cancel versions; acceptance versus steer consumption; independent local close and remote cancel; bounded wait across all sealed states; and queue waiting without consumption.
+- **Stream lifecycle:** tests cover failed/cancelled entry, EOF, early context exit, malformed events, replay gaps, one-reader rejection, close during a blocked read, cancellation propagation, control calls during iteration and after closure, and preservation of response metadata without automatic checkpoints.
 - **Distribution:** generation, provenance, and package checks are independent of a Service checkout.
 - **Integration:** mock, loopback transport, real Service, and real provider evidence are labeled separately.
 

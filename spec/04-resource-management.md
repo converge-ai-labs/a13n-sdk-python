@@ -15,6 +15,22 @@ This document owns management-family responsibilities and scope distinctions. [R
 - A Workspace lookup does not imply permission to manage parent configuration, a same-name override, or inherited write access.
 - ETags, resource versions, and command preconditions retain their domain meanings under [Protocol and Compatibility](05-protocol-and-compatibility.md#concurrency-and-idempotency).
 
+### Typed Capabilities, Not Universal Active Records
+
+| Resource kind                              | Python object design                                                                     | Deliberately absent behavior                     |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| Mutable authoring resource                 | `get`, supported `update`/`replace`, explicit concurrency input, typed returned snapshot | Dirty tracking and automatic `save()`            |
+| Immutable Revision or content              | Exact selector, read/content access, only exported lifecycle commands                    | Generic replacement inherited from a CRUD base   |
+| Interaction reference                      | Exact identity, supported domain commands and child collections                          | Hidden current conversation or execution state   |
+| Receipt, search hit, diagnostic projection | Typed value with response evidence                                                       | Mutation identity inferred from its display name |
+| Collection                                 | Typed one-page access and explicit lazy traversal                                        | Ownership inferred from discovery scope          |
+
+- Child references expose only capabilities backed by the pin. There is no universal public resource base promising `get`, `update`, or `delete` for every kind.
+- Collection and method names are static and discoverable; unsupported operations are not dynamically assembled from arbitrary strings.
+- Management mutation methods accept the operation's generated request model and explicit keyword-only protocol preconditions. A current snapshot or ETag is usable evidence, not an instruction to auto-refresh and retry.
+- Command receipts are not hydrated into unrelated resource snapshots with hidden follow-up requests. Callers explicitly bind and read identities named by a receipt when more state is needed.
+- The interaction convenience classes and `Client.resources` navigate the same Client and identity model; they do not maintain parallel caches or independent resource lifetimes.
+
 ## IAM and Ownership
 
 Typed operations cover exported Organizations, Workspaces, Users, Service Accounts, bindings, invitations, credentials, authentication sessions, and security audit resources.
@@ -29,6 +45,8 @@ Typed operations cover exported Organizations, Workspaces, Users, Service Accoun
 Typed operations cover exported Agents and revisions, Model Providers and Models, Web Providers, Secrets, and installed plugin selections.
 
 - Mutable authoring resources and immutable execution revisions remain distinct.
+- `agent.revisions(revision_id)` selects a revision resource for its exported operations; `Agent.start` retains an explicit execution revision option. Neither form caches or assumes the Agent's mutable current revision.
+- A returned acceptance fixes the actual Run selection and provenance. Updating the Agent later changes neither the Run reference nor its accepted revision.
 - A desired selection does not prove the composition accepted or executed by Service.
 - Secret reads expose the authorized metadata surface, not an invented plaintext-retrieval API.
 - Provider or plugin discovery does not install executable code or prove runtime readiness.
