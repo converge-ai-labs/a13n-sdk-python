@@ -6,7 +6,22 @@ Use short-lived, descriptive branches from `main` and Conventional Commit PR tit
 
 ## Development
 
-Install Python 3.13, uv and Make. Run `make install` to synchronize `uv.lock`. `make format` applies Ruff; `make check` is non-mutating lint and type checking; `make test` runs SDK and generator tests; `make check-all` also verifies generated output and builds distributions. CI runs the same complete gate from this repository alone. Reuse valid checks whose inputs have not changed and report partial or unavailable validation explicitly.
+Install Python 3.13, uv and Make. Run `make install` to synchronize `uv.lock`. `make format` applies Ruff and Markdown formatting; `make check` is non-mutating lint and type checking; `make test` runs SDK and generator tests; `make check-all` also verifies generated output and builds distributions. CI runs the same complete gate from this repository alone. Reuse valid checks whose inputs have not changed and report partial or unavailable validation explicitly.
+
+### Quality gates
+
+After `make install`, run `make hooks-install` once per checkout to install pre-commit. Commit hooks run file hygiene, Markdown formatting, and Ruff on changed files; Pyright, tests, generation, and builds stay in the explicit Make/CI gates. The profiles match the parent repository: Ruff's moderate correctness/maintainability rules and Pyright `standard`, not every optional strict rule.
+
+| Command            | Purpose                                                                 |
+| ------------------ | ----------------------------------------------------------------------- |
+| `make format`      | Apply code and owned-document formatting                                |
+| `make lint`        | Check formatting and lint without modifying files                       |
+| `make typecheck`   | Check package and tooling types, including generated code               |
+| `make check`       | Run lint and type checking                                              |
+| `make hooks-check` | Run all pre-commit hooks; formatter changes fail the run for review     |
+| `make check-all`   | Run hooks, provenance/generated drift, static checks, tests, and builds |
+
+CI uses the same complete gate without installing Git hooks. If a hook rewrites files, review and stage its intended changes, then rerun; never bypass a failing hook. Vendored `contract/` evidence is excluded from hooks and Markdown formatting, except the locally owned `contract/README.md`; provenance and generated-output checks remain mandatory. Generated Python remains under Ruff, Pyright, and tests; fix its generator rather than hand-editing output.
 
 Fix behavior at its owner, avoid speculative abstractions, and retain meaningful transport, wire and negative type tests. Generated output must type-check and pass tests. Change templates/adapters rather than hand-editing generated code. Credential diagnostics must remain redacted, omission must remain distinct from null, and mutation failures must not trigger automatic replay.
 
