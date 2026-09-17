@@ -21,6 +21,7 @@ from .account_target_target_kind import AccountTargetTargetKind
 from .activate_bot_request import ActivateBotRequest
 from .activity_message import ActivityMessage
 from .activity_message_content import ActivityMessageContent
+from .add_environment_mount_request import AddEnvironmentMountRequest
 from .agent import Agent
 from .agent_collection import AgentCollection
 from .agent_config_input import AgentConfigInput
@@ -92,6 +93,7 @@ from .bot_test import BotTest
 from .bot_test_history import BotTestHistory
 from .bot_thread import BotThread
 from .bot_thread_collection import BotThreadCollection
+from .cancel_docker_image_request import CancelDockerImageRequest
 from .catalog_model import CatalogModel
 from .catalog_ref import CatalogRef
 from .change_password_request import ChangePasswordRequest
@@ -99,6 +101,10 @@ from .change_role_request import ChangeRoleRequest
 from .change_role_request_role import ChangeRoleRequestRole
 from .child_environment_policy import ChildEnvironmentPolicy
 from .child_environment_policy_mode import ChildEnvironmentPolicyMode
+from .client_connection_status import ClientConnectionStatus
+from .client_connection_status_error_type_0 import ClientConnectionStatusErrorType0
+from .client_connection_status_status import ClientConnectionStatusStatus
+from .client_connection_ticket import ClientConnectionTicket
 from .client_tool_definition import ClientToolDefinition
 from .client_tool_definition_metadata import ClientToolDefinitionMetadata
 from .client_tool_definition_parameters_json_schema import ClientToolDefinitionParametersJsonSchema
@@ -109,6 +115,7 @@ from .collection_environment_provider import CollectionEnvironmentProvider
 from .collection_environment_provider_definition import CollectionEnvironmentProviderDefinition
 from .collection_environment_template import CollectionEnvironmentTemplate
 from .collection_environment_template_revision import CollectionEnvironmentTemplateRevision
+from .collection_run_environment_mount import CollectionRunEnvironmentMount
 from .complete_authorization_request import CompleteAuthorizationRequest
 from .complete_email_change_request import CompleteEmailChangeRequest
 from .complete_password_reset_request import CompletePasswordResetRequest
@@ -321,6 +328,8 @@ from .hosted_agui_cancel_receipt import HostedAguiCancelReceipt
 from .hosted_agui_cancel_request import HostedAguiCancelRequest
 from .http_validation_error import HTTPValidationError
 from .image_input_content import ImageInputContent
+from .image_test_response import ImageTestResponse
+from .image_test_response_image_source_type_0 import ImageTestResponseImageSourceType0
 from .inline_hook_subscription_input import InlineHookSubscriptionInput
 from .input_adapter_config import InputAdapterConfig
 from .input_adapter_config_config import InputAdapterConfigConfig
@@ -431,6 +440,7 @@ from .model_provider_definition_settings_schemas_additional_property import (
 )
 from .model_settings import ModelSettings
 from .model_test_request import ModelTestRequest
+from .mount_application_status import MountApplicationStatus
 from .new_environment_selection import NewEnvironmentSelection
 from .new_environment_selection_labels import NewEnvironmentSelectionLabels
 from .notification_subscription import NotificationSubscription
@@ -482,6 +492,8 @@ from .protocol_config_context_schema_type_0 import ProtocolConfigContextSchemaTy
 from .protocol_config_input_data_schema_type_0 import ProtocolConfigInputDataSchemaType0
 from .protocol_config_state_schema_type_0 import ProtocolConfigStateSchemaType0
 from .protocol_limits import ProtocolLimits
+from .provider_connectivity import ProviderConnectivity
+from .provider_connectivity_status import ProviderConnectivityStatus
 from .queued_submission import QueuedSubmission
 from .queued_submission_collection import QueuedSubmissionCollection
 from .queued_submission_consumption_receipt import QueuedSubmissionConsumptionReceipt
@@ -534,6 +546,7 @@ from .run_agent_input import RunAgentInput
 from .run_attempt_collection import RunAttemptCollection
 from .run_attempt_resource import RunAttemptResource
 from .run_collection import RunCollection
+from .run_environment_mount import RunEnvironmentMount
 from .run_lineage import RunLineage
 from .run_lineage_entry import RunLineageEntry
 from .run_lineage_kind import RunLineageKind
@@ -600,6 +613,8 @@ from .target_collection import TargetCollection
 from .target_config import TargetConfig
 from .target_config_provider_policy_type_0 import TargetConfigProviderPolicyType0
 from .target_config_target_kind import TargetConfigTargetKind
+from .test_docker_image_request import TestDockerImageRequest
+from .test_docker_image_request_configuration import TestDockerImageRequestConfiguration
 from .text_content import TextContent
 from .text_input_content import TextInputContent
 from .thread import Thread
@@ -743,6 +758,7 @@ __all__ = (
     "ActivateBotRequest",
     "ActivityMessage",
     "ActivityMessageContent",
+    "AddEnvironmentMountRequest",
     "Agent",
     "AgentCollection",
     "AgentConfigInput",
@@ -814,6 +830,7 @@ __all__ = (
     "BotTestHistory",
     "BotThread",
     "BotThreadCollection",
+    "CancelDockerImageRequest",
     "CatalogModel",
     "CatalogRef",
     "ChangePasswordRequest",
@@ -821,6 +838,10 @@ __all__ = (
     "ChangeRoleRequestRole",
     "ChildEnvironmentPolicy",
     "ChildEnvironmentPolicyMode",
+    "ClientConnectionStatus",
+    "ClientConnectionStatusErrorType0",
+    "ClientConnectionStatusStatus",
+    "ClientConnectionTicket",
     "ClientToolDefinition",
     "ClientToolDefinitionMetadata",
     "ClientToolDefinitionParametersJsonSchema",
@@ -831,6 +852,7 @@ __all__ = (
     "CollectionEnvironmentProviderDefinition",
     "CollectionEnvironmentTemplate",
     "CollectionEnvironmentTemplateRevision",
+    "CollectionRunEnvironmentMount",
     "CompleteAuthorizationRequest",
     "CompleteEmailChangeRequest",
     "CompletePasswordResetRequest",
@@ -1037,6 +1059,8 @@ __all__ = (
     "HostedAguiCancelReceipt",
     "HostedAguiCancelRequest",
     "ImageInputContent",
+    "ImageTestResponse",
+    "ImageTestResponseImageSourceType0",
     "InlineHookSubscriptionInput",
     "InputAdapterConfig",
     "InputAdapterConfigConfig",
@@ -1141,6 +1165,7 @@ __all__ = (
     "ModelProviderDefinitionSettingsSchemasAdditionalProperty",
     "ModelSettings",
     "ModelTestRequest",
+    "MountApplicationStatus",
     "NewEnvironmentSelection",
     "NewEnvironmentSelectionLabels",
     "NotificationSubscription",
@@ -1190,6 +1215,8 @@ __all__ = (
     "ProtocolConfigInputDataSchemaType0",
     "ProtocolConfigStateSchemaType0",
     "ProtocolLimits",
+    "ProviderConnectivity",
+    "ProviderConnectivityStatus",
     "QueuedSubmission",
     "QueuedSubmissionCollection",
     "QueuedSubmissionConsumptionReceipt",
@@ -1240,6 +1267,7 @@ __all__ = (
     "RunAttemptCollection",
     "RunAttemptResource",
     "RunCollection",
+    "RunEnvironmentMount",
     "RunLineage",
     "RunLineageEntry",
     "RunLineageKind",
@@ -1306,6 +1334,8 @@ __all__ = (
     "TargetConfig",
     "TargetConfigProviderPolicyType0",
     "TargetConfigTargetKind",
+    "TestDockerImageRequest",
+    "TestDockerImageRequestConfiguration",
     "TextContent",
     "TextInputContent",
     "Thread",

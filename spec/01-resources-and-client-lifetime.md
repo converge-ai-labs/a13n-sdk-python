@@ -71,6 +71,26 @@ class Result[T]:
 
 Complete request and response models remain available under `a13n.generated.models`. A resource reference and a similarly named wire representation are distinct types. Existing Pydantic Web/configuration models and `Representation` remain compatible; the resource interface does not silently replace them with another model family.
 
+## Authentication
+
+The Client has one explicit credential mode for its lifetime. Authentication configuration performs no I/O and introduces no credential-provider framework.
+
+```python
+Client(base_url, token=None, *, timeout=30, transport=None)
+Client.session(base_url, *, origin, workspace_id=None, cookies=None, csrf_token=None, timeout=30, transport=None)
+client.set_csrf_token(value)  # Session mode only; str or None, no I/O.
+```
+
+- `Client(base_url, token)` preserves the existing positional Bearer interface. It sends `Authorization: Bearer <token>` and does not send cookies, including cookies received from a response.
+- `Client(base_url)` is a public client: it sends neither Authorization nor cookies and does not fabricate an empty Bearer credential. Public operations that require Origin, including login and invitation acceptance, use `Client.session` with an initially empty jar. A response never silently switches a public Client into session mode.
+- `Client.session(...)` creates a cookie-session client with an explicit accepted `origin`. `cookies` is an optional `httpx2.Cookies` value copied into the Client-owned cookie jar; omitting it permits an explicit login using that same Client. Normal cookie domain, path, Secure, expiry, and Set-Cookie behavior apply. The SDK does not hard-code the deployment's session-cookie name.
+- `workspace_id` is an optional fixed session request boundary. When supplied, every request, including SSE reattachments, sends `X-A13N-Workspace-ID`; when absent the header is omitted for Organization-scoped use. Direct Run observation requires the Workspace boundary because Service does not derive it from the Run ID. The SDK does not infer or switch this boundary from navigation; use a separately configured Client for another boundary. A selector/header mismatch remains a Service rejection.
+- Session requests send the configured `Origin`; state-changing requests additionally send `X-A13N-CSRF-Token` when `csrf_token` is set. The application obtains the proof through an exported login or CSRF read and explicitly installs or clears it with `set_csrf_token`. The SDK does not derive a proof from the cookie, perform login automatically, refresh credentials, or replay a rejected request.
+- Public and Bearer clients reject `set_csrf_token` locally. Session clients never send Bearer authorization. A Client does not combine credential modes or infer credentials from ambient environment variables.
+- Session cookie/proof changes are configuration changes, not a per-request identity switch. Applications sequence them outside concurrent requests; already dispatched requests are not rewritten. Logout follows server Set-Cookie behavior; clearing the proof remains explicit.
+- All resource calls, the compatible Web facade, `execute`, and raw `stream` share the selected Client mode. Raw caller-authored request headers remain explicit low-level input, not another managed credential mode.
+- Credentials, cookies, CSRF proofs, and Set-Cookie values remain absent from ordinary diagnostics. Explicit response evidence remains available under the existing redaction contract.
+
 ## Client Lifetime
 
 - A Client owns its authenticated asynchronous HTTP pool, including a transport supplied to that Client.

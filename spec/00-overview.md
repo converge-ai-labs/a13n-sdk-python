@@ -38,7 +38,7 @@ flowchart LR
 
 ## End-to-End Flow
 
-1. The application creates a Client with an explicit Service endpoint and credential.
+1. The application creates a Client with an explicit Service endpoint and public, Bearer, or cookie-session authentication mode.
 2. It binds a Workspace, Agent, Thread, Run, or another resource without network I/O.
 3. An explicit async method performs a read or command under current Service authorization.
 4. A submission returns the actual Run acceptance or queued-submission disposition.
