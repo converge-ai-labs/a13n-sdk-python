@@ -5,6 +5,7 @@ from typing import Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 
+from ..models.configure_scope_visibility import ConfigureScopeVisibility
 from ..types import UNSET, Unset
 
 T = TypeVar("T", bound="ConfigureScope")
@@ -20,6 +21,7 @@ class ConfigureScope:
         save_on_request (bool | Unset):
         timezone (str | Unset):
         use_memory (bool | Unset):
+        visibility (ConfigureScopeVisibility | Unset):
     """
 
     external_conversation_id: str
@@ -28,6 +30,7 @@ class ConfigureScope:
     save_on_request: bool | Unset = UNSET
     timezone: str | Unset = UNSET
     use_memory: bool | Unset = UNSET
+    visibility: ConfigureScopeVisibility | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
         external_conversation_id = self.external_conversation_id
@@ -46,6 +49,10 @@ class ConfigureScope:
 
         use_memory = self.use_memory
 
+        visibility: str | Unset = UNSET
+        if not isinstance(self.visibility, Unset):
+            visibility = self.visibility.value
+
         field_dict: dict[str, Any] = {}
 
         field_dict.update(
@@ -63,6 +70,8 @@ class ConfigureScope:
             field_dict["timezone"] = timezone
         if use_memory is not UNSET:
             field_dict["use_memory"] = use_memory
+        if visibility is not UNSET:
+            field_dict["visibility"] = visibility
 
         return field_dict
 
@@ -88,6 +97,13 @@ class ConfigureScope:
 
         use_memory = d.pop("use_memory", UNSET)
 
+        _visibility = d.pop("visibility", UNSET)
+        visibility: ConfigureScopeVisibility | Unset
+        if isinstance(_visibility, Unset):
+            visibility = UNSET
+        else:
+            visibility = ConfigureScopeVisibility(_visibility)
+
         configure_scope = cls(
             external_conversation_id=external_conversation_id,
             enabled=enabled,
@@ -95,6 +111,7 @@ class ConfigureScope:
             save_on_request=save_on_request,
             timezone=timezone,
             use_memory=use_memory,
+            visibility=visibility,
         )
 
         return configure_scope
