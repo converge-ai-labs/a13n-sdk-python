@@ -129,16 +129,6 @@
               }
             ]
           },
-          "memory": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/MemorySettings"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
           "name": {
             "maxLength": 128,
             "minLength": 1,
@@ -267,6 +257,37 @@
           "expected_version"
         ],
         "title": "AccountCommandRequest",
+        "type": "object"
+      },
+      "AccountMemorySettings": {
+        "additionalProperties": false,
+        "properties": {
+          "account_id": {
+            "title": "Account Id",
+            "type": "string"
+          },
+          "memory": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MemorySettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "version": {
+            "minimum": 0.0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "account_id",
+          "version",
+          "memory"
+        ],
+        "title": "AccountMemorySettings",
         "type": "object"
       },
       "AccountProviderDefinition": {
@@ -2556,65 +2577,6 @@
         "title": "AuthorizationRedirect",
         "type": "object"
       },
-      "BaseModelCandidate": {
-        "additionalProperties": false,
-        "properties": {
-          "base_model": {
-            "maxLength": 256,
-            "minLength": 1,
-            "title": "Base Model",
-            "type": "string"
-          },
-          "inferred_model_api": {
-            "anyOf": [
-              {
-                "maxLength": 96,
-                "pattern": "^[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)+$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Inferred Model Api"
-          },
-          "model_api_label": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Model Api Label"
-          }
-        },
-        "required": [
-          "base_model",
-          "inferred_model_api",
-          "model_api_label"
-        ],
-        "title": "BaseModelCandidate",
-        "type": "object"
-      },
-      "BaseModelCandidateCollection": {
-        "additionalProperties": false,
-        "properties": {
-          "items": {
-            "items": {
-              "$ref": "#/components/schemas/BaseModelCandidate"
-            },
-            "title": "Items",
-            "type": "array"
-          }
-        },
-        "required": [
-          "items"
-        ],
-        "title": "BaseModelCandidateCollection",
-        "type": "object"
-      },
       "BinaryContent": {
         "additionalProperties": false,
         "properties": {
@@ -3128,6 +3090,9 @@
             ],
             "title": "External Organization Name"
           },
+          "memory_settings": {
+            "$ref": "#/components/schemas/AccountMemorySettings"
+          },
           "setup_condition": {
             "enum": [
               "disabled",
@@ -3174,6 +3139,7 @@
         },
         "required": [
           "account",
+          "memory_settings",
           "external_organization_id",
           "external_organization_name",
           "setup_condition",
@@ -3445,6 +3411,78 @@
         "title": "BotThreadCollection",
         "type": "object"
       },
+      "CatalogModel": {
+        "additionalProperties": false,
+        "properties": {
+          "declarations": {
+            "$ref": "#/components/schemas/ModelDeclarations-Output"
+          },
+          "identity": {
+            "title": "Identity",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "pricing_warning": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pricing Warning"
+          },
+          "provider_name": {
+            "title": "Provider Name",
+            "type": "string"
+          },
+          "ref": {
+            "$ref": "#/components/schemas/CatalogRef"
+          },
+          "release_date": {
+            "format": "date",
+            "title": "Release Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ref",
+          "identity",
+          "name",
+          "provider_name",
+          "release_date",
+          "declarations"
+        ],
+        "title": "CatalogModel",
+        "type": "object"
+      },
+      "CatalogRef": {
+        "additionalProperties": false,
+        "description": "A models.dev provider-qualified identity, independent of the outbound ID.",
+        "properties": {
+          "model": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Model",
+            "type": "string"
+          },
+          "provider": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,127}$",
+            "title": "Provider",
+            "type": "string"
+          }
+        },
+        "required": [
+          "provider",
+          "model"
+        ],
+        "title": "CatalogRef",
+        "type": "object"
+      },
       "ChangePasswordRequest": {
         "additionalProperties": false,
         "properties": {
@@ -3497,7 +3535,7 @@
         "additionalProperties": false,
         "properties": {
           "mode": {
-            "default": "none",
+            "default": "shared",
             "enum": [
               "none",
               "shared",
@@ -4701,6 +4739,11 @@
             "title": "Created At",
             "type": "string"
           },
+          "has_runs": {
+            "default": false,
+            "title": "Has Runs",
+            "type": "boolean"
+          },
           "id": {
             "title": "Id",
             "type": "string"
@@ -4716,6 +4759,17 @@
           "root_thread_id": {
             "title": "Root Thread Id",
             "type": "string"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
           },
           "updated_at": {
             "format": "date-time",
@@ -4895,6 +4949,15 @@
             "default": true,
             "title": "Use Memory",
             "type": "boolean"
+          },
+          "visibility": {
+            "default": "group",
+            "enum": [
+              "group",
+              "installation"
+            ],
+            "title": "Visibility",
+            "type": "string"
           }
         },
         "required": [
@@ -6052,16 +6115,6 @@
               }
             ]
           },
-          "memory": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/MemorySettings"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
           "name": {
             "maxLength": 128,
             "minLength": 1,
@@ -6785,21 +6838,18 @@
       "CreateModelRequest": {
         "additionalProperties": false,
         "properties": {
-          "base_model": {
+          "catalog_ref": {
             "anyOf": [
               {
-                "maxLength": 256,
-                "minLength": 1,
-                "type": "string"
+                "$ref": "#/components/schemas/CatalogRef"
               },
               {
                 "type": "null"
               }
-            ],
-            "title": "Base Model"
+            ]
           },
           "declarations": {
-            "$ref": "#/components/schemas/ModelDeclarations"
+            "$ref": "#/components/schemas/ModelDeclarations-Input"
           },
           "description": {
             "anyOf": [
@@ -6823,17 +6873,10 @@
             "type": "string"
           },
           "model_api": {
-            "anyOf": [
-              {
-                "maxLength": 96,
-                "pattern": "^[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)+$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Model Api"
+            "maxLength": 96,
+            "pattern": "^[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)+$",
+            "title": "Model Api",
+            "type": "string"
           },
           "name": {
             "maxLength": 128,
@@ -6865,7 +6908,8 @@
           "key",
           "provider_id",
           "name",
-          "upstream_model"
+          "upstream_model",
+          "model_api"
         ],
         "title": "CreateModelRequest",
         "type": "object"
@@ -7513,6 +7557,31 @@
         "title": "DiscardDraftRequest",
         "type": "object"
       },
+      "DiscoverFeishuInstallationRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "app_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "App Id",
+            "type": "string"
+          },
+          "app_secret": {
+            "format": "password",
+            "maxLength": 4096,
+            "minLength": 1,
+            "title": "App Secret",
+            "type": "string",
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "app_id",
+          "app_secret"
+        ],
+        "title": "DiscoverFeishuInstallationRequest",
+        "type": "object"
+      },
       "Document": {
         "additionalProperties": false,
         "properties": {
@@ -7559,11 +7628,6 @@
             ],
             "title": "Kind",
             "type": "string"
-          },
-          "more_access_reasons": {
-            "default": false,
-            "title": "More Access Reasons",
-            "type": "boolean"
           },
           "owner_name": {
             "anyOf": [
@@ -7667,35 +7731,10 @@
           "kind": {
             "enum": [
               "owner",
-              "publication",
-              "policy"
+              "installation"
             ],
             "title": "Kind",
             "type": "string"
-          },
-          "policy_id": {
-            "anyOf": [
-              {
-                "maxLength": 72,
-                "pattern": "^[a-z][a-z0-9]{1,7}_[a-z0-9]{16,64}$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Policy Id"
-          },
-          "policy_name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Policy Name"
           }
         },
         "required": [
@@ -8637,6 +8676,72 @@
           "error"
         ],
         "title": "ErrorResponse",
+        "type": "object"
+      },
+      "EventConnectionStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "last_event_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Event At"
+          },
+          "observed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed At"
+          },
+          "state": {
+            "enum": [
+              "http",
+              "disabled",
+              "connecting",
+              "connected",
+              "reconnecting",
+              "disconnected"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "transport": {
+            "enum": [
+              "http",
+              "websocket"
+            ],
+            "title": "Transport",
+            "type": "string"
+          }
+        },
+        "required": [
+          "transport",
+          "state"
+        ],
+        "title": "EventConnectionStatus",
         "type": "object"
       },
       "ExistingEnvironmentSelection": {
@@ -10093,17 +10198,6 @@
             ],
             "title": "Projection Lease Expires At"
           },
-          "projection_lease_owner": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Projection Lease Owner"
-          },
           "projection_next_attempt_at": {
             "anyOf": [
               {
@@ -11392,16 +11486,15 @@
       "Model": {
         "additionalProperties": false,
         "properties": {
-          "base_model": {
+          "catalog_ref": {
             "anyOf": [
               {
-                "type": "string"
+                "$ref": "#/components/schemas/CatalogRef"
               },
               {
                 "type": "null"
               }
-            ],
-            "title": "Base Model"
+            ]
           },
           "created_at": {
             "format": "date-time",
@@ -11412,7 +11505,7 @@
             "$ref": "#/components/schemas/PrincipalRef"
           },
           "declarations": {
-            "$ref": "#/components/schemas/ModelDeclarations"
+            "$ref": "#/components/schemas/ModelDeclarations-Output"
           },
           "description": {
             "anyOf": [
@@ -11513,68 +11606,6 @@
         "title": "Model",
         "type": "object"
       },
-      "ModelCandidate": {
-        "additionalProperties": false,
-        "properties": {
-          "display_name": {
-            "anyOf": [
-              {
-                "maxLength": 128,
-                "minLength": 1,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Display Name"
-          },
-          "limits": {
-            "$ref": "#/components/schemas/ModelLimits"
-          },
-          "native_profile": {
-            "$ref": "#/components/schemas/ModelProfile"
-          },
-          "parameter_support": {
-            "additionalProperties": {
-              "enum": [
-                "supported",
-                "unsupported",
-                "unknown"
-              ],
-              "type": "string"
-            },
-            "title": "Parameter Support",
-            "type": "object"
-          },
-          "profile": {
-            "$ref": "#/components/schemas/ModelProfile"
-          },
-          "suggested_model_api": {
-            "title": "Suggested Model Api",
-            "type": "string"
-          },
-          "suggested_settings": {
-            "additionalProperties": {
-              "$ref": "#/components/schemas/JsonValue"
-            },
-            "title": "Suggested Settings",
-            "type": "object"
-          },
-          "upstream_model": {
-            "maxLength": 256,
-            "minLength": 1,
-            "title": "Upstream Model",
-            "type": "string"
-          }
-        },
-        "required": [
-          "upstream_model",
-          "suggested_model_api"
-        ],
-        "title": "ModelCandidate",
-        "type": "object"
-      },
       "ModelCapability": {
         "description": "Harness-owned capabilities of the active Agent model.",
         "enum": [
@@ -11585,129 +11616,37 @@
         "title": "ModelCapability",
         "type": "string"
       },
-      "ModelCatalogMatch": {
+      "ModelCatalogCollection": {
         "additionalProperties": false,
         "properties": {
           "items": {
             "default": [],
             "items": {
-              "$ref": "#/components/schemas/ModelCatalogSuggestion"
+              "$ref": "#/components/schemas/CatalogModel"
             },
             "title": "Items",
             "type": "array"
           },
-          "source": {
+          "released_since": {
+            "format": "date",
+            "title": "Released Since",
+            "type": "string"
+          },
+          "status": {
             "enum": [
-              "none",
-              "explicit",
-              "exact",
-              "normalized",
-              "name_tokens",
-              "ambiguous"
+              "ready",
+              "stale",
+              "unavailable"
             ],
-            "title": "Source",
+            "title": "Status",
             "type": "string"
           }
         },
         "required": [
-          "source"
+          "status",
+          "released_since"
         ],
-        "title": "ModelCatalogMatch",
-        "type": "object"
-      },
-      "ModelCatalogSuggestion": {
-        "additionalProperties": false,
-        "properties": {
-          "base_model": {
-            "maxLength": 256,
-            "minLength": 1,
-            "title": "Base Model",
-            "type": "string"
-          },
-          "declarations": {
-            "$ref": "#/components/schemas/ModelDeclarations"
-          },
-          "model_api": {
-            "anyOf": [
-              {
-                "maxLength": 96,
-                "pattern": "^[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)+$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Model Api"
-          },
-          "model_api_label": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Model Api Label"
-          }
-        },
-        "required": [
-          "base_model",
-          "model_api",
-          "model_api_label",
-          "declarations"
-        ],
-        "title": "ModelCatalogSuggestion",
-        "type": "object"
-      },
-      "ModelCatalogSuggestionRequest": {
-        "additionalProperties": false,
-        "properties": {
-          "base_model": {
-            "anyOf": [
-              {
-                "maxLength": 256,
-                "minLength": 1,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Base Model"
-          },
-          "model_api": {
-            "anyOf": [
-              {
-                "maxLength": 96,
-                "pattern": "^[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)+$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Model Api"
-          },
-          "provider_id": {
-            "maxLength": 72,
-            "pattern": "^[a-z][a-z0-9]{1,7}_[a-z0-9]{16,64}$",
-            "title": "Provider Id",
-            "type": "string"
-          },
-          "upstream_model": {
-            "maxLength": 256,
-            "minLength": 1,
-            "title": "Upstream Model",
-            "type": "string"
-          }
-        },
-        "required": [
-          "provider_id",
-          "upstream_model"
-        ],
-        "title": "ModelCatalogSuggestionRequest",
+        "title": "ModelCatalogCollection",
         "type": "object"
       },
       "ModelCollection": {
@@ -11775,7 +11714,7 @@
         "title": "ModelConnectionTestResult",
         "type": "object"
       },
-      "ModelDeclarations": {
+      "ModelDeclarations-Input": {
         "additionalProperties": false,
         "description": "Harness-facing facts and authoring choices declared for one saved Model.",
         "properties": {
@@ -11799,22 +11738,10 @@
             ],
             "title": "Context Window Tokens"
           },
-          "max_output_tokens": {
-            "anyOf": [
-              {
-                "exclusiveMinimum": 0.0,
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Max Output Tokens"
-          },
           "pricing": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/ModelPricing"
+                "$ref": "#/components/schemas/TokenPricing-Input"
               },
               {
                 "type": "null"
@@ -11842,41 +11769,69 @@
               }
             ],
             "title": "Supports Tools"
-          },
-          "thinking_efforts": {
-            "default": [],
-            "items": {
-              "enum": [
-                "minimal",
-                "low",
-                "medium",
-                "high",
-                "xhigh"
-              ],
-              "type": "string"
-            },
-            "title": "Thinking Efforts",
-            "type": "array"
           }
         },
-        "title": "ModelDeclarations",
+        "title": "ModelDeclarations-Input",
         "type": "object"
       },
-      "ModelDiscovery": {
+      "ModelDeclarations-Output": {
         "additionalProperties": false,
+        "description": "Harness-facing facts and authoring choices declared for one saved Model.",
         "properties": {
-          "items": {
+          "capabilities": {
             "items": {
-              "$ref": "#/components/schemas/ModelCandidate"
+              "$ref": "#/components/schemas/ModelCapability"
             },
-            "title": "Items",
-            "type": "array"
+            "title": "Capabilities",
+            "type": "array",
+            "uniqueItems": true
+          },
+          "context_window_tokens": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context Window Tokens"
+          },
+          "pricing": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TokenPricing-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "structured_output": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Structured Output"
+          },
+          "supports_tools": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supports Tools"
           }
         },
-        "required": [
-          "items"
-        ],
-        "title": "ModelDiscovery",
+        "title": "ModelDeclarations-Output",
         "type": "object"
       },
       "ModelIdentity": {
@@ -11910,37 +11865,6 @@
           "response"
         ],
         "title": "ModelIdentity",
-        "type": "object"
-      },
-      "ModelLimits": {
-        "additionalProperties": false,
-        "properties": {
-          "context_window_tokens": {
-            "anyOf": [
-              {
-                "exclusiveMinimum": 0.0,
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Context Window Tokens"
-          },
-          "max_output_tokens": {
-            "anyOf": [
-              {
-                "exclusiveMinimum": 0.0,
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Max Output Tokens"
-          }
-        },
-        "title": "ModelLimits",
         "type": "object"
       },
       "ModelOverride": {
@@ -11983,167 +11907,6 @@
           }
         },
         "title": "ModelOverride",
-        "type": "object"
-      },
-      "ModelPricing": {
-        "additionalProperties": false,
-        "description": "Editable USD prices per million tokens.",
-        "properties": {
-          "cache_read": {
-            "anyOf": [
-              {
-                "minimum": 0.0,
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Cache Read"
-          },
-          "cache_write": {
-            "anyOf": [
-              {
-                "minimum": 0.0,
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Cache Write"
-          },
-          "input": {
-            "anyOf": [
-              {
-                "minimum": 0.0,
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Input"
-          },
-          "output": {
-            "anyOf": [
-              {
-                "minimum": 0.0,
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Output"
-          }
-        },
-        "title": "ModelPricing",
-        "type": "object"
-      },
-      "ModelProfile": {
-        "additionalProperties": false,
-        "description": "Read-only Provider capability information returned by discovery.",
-        "properties": {
-          "input_modalities": {
-            "anyOf": [
-              {
-                "items": {
-                  "enum": [
-                    "text",
-                    "image",
-                    "audio",
-                    "video"
-                  ],
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Input Modalities"
-          },
-          "supports_audio_input": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Supports Audio Input"
-          },
-          "supports_image_output": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Supports Image Output"
-          },
-          "supports_json_object_output": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Supports Json Object Output"
-          },
-          "supports_json_schema_output": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Supports Json Schema Output"
-          },
-          "supports_thinking": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Supports Thinking"
-          },
-          "supports_tools": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Supports Tools"
-          },
-          "thinking_always_enabled": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Thinking Always Enabled"
-          }
-        },
-        "title": "ModelProfile",
         "type": "object"
       },
       "ModelProvider": {
@@ -12269,6 +12032,14 @@
       "ModelProviderDefinition": {
         "additionalProperties": false,
         "properties": {
+          "catalog_providers": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Catalog Providers",
+            "type": "array"
+          },
           "configuration_schema": {
             "additionalProperties": true,
             "title": "Configuration Schema",
@@ -12309,10 +12080,6 @@
             "title": "Supported Model Apis",
             "type": "array"
           },
-          "supports_model_discovery": {
-            "title": "Supports Model Discovery",
-            "type": "boolean"
-          },
           "type": {
             "title": "Type",
             "type": "string"
@@ -12326,8 +12093,7 @@
           "supported_model_apis",
           "default_model_api",
           "model_api_labels",
-          "settings_schemas",
-          "supports_model_discovery"
+          "settings_schemas"
         ],
         "title": "ModelProviderDefinition",
         "type": "object"
@@ -13554,98 +13320,6 @@
         "title": "ProtocolLimits",
         "type": "object"
       },
-      "PublicationAccess": {
-        "additionalProperties": false,
-        "properties": {
-          "recipient_scope_ids": {
-            "items": {
-              "maxLength": 72,
-              "pattern": "^[a-z][a-z0-9]{1,7}_[a-z0-9]{16,64}$",
-              "type": "string"
-            },
-            "title": "Recipient Scope Ids",
-            "type": "array"
-          },
-          "version": {
-            "title": "Version",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "version",
-          "recipient_scope_ids"
-        ],
-        "title": "PublicationAccess",
-        "type": "object"
-      },
-      "PublicationAudience": {
-        "additionalProperties": false,
-        "properties": {
-          "expected_version": {
-            "minimum": 1.0,
-            "title": "Expected Version",
-            "type": "integer"
-          },
-          "recipient_scope_ids": {
-            "items": {
-              "maxLength": 72,
-              "pattern": "^[a-z][a-z0-9]{1,7}_[a-z0-9]{16,64}$",
-              "type": "string"
-            },
-            "maxItems": 128,
-            "title": "Recipient Scope Ids",
-            "type": "array"
-          }
-        },
-        "required": [
-          "expected_version",
-          "recipient_scope_ids"
-        ],
-        "title": "PublicationAudience",
-        "type": "object"
-      },
-      "PublishDocument": {
-        "additionalProperties": false,
-        "properties": {
-          "description": {
-            "default": "",
-            "maxLength": 320,
-            "title": "Description",
-            "type": "string"
-          },
-          "recipient_scope_ids": {
-            "items": {
-              "maxLength": 72,
-              "pattern": "^[a-z][a-z0-9]{1,7}_[a-z0-9]{16,64}$",
-              "type": "string"
-            },
-            "maxItems": 128,
-            "minItems": 1,
-            "title": "Recipient Scope Ids",
-            "type": "array"
-          },
-          "text": {
-            "maxLength": 8000,
-            "minLength": 1,
-            "pattern": "\\S",
-            "title": "Text",
-            "type": "string"
-          },
-          "title": {
-            "maxLength": 160,
-            "minLength": 1,
-            "title": "Title",
-            "type": "string"
-          }
-        },
-        "required": [
-          "text",
-          "title",
-          "recipient_scope_ids"
-        ],
-        "title": "PublishDocument",
-        "type": "object"
-      },
       "QueuedSubmission": {
         "additionalProperties": false,
         "properties": {
@@ -14205,67 +13879,30 @@
         "title": "ReplaceCredentialRequest",
         "type": "object"
       },
-      "ReplaceSharingPolicy": {
+      "ReplaceMemorySettings": {
         "additionalProperties": false,
         "properties": {
-          "enabled": {
-            "default": true,
-            "title": "Enabled",
-            "type": "boolean"
-          },
-          "enroll_future_groups": {
-            "default": false,
-            "title": "Enroll Future Groups",
-            "type": "boolean"
-          },
           "expected_version": {
-            "minimum": 1.0,
+            "minimum": 0.0,
             "title": "Expected Version",
             "type": "integer"
           },
-          "include_history": {
-            "default": false,
-            "title": "Include History",
-            "type": "boolean"
-          },
-          "kinds": {
-            "default": [
-              "long_term"
-            ],
-            "items": {
-              "enum": [
-                "daily",
-                "long_term"
-              ],
-              "type": "string"
-            },
-            "title": "Kinds",
-            "type": "array"
-          },
-          "name": {
-            "maxLength": 128,
-            "minLength": 1,
-            "title": "Name",
-            "type": "string"
-          },
-          "scope_ids": {
-            "items": {
-              "maxLength": 72,
-              "pattern": "^[a-z][a-z0-9]{1,7}_[a-z0-9]{16,64}$",
-              "type": "string"
-            },
-            "maxItems": 128,
-            "minItems": 2,
-            "title": "Scope Ids",
-            "type": "array"
+          "memory": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MemorySettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
-          "name",
-          "scope_ids",
-          "expected_version"
+          "expected_version",
+          "memory"
         ],
-        "title": "ReplaceSharingPolicy",
+        "title": "ReplaceMemorySettings",
         "type": "object"
       },
       "ReplaceTargetRequest": {
@@ -15862,6 +15499,15 @@
           "version": {
             "title": "Version",
             "type": "integer"
+          },
+          "visibility": {
+            "default": "group",
+            "enum": [
+              "group",
+              "installation"
+            ],
+            "title": "Visibility",
+            "type": "string"
           }
         },
         "required": [
@@ -16415,202 +16061,6 @@
           "role"
         ],
         "title": "SetRoleRequest",
-        "type": "object"
-      },
-      "SharingParticipant": {
-        "additionalProperties": false,
-        "properties": {
-          "joined_at": {
-            "format": "date-time",
-            "title": "Joined At",
-            "type": "string"
-          },
-          "scope_id": {
-            "maxLength": 72,
-            "pattern": "^[a-z][a-z0-9]{1,7}_[a-z0-9]{16,64}$",
-            "title": "Scope Id",
-            "type": "string"
-          }
-        },
-        "required": [
-          "scope_id",
-          "joined_at"
-        ],
-        "title": "SharingParticipant",
-        "type": "object"
-      },
-      "SharingPolicy": {
-        "additionalProperties": false,
-        "properties": {
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
-          "enabled": {
-            "default": true,
-            "title": "Enabled",
-            "type": "boolean"
-          },
-          "enroll_future_groups": {
-            "default": false,
-            "title": "Enroll Future Groups",
-            "type": "boolean"
-          },
-          "future_since": {
-            "format": "date-time",
-            "title": "Future Since",
-            "type": "string"
-          },
-          "id": {
-            "maxLength": 72,
-            "pattern": "^[a-z][a-z0-9]{1,7}_[a-z0-9]{16,64}$",
-            "title": "Id",
-            "type": "string"
-          },
-          "include_history": {
-            "default": false,
-            "title": "Include History",
-            "type": "boolean"
-          },
-          "kinds": {
-            "default": [
-              "long_term"
-            ],
-            "items": {
-              "enum": [
-                "daily",
-                "long_term"
-              ],
-              "type": "string"
-            },
-            "title": "Kinds",
-            "type": "array"
-          },
-          "name": {
-            "maxLength": 128,
-            "minLength": 1,
-            "title": "Name",
-            "type": "string"
-          },
-          "participants": {
-            "items": {
-              "$ref": "#/components/schemas/SharingParticipant"
-            },
-            "title": "Participants",
-            "type": "array"
-          },
-          "scope_ids": {
-            "items": {
-              "maxLength": 72,
-              "pattern": "^[a-z][a-z0-9]{1,7}_[a-z0-9]{16,64}$",
-              "type": "string"
-            },
-            "maxItems": 128,
-            "minItems": 2,
-            "title": "Scope Ids",
-            "type": "array"
-          },
-          "version": {
-            "title": "Version",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "name",
-          "scope_ids",
-          "id",
-          "version",
-          "created_at",
-          "future_since",
-          "participants"
-        ],
-        "title": "SharingPolicy",
-        "type": "object"
-      },
-      "SharingPolicyCollection": {
-        "additionalProperties": false,
-        "properties": {
-          "items": {
-            "items": {
-              "$ref": "#/components/schemas/SharingPolicy"
-            },
-            "title": "Items",
-            "type": "array"
-          },
-          "next_cursor": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Next Cursor"
-          }
-        },
-        "required": [
-          "items"
-        ],
-        "title": "SharingPolicyCollection",
-        "type": "object"
-      },
-      "SharingPolicyInput": {
-        "additionalProperties": false,
-        "properties": {
-          "enabled": {
-            "default": true,
-            "title": "Enabled",
-            "type": "boolean"
-          },
-          "enroll_future_groups": {
-            "default": false,
-            "title": "Enroll Future Groups",
-            "type": "boolean"
-          },
-          "include_history": {
-            "default": false,
-            "title": "Include History",
-            "type": "boolean"
-          },
-          "kinds": {
-            "default": [
-              "long_term"
-            ],
-            "items": {
-              "enum": [
-                "daily",
-                "long_term"
-              ],
-              "type": "string"
-            },
-            "title": "Kinds",
-            "type": "array"
-          },
-          "name": {
-            "maxLength": 128,
-            "minLength": 1,
-            "title": "Name",
-            "type": "string"
-          },
-          "scope_ids": {
-            "items": {
-              "maxLength": 72,
-              "pattern": "^[a-z][a-z0-9]{1,7}_[a-z0-9]{16,64}$",
-              "type": "string"
-            },
-            "maxItems": 128,
-            "minItems": 2,
-            "title": "Scope Ids",
-            "type": "array"
-          }
-        },
-        "required": [
-          "name",
-          "scope_ids"
-        ],
-        "title": "SharingPolicyInput",
         "type": "object"
       },
       "Skill": {
@@ -18793,6 +18243,262 @@
         "title": "ThreadRunSubmissionRequest",
         "type": "object"
       },
+      "TokenPriceTier-Input": {
+        "additionalProperties": false,
+        "description": "Complete rates for requests strictly above the input threshold.",
+        "properties": {
+          "above": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Above"
+          },
+          "rates": {
+            "$ref": "#/components/schemas/TokenRates-Input"
+          }
+        },
+        "required": [
+          "rates"
+        ],
+        "title": "TokenPriceTier-Input",
+        "type": "object"
+      },
+      "TokenPriceTier-Output": {
+        "additionalProperties": false,
+        "description": "Complete rates for requests strictly above the input threshold.",
+        "properties": {
+          "above": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Above"
+          },
+          "rates": {
+            "$ref": "#/components/schemas/TokenRates-Output"
+          }
+        },
+        "required": [
+          "rates"
+        ],
+        "title": "TokenPriceTier-Output",
+        "type": "object"
+      },
+      "TokenPricing-Input": {
+        "additionalProperties": false,
+        "description": "Cliff prices: one input-length tier prices the entire request.",
+        "properties": {
+          "currency": {
+            "const": "USD",
+            "default": "USD",
+            "title": "Currency",
+            "type": "string"
+          },
+          "tier_basis": {
+            "const": "input_tokens",
+            "default": "input_tokens",
+            "title": "Tier Basis",
+            "type": "string"
+          },
+          "tiers": {
+            "items": {
+              "$ref": "#/components/schemas/TokenPriceTier-Input"
+            },
+            "maxItems": 32,
+            "minItems": 1,
+            "title": "Tiers",
+            "type": "array"
+          },
+          "unit": {
+            "const": "million_tokens",
+            "default": "million_tokens",
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tiers"
+        ],
+        "title": "TokenPricing-Input",
+        "type": "object"
+      },
+      "TokenPricing-Output": {
+        "additionalProperties": false,
+        "description": "Cliff prices: one input-length tier prices the entire request.",
+        "properties": {
+          "currency": {
+            "const": "USD",
+            "default": "USD",
+            "title": "Currency",
+            "type": "string"
+          },
+          "tier_basis": {
+            "const": "input_tokens",
+            "default": "input_tokens",
+            "title": "Tier Basis",
+            "type": "string"
+          },
+          "tiers": {
+            "items": {
+              "$ref": "#/components/schemas/TokenPriceTier-Output"
+            },
+            "maxItems": 32,
+            "minItems": 1,
+            "title": "Tiers",
+            "type": "array"
+          },
+          "unit": {
+            "const": "million_tokens",
+            "default": "million_tokens",
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tiers"
+        ],
+        "title": "TokenPricing-Output",
+        "type": "object"
+      },
+      "TokenRates-Input": {
+        "additionalProperties": false,
+        "description": "USD per million tokens; null is unknown, never free.",
+        "properties": {
+          "cache_read": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cache Read"
+          },
+          "cache_write": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cache Write"
+          },
+          "input": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input"
+          },
+          "output": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output"
+          }
+        },
+        "title": "TokenRates-Input",
+        "type": "object"
+      },
+      "TokenRates-Output": {
+        "additionalProperties": false,
+        "description": "USD per million tokens; null is unknown, never free.",
+        "properties": {
+          "cache_read": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cache Read"
+          },
+          "cache_write": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cache Write"
+          },
+          "input": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input"
+          },
+          "output": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output"
+          }
+        },
+        "title": "TokenRates-Output",
+        "type": "object"
+      },
       "Tool": {
         "additionalProperties": true,
         "description": "A tool definition.",
@@ -19532,16 +19238,6 @@
               }
             ]
           },
-          "memory": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/MemorySettings"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
           "name": {
             "anyOf": [
               {
@@ -20031,23 +19727,20 @@
       "UpdateModelRequest": {
         "additionalProperties": false,
         "properties": {
-          "base_model": {
+          "catalog_ref": {
             "anyOf": [
               {
-                "maxLength": 256,
-                "minLength": 1,
-                "type": "string"
+                "$ref": "#/components/schemas/CatalogRef"
               },
               {
                 "type": "null"
               }
-            ],
-            "title": "Base Model"
+            ]
           },
           "declarations": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/ModelDeclarations"
+                "$ref": "#/components/schemas/ModelDeclarations-Input"
               },
               {
                 "type": "null"
@@ -21304,21 +20997,6 @@
         "title": "WebhookDestinationConfig",
         "type": "object"
       },
-      "WithdrawPublication": {
-        "additionalProperties": false,
-        "properties": {
-          "expected_version": {
-            "minimum": 1.0,
-            "title": "Expected Version",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "expected_version"
-        ],
-        "title": "WithdrawPublication",
-        "type": "object"
-      },
       "Workspace": {
         "properties": {
           "created_at": {
@@ -22433,6 +22111,186 @@
         ]
       }
     },
+    "/api/v1/application-accounts/{account_id}/bot/memory-settings": {
+      "get": {
+        "operationId": "get_application_accounts_account_id_bot_memory_settings",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "title": "Account Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountMemorySettings"
+                }
+              }
+            },
+            "description": "Successful Response",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid request.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service error.",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Memory Settings",
+        "tags": [
+          "bot-memory"
+        ]
+      },
+      "put": {
+        "operationId": "put_application_accounts_account_id_bot_memory_settings",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "title": "Account Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplaceMemorySettings"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountMemorySettings"
+                }
+              }
+            },
+            "description": "Successful Response",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid request.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service error.",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Update Memory Settings",
+        "tags": [
+          "bot-memory"
+        ]
+      }
+    },
     "/api/v1/application-accounts/{account_id}/bot/replies": {
       "get": {
         "operationId": "get_application_accounts_account_id_bot_replies",
@@ -23256,6 +23114,92 @@
           }
         ],
         "summary": "Replace Account Credentials",
+        "tags": [
+          "connectivity-management"
+        ]
+      }
+    },
+    "/api/v1/application-accounts/{account_id}/event-connection": {
+      "get": {
+        "operationId": "get_application_accounts_account_id_event_connection",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "title": "Account Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventConnectionStatus"
+                }
+              }
+            },
+            "description": "Successful Response",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid request.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service error.",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Event Connection",
         "tags": [
           "connectivity-management"
         ]
@@ -24086,131 +24030,6 @@
         ]
       }
     },
-    "/api/v1/application-accounts/{account_id}/memory-scopes/{scope_id}/documents/{document_id}/publications": {
-      "post": {
-        "operationId": "post_application_accounts_account_id_memory_scopes_scope_id_documents_document_id_publications",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "account_id",
-            "required": true,
-            "schema": {
-              "title": "Account Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "scope_id",
-            "required": true,
-            "schema": {
-              "title": "Scope Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "document_id",
-            "required": true,
-            "schema": {
-              "title": "Document Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "header",
-            "name": "Idempotency-Key",
-            "required": true,
-            "schema": {
-              "maxLength": 128,
-              "minLength": 1,
-              "title": "Idempotency-Key",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PublishDocument"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Document"
-                }
-              }
-            },
-            "description": "Successful Response",
-            "headers": {
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Invalid request.",
-            "headers": {
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Service error.",
-            "headers": {
-              "Retry-After": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          },
-          {
-            "SessionAuth": []
-          }
-        ],
-        "summary": "Publish Document",
-        "tags": [
-          "bot-memory"
-        ]
-      }
-    },
     "/api/v1/application-accounts/{account_id}/memory-scopes/{scope_id}/index": {
       "get": {
         "operationId": "get_application_accounts_account_id_memory_scopes_scope_id_index",
@@ -24650,880 +24469,6 @@
           }
         ],
         "summary": "Reconcile Operation",
-        "tags": [
-          "bot-memory"
-        ]
-      }
-    },
-    "/api/v1/application-accounts/{account_id}/memory-scopes/{scope_id}/publications": {
-      "get": {
-        "operationId": "get_application_accounts_account_id_memory_scopes_scope_id_publications",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "account_id",
-            "required": true,
-            "schema": {
-              "title": "Account Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "scope_id",
-            "required": true,
-            "schema": {
-              "title": "Scope Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "source_id",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Source Id"
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 50,
-              "maximum": 100,
-              "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "query",
-            "name": "cursor",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "maxLength": 2048,
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Cursor"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DocumentCollection"
-                }
-              }
-            },
-            "description": "Successful Response",
-            "headers": {
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Invalid request.",
-            "headers": {
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Service error.",
-            "headers": {
-              "Retry-After": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          },
-          {
-            "SessionAuth": []
-          }
-        ],
-        "summary": "Publications",
-        "tags": [
-          "bot-memory"
-        ]
-      }
-    },
-    "/api/v1/application-accounts/{account_id}/memory-scopes/{scope_id}/publications/{document_id}": {
-      "get": {
-        "operationId": "get_application_accounts_account_id_memory_scopes_scope_id_publications_document_id",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "account_id",
-            "required": true,
-            "schema": {
-              "title": "Account Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "scope_id",
-            "required": true,
-            "schema": {
-              "title": "Scope Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "document_id",
-            "required": true,
-            "schema": {
-              "title": "Document Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Document"
-                }
-              }
-            },
-            "description": "Successful Response",
-            "headers": {
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Invalid request.",
-            "headers": {
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Service error.",
-            "headers": {
-              "Retry-After": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          },
-          {
-            "SessionAuth": []
-          }
-        ],
-        "summary": "Publication",
-        "tags": [
-          "bot-memory"
-        ]
-      }
-    },
-    "/api/v1/application-accounts/{account_id}/memory-scopes/{scope_id}/publications/{document_id}/audience": {
-      "get": {
-        "operationId": "get_application_accounts_account_id_memory_scopes_scope_id_publications_document_id_audience",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "account_id",
-            "required": true,
-            "schema": {
-              "title": "Account Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "scope_id",
-            "required": true,
-            "schema": {
-              "title": "Scope Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "document_id",
-            "required": true,
-            "schema": {
-              "title": "Document Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PublicationAccess"
-                }
-              }
-            },
-            "description": "Successful Response",
-            "headers": {
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Invalid request.",
-            "headers": {
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Service error.",
-            "headers": {
-              "Retry-After": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          },
-          {
-            "SessionAuth": []
-          }
-        ],
-        "summary": "Publication Audience",
-        "tags": [
-          "bot-memory"
-        ]
-      },
-      "patch": {
-        "operationId": "patch_application_accounts_account_id_memory_scopes_scope_id_publications_document_id_audience",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "account_id",
-            "required": true,
-            "schema": {
-              "title": "Account Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "scope_id",
-            "required": true,
-            "schema": {
-              "title": "Scope Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "document_id",
-            "required": true,
-            "schema": {
-              "title": "Document Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PublicationAudience"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "204": {
-            "description": "Successful Response",
-            "headers": {
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Invalid request.",
-            "headers": {
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Service error.",
-            "headers": {
-              "Retry-After": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          },
-          {
-            "SessionAuth": []
-          }
-        ],
-        "summary": "Change Audience",
-        "tags": [
-          "bot-memory"
-        ]
-      }
-    },
-    "/api/v1/application-accounts/{account_id}/memory-scopes/{scope_id}/publications/{document_id}/withdraw": {
-      "post": {
-        "operationId": "post_application_accounts_account_id_memory_scopes_scope_id_publications_document_id_withdraw",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "account_id",
-            "required": true,
-            "schema": {
-              "title": "Account Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "scope_id",
-            "required": true,
-            "schema": {
-              "title": "Scope Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "document_id",
-            "required": true,
-            "schema": {
-              "title": "Document Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/WithdrawPublication"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "204": {
-            "description": "Successful Response",
-            "headers": {
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Invalid request.",
-            "headers": {
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Service error.",
-            "headers": {
-              "Retry-After": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          },
-          {
-            "SessionAuth": []
-          }
-        ],
-        "summary": "Withdraw Publication",
-        "tags": [
-          "bot-memory"
-        ]
-      }
-    },
-    "/api/v1/application-accounts/{account_id}/memory-sharing-policies": {
-      "get": {
-        "operationId": "get_application_accounts_account_id_memory_sharing_policies",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "account_id",
-            "required": true,
-            "schema": {
-              "title": "Account Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 50,
-              "maximum": 100,
-              "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "query",
-            "name": "cursor",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "maxLength": 2048,
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Cursor"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SharingPolicyCollection"
-                }
-              }
-            },
-            "description": "Successful Response",
-            "headers": {
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Invalid request.",
-            "headers": {
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Service error.",
-            "headers": {
-              "Retry-After": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          },
-          {
-            "SessionAuth": []
-          }
-        ],
-        "summary": "Policies",
-        "tags": [
-          "bot-memory"
-        ]
-      },
-      "post": {
-        "operationId": "post_application_accounts_account_id_memory_sharing_policies",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "account_id",
-            "required": true,
-            "schema": {
-              "title": "Account Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SharingPolicyInput"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SharingPolicy"
-                }
-              }
-            },
-            "description": "Successful Response",
-            "headers": {
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Invalid request.",
-            "headers": {
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Service error.",
-            "headers": {
-              "Retry-After": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          },
-          {
-            "SessionAuth": []
-          }
-        ],
-        "summary": "New Policy",
-        "tags": [
-          "bot-memory"
-        ]
-      }
-    },
-    "/api/v1/application-accounts/{account_id}/memory-sharing-policies/{policy_id}": {
-      "put": {
-        "operationId": "put_application_accounts_account_id_memory_sharing_policies_policy_id",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "account_id",
-            "required": true,
-            "schema": {
-              "title": "Account Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "policy_id",
-            "required": true,
-            "schema": {
-              "title": "Policy Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ReplaceSharingPolicy"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SharingPolicy"
-                }
-              }
-            },
-            "description": "Successful Response",
-            "headers": {
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Invalid request.",
-            "headers": {
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Service error.",
-            "headers": {
-              "Retry-After": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          },
-          {
-            "SessionAuth": []
-          }
-        ],
-        "summary": "Replace Policy",
         "tags": [
           "bot-memory"
         ]
@@ -26859,64 +25804,6 @@
         "summary": "Complete Password Reset",
         "tags": [
           "identity-recovery"
-        ]
-      }
-    },
-    "/api/v1/base-models": {
-      "get": {
-        "operationId": "get_base_models",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BaseModelCandidateCollection"
-                }
-              }
-            },
-            "description": "Successful Response",
-            "headers": {
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Service error.",
-            "headers": {
-              "Retry-After": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          },
-          {
-            "SessionAuth": []
-          }
-        ],
-        "summary": "List Base Models",
-        "tags": [
-          "model-management"
         ]
       }
     },
@@ -35655,9 +34542,9 @@
         ]
       }
     },
-    "/api/v1/organizations/{organization}/model-catalog/suggestions": {
-      "post": {
-        "operationId": "post_organizations_organization_model_catalog_suggestions",
+    "/api/v1/organizations/{organization}/model-catalog": {
+      "get": {
+        "operationId": "get_organizations_organization_model_catalog",
         "parameters": [
           {
             "in": "path",
@@ -35669,22 +34556,12 @@
             }
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ModelCatalogSuggestionRequest"
-              }
-            }
-          },
-          "required": true
-        },
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ModelCatalogMatch"
+                  "$ref": "#/components/schemas/ModelCatalogCollection"
                 }
               }
             },
@@ -35745,7 +34622,7 @@
             "SessionAuth": []
           }
         ],
-        "summary": "Suggest Organization Model Declarations",
+        "summary": "Organization List Model Catalog",
         "tags": [
           "model-management"
         ]
@@ -36213,101 +35090,6 @@
           }
         ],
         "summary": "Organization Update Model Provider",
-        "tags": [
-          "model-management"
-        ]
-      }
-    },
-    "/api/v1/organizations/{organization}/model-providers/{provider_id}/discover-models": {
-      "post": {
-        "operationId": "post_organizations_organization_model_providers_provider_id_discover_models",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "provider_id",
-            "required": true,
-            "schema": {
-              "title": "Provider Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "organization",
-            "required": true,
-            "schema": {
-              "title": "Organization",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ModelDiscovery"
-                }
-              }
-            },
-            "description": "Successful Response",
-            "headers": {
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Invalid request.",
-            "headers": {
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Service error.",
-            "headers": {
-              "Retry-After": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          },
-          {
-            "SessionAuth": []
-          }
-        ],
-        "summary": "Organization Discover Provider Models",
         "tags": [
           "model-management"
         ]
@@ -46813,16 +45595,6 @@
               ],
               "title": "Cursor"
             }
-          },
-          {
-            "in": "query",
-            "name": "bots_only",
-            "required": false,
-            "schema": {
-              "default": false,
-              "title": "Bots Only",
-              "type": "boolean"
-            }
           }
         ],
         "responses": {
@@ -47455,6 +46227,102 @@
           }
         ],
         "summary": "Bot Collection",
+        "tags": [
+          "bots"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace}/bots/feishu/installation": {
+      "post": {
+        "operationId": "post_workspaces_workspace_bots_feishu_installation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace",
+            "required": true,
+            "schema": {
+              "title": "Workspace",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiscoverFeishuInstallationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstallationInfo"
+                }
+              }
+            },
+            "description": "Successful Response",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid request.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service error.",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Discover Feishu Installation",
         "tags": [
           "bots"
         ]
@@ -51371,9 +50239,9 @@
         ]
       }
     },
-    "/api/v1/workspaces/{workspace}/model-catalog/suggestions": {
-      "post": {
-        "operationId": "post_workspaces_workspace_model_catalog_suggestions",
+    "/api/v1/workspaces/{workspace}/model-catalog": {
+      "get": {
+        "operationId": "get_workspaces_workspace_model_catalog",
         "parameters": [
           {
             "in": "path",
@@ -51385,22 +50253,12 @@
             }
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ModelCatalogSuggestionRequest"
-              }
-            }
-          },
-          "required": true
-        },
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ModelCatalogMatch"
+                  "$ref": "#/components/schemas/ModelCatalogCollection"
                 }
               }
             },
@@ -51461,7 +50319,7 @@
             "SessionAuth": []
           }
         ],
-        "summary": "Suggest Workspace Model Declarations",
+        "summary": "List Model Catalog",
         "tags": [
           "model-management"
         ]
@@ -51929,101 +50787,6 @@
           }
         ],
         "summary": "Update Model Provider",
-        "tags": [
-          "model-management"
-        ]
-      }
-    },
-    "/api/v1/workspaces/{workspace}/model-providers/{provider_id}/discover-models": {
-      "post": {
-        "operationId": "post_workspaces_workspace_model_providers_provider_id_discover_models",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "provider_id",
-            "required": true,
-            "schema": {
-              "title": "Provider Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "workspace",
-            "required": true,
-            "schema": {
-              "title": "Workspace",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ModelDiscovery"
-                }
-              }
-            },
-            "description": "Successful Response",
-            "headers": {
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Invalid request.",
-            "headers": {
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Service error.",
-            "headers": {
-              "Retry-After": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "X-Request-ID": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          },
-          {
-            "SessionAuth": []
-          }
-        ],
-        "summary": "Discover Provider Models",
         "tags": [
           "model-management"
         ]

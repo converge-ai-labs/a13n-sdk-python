@@ -5,47 +5,39 @@ from urllib.parse import quote
 import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
-from ...models.account_collection import AccountCollection
+from ...models.discover_feishu_installation_request import DiscoverFeishuInstallationRequest
 from ...models.error_response import ErrorResponse
-from ...types import UNSET, Response, Unset
+from ...models.installation_info import InstallationInfo
+from ...types import Response
 
 
 def build_request(
     workspace: str,
     *,
-    limit: int | Unset = UNSET,
-    cursor: str | Unset | None = UNSET,
+    body: DiscoverFeishuInstallationRequest,
 ) -> dict[str, Any]:
-
-    params: dict[str, Any] = {}
-
-    params["limit"] = limit
-
-    json_cursor: str | Unset | None
-    if isinstance(cursor, Unset):
-        json_cursor = UNSET
-    else:
-        json_cursor = cursor
-    params["cursor"] = json_cursor
-
-    params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
+    headers: dict[str, Any] = {}
 
     _kwargs: dict[str, Any] = {
-        "method": "get",
-        "url": "/api/v1/workspaces/{workspace}/application-accounts".format(
+        "method": "post",
+        "url": "/api/v1/workspaces/{workspace}/bots/feishu/installation".format(
             workspace=quote(str(workspace), safe=""),
         ),
-        "params": params,
     }
 
+    _kwargs["json"] = body.to_dict()
+
+    headers["Content-Type"] = "application/json"
+
+    _kwargs["headers"] = headers
     return _kwargs
 
 
 def _parse_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> AccountCollection | ErrorResponse:
+) -> ErrorResponse | InstallationInfo:
     if response.status_code == 200:
-        response_200 = AccountCollection.from_dict(response.json())
+        response_200 = InstallationInfo.from_dict(response.json())
 
         return response_200
 
@@ -61,7 +53,7 @@ def _parse_response(
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[AccountCollection | ErrorResponse]:
+) -> Response[ErrorResponse | InstallationInfo]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -74,28 +66,25 @@ def sync_detailed(
     workspace: str,
     *,
     client: AuthenticatedClient,
-    limit: int | Unset = UNSET,
-    cursor: str | Unset | None = UNSET,
-) -> Response[AccountCollection | ErrorResponse]:
-    """List Accounts
+    body: DiscoverFeishuInstallationRequest,
+) -> Response[ErrorResponse | InstallationInfo]:
+    """Discover Feishu Installation
 
     Args:
         workspace (str):
-        limit (int | Unset):
-        cursor (None | str | Unset):
+        body (DiscoverFeishuInstallationRequest):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[AccountCollection | ErrorResponse]
+        Response[ErrorResponse | InstallationInfo]
     """
 
     kwargs = build_request(
         workspace=workspace,
-        limit=limit,
-        cursor=cursor,
+        body=body,
     )
 
     response = client.get_httpx_client().request(
@@ -109,29 +98,26 @@ def sync(
     workspace: str,
     *,
     client: AuthenticatedClient,
-    limit: int | Unset = UNSET,
-    cursor: str | Unset | None = UNSET,
-) -> AccountCollection | ErrorResponse | None:
-    """List Accounts
+    body: DiscoverFeishuInstallationRequest,
+) -> ErrorResponse | InstallationInfo | None:
+    """Discover Feishu Installation
 
     Args:
         workspace (str):
-        limit (int | Unset):
-        cursor (None | str | Unset):
+        body (DiscoverFeishuInstallationRequest):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        AccountCollection | ErrorResponse
+        ErrorResponse | InstallationInfo
     """
 
     return sync_detailed(
         workspace=workspace,
         client=client,
-        limit=limit,
-        cursor=cursor,
+        body=body,
     ).parsed
 
 
@@ -139,28 +125,25 @@ async def asyncio_detailed(
     workspace: str,
     *,
     client: AuthenticatedClient,
-    limit: int | Unset = UNSET,
-    cursor: str | Unset | None = UNSET,
-) -> Response[AccountCollection | ErrorResponse]:
-    """List Accounts
+    body: DiscoverFeishuInstallationRequest,
+) -> Response[ErrorResponse | InstallationInfo]:
+    """Discover Feishu Installation
 
     Args:
         workspace (str):
-        limit (int | Unset):
-        cursor (None | str | Unset):
+        body (DiscoverFeishuInstallationRequest):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[AccountCollection | ErrorResponse]
+        Response[ErrorResponse | InstallationInfo]
     """
 
     kwargs = build_request(
         workspace=workspace,
-        limit=limit,
-        cursor=cursor,
+        body=body,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -172,29 +155,26 @@ async def asyncio(
     workspace: str,
     *,
     client: AuthenticatedClient,
-    limit: int | Unset = UNSET,
-    cursor: str | Unset | None = UNSET,
-) -> AccountCollection | ErrorResponse | None:
-    """List Accounts
+    body: DiscoverFeishuInstallationRequest,
+) -> ErrorResponse | InstallationInfo | None:
+    """Discover Feishu Installation
 
     Args:
         workspace (str):
-        limit (int | Unset):
-        cursor (None | str | Unset):
+        body (DiscoverFeishuInstallationRequest):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        AccountCollection | ErrorResponse
+        ErrorResponse | InstallationInfo
     """
 
     return (
         await asyncio_detailed(
             workspace=workspace,
             client=client,
-            limit=limit,
-            cursor=cursor,
+            body=body,
         )
     ).parsed

@@ -6,6 +6,7 @@ from typing import Any, TypeVar
 from attrs import define as _attrs_define
 
 from ..models.scope_audience import ScopeAudience
+from ..models.scope_visibility import ScopeVisibility
 from ..types import UNSET, Unset
 
 T = TypeVar("T", bound="Scope")
@@ -26,6 +27,7 @@ class Scope:
         save_on_request (bool | Unset):
         timezone (str | Unset):
         use_memory (bool | Unset):
+        visibility (ScopeVisibility | Unset):
     """
 
     account_id: str
@@ -39,6 +41,7 @@ class Scope:
     save_on_request: bool | Unset = UNSET
     timezone: str | Unset = UNSET
     use_memory: bool | Unset = UNSET
+    visibility: ScopeVisibility | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
         account_id = self.account_id
@@ -63,6 +66,10 @@ class Scope:
 
         use_memory = self.use_memory
 
+        visibility: str | Unset = UNSET
+        if not isinstance(self.visibility, Unset):
+            visibility = self.visibility.value
+
         field_dict: dict[str, Any] = {}
 
         field_dict.update(
@@ -84,6 +91,8 @@ class Scope:
             field_dict["timezone"] = timezone
         if use_memory is not UNSET:
             field_dict["use_memory"] = use_memory
+        if visibility is not UNSET:
+            field_dict["visibility"] = visibility
 
         return field_dict
 
@@ -112,6 +121,13 @@ class Scope:
 
         use_memory = d.pop("use_memory", UNSET)
 
+        _visibility = d.pop("visibility", UNSET)
+        visibility: ScopeVisibility | Unset
+        if isinstance(_visibility, Unset):
+            visibility = UNSET
+        else:
+            visibility = ScopeVisibility(_visibility)
+
         scope = cls(
             account_id=account_id,
             audience=audience,
@@ -124,6 +140,7 @@ class Scope:
             save_on_request=save_on_request,
             timezone=timezone,
             use_memory=use_memory,
+            visibility=visibility,
         )
 
         return scope

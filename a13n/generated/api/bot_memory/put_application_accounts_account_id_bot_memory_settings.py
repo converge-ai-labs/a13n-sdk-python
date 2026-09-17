@@ -5,47 +5,39 @@ from urllib.parse import quote
 import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
-from ...models.account_collection import AccountCollection
+from ...models.account_memory_settings import AccountMemorySettings
 from ...models.error_response import ErrorResponse
-from ...types import UNSET, Response, Unset
+from ...models.replace_memory_settings import ReplaceMemorySettings
+from ...types import Response
 
 
 def build_request(
-    workspace: str,
+    account_id: str,
     *,
-    limit: int | Unset = UNSET,
-    cursor: str | Unset | None = UNSET,
+    body: ReplaceMemorySettings,
 ) -> dict[str, Any]:
-
-    params: dict[str, Any] = {}
-
-    params["limit"] = limit
-
-    json_cursor: str | Unset | None
-    if isinstance(cursor, Unset):
-        json_cursor = UNSET
-    else:
-        json_cursor = cursor
-    params["cursor"] = json_cursor
-
-    params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
+    headers: dict[str, Any] = {}
 
     _kwargs: dict[str, Any] = {
-        "method": "get",
-        "url": "/api/v1/workspaces/{workspace}/application-accounts".format(
-            workspace=quote(str(workspace), safe=""),
+        "method": "put",
+        "url": "/api/v1/application-accounts/{account_id}/bot/memory-settings".format(
+            account_id=quote(str(account_id), safe=""),
         ),
-        "params": params,
     }
 
+    _kwargs["json"] = body.to_dict()
+
+    headers["Content-Type"] = "application/json"
+
+    _kwargs["headers"] = headers
     return _kwargs
 
 
 def _parse_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> AccountCollection | ErrorResponse:
+) -> AccountMemorySettings | ErrorResponse:
     if response.status_code == 200:
-        response_200 = AccountCollection.from_dict(response.json())
+        response_200 = AccountMemorySettings.from_dict(response.json())
 
         return response_200
 
@@ -61,7 +53,7 @@ def _parse_response(
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[AccountCollection | ErrorResponse]:
+) -> Response[AccountMemorySettings | ErrorResponse]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -71,31 +63,28 @@ def _build_response(
 
 
 def sync_detailed(
-    workspace: str,
+    account_id: str,
     *,
     client: AuthenticatedClient,
-    limit: int | Unset = UNSET,
-    cursor: str | Unset | None = UNSET,
-) -> Response[AccountCollection | ErrorResponse]:
-    """List Accounts
+    body: ReplaceMemorySettings,
+) -> Response[AccountMemorySettings | ErrorResponse]:
+    """Update Memory Settings
 
     Args:
-        workspace (str):
-        limit (int | Unset):
-        cursor (None | str | Unset):
+        account_id (str):
+        body (ReplaceMemorySettings):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[AccountCollection | ErrorResponse]
+        Response[AccountMemorySettings | ErrorResponse]
     """
 
     kwargs = build_request(
-        workspace=workspace,
-        limit=limit,
-        cursor=cursor,
+        account_id=account_id,
+        body=body,
     )
 
     response = client.get_httpx_client().request(
@@ -106,61 +95,55 @@ def sync_detailed(
 
 
 def sync(
-    workspace: str,
+    account_id: str,
     *,
     client: AuthenticatedClient,
-    limit: int | Unset = UNSET,
-    cursor: str | Unset | None = UNSET,
-) -> AccountCollection | ErrorResponse | None:
-    """List Accounts
+    body: ReplaceMemorySettings,
+) -> AccountMemorySettings | ErrorResponse | None:
+    """Update Memory Settings
 
     Args:
-        workspace (str):
-        limit (int | Unset):
-        cursor (None | str | Unset):
+        account_id (str):
+        body (ReplaceMemorySettings):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        AccountCollection | ErrorResponse
+        AccountMemorySettings | ErrorResponse
     """
 
     return sync_detailed(
-        workspace=workspace,
+        account_id=account_id,
         client=client,
-        limit=limit,
-        cursor=cursor,
+        body=body,
     ).parsed
 
 
 async def asyncio_detailed(
-    workspace: str,
+    account_id: str,
     *,
     client: AuthenticatedClient,
-    limit: int | Unset = UNSET,
-    cursor: str | Unset | None = UNSET,
-) -> Response[AccountCollection | ErrorResponse]:
-    """List Accounts
+    body: ReplaceMemorySettings,
+) -> Response[AccountMemorySettings | ErrorResponse]:
+    """Update Memory Settings
 
     Args:
-        workspace (str):
-        limit (int | Unset):
-        cursor (None | str | Unset):
+        account_id (str):
+        body (ReplaceMemorySettings):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[AccountCollection | ErrorResponse]
+        Response[AccountMemorySettings | ErrorResponse]
     """
 
     kwargs = build_request(
-        workspace=workspace,
-        limit=limit,
-        cursor=cursor,
+        account_id=account_id,
+        body=body,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -169,32 +152,29 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    workspace: str,
+    account_id: str,
     *,
     client: AuthenticatedClient,
-    limit: int | Unset = UNSET,
-    cursor: str | Unset | None = UNSET,
-) -> AccountCollection | ErrorResponse | None:
-    """List Accounts
+    body: ReplaceMemorySettings,
+) -> AccountMemorySettings | ErrorResponse | None:
+    """Update Memory Settings
 
     Args:
-        workspace (str):
-        limit (int | Unset):
-        cursor (None | str | Unset):
+        account_id (str):
+        body (ReplaceMemorySettings):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        AccountCollection | ErrorResponse
+        AccountMemorySettings | ErrorResponse
     """
 
     return (
         await asyncio_detailed(
-            workspace=workspace,
+            account_id=account_id,
             client=client,
-            limit=limit,
-            cursor=cursor,
+            body=body,
         )
     ).parsed
