@@ -8,8 +8,9 @@ from attrs import define as _attrs_define
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
+    from ..models.catalog_ref import CatalogRef
     from ..models.create_model_request_settings import CreateModelRequestSettings
-    from ..models.model_declarations import ModelDeclarations
+    from ..models.model_declarations_input import ModelDeclarationsInput
 
 
 T = TypeVar("T", bound="CreateModelRequest")
@@ -20,31 +21,35 @@ class CreateModelRequest:
     """
     Attributes:
         key (str):
+        model_api (str):
         name (str):
         provider_id (str):
         upstream_model (str):
-        base_model (None | str | Unset):
-        declarations (ModelDeclarations | Unset): Harness-facing facts and authoring choices declared for one saved
+        catalog_ref (CatalogRef | None | Unset):
+        declarations (ModelDeclarationsInput | Unset): Harness-facing facts and authoring choices declared for one saved
             Model.
         description (None | str | Unset):
         enabled (bool | Unset):
-        model_api (None | str | Unset):
         settings (CreateModelRequestSettings | Unset):
     """
 
     key: str
+    model_api: str
     name: str
     provider_id: str
     upstream_model: str
-    base_model: str | Unset | None = UNSET
-    declarations: ModelDeclarations | Unset = UNSET
+    catalog_ref: CatalogRef | Unset | None = UNSET
+    declarations: ModelDeclarationsInput | Unset = UNSET
     description: str | Unset | None = UNSET
     enabled: bool | Unset = UNSET
-    model_api: str | Unset | None = UNSET
     settings: CreateModelRequestSettings | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.catalog_ref import CatalogRef
+
         key = self.key
+
+        model_api = self.model_api
 
         name = self.name
 
@@ -52,11 +57,13 @@ class CreateModelRequest:
 
         upstream_model = self.upstream_model
 
-        base_model: str | Unset | None
-        if isinstance(self.base_model, Unset):
-            base_model = UNSET
+        catalog_ref: dict[str, Any] | Unset | None
+        if isinstance(self.catalog_ref, Unset):
+            catalog_ref = UNSET
+        elif isinstance(self.catalog_ref, CatalogRef):
+            catalog_ref = self.catalog_ref.to_dict()
         else:
-            base_model = self.base_model
+            catalog_ref = self.catalog_ref
 
         declarations: dict[str, Any] | Unset = UNSET
         if not isinstance(self.declarations, Unset):
@@ -70,12 +77,6 @@ class CreateModelRequest:
 
         enabled = self.enabled
 
-        model_api: str | Unset | None
-        if isinstance(self.model_api, Unset):
-            model_api = UNSET
-        else:
-            model_api = self.model_api
-
         settings: dict[str, Any] | Unset = UNSET
         if not isinstance(self.settings, Unset):
             settings = self.settings.to_dict()
@@ -85,21 +86,20 @@ class CreateModelRequest:
         field_dict.update(
             {
                 "key": key,
+                "model_api": model_api,
                 "name": name,
                 "provider_id": provider_id,
                 "upstream_model": upstream_model,
             }
         )
-        if base_model is not UNSET:
-            field_dict["base_model"] = base_model
+        if catalog_ref is not UNSET:
+            field_dict["catalog_ref"] = catalog_ref
         if declarations is not UNSET:
             field_dict["declarations"] = declarations
         if description is not UNSET:
             field_dict["description"] = description
         if enabled is not UNSET:
             field_dict["enabled"] = enabled
-        if model_api is not UNSET:
-            field_dict["model_api"] = model_api
         if settings is not UNSET:
             field_dict["settings"] = settings
 
@@ -107,11 +107,14 @@ class CreateModelRequest:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.catalog_ref import CatalogRef
         from ..models.create_model_request_settings import CreateModelRequestSettings
-        from ..models.model_declarations import ModelDeclarations
+        from ..models.model_declarations_input import ModelDeclarationsInput
 
         d = dict(src_dict)
         key = d.pop("key")
+
+        model_api = d.pop("model_api")
 
         name = d.pop("name")
 
@@ -119,21 +122,29 @@ class CreateModelRequest:
 
         upstream_model = d.pop("upstream_model")
 
-        def _parse_base_model(data: object) -> str | Unset | None:
+        def _parse_catalog_ref(data: object) -> CatalogRef | Unset | None:
             if data is None:
                 return data
             if isinstance(data, Unset):
                 return data
-            return cast(str | Unset | None, data)
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                catalog_ref_type_0 = CatalogRef.from_dict(data)
 
-        base_model = _parse_base_model(d.pop("base_model", UNSET))
+                return catalog_ref_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(CatalogRef | Unset | None, data)
+
+        catalog_ref = _parse_catalog_ref(d.pop("catalog_ref", UNSET))
 
         _declarations = d.pop("declarations", UNSET)
-        declarations: ModelDeclarations | Unset
+        declarations: ModelDeclarationsInput | Unset
         if isinstance(_declarations, Unset):
             declarations = UNSET
         else:
-            declarations = ModelDeclarations.from_dict(_declarations)
+            declarations = ModelDeclarationsInput.from_dict(_declarations)
 
         def _parse_description(data: object) -> str | Unset | None:
             if data is None:
@@ -146,15 +157,6 @@ class CreateModelRequest:
 
         enabled = d.pop("enabled", UNSET)
 
-        def _parse_model_api(data: object) -> str | Unset | None:
-            if data is None:
-                return data
-            if isinstance(data, Unset):
-                return data
-            return cast(str | Unset | None, data)
-
-        model_api = _parse_model_api(d.pop("model_api", UNSET))
-
         _settings = d.pop("settings", UNSET)
         settings: CreateModelRequestSettings | Unset
         if isinstance(_settings, Unset):
@@ -164,14 +166,14 @@ class CreateModelRequest:
 
         create_model_request = cls(
             key=key,
+            model_api=model_api,
             name=name,
             provider_id=provider_id,
             upstream_model=upstream_model,
-            base_model=base_model,
+            catalog_ref=catalog_ref,
             declarations=declarations,
             description=description,
             enabled=enabled,
-            model_api=model_api,
             settings=settings,
         )
 
