@@ -171,9 +171,19 @@ def generate_resources(document: dict, output: Path) -> None:
             if model_file and "next_cursor:" in model_file.read_text():
                 page_args = [f"{arg.arg}={arg.arg}" for arg, _ in exposed if arg.arg != "cursor"]
                 page_args.append("cursor=next_cursor")
+                snapshots = [
+                    f"        {arg.arg} = {arg.arg}.copy() if isinstance({arg.arg}, list) else {arg.arg}"
+                    for arg, _ in exposed
+                    if arg.annotation is not None
+                    and any(
+                        isinstance(part, ast.Subscript) and isinstance(part.value, ast.Name) and part.value.id == "list"
+                        for part in ast.walk(arg.annotation)
+                    )
+                ]
                 lines += [
                     f"    def pages({signature}) -> AsyncIterator[Result[{result}]]:",
-                    '        """Iterate lazily in server order, retaining each page and HTTP evidence."""',
+                    '        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""',
+                    *snapshots,
                     f"        return pages(lambda next_cursor: self.list({', '.join(page_args)}), lambda value: value.next_cursor, cursor)",
                     "",
                 ]
@@ -197,11 +207,9 @@ def generate_resources(document: dict, output: Path) -> None:
                     item_type = re.sub(r"\b([A-Z][A-Za-z_0-9]*)\b", r"wire.\1", item_type)
                     forward = ", ".join(f"{arg.arg}={arg.arg}" for arg, _ in exposed)
                     lines += [
-                        f"    async def iter({signature}) -> AsyncIterator[{item_type}]:",
-                        '        """Yield ordinary wire values lazily without discarding server order."""',
-                        f"        async for page in self.pages({forward}):",
-                        "            for item in page.value.items:",
-                        "                yield item",
+                        f"    def iter({signature}) -> AsyncIterator[{item_type}]:",
+                        '        """Yield ordinary wire values lazily with a filter snapshot and server order."""',
+                        f"        return (item async for page in self.pages({forward}) for item in page.value.items)",
                         "",
                     ]
         media = {

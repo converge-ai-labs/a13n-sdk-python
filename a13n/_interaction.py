@@ -42,6 +42,14 @@ def text_input(text: str) -> wire.AgentInput:
     )
 
 
+def _normalize_input(value: str | wire.AgentInput) -> wire.AgentInput:
+    if isinstance(value, str):
+        return text_input(value)
+    if isinstance(value, wire.AgentInput):
+        return value
+    raise ValueError("input must be a string or AgentInput")
+
+
 @dataclass(frozen=True, repr=False)
 class RunAccepted[ReceiptT]:
     outcome: Literal["run_accepted"]
@@ -63,7 +71,7 @@ type ThreadSubmission = RunAccepted[wire.ThreadRunSubmissionReceipt] | Submissio
 
 
 def _accepted[ReceiptT](
-    client: Client, receipt: Result[ReceiptT], value: wire.RunAcceptanceReceipt
+    client: Client, receipt: Result[ReceiptT], value: wire.RunAcceptanceReceipt, *, source_run_id: str | None = None
 ) -> RunAccepted[ReceiptT]:
     from .client import ProtocolError
     from .generated.resources import Run, Session, Thread
@@ -72,6 +80,8 @@ def _accepted[ReceiptT](
         isinstance(identifier, str) and identifier for identifier in (value.run_id, value.thread_id, value.session_id)
     ):
         raise ProtocolError("Run acceptance has incomplete resource identities")
+    if value.run_id == source_run_id:
+        raise ProtocolError("Successor acceptance must identify a new Run")
     return RunAccepted(
         "run_accepted",
         Run(client, {"run_id": value.run_id}),
@@ -104,6 +114,7 @@ class AgentMethods(Resource):
         session_labels: wire.StartRunRequestSessionLabels | Unset = UNSET,
         thread_labels: wire.StartRunRequestThreadLabels | Unset = UNSET,
     ) -> RunAccepted[wire.RunAcceptanceReceipt]:
+        input = _normalize_input(input)
         agent = await self._call(
             lambda client: get_workspaces_workspace_agents_agent.asyncio_detailed(
                 workspace=self._bindings["workspace"], agent=self._bindings["agent"], client=client
@@ -111,7 +122,7 @@ class AgentMethods(Resource):
         )
         body = wire.StartRunRequest(
             agent_id=agent.value.id,
-            input_=text_input(input) if isinstance(input, str) else input,
+            input_=input,
             agent_revision_id=agent_revision_id,
             expected_current_revision_id=expected_current_revision_id,
             config_override=config_override,
@@ -151,7 +162,7 @@ class ThreadMethods(Resource):
 
         body = wire.ThreadRunSubmissionRequest(
             expected_thread_version=expected_thread_version,
-            input_=text_input(input) if isinstance(input, str) else input,
+            input_=_normalize_input(input),
             agent_id=agent_id,
             agent_revision_id=agent_revision_id,
             expected_current_revision_id=expected_current_revision_id,
@@ -167,14 +178,18 @@ class ThreadMethods(Resource):
             )
         )
         value = receipt.value
-        if value.outcome == wire.ThreadRunSubmissionReceiptOutcome.RUN_ACCEPTED and isinstance(
-            value.run, wire.RunAcceptanceReceipt
+        if (
+            value.outcome == wire.ThreadRunSubmissionReceiptOutcome.RUN_ACCEPTED
+            and isinstance(value.run, wire.RunAcceptanceReceipt)
+            and (value.queued_submission is None or isinstance(value.queued_submission, Unset))
         ):
             if value.run.thread_id != self.id:
                 raise ProtocolError("Accepted Run does not belong to the bound Thread")
             return _accepted(self._client, receipt, value.run)
-        if value.outcome == wire.ThreadRunSubmissionReceiptOutcome.QUEUED and isinstance(
-            value.queued_submission, wire.QueuedSubmission
+        if (
+            value.outcome == wire.ThreadRunSubmissionReceiptOutcome.QUEUED
+            and isinstance(value.queued_submission, wire.QueuedSubmission)
+            and (value.run is None or isinstance(value.run, Unset))
         ):
             if value.queued_submission.thread_id != self.id:
                 raise ProtocolError("Queued submission does not belong to the bound Thread")
@@ -208,7 +223,7 @@ class RunMethods(Resource):
                 await asyncio.sleep(poll_interval)
 
     async def steer(self, input: str | wire.AgentInput, *, idempotency_key: str) -> Result[wire.SteerReceipt]:
-        body = text_input(input) if isinstance(input, str) else input
+        body = _normalize_input(input)
         return await self._call(
             lambda client: post_runs_run_id_steer.asyncio_detailed(
                 run_id=self.id, client=client, body=body, idempotency_key=idempotency_key
@@ -240,7 +255,7 @@ class RunMethods(Resource):
                 run_id=self.id, client=client, body=body, idempotency_key=idempotency_key
             )
         )
-        return _accepted(self._client, receipt, receipt.value)
+        return _accepted(self._client, receipt, receipt.value, source_run_id=self.id)
 
     async def retry(
         self, body: wire.RetryRunRequest, *, idempotency_key: str
@@ -250,7 +265,7 @@ class RunMethods(Resource):
                 run_id=self.id, client=client, body=body, idempotency_key=idempotency_key
             )
         )
-        return _accepted(self._client, receipt, receipt.value)
+        return _accepted(self._client, receipt, receipt.value, source_run_id=self.id)
 
     async def continue_from(
         self, body: wire.ContinueRunRequest, *, idempotency_key: str
@@ -260,7 +275,7 @@ class RunMethods(Resource):
                 source_run_id=self.id, client=client, body=body, idempotency_key=idempotency_key
             )
         )
-        return _accepted(self._client, receipt, receipt.value)
+        return _accepted(self._client, receipt, receipt.value, source_run_id=self.id)
 
     async def fork(self, body: wire.ForkRunRequest, *, idempotency_key: str) -> RunAccepted[wire.RunAcceptanceReceipt]:
         receipt = await self._call(
@@ -268,7 +283,7 @@ class RunMethods(Resource):
                 run_id=self.id, client=client, body=body, idempotency_key=idempotency_key
             )
         )
-        return _accepted(self._client, receipt, receipt.value)
+        return _accepted(self._client, receipt, receipt.value, source_run_id=self.id)
 
     def stream(
         self,

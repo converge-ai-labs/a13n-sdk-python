@@ -302,3 +302,149 @@ def test_feedback_continue_and_fork_preserve_exact_successor_identities() -> Non
         assert len(requests) == 3
 
     asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("outcome", ["run_accepted", "queued"])
+def test_thread_submission_rejects_two_dispositions(outcome: str) -> None:
+    from a13n import ProtocolError
+
+    async def handler(_request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(
+            202, json={"outcome": outcome, "queue_version": 1, "run": acceptance(), "queued_submission": queued_value()}
+        )
+
+    async def scenario() -> None:
+        async with Client("https://service.example", transport=httpx2.MockTransport(handler)) as client:
+            with pytest.raises(ProtocolError, match="disposition"):
+                await client.threads("thread_1").submit("Next", expected_thread_version=1, idempotency_key="submit")
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("outcome", ["run_accepted", "queued"])
+def test_thread_submission_accepts_null_inactive_disposition(outcome: str) -> None:
+    async def handler(_request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(
+            202,
+            json={
+                "outcome": outcome,
+                "queue_version": 1,
+                "run": acceptance() if outcome == "run_accepted" else None,
+                "queued_submission": queued_value() if outcome == "queued" else None,
+            },
+        )
+
+    async def scenario() -> None:
+        async with Client("https://service.example", transport=httpx2.MockTransport(handler)) as client:
+            result = await client.threads("thread_1").submit(
+                "Next", expected_thread_version=1, idempotency_key="submit"
+            )
+            assert result.outcome == outcome
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("command", ["feedback", "retry", "continue", "fork"])
+def test_successor_acceptance_rejects_source_run_identity(command: str) -> None:
+    from a13n import ProtocolError
+
+    calls = []
+
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        calls.append(request)
+        return httpx2.Response(202, json=acceptance("run_source"))
+
+    async def scenario() -> None:
+        async with Client("https://service.example", transport=httpx2.MockTransport(handler)) as client:
+            run = client.runs("run_source")
+            with pytest.raises(ProtocolError, match="new Run"):
+                if command == "feedback":
+                    await run.feedback(
+                        wire.WaitingRunFeedbackRequest(expected_thread_version=1, sealed_state_digest_sha256="sealed"),
+                        idempotency_key="key",
+                    )
+                elif command == "retry":
+                    await run.retry(wire.RetryRunRequest(expected_thread_version=1), idempotency_key="key")
+                elif command == "continue":
+                    await run.continue_from(
+                        wire.ContinueRunRequest(expected_thread_version=1, input_=text_input("Continue")),
+                        idempotency_key="key",
+                    )
+                else:
+                    await run.fork(wire.ForkRunRequest(input_=text_input("Fork")), idempotency_key="key")
+            assert run.id == "run_source"
+        assert len(calls) == 1
+        assert calls[0].url.path == f"/api/v1/runs/run_source/{command}"
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("command", ["start", "submit", "steer"])
+@pytest.mark.parametrize("invalid", [None, 42, {}])
+def test_input_helpers_reject_invalid_type_before_io(command: str, invalid: object) -> None:
+    calls = []
+
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        calls.append(request)
+        return httpx2.Response(200, json=agent_value())
+
+    async def scenario() -> None:
+        async with Client("https://service.example", transport=httpx2.MockTransport(handler)) as client:
+            with pytest.raises(ValueError, match="input"):
+                if command == "start":
+                    await client.workspaces("ws").agents("helper").start(invalid, idempotency_key="key")
+                elif command == "submit":
+                    await client.threads("thread_1").submit(invalid, expected_thread_version=1, idempotency_key="key")
+                else:
+                    await client.runs("run_1").steer(invalid, idempotency_key="key")
+        assert calls == []
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("sealed", ["completed", "failed", "cancelled", "waiting"])
+def test_wait_ignores_unknown_status_and_returns_each_sealed_state(sealed: str) -> None:
+    statuses = iter(["future_nonterminal_status", sealed])
+    calls = []
+
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        calls.append(request)
+        return httpx2.Response(200, json=run_value(next(statuses)))
+
+    async def scenario() -> None:
+        async with Client("https://service.example", transport=httpx2.MockTransport(handler)) as client:
+            result = await client.runs("run_1").wait(timeout=1, poll_interval=0.001)
+            assert result.value.status == sealed
+        assert len(calls) == 2
+        assert all(request.method == "GET" for request in calls)
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("stage", ["request", "sleep"])
+@pytest.mark.parametrize("cancel", [False, True])
+def test_wait_deadline_and_caller_cancel_end_local_work_only(stage: str, cancel: bool) -> None:
+    started = asyncio.Event()
+    never = asyncio.Event()
+    calls = []
+
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        calls.append(request)
+        started.set()
+        if stage == "request":
+            await never.wait()
+        return httpx2.Response(200, json=run_value("running"))
+
+    async def scenario() -> None:
+        async with Client("https://service.example", transport=httpx2.MockTransport(handler)) as client:
+            waiting = asyncio.create_task(client.runs("run_1").wait(timeout=30 if cancel else 0.02, poll_interval=10))
+            await started.wait()
+            await asyncio.sleep(0)
+            if cancel:
+                waiting.cancel()
+            with pytest.raises(asyncio.CancelledError if cancel else TimeoutError):
+                await waiting
+            assert not client._tasks
+        assert len(calls) == 1 and calls[0].method == "GET"
+
+    asyncio.run(scenario())

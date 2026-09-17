@@ -221,3 +221,67 @@ def test_resource_binary_scope_is_lazy_and_session_authenticated() -> None:
             assert consumed == ["first", "closed"]
 
     asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("flatten", [False, True])
+@pytest.mark.parametrize("initial", [[], ["env=dev"]])
+def test_traversal_snapshots_filters_at_creation_and_between_pages(flatten: bool, initial: list[str]) -> None:
+    labels = initial.copy()
+    calls = []
+
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        calls.append(request)
+        # Simulate caller mutation while a page request is in flight.
+        labels[:] = ["env=changed-during-request"]
+        return httpx2.Response(
+            200, json={"items": [], "next_cursor": "next" if "cursor" not in request.url.params else None}
+        )
+
+    async def scenario() -> None:
+        async with Client("https://service.example", transport=httpx2.MockTransport(handler)) as client:
+            agents = client.workspaces("ws").agents
+            first = agents.iter(label=labels) if flatten else agents.pages(label=labels)
+            labels[:] = ["env=prod"]
+            second = agents.iter(label=labels) if flatten else agents.pages(label=labels)
+            labels[:] = ["env=changed-before-read"]
+            assert calls == []
+            _ = [value async for value in first]
+            _ = [value async for value in second]
+            assert [request.url.params.get_list("label") for request in calls] == [
+                initial,
+                initial,
+                ["env=prod"],
+                ["env=prod"],
+            ]
+            assert [request.url.params.get("cursor") for request in calls] == [None, "next", None, "next"]
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("flatten", [False, True])
+def test_traversal_filter_snapshot_keeps_unset_distinct_from_empty(
+    flatten: bool, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from a13n.generated.models import AgentCollection
+    from a13n.generated.types import UNSET
+
+    received = []
+
+    async def scenario() -> None:
+        async with Client("https://service.example") as client:
+            agents = client.workspaces("ws").agents
+
+            async def list_page(**kwargs):
+                received.append(kwargs["label"])
+                return Result(AgentCollection(items=[], next_cursor=None), 200, {}, b"")
+
+            monkeypatch.setattr(agents, "list", list_page)
+            unset = agents.iter() if flatten else agents.pages()
+            empty = agents.iter(label=[]) if flatten else agents.pages(label=[])
+            assert received == []
+            _ = [value async for value in unset]
+            _ = [value async for value in empty]
+            assert received[0] is UNSET
+            assert received[1] == []
+
+    asyncio.run(scenario())

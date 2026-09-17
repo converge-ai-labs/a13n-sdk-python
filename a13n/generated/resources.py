@@ -765,20 +765,20 @@ class ApplicationAccountsAccountIdBotReplies(Resource):
     def pages(
         self, *, run_id: str, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.BotReplyCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(run_id=run_id, limit=limit, cursor=next_cursor),
             lambda value: value.next_cursor,
             cursor,
         )
 
-    async def iter(
+    def iter(
         self, *, run_id: str, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.BotReplyObservation]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(run_id=run_id, limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item async for page in self.pages(run_id=run_id, limit=limit, cursor=cursor) for item in page.value.items
+        )
 
 
 class ApplicationAccountsAccountIdBotSetup(Resource):
@@ -864,20 +864,22 @@ class ApplicationAccountsAccountIdBotThreads(Resource):
     def pages(
         self, *, target_id: str | Unset | None = UNSET, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.BotThreadCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(target_id=target_id, limit=limit, cursor=next_cursor),
             lambda value: value.next_cursor,
             cursor,
         )
 
-    async def iter(
+    def iter(
         self, *, target_id: str | Unset | None = UNSET, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.BotThread]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(target_id=target_id, limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(target_id=target_id, limit=limit, cursor=cursor)
+            for item in page.value.items
+        )
 
 
 class ApplicationAccountsAccountIdCredentials(Resource):
@@ -937,7 +939,7 @@ class ApplicationAccountsAccountIdMemoryScopes(Resource):
         cursor: str | Unset | None = UNSET,
         target_id: str | Unset | None = UNSET,
     ) -> AsyncIterator[Result[wire.ScopeCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(
                 provider_id=provider_id, limit=limit, target_id=target_id, cursor=next_cursor
@@ -946,7 +948,7 @@ class ApplicationAccountsAccountIdMemoryScopes(Resource):
             cursor,
         )
 
-    async def iter(
+    def iter(
         self,
         *,
         provider_id: str,
@@ -954,10 +956,12 @@ class ApplicationAccountsAccountIdMemoryScopes(Resource):
         cursor: str | Unset | None = UNSET,
         target_id: str | Unset | None = UNSET,
     ) -> AsyncIterator[wire.Scope]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(provider_id=provider_id, limit=limit, cursor=cursor, target_id=target_id):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(provider_id=provider_id, limit=limit, cursor=cursor, target_id=target_id)
+            for item in page.value.items
+        )
 
     async def create(self, *, body: wire.ConfigureScope) -> Result[wire.Scope]:
         """Configure. One HTTP request; no automatic replay."""
@@ -1022,7 +1026,7 @@ class ApplicationAccountsAccountIdMemoryScopesScopeIdDocuments(Resource):
         kind: wire.GetApplicationAccountsAccountIdMemoryScopesScopeIdDocumentsKindType0 | Unset | None = UNSET,
         include_shared: bool | Unset = UNSET,
     ) -> AsyncIterator[Result[wire.DocumentCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(
                 limit=limit, activity_date=activity_date, kind=kind, include_shared=include_shared, cursor=next_cursor
@@ -1031,7 +1035,7 @@ class ApplicationAccountsAccountIdMemoryScopesScopeIdDocuments(Resource):
             cursor,
         )
 
-    async def iter(
+    def iter(
         self,
         *,
         limit: int | Unset = UNSET,
@@ -1040,12 +1044,14 @@ class ApplicationAccountsAccountIdMemoryScopesScopeIdDocuments(Resource):
         kind: wire.GetApplicationAccountsAccountIdMemoryScopesScopeIdDocumentsKindType0 | Unset | None = UNSET,
         include_shared: bool | Unset = UNSET,
     ) -> AsyncIterator[wire.DocumentEntry]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(
-            limit=limit, cursor=cursor, activity_date=activity_date, kind=kind, include_shared=include_shared
-        ):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(
+                limit=limit, cursor=cursor, activity_date=activity_date, kind=kind, include_shared=include_shared
+            )
+            for item in page.value.items
+        )
 
     async def create(self, *, body: wire.CreateDocument, idempotency_key: str) -> Result[wire.Document]:
         """Add. One HTTP request; no automatic replay."""
@@ -1143,18 +1149,16 @@ class ApplicationAccountsAccountIdMemoryScopesScopeIdOperations(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.DocumentCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.DocumentEntry]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
     def __call__(self, document_id: str) -> ApplicationAccountsAccountIdMemoryScopesScopeIdOperationsDocumentId:
         return ApplicationAccountsAccountIdMemoryScopesScopeIdOperationsDocumentId(
@@ -1208,18 +1212,16 @@ class ApplicationAccountsAccountIdTargets(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.TargetCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.AccountTarget]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
     async def create(self, *, body: wire.TargetConfig, idempotency_key: str) -> Result[wire.AccountTarget]:
         """Create. One HTTP request; no automatic replay."""
@@ -1484,18 +1486,16 @@ class ConfigurationDraftsDraftIdApplications(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.ConfigurationApplicationCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.ConfigurationApplicationReceipt]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
 
 class ConfigurationSessions(Resource):
@@ -1537,18 +1537,16 @@ class ConfigurationSessionsSessionIdThreads(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.ConfigurationThreadCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.ConfigurationThreadView]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
     async def create(
         self, *, body: wire.CreateConfigurationThreadRequest, idempotency_key: str
@@ -2197,18 +2195,16 @@ class EnvironmentTemplatesResourceIdRevisions(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.CollectionEnvironmentTemplateRevision]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.EnvironmentTemplateRevision]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
     async def create(self, *, body: wire.CreateTemplateRevisionRequest) -> Result[wire.EnvironmentTemplateRevision]:
         """Create Revision. One HTTP request; no automatic replay."""
@@ -2439,20 +2435,18 @@ class McpServers(Resource):
     def pages(
         self, *, query: str | Unset = UNSET, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.MCPServerCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(query=query, limit=limit, cursor=next_cursor),
             lambda value: value.next_cursor,
             cursor,
         )
 
-    async def iter(
+    def iter(
         self, *, query: str | Unset = UNSET, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.MCPServer]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(query=query, limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(query=query, limit=limit, cursor=cursor) for item in page.value.items)
 
     def __call__(self, server_key: str) -> McpServersServerKey:
         return McpServersServerKey(self._client, self._bind("server_key", server_key))
@@ -2608,18 +2602,16 @@ class OrganizationsOrganizationConnectorProviders(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.ConnectorProviderCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.ConnectorProvider]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
     async def create(
         self, *, body: wire.CreateConnectorProviderRequest, idempotency_key: str
@@ -2648,18 +2640,16 @@ class OrganizationsOrganizationEnvironmentProviders(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.CollectionEnvironmentProvider]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.EnvironmentProvider]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
     async def create(self, *, body: wire.CreateProviderRequest) -> Result[wire.EnvironmentProvider]:
         """Organization Create Provider. One HTTP request; no automatic replay."""
@@ -2686,20 +2676,19 @@ class OrganizationsOrganizationEnvironmentTemplates(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET, label: list[str] | Unset = UNSET
     ) -> AsyncIterator[Result[wire.CollectionEnvironmentTemplate]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        label = label.copy() if isinstance(label, list) else label
         return pages(
             lambda next_cursor: self.list(limit=limit, label=label, cursor=next_cursor),
             lambda value: value.next_cursor,
             cursor,
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET, label: list[str] | Unset = UNSET
     ) -> AsyncIterator[wire.EnvironmentTemplate]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor, label=label):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor, label=label) for item in page.value.items)
 
     async def create(
         self, *, body: wire.CreateTemplateRequest, idempotency_key: str
@@ -2771,18 +2760,14 @@ class OrganizationsOrganizationInvitations(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.PageInvitation]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
-        self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
-    ) -> AsyncIterator[wire.Invitation]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+    def iter(self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET) -> AsyncIterator[wire.Invitation]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
     async def create(self, *, body: wire.CreateInvitationRequest) -> Result[wire.InvitationDelivery]:
         """Invite. One HTTP request; no automatic replay."""
@@ -2824,14 +2809,14 @@ class OrganizationsOrganizationMemoryProviders(Resource):
         type_: str | Unset | None = UNSET,
         enabled: bool | Unset | None = UNSET,
     ) -> AsyncIterator[Result[wire.MemoryProviderCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, type_=type_, enabled=enabled, cursor=next_cursor),
             lambda value: value.next_cursor,
             cursor,
         )
 
-    async def iter(
+    def iter(
         self,
         *,
         limit: int | Unset = UNSET,
@@ -2839,10 +2824,12 @@ class OrganizationsOrganizationMemoryProviders(Resource):
         type_: str | Unset | None = UNSET,
         enabled: bool | Unset | None = UNSET,
     ) -> AsyncIterator[wire.MemoryProvider]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor, type_=type_, enabled=enabled):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(limit=limit, cursor=cursor, type_=type_, enabled=enabled)
+            for item in page.value.items
+        )
 
     async def create(self, *, body: wire.CreateMemoryProviderRequest) -> Result[wire.MemoryProvider]:
         """Create Organization Provider. One HTTP request; no automatic replay."""
@@ -2904,18 +2891,16 @@ class OrganizationsOrganizationMemoryProvidersProviderIdReferences(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.MemoryProviderReferenceCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.MemoryProviderReference]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
 
 class OrganizationsOrganizationModelCatalog(Resource):
@@ -2964,7 +2949,7 @@ class OrganizationsOrganizationModelProviders(Resource):
         provider_type: str | Unset | None = UNSET,
         enabled: bool | Unset | None = UNSET,
     ) -> AsyncIterator[Result[wire.ModelProviderCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(
                 limit=limit, name=name, provider_type=provider_type, enabled=enabled, cursor=next_cursor
@@ -2973,7 +2958,7 @@ class OrganizationsOrganizationModelProviders(Resource):
             cursor,
         )
 
-    async def iter(
+    def iter(
         self,
         *,
         limit: int | Unset = UNSET,
@@ -2982,12 +2967,14 @@ class OrganizationsOrganizationModelProviders(Resource):
         provider_type: str | Unset | None = UNSET,
         enabled: bool | Unset | None = UNSET,
     ) -> AsyncIterator[wire.ModelProvider]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(
-            limit=limit, cursor=cursor, name=name, provider_type=provider_type, enabled=enabled
-        ):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(
+                limit=limit, cursor=cursor, name=name, provider_type=provider_type, enabled=enabled
+            )
+            for item in page.value.items
+        )
 
     async def create(self, *, body: wire.CreateModelProviderRequest) -> Result[wire.ModelProvider]:
         """Organization Create Model Provider. One HTTP request; no automatic replay."""
@@ -3067,7 +3054,7 @@ class OrganizationsOrganizationModels(Resource):
         provider_id: str | Unset | None = UNSET,
         enabled: bool | Unset | None = UNSET,
     ) -> AsyncIterator[Result[wire.ModelCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(
                 limit=limit, query=query, provider_id=provider_id, enabled=enabled, cursor=next_cursor
@@ -3076,7 +3063,7 @@ class OrganizationsOrganizationModels(Resource):
             cursor,
         )
 
-    async def iter(
+    def iter(
         self,
         *,
         limit: int | Unset = UNSET,
@@ -3085,10 +3072,14 @@ class OrganizationsOrganizationModels(Resource):
         provider_id: str | Unset | None = UNSET,
         enabled: bool | Unset | None = UNSET,
     ) -> AsyncIterator[wire.Model]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor, query=query, provider_id=provider_id, enabled=enabled):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(
+                limit=limit, cursor=cursor, query=query, provider_id=provider_id, enabled=enabled
+            )
+            for item in page.value.items
+        )
 
     async def create(self, *, body: wire.CreateModelRequest) -> Result[wire.Model]:
         """Organization Create Model. One HTTP request; no automatic replay."""
@@ -3167,18 +3158,16 @@ class OrganizationsOrganizationRoleBindings(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.PageRoleBinding]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.RoleBinding]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
     async def create(self, *, body: wire.SetRoleRequest) -> Result[wire.RoleBinding]:
         """Create Organization Binding. One HTTP request; no automatic replay."""
@@ -3205,18 +3194,16 @@ class OrganizationsOrganizationSecurityAuditEvents(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.PageSecurityEvent]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.SecurityEvent]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
 
 class OrganizationsOrganizationUsers(Resource):
@@ -3233,16 +3220,14 @@ class OrganizationsOrganizationUsers(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.PageUser]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET) -> AsyncIterator[wire.User]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+    def iter(self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET) -> AsyncIterator[wire.User]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
 
 class OrganizationsOrganizationWebProviders(Resource):
@@ -3276,14 +3261,14 @@ class OrganizationsOrganizationWebProviders(Resource):
         type_: str | Unset | None = UNSET,
         enabled: bool | Unset | None = UNSET,
     ) -> AsyncIterator[Result[wire.WebProviderCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, type_=type_, enabled=enabled, cursor=next_cursor),
             lambda value: value.next_cursor,
             cursor,
         )
 
-    async def iter(
+    def iter(
         self,
         *,
         limit: int | Unset = UNSET,
@@ -3291,10 +3276,12 @@ class OrganizationsOrganizationWebProviders(Resource):
         type_: str | Unset | None = UNSET,
         enabled: bool | Unset | None = UNSET,
     ) -> AsyncIterator[wire.WebProvider]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor, type_=type_, enabled=enabled):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(limit=limit, cursor=cursor, type_=type_, enabled=enabled)
+            for item in page.value.items
+        )
 
     async def create(self, *, body: wire.CreateWebProviderRequest) -> Result[wire.WebProvider]:
         """Create Organization Provider. One HTTP request; no automatic replay."""
@@ -3364,18 +3351,16 @@ class OrganizationsOrganizationWebProvidersProviderIdReferences(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.WebProviderReferenceCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.WebProviderReference]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
 
 class OrganizationsOrganizationWorkspaces(Resource):
@@ -3394,18 +3379,14 @@ class OrganizationsOrganizationWorkspaces(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.PageWorkspace]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
-        self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
-    ) -> AsyncIterator[wire.Workspace]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+    def iter(self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET) -> AsyncIterator[wire.Workspace]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
     async def create(self, *, body: wire.CreateWorkspaceRequest) -> Result[wire.Workspace]:
         """Create Workspace. One HTTP request; no automatic replay."""
@@ -3659,18 +3640,16 @@ class RunsRunIdAttempts(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.RunAttemptCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.RunAttemptResource]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
 
 class RunsRunIdEnvironmentMounts(Resource):
@@ -3689,18 +3668,16 @@ class RunsRunIdEnvironmentMounts(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.CollectionRunEnvironmentMount]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.RunEnvironmentMount]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
     async def create(
         self, *, body: wire.AddEnvironmentMountRequest, idempotency_key: str
@@ -3751,7 +3728,7 @@ class RunsRunIdItems(Resource):
         cursor: str | Unset | None = UNSET,
         order: wire.GetRunsRunIdItemsOrder | Unset = UNSET,
     ) -> AsyncIterator[Result[wire.ItemCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, order=order, cursor=next_cursor),
             lambda value: value.next_cursor,
@@ -3885,18 +3862,14 @@ class ServiceAccountsAccountIdApiKeys(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.PageApiKey]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
-        self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
-    ) -> AsyncIterator[wire.ApiKey]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+    def iter(self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET) -> AsyncIterator[wire.ApiKey]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
     async def create(self, *, body: wire.CreateKeyRequest) -> Result[wire.CreatedKey]:
         """Create Account Key. One HTTP request; no automatic replay."""
@@ -3962,20 +3935,19 @@ class SessionsSessionIdThreads(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET, label: list[str] | Unset = UNSET
     ) -> AsyncIterator[Result[wire.ThreadCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        label = label.copy() if isinstance(label, list) else label
         return pages(
             lambda next_cursor: self.list(limit=limit, label=label, cursor=next_cursor),
             lambda value: value.next_cursor,
             cursor,
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET, label: list[str] | Unset = UNSET
     ) -> AsyncIterator[wire.ThreadResource]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor, label=label):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor, label=label) for item in page.value.items)
 
 
 class SkillRevisions(Resource):
@@ -4121,18 +4093,16 @@ class SkillsSkillIdReferences(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.SkillAgentReferenceCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.SkillAgentReference]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
 
 class SkillsSkillIdRevisions(Resource):
@@ -4151,18 +4121,16 @@ class SkillsSkillIdRevisions(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.SkillRevisionCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.SkillRevision]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
     async def create(
         self, *, body: wire.CreateSkillRevisionRequest, idempotency_key: str
@@ -4274,20 +4242,19 @@ class ThreadsThreadIdRuns(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET, label: list[str] | Unset = UNSET
     ) -> AsyncIterator[Result[wire.RunCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        label = label.copy() if isinstance(label, list) else label
         return pages(
             lambda next_cursor: self.list(limit=limit, label=label, cursor=next_cursor),
             lambda value: value.next_cursor,
             cursor,
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET, label: list[str] | Unset = UNSET
     ) -> AsyncIterator[wire.RunResource]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor, label=label):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor, label=label) for item in page.value.items)
 
     async def create(
         self, *, body: wire.ThreadRunSubmissionRequest, idempotency_key: str
@@ -4359,18 +4326,16 @@ class UsersMeAuthSessions(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.PageAuthSession]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.AuthSession]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
     def __call__(self, session_id: str) -> UsersMeAuthSessionsSessionId:
         return UsersMeAuthSessionsSessionId(self._client, self._bind("session_id", session_id))
@@ -4432,18 +4397,16 @@ class UsersMeSecurityActivity(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.PageSecurityEvent]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.SecurityEvent]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
 
 class UsersUserId(Resource):
@@ -4720,7 +4683,8 @@ class WorkspacesWorkspaceAgents(Resource):
         include_archived: bool | Unset = UNSET,
         label: list[str] | Unset = UNSET,
     ) -> AsyncIterator[Result[wire.AgentCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        label = label.copy() if isinstance(label, list) else label
         return pages(
             lambda next_cursor: self.list(
                 limit=limit,
@@ -4734,7 +4698,7 @@ class WorkspacesWorkspaceAgents(Resource):
             cursor,
         )
 
-    async def iter(
+    def iter(
         self,
         *,
         limit: int | Unset = UNSET,
@@ -4744,12 +4708,19 @@ class WorkspacesWorkspaceAgents(Resource):
         include_archived: bool | Unset = UNSET,
         label: list[str] | Unset = UNSET,
     ) -> AsyncIterator[wire.Agent]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(
-            limit=limit, cursor=cursor, enabled=enabled, source=source, include_archived=include_archived, label=label
-        ):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(
+                limit=limit,
+                cursor=cursor,
+                enabled=enabled,
+                source=source,
+                include_archived=include_archived,
+                label=label,
+            )
+            for item in page.value.items
+        )
 
     async def create(
         self, *, body: wire.CreateAgentRequest, idempotency_key: str
@@ -4904,18 +4875,16 @@ class WorkspacesWorkspaceAgentsAgentRevisions(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.AgentRevisionCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.AgentRevision]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
     async def create(
         self, *, body: wire.CreateAgentRevisionRequest, idempotency_key: str
@@ -4985,18 +4954,14 @@ class WorkspacesWorkspaceApiKeys(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.PageApiKey]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
-        self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
-    ) -> AsyncIterator[wire.ApiKey]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+    def iter(self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET) -> AsyncIterator[wire.ApiKey]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
 
 class WorkspacesWorkspaceApplicationAccountProviderTypes(Resource):
@@ -5027,18 +4992,14 @@ class WorkspacesWorkspaceApplicationAccounts(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.AccountCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
-        self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
-    ) -> AsyncIterator[wire.Account]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+    def iter(self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET) -> AsyncIterator[wire.Account]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
     async def create(self, *, body: wire.CreateAccountRequest, idempotency_key: str) -> Result[wire.Account]:
         """Create Account. One HTTP request; no automatic replay."""
@@ -5080,7 +5041,7 @@ class WorkspacesWorkspaceAssets(Resource):
         source_kind: wire.AssetSourceKind | Unset | None = UNSET,
         source_run_id: str | Unset | None = UNSET,
     ) -> AsyncIterator[Result[wire.AssetCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(
                 limit=limit, source_kind=source_kind, source_run_id=source_run_id, cursor=next_cursor
@@ -5089,7 +5050,7 @@ class WorkspacesWorkspaceAssets(Resource):
             cursor,
         )
 
-    async def iter(
+    def iter(
         self,
         *,
         limit: int | Unset = UNSET,
@@ -5097,10 +5058,14 @@ class WorkspacesWorkspaceAssets(Resource):
         source_kind: wire.AssetSourceKind | Unset | None = UNSET,
         source_run_id: str | Unset | None = UNSET,
     ) -> AsyncIterator[wire.Asset]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor, source_kind=source_kind, source_run_id=source_run_id):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(
+                limit=limit, cursor=cursor, source_kind=source_kind, source_run_id=source_run_id
+            )
+            for item in page.value.items
+        )
 
     async def create(
         self, *, body: File, filename: str, media_type: str | Unset | None = UNSET, idempotency_key: str
@@ -5152,7 +5117,7 @@ class WorkspacesWorkspaceBots(Resource):
         condition: wire.GetWorkspacesWorkspaceBotsConditionType0 | Unset | None = UNSET,
         search: str | Unset | None = UNSET,
     ) -> AsyncIterator[Result[wire.BotCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(
                 limit=limit, platform=platform, condition=condition, search=search, cursor=next_cursor
@@ -5161,7 +5126,7 @@ class WorkspacesWorkspaceBots(Resource):
             cursor,
         )
 
-    async def iter(
+    def iter(
         self,
         *,
         limit: int | Unset = UNSET,
@@ -5170,10 +5135,14 @@ class WorkspacesWorkspaceBots(Resource):
         condition: wire.GetWorkspacesWorkspaceBotsConditionType0 | Unset | None = UNSET,
         search: str | Unset | None = UNSET,
     ) -> AsyncIterator[wire.BotSummary]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor, platform=platform, condition=condition, search=search):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(
+                limit=limit, cursor=cursor, platform=platform, condition=condition, search=search
+            )
+            for item in page.value.items
+        )
 
     @property
     def feishu(self) -> WorkspacesWorkspaceBotsFeishu:
@@ -5244,18 +5213,16 @@ class WorkspacesWorkspaceConfigurationSessions(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.ConfigurationSessionCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.ConfigurationSessionView]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
     async def create(
         self, *, body: wire.CreateSessionRequest, idempotency_key: str
@@ -5284,18 +5251,14 @@ class WorkspacesWorkspaceConnections(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.ConnectionCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
-        self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
-    ) -> AsyncIterator[wire.Connection]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+    def iter(self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET) -> AsyncIterator[wire.Connection]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
     async def create(self, *, body: wire.CreateConnectionRequest, idempotency_key: str) -> Result[wire.Connection]:
         """Create Connection. One HTTP request; no automatic replay."""
@@ -5322,18 +5285,16 @@ class WorkspacesWorkspaceConnectorProviders(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.ConnectorProviderCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.ConnectorProvider]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
     async def create(
         self, *, body: wire.CreateConnectorProviderRequest, idempotency_key: str
@@ -5362,18 +5323,16 @@ class WorkspacesWorkspaceEnvironmentProviders(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.CollectionEnvironmentProvider]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.EnvironmentProvider]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
     async def create(self, *, body: wire.CreateProviderRequest) -> Result[wire.EnvironmentProvider]:
         """Create Provider. One HTTP request; no automatic replay."""
@@ -5400,20 +5359,19 @@ class WorkspacesWorkspaceEnvironmentTemplates(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET, label: list[str] | Unset = UNSET
     ) -> AsyncIterator[Result[wire.CollectionEnvironmentTemplate]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        label = label.copy() if isinstance(label, list) else label
         return pages(
             lambda next_cursor: self.list(limit=limit, label=label, cursor=next_cursor),
             lambda value: value.next_cursor,
             cursor,
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET, label: list[str] | Unset = UNSET
     ) -> AsyncIterator[wire.EnvironmentTemplate]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor, label=label):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor, label=label) for item in page.value.items)
 
     async def create(
         self, *, body: wire.CreateTemplateRequest, idempotency_key: str
@@ -5442,20 +5400,19 @@ class WorkspacesWorkspaceEnvironments(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET, label: list[str] | Unset = UNSET
     ) -> AsyncIterator[Result[wire.CollectionEnvironment]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        label = label.copy() if isinstance(label, list) else label
         return pages(
             lambda next_cursor: self.list(limit=limit, label=label, cursor=next_cursor),
             lambda value: value.next_cursor,
             cursor,
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET, label: list[str] | Unset = UNSET
     ) -> AsyncIterator[wire.Environment]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor, label=label):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor, label=label) for item in page.value.items)
 
     async def create(
         self, *, body: wire.CreateManagedEnvironmentRequest | wire.RegisterEnvironmentRequest, idempotency_key: str
@@ -5484,18 +5441,16 @@ class WorkspacesWorkspaceEvents(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.WorkspaceEventPage]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.LifecycleEvent]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
 
 class WorkspacesWorkspaceHookSubscriptions(Resource):
@@ -5514,18 +5469,16 @@ class WorkspacesWorkspaceHookSubscriptions(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.HookSubscriptionCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.HookSubscription]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
     async def create(self, *, body: wire.CreateHookSubscriptionRequest) -> Result[wire.HookSubscription]:
         """Create Hook Subscription. One HTTP request; no automatic replay."""
@@ -5595,18 +5548,14 @@ class WorkspacesWorkspaceInvitations(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.PageInvitation]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
-        self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
-    ) -> AsyncIterator[wire.Invitation]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+    def iter(self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET) -> AsyncIterator[wire.Invitation]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
     async def create(self, *, body: wire.InviteWorkspaceRequest) -> Result[wire.InvitationDelivery]:
         """Invite To Workspace. One HTTP request; no automatic replay."""
@@ -5631,16 +5580,14 @@ class WorkspacesWorkspaceMembers(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.PageUser]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET) -> AsyncIterator[wire.User]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+    def iter(self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET) -> AsyncIterator[wire.User]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
 
 class WorkspacesWorkspaceMemoryProviders(Resource):
@@ -5674,14 +5621,14 @@ class WorkspacesWorkspaceMemoryProviders(Resource):
         type_: str | Unset | None = UNSET,
         enabled: bool | Unset | None = UNSET,
     ) -> AsyncIterator[Result[wire.MemoryProviderCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, type_=type_, enabled=enabled, cursor=next_cursor),
             lambda value: value.next_cursor,
             cursor,
         )
 
-    async def iter(
+    def iter(
         self,
         *,
         limit: int | Unset = UNSET,
@@ -5689,10 +5636,12 @@ class WorkspacesWorkspaceMemoryProviders(Resource):
         type_: str | Unset | None = UNSET,
         enabled: bool | Unset | None = UNSET,
     ) -> AsyncIterator[wire.MemoryProvider]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor, type_=type_, enabled=enabled):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(limit=limit, cursor=cursor, type_=type_, enabled=enabled)
+            for item in page.value.items
+        )
 
     async def create(self, *, body: wire.CreateMemoryProviderRequest) -> Result[wire.MemoryProvider]:
         """Create Workspace Provider. One HTTP request; no automatic replay."""
@@ -5886,18 +5835,16 @@ class WorkspacesWorkspaceMemoryProvidersProviderIdReferences(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.MemoryProviderReferenceCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.MemoryProviderReference]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
 
 class WorkspacesWorkspaceModelCatalog(Resource):
@@ -5946,7 +5893,7 @@ class WorkspacesWorkspaceModelProviders(Resource):
         provider_type: str | Unset | None = UNSET,
         enabled: bool | Unset | None = UNSET,
     ) -> AsyncIterator[Result[wire.ModelProviderCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(
                 limit=limit, name=name, provider_type=provider_type, enabled=enabled, cursor=next_cursor
@@ -5955,7 +5902,7 @@ class WorkspacesWorkspaceModelProviders(Resource):
             cursor,
         )
 
-    async def iter(
+    def iter(
         self,
         *,
         limit: int | Unset = UNSET,
@@ -5964,12 +5911,14 @@ class WorkspacesWorkspaceModelProviders(Resource):
         provider_type: str | Unset | None = UNSET,
         enabled: bool | Unset | None = UNSET,
     ) -> AsyncIterator[wire.ModelProvider]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(
-            limit=limit, cursor=cursor, name=name, provider_type=provider_type, enabled=enabled
-        ):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(
+                limit=limit, cursor=cursor, name=name, provider_type=provider_type, enabled=enabled
+            )
+            for item in page.value.items
+        )
 
     async def create(self, *, body: wire.CreateModelProviderRequest) -> Result[wire.ModelProvider]:
         """Create Model Provider. One HTTP request; no automatic replay."""
@@ -6052,7 +6001,7 @@ class WorkspacesWorkspaceModels(Resource):
         enabled: bool | Unset | None = UNSET,
         scope: wire.GetWorkspacesWorkspaceModelsScopeType0 | Unset | None = UNSET,
     ) -> AsyncIterator[Result[wire.ModelCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(
                 limit=limit, query=query, provider_id=provider_id, enabled=enabled, scope=scope, cursor=next_cursor
@@ -6061,7 +6010,7 @@ class WorkspacesWorkspaceModels(Resource):
             cursor,
         )
 
-    async def iter(
+    def iter(
         self,
         *,
         limit: int | Unset = UNSET,
@@ -6071,12 +6020,14 @@ class WorkspacesWorkspaceModels(Resource):
         enabled: bool | Unset | None = UNSET,
         scope: wire.GetWorkspacesWorkspaceModelsScopeType0 | Unset | None = UNSET,
     ) -> AsyncIterator[wire.Model]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(
-            limit=limit, cursor=cursor, query=query, provider_id=provider_id, enabled=enabled, scope=scope
-        ):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(
+                limit=limit, cursor=cursor, query=query, provider_id=provider_id, enabled=enabled, scope=scope
+            )
+            for item in page.value.items
+        )
 
     async def create(self, *, body: wire.CreateModelRequest) -> Result[wire.Model]:
         """Create Model. One HTTP request; no automatic replay."""
@@ -6150,18 +6101,14 @@ class WorkspacesWorkspacePersonalApiKeys(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.PageApiKey]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
-        self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
-    ) -> AsyncIterator[wire.ApiKey]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+    def iter(self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET) -> AsyncIterator[wire.ApiKey]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
     async def create(self, *, body: wire.CreateKeyRequest) -> Result[wire.CreatedKey]:
         """Create Personal Key. One HTTP request; no automatic replay."""
@@ -6188,18 +6135,16 @@ class WorkspacesWorkspaceRoleBindings(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.PageRoleBinding]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.RoleBinding]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
     async def create(self, *, body: wire.SetRoleRequest) -> Result[wire.RoleBinding]:
         """Add Workspace Member. One HTTP request; no automatic replay."""
@@ -6226,20 +6171,19 @@ class WorkspacesWorkspaceRuns(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET, label: list[str] | Unset = UNSET
     ) -> AsyncIterator[Result[wire.RunCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        label = label.copy() if isinstance(label, list) else label
         return pages(
             lambda next_cursor: self.list(limit=limit, label=label, cursor=next_cursor),
             lambda value: value.next_cursor,
             cursor,
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET, label: list[str] | Unset = UNSET
     ) -> AsyncIterator[wire.RunResource]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor, label=label):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor, label=label) for item in page.value.items)
 
     async def create(self, *, body: wire.StartRunRequest, idempotency_key: str) -> Result[wire.RunAcceptanceReceipt]:
         """Start Run. One HTTP request; no automatic replay."""
@@ -6266,18 +6210,16 @@ class WorkspacesWorkspaceSecurityAuditEvents(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.PageSecurityEvent]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.SecurityEvent]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
 
 class WorkspacesWorkspaceServiceAccounts(Resource):
@@ -6296,18 +6238,16 @@ class WorkspacesWorkspaceServiceAccounts(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.PageServiceAccount]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.ServiceAccount]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
     async def create(self, *, body: wire.CreateServiceAccountRequest) -> Result[wire.ServiceAccount]:
         """Create Account. One HTTP request; no automatic replay."""
@@ -6364,7 +6304,10 @@ class WorkspacesWorkspaceSessions(Resource):
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
     ) -> AsyncIterator[Result[wire.SessionCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        status = status.copy() if isinstance(status, list) else status
+        trigger_type = trigger_type.copy() if isinstance(trigger_type, list) else trigger_type
+        label = label.copy() if isinstance(label, list) else label
         return pages(
             lambda next_cursor: self.list(
                 q=q,
@@ -6381,7 +6324,7 @@ class WorkspacesWorkspaceSessions(Resource):
             cursor,
         )
 
-    async def iter(
+    def iter(
         self,
         *,
         q: str | Unset | None = UNSET,
@@ -6394,20 +6337,22 @@ class WorkspacesWorkspaceSessions(Resource):
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
     ) -> AsyncIterator[wire.SessionResource]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(
-            q=q,
-            agent_id=agent_id,
-            status=status,
-            trigger_type=trigger_type,
-            updated_after=updated_after,
-            updated_before=updated_before,
-            label=label,
-            limit=limit,
-            cursor=cursor,
-        ):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(
+                q=q,
+                agent_id=agent_id,
+                status=status,
+                trigger_type=trigger_type,
+                updated_after=updated_after,
+                updated_before=updated_before,
+                label=label,
+                limit=limit,
+                cursor=cursor,
+            )
+            for item in page.value.items
+        )
 
 
 class WorkspacesWorkspaceSkillUploads(Resource):
@@ -6456,14 +6401,15 @@ class WorkspacesWorkspaceSkills(Resource):
         source_kind: wire.GetWorkspacesWorkspaceSkillsSourceKindType0 | Unset | None = UNSET,
         label: list[str] | Unset = UNSET,
     ) -> AsyncIterator[Result[wire.SkillCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        label = label.copy() if isinstance(label, list) else label
         return pages(
             lambda next_cursor: self.list(limit=limit, q=q, source_kind=source_kind, label=label, cursor=next_cursor),
             lambda value: value.next_cursor,
             cursor,
         )
 
-    async def iter(
+    def iter(
         self,
         *,
         limit: int | Unset = UNSET,
@@ -6472,10 +6418,12 @@ class WorkspacesWorkspaceSkills(Resource):
         source_kind: wire.GetWorkspacesWorkspaceSkillsSourceKindType0 | Unset | None = UNSET,
         label: list[str] | Unset = UNSET,
     ) -> AsyncIterator[wire.SkillListItem]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor, q=q, source_kind=source_kind, label=label):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(limit=limit, cursor=cursor, q=q, source_kind=source_kind, label=label)
+            for item in page.value.items
+        )
 
     async def create(
         self, *, body: wire.CreateSkillRequest, idempotency_key: str
@@ -6602,7 +6550,8 @@ class WorkspacesWorkspaceTraces(Resource):
         metadata: list[str] | Unset | None = UNSET,
         view: wire.TraceView | Unset = UNSET,
     ) -> AsyncIterator[Result[wire.TraceCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        metadata = metadata.copy() if isinstance(metadata, list) else metadata
         return pages(
             lambda next_cursor: self.list(
                 from_=from_,
@@ -6622,7 +6571,7 @@ class WorkspacesWorkspaceTraces(Resource):
             cursor,
         )
 
-    async def iter(
+    def iter(
         self,
         *,
         from_: datetime.datetime | Unset | None = UNSET,
@@ -6638,23 +6587,25 @@ class WorkspacesWorkspaceTraces(Resource):
         metadata: list[str] | Unset | None = UNSET,
         view: wire.TraceView | Unset = UNSET,
     ) -> AsyncIterator[wire.Trace]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(
-            from_=from_,
-            to=to,
-            limit=limit,
-            cursor=cursor,
-            query=query,
-            search_in=search_in,
-            session_id=session_id,
-            thread_id=thread_id,
-            run_id=run_id,
-            run_attempt_id=run_attempt_id,
-            metadata=metadata,
-            view=view,
-        ):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(
+                from_=from_,
+                to=to,
+                limit=limit,
+                cursor=cursor,
+                query=query,
+                search_in=search_in,
+                session_id=session_id,
+                thread_id=thread_id,
+                run_id=run_id,
+                run_attempt_id=run_attempt_id,
+                metadata=metadata,
+                view=view,
+            )
+            for item in page.value.items
+        )
 
     def __call__(self, trace_id: str) -> WorkspacesWorkspaceTracesTraceId:
         return WorkspacesWorkspaceTracesTraceId(self._client, self._bind("trace_id", trace_id))
@@ -6697,20 +6648,18 @@ class WorkspacesWorkspaceTracesTraceIdObservations(Resource):
     def pages(
         self, *, view: wire.TraceView | Unset = UNSET, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.ObservationCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(view=view, limit=limit, cursor=next_cursor),
             lambda value: value.next_cursor,
             cursor,
         )
 
-    async def iter(
+    def iter(
         self, *, view: wire.TraceView | Unset = UNSET, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.Observation]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(view=view, limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(view=view, limit=limit, cursor=cursor) for item in page.value.items)
 
 
 class WorkspacesWorkspaceWebProviders(Resource):
@@ -6744,14 +6693,14 @@ class WorkspacesWorkspaceWebProviders(Resource):
         type_: str | Unset | None = UNSET,
         enabled: bool | Unset | None = UNSET,
     ) -> AsyncIterator[Result[wire.WebProviderCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, type_=type_, enabled=enabled, cursor=next_cursor),
             lambda value: value.next_cursor,
             cursor,
         )
 
-    async def iter(
+    def iter(
         self,
         *,
         limit: int | Unset = UNSET,
@@ -6759,10 +6708,12 @@ class WorkspacesWorkspaceWebProviders(Resource):
         type_: str | Unset | None = UNSET,
         enabled: bool | Unset | None = UNSET,
     ) -> AsyncIterator[wire.WebProvider]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor, type_=type_, enabled=enabled):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(limit=limit, cursor=cursor, type_=type_, enabled=enabled)
+            for item in page.value.items
+        )
 
     async def create(self, *, body: wire.CreateWebProviderRequest) -> Result[wire.WebProvider]:
         """Create Workspace Provider. One HTTP request; no automatic replay."""
@@ -6832,18 +6783,16 @@ class WorkspacesWorkspaceWebProvidersProviderIdReferences(Resource):
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[Result[wire.WebProviderReferenceCollection]]:
-        """Iterate lazily in server order, retaining each page and HTTP evidence."""
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
         )
 
-    async def iter(
+    def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
     ) -> AsyncIterator[wire.WebProviderReference]:
-        """Yield ordinary wire values lazily without discarding server order."""
-        async for page in self.pages(limit=limit, cursor=cursor):
-            for item in page.value.items:
-                yield item
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
 
 class Agent(AgentMethods, _AgentResource):

@@ -190,6 +190,7 @@ class Client:
         self._timeout = timeout
         self._auth = auth
         self._tasks: dict[asyncio.Task[Any], int] = {}
+        self._io_changed = asyncio.Event()
         self._streams: set[httpx2.Response] = set()
         self._closed = False
         if auth.mode != "session":
@@ -260,6 +261,7 @@ class Client:
             self._tasks[task] = remaining
         else:
             self._tasks.pop(task)
+            self._io_changed.set()
 
     async def execute[T](self, operation: Callable[[AuthenticatedClient], Awaitable[Response[T]]]) -> Response[T]:
         """Execute one generated async operation without automatic replay."""
@@ -302,8 +304,10 @@ class Client:
             await response.aclose()
         for task in active:
             task.cancel()
-        if active:
-            await asyncio.gather(*active, return_exceptions=True)
+        # Cancellation ends owned I/O, not necessarily the caller's application task.
+        while any(task in self._tasks for task in active):
+            self._io_changed.clear()
+            await self._io_changed.wait()
         self._auth.token = None
         self._auth.csrf_token = None
         self._http.headers.clear()

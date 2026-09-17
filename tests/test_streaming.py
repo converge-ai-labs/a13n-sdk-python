@@ -592,3 +592,50 @@ def test_empty_terminal_attachment_requires_exact_finalized_projection(
         assert len(paths) == (3 if matching_projection else 6)
 
     asyncio.run(scenario())
+
+
+def test_client_close_waits_for_owned_io_not_consumer_business_code() -> None:
+    reading = asyncio.Event()
+    close_returned = asyncio.Event()
+    released = asyncio.Event()
+    body_closed = asyncio.Event()
+    consumer_cancelled = asyncio.Event()
+
+    class Body(httpx2.AsyncByteStream):
+        async def __aiter__(self):
+            reading.set()
+            await released.wait()
+            yield frame()
+
+        async def aclose(self):
+            body_closed.set()
+
+    async def handler(_request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(200, stream=Body(), headers={"content-type": "text/event-stream"})
+
+    async def scenario() -> None:
+        client = Client("https://service.example", transport=httpx2.MockTransport(handler))
+        stream = client.runs("run_1").stream()
+
+        async def consumer() -> None:
+            try:
+                async with stream:
+                    await anext(stream)
+            except asyncio.CancelledError:
+                consumer_cancelled.set()
+            await close_returned.wait()
+
+        consumer_task = asyncio.create_task(consumer())
+        try:
+            await reading.wait()
+            await asyncio.wait_for(client.aclose(), 1)
+            assert consumer_cancelled.is_set()
+            assert body_closed.is_set() and stream.is_closed
+            assert not consumer_task.done()
+            assert not client._tasks
+        finally:
+            close_returned.set()
+            await consumer_task
+            await client.aclose()
+
+    asyncio.run(scenario())
