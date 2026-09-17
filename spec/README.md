@@ -1,30 +1,50 @@
-# Python SDK Contract
+# a13n Python SDK
 
-## Ownership
+## Design Position
 
-This repository owns the `a13n` Python distribution, its public Python API, generator adapters, tests and independent release lifecycle. Service owns authorization, durable state, HTTP semantics and protocol schemas. Pinned inputs and their source identity live in `contract/`. Neither development nor generation imports or executes the Service or another SDK repository.
+The `a13n` Python SDK is a typed client for managed Agents and the public Native Service resources around them. Resource objects are the primary application interface; complete low-level protocol access remains available.
 
-The SDK version, Service source SHA and Service wire schema versions are different identities. Changing one does not implicitly advance the others. A reviewed contract update may change generated public types; compatibility is evaluated in the SDK pull request before release.
+- Python operations and iteration are async-first, with explicit local resource lifetime.
+- Service owns durable resources, authorization, acceptance, execution, and protocol semantics.
+- Applications own orchestration, business completion, external side effects, and durable application checkpoints.
+- The SDK introduces no local Agent engine, hidden current Thread, or business-workflow identity.
 
-## HTTP and model boundary
+These documents define the Python contract, not the implementation status of a release. Package and deployment capability claims require separate implementation and validation evidence.
 
-Generated bindings cover the ordinary Native `/api/v1` operations present in the pinned OpenAPI. Typed attrs request and response models preserve unions and distinguish omitted `UNSET` from JSON null. Server defaults are not inserted as client-supplied values. Default error responses and fields literally named `default` remain part of the contract.
+## Authority
 
-The async `Client` owns the httpx2 pool and shares it with generated calls through `execute`. Workspace bindings share parent transport and lifetime; discovering a Workspace ID never grants authority beyond the Service credential. The Web convenience facade retains its Pydantic models and bounded response/error mapping. Generated responses retain their own typed success/error union, status, headers and raw content; they do not inherit that facade's response-size limit or exception mapping. Separately constructed generated synchronous clients have a separate lifetime.
+| Concern                                                                   | Owner                                                                                                                                                           |
+| ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Shared SDK experience and domain boundaries                               | [Service SDK Design and Contract Distribution](https://github.com/converge-ai-labs/agent-foundation/blob/main/spec/a13n-service/37-service-sdks-and-clients.md) |
+| Session, Thread, Run, and Item meaning                                    | [Platform Interaction Model](https://github.com/converge-ai-labs/agent-foundation/blob/main/spec/interaction-model.md)                                          |
+| Declared protocol inputs and source identity                              | [Pinned Service contract](../contract/README.md) and `contract/source.json`                                                                                     |
+| Python API, runtime behavior, compatibility, and independent distribution | This specification set                                                                                                                                          |
+| Contribution, validation commands, and publication workflow               | [Contributing](../CONTRIBUTING.md)                                                                                                                              |
 
-Uploads read caller-owned binary files in bounded chunks without closing the source. Streaming downloads retain a caller-visible response lifetime; cancellation and client close release owned transport work. Buffered generated download methods remain available but are not the large-file streaming interface.
+The SDK consumes public Service protocols. It does not import Service startup, storage, migrations, Worker scheduling, or provider-native execution APIs.
 
-## Failure and diagnostics
+## Specification Catalog
 
-Mutations are not automatically replayed after transport failure. A timeout or cancellation after possible dispatch does not prove that Service rolled back the operation; callers reconcile uncertain effects with Service state. Credential-bearing request, response and client diagnostics do not reveal secret payloads; authorized wire serialization retains them.
+| Document                                                                | Owning contract                                                                                                 |
+| ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| [00 Overview](00-overview.md)                                           | Architecture, dependency direction, end-to-end flow, and completion boundaries                                  |
+| [01 Resources and Client Lifetime](01-resources-and-client-lifetime.md) | Python reference/snapshot roles, `Result[T]`, return contracts, local bindings, and transport ownership         |
+| [02 Interaction and Control](02-interaction-and-control.md)             | Typed acceptance, Run/queue waiting, steer/cancel, feedback, continuation, fork, and retry                      |
+| [03 Observation and Data Access](03-observation-and-data-access.md)     | `RunStream` interface and lifetime, concurrent control, applied cursors, replay gaps, snapshots, and pagination |
+| [04 Resource Management](04-resource-management.md)                     | Management-family coverage, owning scopes, configuration provenance, and independent resource lifecycles        |
+| [05 Protocol and Compatibility](05-protocol-and-compatibility.md)       | Wire fidelity, errors, concurrency, idempotency, diagnostics, contract generation, and compatibility axes       |
 
-Unknown Run status strings are preserved. This does not open closed discriminator tags or promise validation of every JSON Schema keyword. Generated ordinary HTTP bindings do not implement Run SSE or notification WebSocket recovery.
+## Reading Paths
 
-## Verifiable invariants
+- **Architecture:** 00, then 01 and the relevant domain owner.
+- **Managed Agent use:** 01, 02, then 03.
+- **Resource administration:** 01, 04, then 05.
+- **Protocol integration and compatibility:** 05, then the relevant pinned protocol and domain contract.
 
-- Every pinned Native HTTP operation has a generated binding.
-- Regeneration uses pinned tools and local inputs only; check mode never replaces committed output.
-- Provenance hashes match the vendored input bytes.
-- Wire fixtures retain omission, null, typed union, decimal and extensible-status behavior.
-- Generated transport calls preserve base URL prefixes, authentication, response headers, cancellation and shutdown.
-- Negative type tests reject incorrectly typed public request fields.
+## Terminology
+
+- A **reference** binds a resource selector locally; it is not a grant of authority or proof that the resource exists.
+- A **snapshot** is an observed representation; it is not a live object mirror.
+- A **receipt** records a command's actual disposition; acceptance, execution, application, and external delivery are distinct facts.
+- An interaction **Session** is not an IAM authentication session.
+- A specification requirement does not imply that every deployed Service exposes the corresponding operation.
