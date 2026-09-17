@@ -19,9 +19,9 @@ The [pinned streaming semantics](../contract/semantics/native-streaming-and-noti
 
 These surfaces do not share a synthetic event envelope or checkpoint. Their delivery does not establish a stronger completion fact than their owner defines.
 
-## Run SSE Attachment
+## Run SSE Observation
 
-- `Run.stream` returns a concrete `RunStream`: an explicit async context manager and typed async iterator for one exact Run.
+- `Run.stream` returns a concrete `RunStream`: an explicit async context manager and typed async iterator for one exact Run. This logical observation scope can span multiple HTTP attachments through bounded automatic reconnection.
 - Each observation preserves the SSE cursor separately from the `RunStreamEvent.event_id`.
 - Heartbeats are not yielded as domain observations.
 - Invalid framing, malformed payloads, incompatible schema versions, and mismatched Run identity are explicit protocol failures.
@@ -71,25 +71,25 @@ class RunStream:
     async def aclose(self) -> None: ...
 ```
 
-- `run.stream(*, after: str | None = None)` is a synchronous, I/O-free factory. `after` is the caller's applied Run Stream cursor and maps to the `Last-Event-ID` header (omitted for `None`); it is not an event ID. Each call creates an independent attachment object.
+- `run.stream(*, after: str | None = None, reconnect: bool = True, max_reconnects: int = 5)` is a synchronous, I/O-free factory. `after` is the caller's applied Run Stream cursor and maps to the `Last-Event-ID` header (omitted for `None`); it is not an event ID. Each call creates an independent logical stream. `max_reconnects` is a non-negative integer; zero or `reconnect=False` disables retries.
 - `async with run.stream(...) as stream` enters and returns that same object. `async for observation in stream` is the primary consumption form; no redundant `events()` iterator or implicit awaiting of the stream is required.
 - `StreamObservation` is read-only and separates its opaque cursor from the generated event envelope. Event payload typing does not exceed what the pin declares; the SDK does not manufacture a closed event-payload union.
-- `response` is read-only successful handshake metadata, initially `None`, available after successful entry and retained after closure. It has case-insensitive headers and no live body reader or buffered copy of the SSE body.
+- `response` is read-only metadata from the latest successful handshake, initially `None`, replaced on successful reattachment and retained during backoff and after closure. A previously returned `StreamResponse` remains an immutable snapshot. It has case-insensitive headers and no live body reader or buffered copy of the SSE body.
 - `last_received_cursor` is initially `None` and advances only when an observation is delivered by `__anext__`, not on prefetch or heartbeats. It is diagnostic delivery evidence, never a saved applied checkpoint.
 - `run`, `response`, `is_closed`, and `last_received_cursor` are read-only local properties. No property performs network I/O.
 
-### Attachment Lifetime
+### Logical Stream Lifetime
 
-| State  | Entry / iteration                                                                 | Local close                                      |
-| ------ | --------------------------------------------------------------------------------- | ------------------------------------------------ |
-| New    | Entry performs one attachment request; reading before entry raises `RuntimeError` | Closes without sending a request                 |
-| Open   | One active reader; no implicit replay or reconnection                             | Releases the response and ends local observation |
-| Closed | Re-entry raises `RuntimeError`; subsequent iteration is exhausted                 | Idempotent no-op                                 |
+| State  | Entry / iteration                                                                | Local close                             |
+| ------ | -------------------------------------------------------------------------------- | --------------------------------------- |
+| New    | Entry attaches with the retry policy; reading before entry raises `RuntimeError` | Closes without sending a request        |
+| Open   | One active reader, including any reattachment or backoff it is awaiting          | Releases I/O and ends local observation |
+| Closed | Re-entry raises `RuntimeError`; subsequent iteration is exhausted                | Idempotent no-op                        |
 
-- Entry is single-use, including a failed or cancelled entry. A second or concurrent entry fails locally; create another `RunStream` to attach again.
-- `is_closed` is false for a new or open attachment and becomes true on failed entry, EOF, read failure, caller cancellation of a read, explicit `aclose`, or context exit.
-- EOF closes the response and ends iteration without inventing a final Run value. A read failure closes the response and raises its original typed error on that read; later reads are exhausted.
-- `aclose()` can run while a read is pending. It releases blocked local I/O and makes that pending read end with `StopAsyncIteration`; independently cancelling the consumer task still propagates `asyncio.CancelledError`, not normal EOF.
+- Entry is single-use, including a failed or cancelled entry. A second or concurrent entry fails locally; create another `RunStream` to start a new scope.
+- `is_closed` is false while new, attached, or recovering. It becomes true on confirmed stream completion, non-retryable failure, retry exhaustion, caller cancellation of entry/read, explicit `aclose`, or context exit. With reconnection disabled, the first EOF or read failure also closes it.
+- Every finished or failed HTTP attachment releases its response before another is opened. Recoverable failure does not exhaust the logical iterator. A final failure raises its typed error on the current entry/read; later reads are exhausted. Normal exhaustion never invents a final Run value.
+- `aclose()` can run while entry, a read, or backoff is pending. It releases blocked local I/O and sleeps; a pending read ends with `StopAsyncIteration`, and pending entry fails locally with `RuntimeError`. Independently cancelling the consumer task still propagates `asyncio.CancelledError`, not normal EOF.
 - Breaking an `async for` does not by itself exit the surrounding context. Cleanup is guaranteed when that context exits or `aclose()` is awaited; callers must not rely on garbage collection.
 - Context exit never suppresses the consumer's exception, drains unread events, waits for Run completion, or sends cancel. Cleanup does not replace an existing consumer exception with a synthetic execution result.
 - The parent Client owns the transport. Client closure releases the attachment and rejects further requests, without remote cancellation.
@@ -135,15 +135,27 @@ The application supplies the policy, keys, and applied checkpoint in this concep
 3. The application applies the observation to its own projection.
 4. The application commits the corresponding checkpoint under its own durability policy.
 
-Receiving an event is not application acknowledgement. The SDK neither persists a cursor automatically nor resumes from the last merely received event.
+Receiving an event is not application acknowledgement. For sequential iteration, requesting the next observation acknowledges the previously yielded observation **in memory** for reconnection. The initial resume position is `after`; prefetch, parsing, yielding, heartbeats, and local closure do not advance it. Concurrent reader rejection occurs before this acknowledgement. A failed next read can therefore resume after the previous observation, but never after an undelivered prefetched event.
+
+This contract assumes processing finishes before the next `__anext__` call, as in the example above. Handing an observation to another task and immediately requesting the next acknowledges delivery, not completion of that background work. Applications needing that pattern must serialize acknowledgement through their consumer or disable automatic reconnection and reattach using their own applied cursor. The SDK persists no checkpoint and promises no exactly-once processing across cancellation, failure, or restart.
 
 ### Replay Gaps and Reconnection
 
-- An attachment rejected by Service retains the API error and replay-bound metadata.
-- A gap reported after attachment is an explicit `ReplayGap` outcome, not a domain observation with an applied cursor.
-- Attaching once does not silently enable reconnection.
-- The caller can reconnect with its applied cursor and an explicit bounded policy.
-- Missing exact history is not described as replayed history after a snapshot read.
+- Reconnection is enabled by default and applies only to this read-only SSE scope. It retries transient connection/read failures and handshake statuses `429`, `502`, `503`, and `504`. Other API failures, invalid cursors, malformed/incompatible events, local argument/lifecycle failures, and caller cancellation are not retried. No control command or ordinary resource request is replayed by this policy.
+- Each recovery episode permits at most `max_reconnects` additional attachment attempts, including initial-handshake recovery. Delay before retry number `n` is uniformly jittered between half and all of `min(0.5 * 2**(n - 1), 10.0)` seconds. A valid non-negative `Retry-After` delay or HTTP date is honored as a lower bound, capped at 30 seconds; invalid values do not alter backoff. There is no public retry-policy class or custom callback framework.
+- The consecutive budget resets only when requesting the next observation acknowledges a newly yielded cursor. Successful handshakes, heartbeats, and empty EOFs do not reset it. Repeated disconnects without observation progress therefore cannot loop indefinitely. Long-running healthy observation has no synthetic total Run deadline; applications can use an explicit outer timeout.
+- An exhausted handshake/read failure raises the last `ApiError` or `TransportError` with its safe evidence. Unconfirmed EOF exhaustion raises `TransportError`, not successful completion. Cancellation, Client closure, and local close interrupt both network waits and backoff.
+- `409 run_stream_replay_gap` and an in-stream `a13n.service.replay_gap` both raise `ReplayGap` with the available requested cursor, floor, high watermark, and Run identity; attachment errors also retain HTTP evidence. Neither is retried or yielded as a checkpoint-bearing event. Other `409` responses retain normal API error semantics.
+- Recovery keeps the exact Run and resumes exclusively after the in-memory acknowledged cursor. A cursor is not an event ID, and reconnection never advances it from network receipt alone.
+- The SDK does not reset to the beginning, silently read a snapshot to replace missing history, or describe a merged snapshot as exact replay. Snapshot reconciliation remains an explicit application decision.
+
+### EOF and Completion
+
+- A clean EOF without completion evidence can be a server attachment-lifetime limit; it is eligible for bounded reconnection. With reconnection disabled, clean EOF ends iteration without extra evidence reads or a completion claim; a transport failure is raised immediately. A truncated event is a protocol failure, not clean EOF.
+- The pinned Service's terminal Run observations are `run.completed`, `run.failed`, `run.cancelled`, and `run.waiting`. Their Run identity must match the bound Run. Harness/AG-UI completion events and Attempt outcomes are not substitutes.
+- After yielding a terminal Run observation, the iterator drains the current attachment through clean EOF before normal exhaustion. A transport failure before EOF still follows bounded recovery. Delivery of the terminal observation does not assert that the retained Item projection is finalized.
+- An attachment opened after an already-applied terminal cursor can contain no events. On otherwise unconfirmed clean EOF, the SDK may perform one exact Run read and one Run Item-page read per recovery attempt. Normal exhaustion requires both a sealed Run and a finalized Item projection whose `projection_cursor` equals the acknowledged cursor. A newer or unavailable projection is not proof that unseen stream history was consumed; continue bounded recovery or surface the actual read/gap error. These reads do not replace the application's projection or advance its cursor.
+- A Run read alone, including `waiting`, never truncates unread observations or confirms display finalization. The SDK does not keep polling after exhausting the bounded recovery policy.
 
 ## Item Snapshot Reconciliation
 
@@ -188,19 +200,19 @@ Run sealing and display finalization are independent. A sealed Run can still hav
 
 ## Supported Transport Boundary
 
-This Python contract includes ordinary Native HTTP and one-attachment Run SSE. Notification WebSocket attachment, automatic reconnection, and transparent snapshot replacement are outside this transport surface.
+This Python contract includes ordinary Native HTTP and Run SSE with bounded automatic reconnection. Notification WebSocket attachment and transparent snapshot replacement are outside this transport surface.
 
 Vendoring a notification schema does not claim an implemented attachment or recovery interface. No detailed Run WebSocket stream is synthesized from best-effort notifications.
 
 ## Failure Semantics
 
-| Condition                        | Observable result                      | Caller responsibility                                             |
-| -------------------------------- | -------------------------------------- | ----------------------------------------------------------------- |
-| Attachment API failure           | Typed API error with response evidence | Reconcile authorization, retention, or requested cursor           |
-| Malformed or oversized SSE event | Protocol error                         | Do not advance an applied checkpoint from the invalid event       |
-| In-stream replay gap             | Explicit gap metadata                  | Choose snapshot reconciliation or another supported recovery path |
-| EOF or transport loss            | Attachment ends or fails               | Determine Run state separately and choose bounded reconnection    |
-| Local cancellation               | Local I/O ends                         | Do not infer a remote interrupt or rollback                       |
+| Condition                        | Observable result                              | Caller responsibility                                             |
+| -------------------------------- | ---------------------------------------------- | ----------------------------------------------------------------- |
+| Attachment API failure           | Typed API error with response evidence         | Reconcile authorization, retention, or requested cursor           |
+| Malformed or oversized SSE event | Protocol error                                 | Do not advance an applied checkpoint from the invalid event       |
+| In-stream replay gap             | Explicit gap metadata                          | Choose snapshot reconciliation or another supported recovery path |
+| EOF or transport loss            | Bounded recovery, exhaustion, or typed failure | Do not infer remote completion from a disconnect alone            |
+| Local cancellation               | Local I/O ends                                 | Do not infer a remote interrupt or rollback                       |
 
 ## Invariants
 
