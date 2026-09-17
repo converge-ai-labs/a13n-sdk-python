@@ -6,36 +6,19 @@ import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
 from ...models.error_response import ErrorResponse
-from ...models.sharing_policy_collection import SharingPolicyCollection
-from ...types import UNSET, Response, Unset
+from ...models.model_catalog_collection import ModelCatalogCollection
+from ...types import Response
 
 
 def build_request(
-    account_id: str,
-    *,
-    limit: int | Unset = UNSET,
-    cursor: str | Unset | None = UNSET,
+    organization: str,
 ) -> dict[str, Any]:
-
-    params: dict[str, Any] = {}
-
-    params["limit"] = limit
-
-    json_cursor: str | Unset | None
-    if isinstance(cursor, Unset):
-        json_cursor = UNSET
-    else:
-        json_cursor = cursor
-    params["cursor"] = json_cursor
-
-    params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
 
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": "/api/v1/application-accounts/{account_id}/memory-sharing-policies".format(
-            account_id=quote(str(account_id), safe=""),
+        "url": "/api/v1/organizations/{organization}/model-catalog".format(
+            organization=quote(str(organization), safe=""),
         ),
-        "params": params,
     }
 
     return _kwargs
@@ -43,9 +26,9 @@ def build_request(
 
 def _parse_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> ErrorResponse | SharingPolicyCollection:
+) -> ErrorResponse | ModelCatalogCollection:
     if response.status_code == 200:
-        response_200 = SharingPolicyCollection.from_dict(response.json())
+        response_200 = ModelCatalogCollection.from_dict(response.json())
 
         return response_200
 
@@ -61,7 +44,7 @@ def _parse_response(
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[ErrorResponse | SharingPolicyCollection]:
+) -> Response[ErrorResponse | ModelCatalogCollection]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -71,31 +54,25 @@ def _build_response(
 
 
 def sync_detailed(
-    account_id: str,
+    organization: str,
     *,
     client: AuthenticatedClient,
-    limit: int | Unset = UNSET,
-    cursor: str | Unset | None = UNSET,
-) -> Response[ErrorResponse | SharingPolicyCollection]:
-    """Policies
+) -> Response[ErrorResponse | ModelCatalogCollection]:
+    """Organization List Model Catalog
 
     Args:
-        account_id (str):
-        limit (int | Unset):
-        cursor (None | str | Unset):
+        organization (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorResponse | SharingPolicyCollection]
+        Response[ErrorResponse | ModelCatalogCollection]
     """
 
     kwargs = build_request(
-        account_id=account_id,
-        limit=limit,
-        cursor=cursor,
+        organization=organization,
     )
 
     response = client.get_httpx_client().request(
@@ -106,61 +83,49 @@ def sync_detailed(
 
 
 def sync(
-    account_id: str,
+    organization: str,
     *,
     client: AuthenticatedClient,
-    limit: int | Unset = UNSET,
-    cursor: str | Unset | None = UNSET,
-) -> ErrorResponse | SharingPolicyCollection | None:
-    """Policies
+) -> ErrorResponse | ModelCatalogCollection | None:
+    """Organization List Model Catalog
 
     Args:
-        account_id (str):
-        limit (int | Unset):
-        cursor (None | str | Unset):
+        organization (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorResponse | SharingPolicyCollection
+        ErrorResponse | ModelCatalogCollection
     """
 
     return sync_detailed(
-        account_id=account_id,
+        organization=organization,
         client=client,
-        limit=limit,
-        cursor=cursor,
     ).parsed
 
 
 async def asyncio_detailed(
-    account_id: str,
+    organization: str,
     *,
     client: AuthenticatedClient,
-    limit: int | Unset = UNSET,
-    cursor: str | Unset | None = UNSET,
-) -> Response[ErrorResponse | SharingPolicyCollection]:
-    """Policies
+) -> Response[ErrorResponse | ModelCatalogCollection]:
+    """Organization List Model Catalog
 
     Args:
-        account_id (str):
-        limit (int | Unset):
-        cursor (None | str | Unset):
+        organization (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorResponse | SharingPolicyCollection]
+        Response[ErrorResponse | ModelCatalogCollection]
     """
 
     kwargs = build_request(
-        account_id=account_id,
-        limit=limit,
-        cursor=cursor,
+        organization=organization,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -169,32 +134,26 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    account_id: str,
+    organization: str,
     *,
     client: AuthenticatedClient,
-    limit: int | Unset = UNSET,
-    cursor: str | Unset | None = UNSET,
-) -> ErrorResponse | SharingPolicyCollection | None:
-    """Policies
+) -> ErrorResponse | ModelCatalogCollection | None:
+    """Organization List Model Catalog
 
     Args:
-        account_id (str):
-        limit (int | Unset):
-        cursor (None | str | Unset):
+        organization (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorResponse | SharingPolicyCollection
+        ErrorResponse | ModelCatalogCollection
     """
 
     return (
         await asyncio_detailed(
-            account_id=account_id,
+            organization=organization,
             client=client,
-            limit=limit,
-            cursor=cursor,
         )
     ).parsed

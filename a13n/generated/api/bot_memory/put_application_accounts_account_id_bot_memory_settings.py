@@ -1,31 +1,50 @@
 from http import HTTPStatus
 from typing import Any
+from urllib.parse import quote
 
 import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
-from ...models.base_model_candidate_collection import BaseModelCandidateCollection
+from ...models.account_memory_settings import AccountMemorySettings
 from ...models.error_response import ErrorResponse
+from ...models.replace_memory_settings import ReplaceMemorySettings
 from ...types import Response
 
 
-def build_request() -> dict[str, Any]:
+def build_request(
+    account_id: str,
+    *,
+    body: ReplaceMemorySettings,
+) -> dict[str, Any]:
+    headers: dict[str, Any] = {}
 
     _kwargs: dict[str, Any] = {
-        "method": "get",
-        "url": "/api/v1/base-models",
+        "method": "put",
+        "url": "/api/v1/application-accounts/{account_id}/bot/memory-settings".format(
+            account_id=quote(str(account_id), safe=""),
+        ),
     }
 
+    _kwargs["json"] = body.to_dict()
+
+    headers["Content-Type"] = "application/json"
+
+    _kwargs["headers"] = headers
     return _kwargs
 
 
 def _parse_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> BaseModelCandidateCollection | ErrorResponse:
+) -> AccountMemorySettings | ErrorResponse:
     if response.status_code == 200:
-        response_200 = BaseModelCandidateCollection.from_dict(response.json())
+        response_200 = AccountMemorySettings.from_dict(response.json())
 
         return response_200
+
+    if response.status_code == 400:
+        response_400 = ErrorResponse.from_dict(response.json())
+
+        return response_400
 
     response_default = ErrorResponse.from_dict(response.json())
 
@@ -34,7 +53,7 @@ def _parse_response(
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[BaseModelCandidateCollection | ErrorResponse]:
+) -> Response[AccountMemorySettings | ErrorResponse]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -44,20 +63,29 @@ def _build_response(
 
 
 def sync_detailed(
+    account_id: str,
     *,
     client: AuthenticatedClient,
-) -> Response[BaseModelCandidateCollection | ErrorResponse]:
-    """List Base Models
+    body: ReplaceMemorySettings,
+) -> Response[AccountMemorySettings | ErrorResponse]:
+    """Update Memory Settings
+
+    Args:
+        account_id (str):
+        body (ReplaceMemorySettings):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[BaseModelCandidateCollection | ErrorResponse]
+        Response[AccountMemorySettings | ErrorResponse]
     """
 
-    kwargs = build_request()
+    kwargs = build_request(
+        account_id=account_id,
+        body=body,
+    )
 
     response = client.get_httpx_client().request(
         **kwargs,
@@ -67,39 +95,56 @@ def sync_detailed(
 
 
 def sync(
+    account_id: str,
     *,
     client: AuthenticatedClient,
-) -> BaseModelCandidateCollection | ErrorResponse | None:
-    """List Base Models
+    body: ReplaceMemorySettings,
+) -> AccountMemorySettings | ErrorResponse | None:
+    """Update Memory Settings
+
+    Args:
+        account_id (str):
+        body (ReplaceMemorySettings):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        BaseModelCandidateCollection | ErrorResponse
+        AccountMemorySettings | ErrorResponse
     """
 
     return sync_detailed(
+        account_id=account_id,
         client=client,
+        body=body,
     ).parsed
 
 
 async def asyncio_detailed(
+    account_id: str,
     *,
     client: AuthenticatedClient,
-) -> Response[BaseModelCandidateCollection | ErrorResponse]:
-    """List Base Models
+    body: ReplaceMemorySettings,
+) -> Response[AccountMemorySettings | ErrorResponse]:
+    """Update Memory Settings
+
+    Args:
+        account_id (str):
+        body (ReplaceMemorySettings):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[BaseModelCandidateCollection | ErrorResponse]
+        Response[AccountMemorySettings | ErrorResponse]
     """
 
-    kwargs = build_request()
+    kwargs = build_request(
+        account_id=account_id,
+        body=body,
+    )
 
     response = await client.get_async_httpx_client().request(**kwargs)
 
@@ -107,21 +152,29 @@ async def asyncio_detailed(
 
 
 async def asyncio(
+    account_id: str,
     *,
     client: AuthenticatedClient,
-) -> BaseModelCandidateCollection | ErrorResponse | None:
-    """List Base Models
+    body: ReplaceMemorySettings,
+) -> AccountMemorySettings | ErrorResponse | None:
+    """Update Memory Settings
+
+    Args:
+        account_id (str):
+        body (ReplaceMemorySettings):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        BaseModelCandidateCollection | ErrorResponse
+        AccountMemorySettings | ErrorResponse
     """
 
     return (
         await asyncio_detailed(
+            account_id=account_id,
             client=client,
+            body=body,
         )
     ).parsed
