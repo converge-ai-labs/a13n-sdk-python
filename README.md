@@ -1,12 +1,8 @@
 # a13n
 
-Python SDK package for a13n Service.
+Typed Python SDK for a13n Service.
 
-## Status
-
-This SDK implements Web Provider management for Native `/api/v1`: the type catalog, Workspace/Organization account create/list/get/update, saved-account tests, and authorized references. Responses preserve ETags, and mutations are never automatically replayed after an uncertain outcome.
-
-The generated low-level API covers every ordinary Native `/api/v1` HTTP operation in the shared Service OpenAPI contract. The Web facade exposes typed `AgentConfig.toolsets` and `AgentRunOverride.toolsets` wrappers, while complete request/resource models live in `generated`. Generated HTTP bindings do not implement Run SSE or notification WebSocket recovery.
+The SDK is async-first and keeps Service evidence explicit. Resource references bind locally, `Result[T]` preserves HTTP evidence, managed-Agent helpers return exact accepted or queued identities, and `RunStream` provides bounded resumable SSE observation. Complete generated Native bindings and the existing Web Provider facade remain available.
 
 ## Installation
 
@@ -14,75 +10,167 @@ The generated low-level API covers every ordinary Native `/api/v1` HTTP operatio
 uv add a13n
 ```
 
-```python
-import a13n
+Python 3.13 or later is required.
 
-print(a13n.__version__)
+## Authentication and lifetime
+
+A Client has one credential mode for its lifetime:
+
+```python
+import httpx2
+
+from a13n import Client
+
+public = Client("https://service.example")
+bearer = Client("https://service.example", "api-token")
+session = Client.session(
+    "https://service.example",
+    origin="https://app.example",
+    workspace_id="ws_example",
+    cookies=httpx2.Cookies(),
+    csrf_token="explicit-proof",
+)
 ```
 
-## Web Provider accounts
+Public and Bearer clients never send cookies. Session clients use normal cookie rules, send the configured Origin, and send the optional fixed Workspace boundary on every request. State-changing session requests send the explicitly configured CSRF proof. `session.set_csrf_token(value)` replaces or clears that proof without I/O.
 
-Bind API Key operations with `await client.workspace()`. This reads `/api/v1/auth/context` once and returns Web operations without a Workspace argument. The binding uses the immutable Workspace ID and shares the parent transport and shutdown. The parent client retains explicit `WebProviderScope` operations; Service always enforces the credential boundary.
+Use an async context manager or `aclose()`. References share their Client's pool and lifetime; closing a reference is neither necessary nor supported.
+
+## Managed Agent flow
+
+Binding performs no I/O. Network work starts only at an awaited operation or entered stream:
 
 ```python
-from a13n import AgentRunOverride, Client, SearchToolConfiguration, ToolSelection, ToolsetSelection
+from a13n import Client, RunAccepted, SubmissionQueued
 
 
-async def accounts(base_url, token):
+async def run_agent(base_url: str, token: str) -> None:
     async with Client(base_url, token) as client:
-        workspace = await client.workspace()
-        page = await workspace.web_providers()
-        return page.items
-
-
-inherit = AgentRunOverride().to_wire()  # {}
-disable = AgentRunOverride(toolsets={"web": ToolsetSelection(enabled=False)}).to_wire()
-replace = AgentRunOverride(
-    toolsets={
-        "web": ToolsetSelection(
-            enabled=True,
-            tools={
-                "search": ToolSelection(
-                    permission="inherit",
-                    config=SearchToolConfiguration(provider_id="wprov_example").model_dump(exclude_none=True),
-                )
-            },
+        agent = client.workspaces("ws_example").agents("support")
+        accepted = await agent.start(
+            "Summarize the ticket",
+            idempotency_key="start-ticket-42",
         )
-    }
-).to_wire()
+
+        sealed = await accepted.run.wait(timeout=60.0, poll_interval=0.5)
+        print(sealed.value.status, sealed.value.output_text)
+
+        thread = await accepted.thread.get()
+        submission = await accepted.thread.submit(
+            "Now draft a reply",
+            expected_thread_version=thread.value.version,
+            idempotency_key="reply-ticket-42",
+        )
+        if isinstance(submission, RunAccepted):
+            print(submission.run.id)
+        elif isinstance(submission, SubmissionQueued):
+            disposition = await submission.queued_submission.wait(timeout=30.0, poll_interval=0.5)
+            print(disposition.value.state)
 ```
 
-`CreateWebProviderRequest` / `UpdateWebProviderRequest` accept any catalog type key and its schema-defined credential dictionary, including nested JSON objects. Pydantic converts that dictionary to a `WebProviderCredential` that redacts the complete object from ordinary model diagnostics; the client reveals it only while serializing an authorized request. Built-ins use `{"api_key": value}`; an external Provider can define another shape. `test_web_provider` sends one quota-consuming probe only when called. Use `aclose()` or an async context manager to release the transport.
+`RunAccepted` retains the operation-specific receipt plus exact Run, Thread, and Session references. A queued Thread submission returns `SubmissionQueued`; it never fabricates a Run before Service accepts one.
+
+Text helpers construct the ordinary versioned text input. Pass a complete `a13n.generated.models.AgentInput` for structured content. Revision, Environment, labels, execution overrides, versions, and idempotency remain explicit typed inputs. `UNSET`, `None`, and supplied values remain distinct.
+
+## Resumable Run observation and control
+
+`run.stream()` is synchronous and I/O-free. Enter it once, then iterate it directly:
+
+```python
+async def observe(run, applied_cursor: str | None) -> None:
+    async with run.stream(after=applied_cursor) as stream:
+        async for observation in stream:
+            await apply_event(observation.event)
+            await save_checkpoint(observation.cursor)
+
+            if should_redirect(observation.event):
+                await stream.steer(
+                    "Focus on compatibility",
+                    idempotency_key="steer-ticket-42",
+                )
+```
+
+The default stream retries transient attachment/read failures with bounded jittered backoff and at most five reconnects per no-progress episode. It resumes exclusively after the cursor acknowledged in memory when the caller requests the next observation. That cursor is diagnostic delivery evidence, not a durable application checkpoint; applications persist their own applied cursor.
+
+`stream.steer`, `stream.cancel`, and `stream.wait` delegate to the exact Run and remain usable before entry or after local stream closure while the Client is open. One stream has one active reader. Replay gaps, malformed events, retry exhaustion, and unconfirmed EOF are explicit failures. Local close detaches only; it does not cancel the durable Run.
+
+## Resource management
+
+`client.resources` exposes static typed navigation for every Native management operation in the pinned contract. Common roots are also available directly:
+
+```python
+async def inspect_resources(client: Client) -> None:
+    agents = await client.workspaces("ws_example").agents.list(limit=50)
+    providers = await client.resources.organizations("org_example").model_providers.list()
+    environments = await client.workspaces("ws_example").environments.list()
+    hooks = await client.workspaces("ws_example").hook_subscriptions.list()
+
+    async for page in client.workspaces("ws_example").skills.pages(limit=25):
+        for skill in page.value.items:
+            print(skill.key)
+```
+
+The generated tree covers IAM, Agents and immutable revisions, Model and Web Providers, Skills and Assets, Environments and live mounts, Memory, Connections and Bots, bot memory, MCP discovery/configuration, the configuration assistant, Hooks, lifecycle events, and traces. Collections provide one-page `list` operations and lazy `pages` when the protocol uses an opaque cursor. Ordinary collections also offer explicit `iter` traversal of typed wire values; projection snapshots retain page-level coverage instead. Resource methods preserve generated request models, required versions, ETags, and idempotency keys; mutations are never replayed automatically.
+
+Large binary downloads expose generated buffered methods and resource-level `*_stream` methods. Consume streaming responses inside their context. Upload sources remain caller-owned.
+
+## Result and errors
+
+Resource operations return immutable `Result[T]` values:
+
+```python
+result = await client.workspaces("ws_example").agents("support").get()
+print(result.value, result.status_code, result.etag, result.request_id)
+```
+
+`headers` uses case-insensitive lookup. `content` preserves the original successful response bytes. Failures raise:
+
+- `ApiError` for a Service rejection, with safe status/code/message/details and request metadata;
+- `ProtocolError` for malformed success/error bodies, incompatible SSE, repeated cursors, and replay gaps through `ReplayGap`;
+- `TransportError` when transport failure leaves a mutation outcome potentially unknown;
+- built-in `TimeoutError` for SDK wait deadlines and `asyncio.CancelledError` for caller cancellation.
+
+Credential, cookie, proof, and payload values are absent from ordinary SDK diagnostics.
 
 ## Generated HTTP operations
 
+Complete wire models live in `a13n.generated.models`. Generated async operations remain accessible through `Client.execute`:
+
 ```python
-from a13n import Client
 from a13n.generated.api.identity import get_auth_context
 
-
-async def context(base_url: str, token: str):
-    async with Client(base_url, token) as client:
-        return await client.execute(lambda api: get_auth_context.asyncio_detailed(client=api))
+response = await client.execute(lambda api: get_auth_context.asyncio_detailed(client=api))
 ```
 
-`Response.parsed` is a typed success/error union; `status_code`, `headers`, and `content` retain HTTP evidence. Models use attrs rather than the Web facade's Pydantic models. Use generated enums when constructing requests; `UNSET` means omitted and `None` means JSON null. `Client.execute` shares authentication, timeout, cancellation, and the existing httpx2 pool; it does not apply the Web facade's 1 MiB response limit or exception mapping.
+`Response.parsed` retains the generated typed success/error union. `Client.stream(operation.build_request(...))` is the raw unbuffered transport surface and is separate from resource-level `RunStream`. Independently constructed generated synchronous clients retain their own transport lifetime.
 
-For uploads, generated methods accept `a13n.generated.types.File` with a caller-owned binary file and stream bounded chunks through the async transport. For downloads, use `async with client.stream(operation.build_request(...)) as response` and iterate `response.aiter_bytes()`. Do not use buffered generated `asyncio_detailed` downloads for large files. Low-level generated synchronous clients are separately owned, not another mode of the async facade.
+## Compatible Web Provider facade
+
+The existing Pydantic Web Provider API remains supported. `await client.workspace()` resolves the Bearer credential's Workspace once and returns `WorkspaceClient`; explicit `WebProviderScope` calls remain available. `AgentConfig` and `AgentRunOverride` preserve typed built-in Toolset selections while retaining unrelated configuration fields.
 
 ## Development
 
-This is the independent `converge-ai-labs/a13n-sdk-python` repository. It needs Python 3.13, uv, and Make, not a Service checkout or database.
+This independent repository requires Python 3.13, uv, and Make. Ordinary development and packaging do not import or execute Service source.
 
 ```bash
 make install
-make generate         # regenerate only from contract/openapi.json
-make check-all        # lint, types, tests, wheel and sdist
+make generate
+make check-all
 ```
 
-`contract/source.json` records the source repository, full commit SHA, and original paths of the vendored inputs. The initial snapshot is copied from the committed pre-extraction Service tree, not from an uncommitted export. `contract/README.md` explains the provenance boundary. Generator tools are pinned in `codegen/generate.py`: openapi-python-client 0.29.1 and Ruff 0.16.3. Language adapters and templates belong here; generation never runs the Service exporter. Commit contract and generated changes together.
+Generation reads the pinned local contract, emits attrs wire bindings plus static resource navigation, and replaces only generator-owned output. `contract/source.json` records exact Service provenance. See [Contributing](CONTRIBUTING.md) and the [SDK contract](spec/README.md).
 
-See [Contributing](CONTRIBUTING.md) for workflow and [SDK contract](spec/README.md) for ownership and observable behavior.
+### Opt-in Service integration
+
+`scripts/service-smoke.py` uses only HTTP and the installed SDK. Supply `A13N_SERVICE_URL`, `A13N_API_TOKEN`, `A13N_WORKSPACE`, and `A13N_AGENT` through your local environment, then run:
+
+```bash
+uv run python scripts/service-smoke.py
+```
+
+Use an existing configured test Agent with a reachable Model. The script creates and retains one Run and one Asset, checks management reads, explicitly detaches/resumes Run SSE using `Last-Event-ID`, waits for durable completion, and verifies a 300,000-byte binary upload/download. It never provisions credentials, deletes resources, resets a database, or imports Service source. Output contains resource identities and counts, not credentials or model output.
+
+For the companion local Service checkout, discover the instance with `make dev-status` and use its documented `make dev` lifecycle; do not assume fixed ports or reset existing state. A local scripted model proves the Service integration path, not connectivity or behavior of a production cloud provider. Automatic disconnect recovery, controls, queue dispositions, successor identities, and cancellation are covered separately by deterministic SDK transport tests.
 
 ## License
 
