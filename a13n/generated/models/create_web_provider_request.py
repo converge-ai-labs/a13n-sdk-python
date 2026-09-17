@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 
@@ -9,7 +9,7 @@ from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.create_web_provider_request_configuration import CreateWebProviderRequestConfiguration
-    from ..models.create_web_provider_request_credential import CreateWebProviderRequestCredential
+    from ..models.create_web_provider_request_credential_type_0 import CreateWebProviderRequestCredentialType0
 
 
 T = TypeVar("T", bound="CreateWebProviderRequest")
@@ -19,21 +19,21 @@ T = TypeVar("T", bound="CreateWebProviderRequest")
 class CreateWebProviderRequest:
     """
     Attributes:
-        credential (CreateWebProviderRequestCredential):
         name (str):
         type_ (str):
         configuration (CreateWebProviderRequestConfiguration | Unset):
+        credential (CreateWebProviderRequestCredentialType0 | None | Unset):
         enabled (bool | Unset):
     """
 
-    credential: CreateWebProviderRequestCredential
     name: str
     type_: str
     configuration: CreateWebProviderRequestConfiguration | Unset = UNSET
+    credential: CreateWebProviderRequestCredentialType0 | Unset | None = UNSET
     enabled: bool | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
-        credential = self.credential.to_dict()
+        from ..models.create_web_provider_request_credential_type_0 import CreateWebProviderRequestCredentialType0
 
         name = self.name
 
@@ -43,19 +43,28 @@ class CreateWebProviderRequest:
         if not isinstance(self.configuration, Unset):
             configuration = self.configuration.to_dict()
 
+        credential: dict[str, Any] | Unset | None
+        if isinstance(self.credential, Unset):
+            credential = UNSET
+        elif isinstance(self.credential, CreateWebProviderRequestCredentialType0):
+            credential = self.credential.to_dict()
+        else:
+            credential = self.credential
+
         enabled = self.enabled
 
         field_dict: dict[str, Any] = {}
 
         field_dict.update(
             {
-                "credential": credential,
                 "name": name,
                 "type": type_,
             }
         )
         if configuration is not UNSET:
             field_dict["configuration"] = configuration
+        if credential is not UNSET:
+            field_dict["credential"] = credential
         if enabled is not UNSET:
             field_dict["enabled"] = enabled
 
@@ -66,11 +75,11 @@ class CreateWebProviderRequest:
         from ..models.create_web_provider_request_configuration import (
             CreateWebProviderRequestConfiguration,
         )
-        from ..models.create_web_provider_request_credential import CreateWebProviderRequestCredential
+        from ..models.create_web_provider_request_credential_type_0 import (
+            CreateWebProviderRequestCredentialType0,
+        )
 
         d = dict(src_dict)
-        credential = CreateWebProviderRequestCredential.from_dict(d.pop("credential"))
-
         name = d.pop("name")
 
         type_ = d.pop("type")
@@ -82,13 +91,30 @@ class CreateWebProviderRequest:
         else:
             configuration = CreateWebProviderRequestConfiguration.from_dict(_configuration)
 
+        def _parse_credential(data: object) -> CreateWebProviderRequestCredentialType0 | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                credential_type_0 = CreateWebProviderRequestCredentialType0.from_dict(data)
+
+                return credential_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(CreateWebProviderRequestCredentialType0 | Unset | None, data)
+
+        credential = _parse_credential(d.pop("credential", UNSET))
+
         enabled = d.pop("enabled", UNSET)
 
         create_web_provider_request = cls(
-            credential=credential,
             name=name,
             type_=type_,
             configuration=configuration,
+            credential=credential,
             enabled=enabled,
         )
 

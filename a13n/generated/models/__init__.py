@@ -233,7 +233,7 @@ from .create_thread_request_labels import CreateThreadRequestLabels
 from .create_thread_request_session_labels import CreateThreadRequestSessionLabels
 from .create_web_provider_request import CreateWebProviderRequest
 from .create_web_provider_request_configuration import CreateWebProviderRequestConfiguration
-from .create_web_provider_request_credential import CreateWebProviderRequestCredential
+from .create_web_provider_request_credential_type_0 import CreateWebProviderRequestCredentialType0
 from .create_workspace_request import CreateWorkspaceRequest
 from .created_key import CreatedKey
 from .creation_metadata import CreationMetadata
@@ -954,7 +954,7 @@ __all__ = (
     "CreateThreadRequestSessionLabels",
     "CreateWebProviderRequest",
     "CreateWebProviderRequestConfiguration",
-    "CreateWebProviderRequestCredential",
+    "CreateWebProviderRequestCredentialType0",
     "CreateWorkspaceRequest",
     "CreatedKey",
     "CreationMetadata",
