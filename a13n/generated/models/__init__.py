@@ -92,6 +92,7 @@ from .bot_test import BotTest
 from .bot_test_history import BotTestHistory
 from .bot_thread import BotThread
 from .bot_thread_collection import BotThreadCollection
+from .cancel_docker_image_request import CancelDockerImageRequest
 from .catalog_model import CatalogModel
 from .catalog_ref import CatalogRef
 from .change_password_request import ChangePasswordRequest
@@ -321,6 +322,8 @@ from .hosted_agui_cancel_receipt import HostedAguiCancelReceipt
 from .hosted_agui_cancel_request import HostedAguiCancelRequest
 from .http_validation_error import HTTPValidationError
 from .image_input_content import ImageInputContent
+from .image_test_response import ImageTestResponse
+from .image_test_response_image_source_type_0 import ImageTestResponseImageSourceType0
 from .inline_hook_subscription_input import InlineHookSubscriptionInput
 from .input_adapter_config import InputAdapterConfig
 from .input_adapter_config_config import InputAdapterConfigConfig
@@ -482,6 +485,8 @@ from .protocol_config_context_schema_type_0 import ProtocolConfigContextSchemaTy
 from .protocol_config_input_data_schema_type_0 import ProtocolConfigInputDataSchemaType0
 from .protocol_config_state_schema_type_0 import ProtocolConfigStateSchemaType0
 from .protocol_limits import ProtocolLimits
+from .provider_connectivity import ProviderConnectivity
+from .provider_connectivity_status import ProviderConnectivityStatus
 from .queued_submission import QueuedSubmission
 from .queued_submission_collection import QueuedSubmissionCollection
 from .queued_submission_consumption_receipt import QueuedSubmissionConsumptionReceipt
@@ -600,6 +605,8 @@ from .target_collection import TargetCollection
 from .target_config import TargetConfig
 from .target_config_provider_policy_type_0 import TargetConfigProviderPolicyType0
 from .target_config_target_kind import TargetConfigTargetKind
+from .test_docker_image_request import TestDockerImageRequest
+from .test_docker_image_request_configuration import TestDockerImageRequestConfiguration
 from .text_content import TextContent
 from .text_input_content import TextInputContent
 from .thread import Thread
@@ -814,6 +821,7 @@ __all__ = (
     "BotTestHistory",
     "BotThread",
     "BotThreadCollection",
+    "CancelDockerImageRequest",
     "CatalogModel",
     "CatalogRef",
     "ChangePasswordRequest",
@@ -1037,6 +1045,8 @@ __all__ = (
     "HostedAguiCancelReceipt",
     "HostedAguiCancelRequest",
     "ImageInputContent",
+    "ImageTestResponse",
+    "ImageTestResponseImageSourceType0",
     "InlineHookSubscriptionInput",
     "InputAdapterConfig",
     "InputAdapterConfigConfig",
@@ -1190,6 +1200,8 @@ __all__ = (
     "ProtocolConfigInputDataSchemaType0",
     "ProtocolConfigStateSchemaType0",
     "ProtocolLimits",
+    "ProviderConnectivity",
+    "ProviderConnectivityStatus",
     "QueuedSubmission",
     "QueuedSubmissionCollection",
     "QueuedSubmissionConsumptionReceipt",
@@ -1306,6 +1318,8 @@ __all__ = (
     "TargetConfig",
     "TargetConfigProviderPolicyType0",
     "TargetConfigTargetKind",
+    "TestDockerImageRequest",
+    "TestDockerImageRequestConfiguration",
     "TextContent",
     "TextInputContent",
     "Thread",
