@@ -16,14 +16,31 @@ T = TypeVar("T", bound="ItemCollection")
 class ItemCollection:
     """
     Attributes:
+        complete (bool):
+        finalized (bool):
+        incomplete_reason (None | str):
         items (list[ItemResource]):
         next_cursor (None | str):
+        projection_cursor (None | str):
+        snapshot_version (int):
     """
 
+    complete: bool
+    finalized: bool
+    incomplete_reason: str | None
     items: list[ItemResource]
     next_cursor: str | None
+    projection_cursor: str | None
+    snapshot_version: int
 
     def to_dict(self) -> dict[str, Any]:
+        complete = self.complete
+
+        finalized = self.finalized
+
+        incomplete_reason: str | None
+        incomplete_reason = self.incomplete_reason
+
         items = []
         for items_item_data in self.items:
             items_item = items_item_data.to_dict()
@@ -32,12 +49,22 @@ class ItemCollection:
         next_cursor: str | None
         next_cursor = self.next_cursor
 
+        projection_cursor: str | None
+        projection_cursor = self.projection_cursor
+
+        snapshot_version = self.snapshot_version
+
         field_dict: dict[str, Any] = {}
 
         field_dict.update(
             {
+                "complete": complete,
+                "finalized": finalized,
+                "incomplete_reason": incomplete_reason,
                 "items": items,
                 "next_cursor": next_cursor,
+                "projection_cursor": projection_cursor,
+                "snapshot_version": snapshot_version,
             }
         )
 
@@ -48,6 +75,17 @@ class ItemCollection:
         from ..models.item_resource import ItemResource
 
         d = dict(src_dict)
+        complete = d.pop("complete")
+
+        finalized = d.pop("finalized")
+
+        def _parse_incomplete_reason(data: object) -> str | None:
+            if data is None:
+                return data
+            return cast(str | None, data)
+
+        incomplete_reason = _parse_incomplete_reason(d.pop("incomplete_reason"))
+
         items = []
         _items = d.pop("items")
         for items_item_data in _items:
@@ -62,9 +100,23 @@ class ItemCollection:
 
         next_cursor = _parse_next_cursor(d.pop("next_cursor"))
 
+        def _parse_projection_cursor(data: object) -> str | None:
+            if data is None:
+                return data
+            return cast(str | None, data)
+
+        projection_cursor = _parse_projection_cursor(d.pop("projection_cursor"))
+
+        snapshot_version = d.pop("snapshot_version")
+
         item_collection = cls(
+            complete=complete,
+            finalized=finalized,
+            incomplete_reason=incomplete_reason,
             items=items,
             next_cursor=next_cursor,
+            projection_cursor=projection_cursor,
+            snapshot_version=snapshot_version,
         )
 
         return item_collection

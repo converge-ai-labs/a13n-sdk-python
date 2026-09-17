@@ -84,6 +84,7 @@ from .bot_reply_observation import BotReplyObservation
 from .bot_reply_observation_provider_key import BotReplyObservationProviderKey
 from .bot_reply_observation_status import BotReplyObservationStatus
 from .bot_setup import BotSetup
+from .bot_setup_reception_mode import BotSetupReceptionMode
 from .bot_summary import BotSummary
 from .bot_summary_setup_condition import BotSummarySetupCondition
 from .bot_summary_test_stage_type_0 import BotSummaryTestStageType0
@@ -232,7 +233,7 @@ from .create_thread_request_labels import CreateThreadRequestLabels
 from .create_thread_request_session_labels import CreateThreadRequestSessionLabels
 from .create_web_provider_request import CreateWebProviderRequest
 from .create_web_provider_request_configuration import CreateWebProviderRequestConfiguration
-from .create_web_provider_request_credential import CreateWebProviderRequestCredential
+from .create_web_provider_request_credential_type_0 import CreateWebProviderRequestCredentialType0
 from .create_workspace_request import CreateWorkspaceRequest
 from .created_key import CreatedKey
 from .creation_metadata import CreationMetadata
@@ -243,6 +244,7 @@ from .delegation_context_policy_task_state import DelegationContextPolicyTaskSta
 from .developer_message import DeveloperMessage
 from .discard_draft_request import DiscardDraftRequest
 from .discover_feishu_installation_request import DiscoverFeishuInstallationRequest
+from .discover_git_hub_user_request import DiscoverGitHubUserRequest
 from .document import Document
 from .document_access_reason import DocumentAccessReason
 from .document_access_reason_kind import DocumentAccessReasonKind
@@ -300,10 +302,13 @@ from .get_application_accounts_account_id_memory_scopes_scope_id_documents_kind_
     GetApplicationAccountsAccountIdMemoryScopesScopeIdDocumentsKindType0,
 )
 from .get_auth_csrf_response_browser_proof_api_v1_auth_csrf_get import GetAuthCsrfResponseBrowserProofApiV1AuthCsrfGet
+from .get_runs_run_id_items_order import GetRunsRunIdItemsOrder
 from .get_workspaces_workspace_bots_condition_type_0 import GetWorkspacesWorkspaceBotsConditionType0
 from .get_workspaces_workspace_bots_platform_type_0 import GetWorkspacesWorkspaceBotsPlatformType0
 from .get_workspaces_workspace_models_scope_type_0 import GetWorkspacesWorkspaceModelsScopeType0
 from .get_workspaces_workspace_skills_source_kind_type_0 import GetWorkspacesWorkspaceSkillsSourceKindType0
+from .git_hub_comment_receipt import GitHubCommentReceipt
+from .git_hub_reception_policy import GitHubReceptionPolicy
 from .git_hub_revision_source import GitHubRevisionSource
 from .git_hub_skill_import_provenance import GitHubSkillImportProvenance
 from .grant import Grant
@@ -801,6 +806,7 @@ __all__ = (
     "BotReplyObservationProviderKey",
     "BotReplyObservationStatus",
     "BotSetup",
+    "BotSetupReceptionMode",
     "BotSummary",
     "BotSummarySetupCondition",
     "BotSummaryTestStageType0",
@@ -949,7 +955,7 @@ __all__ = (
     "CreateThreadRequestSessionLabels",
     "CreateWebProviderRequest",
     "CreateWebProviderRequestConfiguration",
-    "CreateWebProviderRequestCredential",
+    "CreateWebProviderRequestCredentialType0",
     "CreateWorkspaceRequest",
     "CreatedKey",
     "CreationMetadata",
@@ -960,6 +966,7 @@ __all__ = (
     "DeveloperMessage",
     "DiscardDraftRequest",
     "DiscoverFeishuInstallationRequest",
+    "DiscoverGitHubUserRequest",
     "Document",
     "DocumentAccessReason",
     "DocumentAccessReasonKind",
@@ -1011,10 +1018,13 @@ __all__ = (
     "FunctionCall",
     "GetApplicationAccountsAccountIdMemoryScopesScopeIdDocumentsKindType0",
     "GetAuthCsrfResponseBrowserProofApiV1AuthCsrfGet",
+    "GetRunsRunIdItemsOrder",
     "GetWorkspacesWorkspaceBotsConditionType0",
     "GetWorkspacesWorkspaceBotsPlatformType0",
     "GetWorkspacesWorkspaceModelsScopeType0",
     "GetWorkspacesWorkspaceSkillsSourceKindType0",
+    "GitHubCommentReceipt",
+    "GitHubReceptionPolicy",
     "GitHubRevisionSource",
     "GitHubSkillImportProvenance",
     "Grant",

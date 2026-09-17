@@ -6,11 +6,11 @@ from typing import Any, TypeVar
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
-T = TypeVar("T", bound="CreateWebProviderRequestCredential")
+T = TypeVar("T", bound="CreateWebProviderRequestCredentialType0")
 
 
 @_attrs_define(repr=False)
-class CreateWebProviderRequestCredential:
+class CreateWebProviderRequestCredentialType0:
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -23,10 +23,10 @@ class CreateWebProviderRequestCredential:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        create_web_provider_request_credential = cls()
+        create_web_provider_request_credential_type_0 = cls()
 
-        create_web_provider_request_credential.additional_properties = d
-        return create_web_provider_request_credential
+        create_web_provider_request_credential_type_0.additional_properties = d
+        return create_web_provider_request_credential_type_0
 
     @property
     def additional_keys(self) -> list[str]:
