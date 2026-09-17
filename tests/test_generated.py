@@ -15,7 +15,7 @@ from a13n.generated.models import (
     AgentInputSchemaVersion,
     ConnectorCollection,
     CreateWebProviderRequest,
-    CreateWebProviderRequestCredential,
+    CreateWebProviderRequestCredentialType0,
     ExistingEnvironmentSelection,
     NewEnvironmentSelection,
     PrincipalRef,
@@ -64,10 +64,27 @@ def test_wire_fixtures_roundtrip() -> None:
     secret = CreateWebProviderRequest(
         type_="brave",
         name="test",
-        credential=CreateWebProviderRequestCredential.from_dict({"api_key": "do-not-print"}),
+        credential=CreateWebProviderRequestCredentialType0.from_dict({"api_key": "do-not-print"}),
     )
     assert "do-not-print" not in repr(secret)
+    assert "do-not-print" not in repr(secret.credential)
     assert secret.to_dict()["credential"] == {"api_key": "do-not-print"}
+    restored = CreateWebProviderRequest.from_dict(secret.to_dict())
+    assert isinstance(restored.credential, CreateWebProviderRequestCredentialType0)
+    assert restored.to_dict() == secret.to_dict()
+
+
+@pytest.mark.parametrize("credential", [UNSET, None], ids=["omitted", "null"])
+def test_generated_web_provider_credential_preserves_omission_and_null(credential) -> None:
+    """Wire serialization stays distinct; Service owns provider-specific eligibility."""
+    request = CreateWebProviderRequest(type_="duckduckgo", name="test", credential=credential)
+    expected = {"type": "duckduckgo", "name": "test"}
+    if credential is None:
+        expected["credential"] = None
+    assert request.to_dict() == expected
+    restored = CreateWebProviderRequest.from_dict(expected)
+    assert restored.credential is credential
+    assert restored.to_dict() == expected
 
 
 def test_generated_calls_share_transport_headers_prefix_and_close() -> None:

@@ -132,7 +132,7 @@ class CreateWebProviderRequest(BaseModel):
     model_config = ConfigDict(extra="forbid", hide_input_in_errors=True)
     type: str = Field(pattern=r"^[a-z][a-z0-9_]{0,63}$")
     name: str
-    credential: WebProviderCredential = Field(repr=False)
+    credential: WebProviderCredential | None = Field(default=None, repr=False)
     configuration: dict[str, JsonValue] = Field(default_factory=dict)
     enabled: bool = True
 

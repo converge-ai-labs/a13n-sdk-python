@@ -132,6 +132,30 @@ def test_scoped_crud_etags_and_credentials_are_wire_only():
     asyncio.run(run())
 
 
+@pytest.mark.parametrize("credential_fields", [{}, {"credential": None}], ids=["omitted", "null"])
+def test_create_web_provider_preserves_omitted_and_null_credentials(credential_fields):
+    """Exercise request serialization; provider-specific validation stays in Service."""
+
+    async def run():
+        payload = {"type": "duckduckgo", "name": "Research", **credential_fields}
+        calls = []
+
+        def respond(request):
+            calls.append(request)
+            assert request.method == "POST"
+            assert request.url.path == "/api/v1/workspaces/ws_test/web-providers"
+            assert json.loads(request.content) == payload
+            return httpx2.Response(200, json={**PROVIDER, "type": "duckduckgo", "credential_configured": False})
+
+        async with Client("https://service.example", "token", transport=httpx2.MockTransport(respond)) as client:
+            result = await client.create_web_provider(SCOPE, CreateWebProviderRequest(**payload))
+            assert result.value.type == "duckduckgo"
+            assert not result.value.credential_configured
+        assert len(calls) == 1
+
+    asyncio.run(run())
+
+
 def test_collections_types_references_and_explicit_probe():
     async def run():
         paths = []
