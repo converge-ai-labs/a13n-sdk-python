@@ -1,10 +1,10 @@
 {
   "repository": "converge-ai-labs/agent-foundation",
-  "commit": "7d5cccc46ad48922df28ec35831cd588d8ebfae5",
+  "commit": "bcdfb8a88f41ab1c3dfa9d5edfba6c2ce001d60d",
   "files": {
     "openapi.json": {
       "source_path": "proto/a13n-service/openapi.json",
-      "sha256": "49fbf863e1f1d00cbc0a5014f74e9dec00c186a35d9c5f815820a005eb6a4029"
+      "sha256": "07e9a41ebf37a0c9f96d1f31496ea60d226d48838b0ceab6ee0bdc458355ce71"
     },
     "notification-client.schema.json": {
       "source_path": "proto/a13n-service/notification-client.schema.json",
@@ -24,7 +24,7 @@
     },
     "semantics/native-streaming-and-notifications.md": {
       "source_path": "spec/a13n-service/21-native-streaming-and-notifications.md",
-      "sha256": "3b95a9070e987ad659e82e45eb351894e5f5c05f4dde09d3e3d0049afc5cd73c"
+      "sha256": "33338571d38a0e4f200ed61b67d5004bb7cee68d7866d3647a8abec38d13c49f"
     },
     "semantics/queued-submissions.md": {
       "source_path": "spec/a13n-service/20-agent-control-queued-submissions.md",

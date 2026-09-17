@@ -6,6 +6,7 @@ import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
 from ...models.error_response import ErrorResponse
+from ...models.get_runs_run_id_items_order import GetRunsRunIdItemsOrder
 from ...models.item_collection import ItemCollection
 from ...types import UNSET, Response, Unset
 
@@ -15,6 +16,7 @@ def build_request(
     *,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
+    order: GetRunsRunIdItemsOrder | Unset = UNSET,
 ) -> dict[str, Any]:
 
     params: dict[str, Any] = {}
@@ -27,6 +29,12 @@ def build_request(
     else:
         json_cursor = cursor
     params["cursor"] = json_cursor
+
+    json_order: str | Unset = UNSET
+    if not isinstance(order, Unset):
+        json_order = order.value
+
+    params["order"] = json_order
 
     params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
 
@@ -76,6 +84,7 @@ def sync_detailed(
     client: AuthenticatedClient,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
+    order: GetRunsRunIdItemsOrder | Unset = UNSET,
 ) -> Response[ErrorResponse | ItemCollection]:
     """List Run Items
 
@@ -83,6 +92,7 @@ def sync_detailed(
         run_id (str):
         limit (int | Unset):
         cursor (None | str | Unset):
+        order (GetRunsRunIdItemsOrder | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -96,6 +106,7 @@ def sync_detailed(
         run_id=run_id,
         limit=limit,
         cursor=cursor,
+        order=order,
     )
 
     response = client.get_httpx_client().request(
@@ -111,6 +122,7 @@ def sync(
     client: AuthenticatedClient,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
+    order: GetRunsRunIdItemsOrder | Unset = UNSET,
 ) -> ErrorResponse | ItemCollection | None:
     """List Run Items
 
@@ -118,6 +130,7 @@ def sync(
         run_id (str):
         limit (int | Unset):
         cursor (None | str | Unset):
+        order (GetRunsRunIdItemsOrder | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -132,6 +145,7 @@ def sync(
         client=client,
         limit=limit,
         cursor=cursor,
+        order=order,
     ).parsed
 
 
@@ -141,6 +155,7 @@ async def asyncio_detailed(
     client: AuthenticatedClient,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
+    order: GetRunsRunIdItemsOrder | Unset = UNSET,
 ) -> Response[ErrorResponse | ItemCollection]:
     """List Run Items
 
@@ -148,6 +163,7 @@ async def asyncio_detailed(
         run_id (str):
         limit (int | Unset):
         cursor (None | str | Unset):
+        order (GetRunsRunIdItemsOrder | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -161,6 +177,7 @@ async def asyncio_detailed(
         run_id=run_id,
         limit=limit,
         cursor=cursor,
+        order=order,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -174,6 +191,7 @@ async def asyncio(
     client: AuthenticatedClient,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
+    order: GetRunsRunIdItemsOrder | Unset = UNSET,
 ) -> ErrorResponse | ItemCollection | None:
     """List Run Items
 
@@ -181,6 +199,7 @@ async def asyncio(
         run_id (str):
         limit (int | Unset):
         cursor (None | str | Unset):
+        order (GetRunsRunIdItemsOrder | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -196,5 +215,6 @@ async def asyncio(
             client=client,
             limit=limit,
             cursor=cursor,
+            order=order,
         )
     ).parsed
