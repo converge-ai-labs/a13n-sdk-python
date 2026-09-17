@@ -77,11 +77,10 @@ This is the independent `converge-ai-labs/a13n-sdk-python` repository. It needs 
 ```bash
 make install
 make generate         # regenerate only from contract/openapi.json
-make generated-check  # compare in a temporary directory; do not refresh output
-make check-all        # generation, lint, types, tests, wheel and sdist
+make check-all        # lint, types, tests, wheel and sdist
 ```
 
-`contract/source.json` records the source repository, full commit SHA, original paths, and SHA-256 of the vendored inputs. The initial snapshot is copied from the committed pre-extraction Service tree, not from an uncommitted export. `contract/README.md` explains the provenance boundary. Generator tools are pinned in `codegen/generate.py`: openapi-python-client 0.29.1 and Ruff 0.16.3. Language adapters and templates belong here; generation never runs the Service exporter. Commit contract and generated changes together.
+`contract/source.json` records the source repository, full commit SHA, and original paths of the vendored inputs. The initial snapshot is copied from the committed pre-extraction Service tree, not from an uncommitted export. `contract/README.md` explains the provenance boundary. Generator tools are pinned in `codegen/generate.py`: openapi-python-client 0.29.1 and Ruff 0.16.3. Language adapters and templates belong here; generation never runs the Service exporter. Commit contract and generated changes together.
 
 See [Contributing](CONTRIBUTING.md) for workflow and [SDK contract](spec/README.md) for ownership and observable behavior.
 
