@@ -130,3 +130,32 @@ def test_changed_http_contract_regenerates_bindings(tmp_path: Path) -> None:
     target = tmp_path / "installed"
     assert codegen.install(output, target, check=False)
     assert codegen.install(output, target, check=True)
+
+
+def test_queue_consume_semantic_adapter_does_not_modify_pinned_evidence():
+    document = json.loads((ROOT / "contract/openapi.json").read_text())
+    path = "/api/v1/threads/{thread_id}/queued-submissions/consume"
+    original = json.dumps(document)
+    projected = codegen.prepare(document)
+    assert "200" not in document["paths"][path]["post"]["responses"]
+    assert projected["paths"][path]["post"]["responses"]["200"] == document["paths"][path]["post"]["responses"]["202"]
+    assert json.dumps(document) == original
+
+
+def test_binary_export_adapters_preserve_source_and_existing_media():
+    document = json.loads((ROOT / "contract/openapi.json").read_text())
+    original = json.dumps(document)
+    adapted = codegen.prepare(document)
+    for path, media in {
+        "/api/v1/skill-revisions/{skill_revision_id}/content": "application/zip",
+        "/api/v1/workspaces/{workspace}/agents/{agent}/avatar/{image_id}": "image/webp",
+    }.items():
+        assert adapted["paths"][path]["get"]["responses"]["200"]["content"] == {
+            media: {"schema": {"type": "string", "format": "binary"}}
+        }
+        document["paths"][path]["get"]["responses"]["200"]["content"] = {
+            "image/custom": {"schema": {"type": "string", "format": "binary"}}
+        }
+        assert codegen.prepare(document)["paths"][path] == document["paths"][path]
+    untouched = json.loads((ROOT / "contract/openapi.json").read_text())
+    assert json.dumps(untouched) == original

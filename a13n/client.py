@@ -12,6 +12,16 @@ import httpx2
 from pydantic import BaseModel, JsonValue, TypeAdapter, ValidationError
 
 from .generated.client import AuthenticatedClient
+from .generated.resources import (
+    Organizations,
+    QueuedSubmissions,
+    RunAttempts,
+    Runs,
+    ServiceResources,
+    Sessions,
+    Threads,
+    Workspaces,
+)
 from .generated.types import Response
 from .models import (
     CreateWebProviderRequest,
@@ -76,10 +86,10 @@ class _EmptyRequest(BaseModel):
 
 
 class Client:
-    """Bearer client for the Web Provider surface of Native /api/v1.
+    """Bearer client for typed Native /api/v1 resources.
 
     Owns its transport, including a caller-provided transport. Use as an async
-    context manager or call aclose(). Every operation makes one HTTP request.
+    context manager or call aclose(). Bound references share this lifetime.
     """
 
     def __init__(
@@ -98,7 +108,8 @@ class Client:
         if timeout <= 0:
             raise ValueError("timeout must be positive")
         self._timeout = timeout
-        self._tasks: set[asyncio.Task] = set()
+        self._tasks: dict[asyncio.Task, int] = {}
+        self._streams: set[httpx2.Response] = set()
         self._closed = False
         self._http = httpx2.AsyncClient(
             base_url=base_url.rstrip("/") + "/",
@@ -112,6 +123,39 @@ class Client:
         # Generated operations and the stable Web facade share one pool.
         self._api = AuthenticatedClient(base_url=base_url, token="").set_async_httpx_client(self._http)
 
+    @property
+    def resources(self) -> ServiceResources:
+        """Complete typed management navigation, without network I/O."""
+        return ServiceResources(self)
+
+    @property
+    def workspaces(self) -> Workspaces:
+        return self.resources.workspaces
+
+    @property
+    def organizations(self) -> Organizations:
+        return self.resources.organizations
+
+    @property
+    def runs(self) -> Runs:
+        return self.resources.runs
+
+    @property
+    def threads(self) -> Threads:
+        return self.resources.threads
+
+    @property
+    def sessions(self) -> Sessions:
+        return self.resources.sessions
+
+    @property
+    def queued_submissions(self) -> QueuedSubmissions:
+        return self.resources.queued_submissions
+
+    @property
+    def run_attempts(self) -> RunAttempts:
+        return self.resources.run_attempts
+
     async def execute[T](self, operation: Callable[[AuthenticatedClient], Awaitable[Response[T]]]) -> Response[T]:
         """Execute a generated asyncio_detailed operation with this client's lifetime.
 
@@ -122,7 +166,7 @@ class Client:
             raise TransportError("Client is closed")
         task = asyncio.current_task()
         if task:
-            self._tasks.add(task)
+            self._tasks[task] = self._tasks.get(task, 0) + 1
         try:
             async with asyncio.timeout(self._timeout):
                 return await operation(self._api)
@@ -130,7 +174,11 @@ class Client:
             raise TransportError("Service transport failed; mutation outcome may be unknown") from None
         finally:
             if task:
-                self._tasks.discard(task)
+                remaining = self._tasks[task] - 1
+                if remaining:
+                    self._tasks[task] = remaining
+                else:
+                    self._tasks.pop(task)
 
     @asynccontextmanager
     async def stream(self, request: dict[str, Any]) -> AsyncIterator[httpx2.Response]:
@@ -143,13 +191,21 @@ class Client:
             raise TransportError("Client is closed")
         task = asyncio.current_task()
         if task:
-            self._tasks.add(task)
+            self._tasks[task] = self._tasks.get(task, 0) + 1
         try:
             async with self._http.stream(**request) as response:
-                yield response
+                self._streams.add(response)
+                try:
+                    yield response
+                finally:
+                    self._streams.discard(response)
         finally:
             if task:
-                self._tasks.discard(task)
+                remaining = self._tasks[task] - 1
+                if remaining:
+                    self._tasks[task] = remaining
+                else:
+                    self._tasks.pop(task)
 
     async def __aenter__(self):
         return self
@@ -165,6 +221,8 @@ class Client:
             task.cancel()
         if active:
             await asyncio.gather(*active, return_exceptions=True)
+        for response in tuple(self._streams):
+            await response.aclose()
         self._http.headers.clear()
         await self._http.aclose()
 
@@ -186,7 +244,7 @@ class Client:
             payload["credential"] = body.credential.get_secret_value()
         task = asyncio.current_task()
         if task:
-            self._tasks.add(task)
+            self._tasks[task] = self._tasks.get(task, 0) + 1
         try:
             async with asyncio.timeout(self._timeout):
                 async with self._http.stream(
@@ -229,7 +287,11 @@ class Client:
             if payload is not None:
                 payload.clear()
             if task:
-                self._tasks.discard(task)
+                remaining = self._tasks[task] - 1
+                if remaining:
+                    self._tasks[task] = remaining
+                else:
+                    self._tasks.pop(task)
 
     async def workspace(self) -> "WorkspaceClient":
         """Bind operations to the API key's Workspace, sharing this transport."""
