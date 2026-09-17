@@ -1,10 +1,10 @@
 {
   "repository": "converge-ai-labs/agent-foundation",
-  "commit": "387504cab0faa7b148c2ef2a62fd3dac57af21a6",
+  "commit": "886a6d6472c0fb7513c198df706903264c171939",
   "files": {
     "openapi.json": {
       "source_path": "proto/a13n-service/openapi.json",
-      "sha256": "797899d38aeeb9031f9e23cadc6af23b8ea193b725d0a0749e2d737790c9a546"
+      "sha256": "0ffe5ff7a2930dc6a7629b1f8082a250e0e2bf68fef6f8a8dbd9378eda503ffc"
     },
     "notification-client.schema.json": {
       "source_path": "proto/a13n-service/notification-client.schema.json",

@@ -10,6 +10,7 @@ from ..models.bot_reply_observation_provider_key import BotReplyObservationProvi
 from ..models.bot_reply_observation_status import BotReplyObservationStatus
 
 if TYPE_CHECKING:
+    from ..models.git_hub_comment_receipt import GitHubCommentReceipt
     from ..models.lark_reply_receipt import LarkReplyReceipt
     from ..models.slack_reply_receipt import SlackReplyReceipt
 
@@ -27,7 +28,7 @@ class BotReplyObservation:
         finished_at (datetime.datetime | None):
         id (str):
         provider_key (BotReplyObservationProviderKey):
-        receipt (LarkReplyReceipt | None | SlackReplyReceipt):
+        receipt (GitHubCommentReceipt | LarkReplyReceipt | None | SlackReplyReceipt):
         run_attempt_id (str):
         run_id (str):
         started_at (datetime.datetime):
@@ -42,7 +43,7 @@ class BotReplyObservation:
     finished_at: datetime.datetime | None
     id: str
     provider_key: BotReplyObservationProviderKey
-    receipt: LarkReplyReceipt | SlackReplyReceipt | None
+    receipt: GitHubCommentReceipt | LarkReplyReceipt | SlackReplyReceipt | None
     run_attempt_id: str
     run_id: str
     started_at: datetime.datetime
@@ -51,6 +52,7 @@ class BotReplyObservation:
     test_id: str | None
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.git_hub_comment_receipt import GitHubCommentReceipt
         from ..models.lark_reply_receipt import LarkReplyReceipt
         from ..models.slack_reply_receipt import SlackReplyReceipt
 
@@ -75,6 +77,8 @@ class BotReplyObservation:
         if isinstance(self.receipt, SlackReplyReceipt):
             receipt = self.receipt.to_dict()
         elif isinstance(self.receipt, LarkReplyReceipt):
+            receipt = self.receipt.to_dict()
+        elif isinstance(self.receipt, GitHubCommentReceipt):
             receipt = self.receipt.to_dict()
         else:
             receipt = self.receipt
@@ -117,6 +121,7 @@ class BotReplyObservation:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.git_hub_comment_receipt import GitHubCommentReceipt
         from ..models.lark_reply_receipt import LarkReplyReceipt
         from ..models.slack_reply_receipt import SlackReplyReceipt
 
@@ -151,7 +156,7 @@ class BotReplyObservation:
 
         provider_key = BotReplyObservationProviderKey(d.pop("provider_key"))
 
-        def _parse_receipt(data: object) -> LarkReplyReceipt | SlackReplyReceipt | None:
+        def _parse_receipt(data: object) -> GitHubCommentReceipt | LarkReplyReceipt | SlackReplyReceipt | None:
             if data is None:
                 return data
             try:
@@ -170,7 +175,15 @@ class BotReplyObservation:
                 return receipt_type_1
             except (TypeError, ValueError, AttributeError, KeyError):
                 pass
-            return cast(LarkReplyReceipt | SlackReplyReceipt | None, data)
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                receipt_type_2 = GitHubCommentReceipt.from_dict(data)
+
+                return receipt_type_2
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(GitHubCommentReceipt | LarkReplyReceipt | SlackReplyReceipt | None, data)
 
         receipt = _parse_receipt(d.pop("receipt"))
 

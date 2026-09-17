@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, TypeVar
 from attrs import define as _attrs_define
 
 if TYPE_CHECKING:
+    from ..models.git_hub_reception_policy import GitHubReceptionPolicy
     from ..models.messaging_policy import MessagingPolicy
 
 
@@ -20,7 +21,7 @@ class ActivateBotRequest:
         conversation_id (str):
         execution_service_account_id (str):
         expected_version (int):
-        policy (MessagingPolicy):
+        policy (GitHubReceptionPolicy | MessagingPolicy):
         target_id (str):
         target_version (int):
     """
@@ -29,11 +30,13 @@ class ActivateBotRequest:
     conversation_id: str
     execution_service_account_id: str
     expected_version: int
-    policy: MessagingPolicy
+    policy: GitHubReceptionPolicy | MessagingPolicy
     target_id: str
     target_version: int
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.messaging_policy import MessagingPolicy
+
         agent_id = self.agent_id
 
         conversation_id = self.conversation_id
@@ -42,7 +45,11 @@ class ActivateBotRequest:
 
         expected_version = self.expected_version
 
-        policy = self.policy.to_dict()
+        policy: dict[str, Any]
+        if isinstance(self.policy, MessagingPolicy):
+            policy = self.policy.to_dict()
+        else:
+            policy = self.policy.to_dict()
 
         target_id = self.target_id
 
@@ -66,6 +73,7 @@ class ActivateBotRequest:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.git_hub_reception_policy import GitHubReceptionPolicy
         from ..models.messaging_policy import MessagingPolicy
 
         d = dict(src_dict)
@@ -77,7 +85,22 @@ class ActivateBotRequest:
 
         expected_version = d.pop("expected_version")
 
-        policy = MessagingPolicy.from_dict(d.pop("policy"))
+        def _parse_policy(data: object) -> GitHubReceptionPolicy | MessagingPolicy:
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                policy_type_0 = MessagingPolicy.from_dict(data)
+
+                return policy_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            if not isinstance(data, dict):
+                raise TypeError()
+            policy_type_1 = GitHubReceptionPolicy.from_dict(data)
+
+            return policy_type_1
+
+        policy = _parse_policy(d.pop("policy"))
 
         target_id = d.pop("target_id")
 
