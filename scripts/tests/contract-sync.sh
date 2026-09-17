@@ -132,6 +132,7 @@ else
   cp "$sdk/contract/openapi.json" "$sdk/$TEST_ADDED"
 fi
 printf 'handwritten\n' > "$sdk/handwritten.txt"
+printf 'initial generator dependency\n' > "$sdk/generator-dependency.txt"
 git init -q -b main "$sdk"
 git -C "$sdk" config user.name Test
 git -C "$sdk" config user.email test@example.invalid
@@ -145,8 +146,34 @@ git -C "$sdk" push -q origin main
 cat > "$work/bin/make" <<'MAKE'
 #!/usr/bin/env bash
 set -euo pipefail
-[[ "$*" == generate && -z ${GH_TOKEN:-} ]]
+[[ -z ${GH_TOKEN:-} ]]
+if [[ "$*" == install ]]; then
+  cp generator-dependency.txt "$TEST_INSTALLED"
+  exit 0
+fi
+[[ "$*" == generate ]]
+if [[ ${TEST_NEEDS_INSTALL:-false} == true ]]; then
+  cmp generator-dependency.txt "$TEST_INSTALLED"
+fi
 echo generate >> "$TEST_GENERATE_LOG"
+if [[ ${TEST_CONCURRENT:-false} == true ]]; then
+  git clone -q --branch sync/service-contract "$TEST_REMOTE" "$TEST_RACE_DIR"
+  git -C "$TEST_RACE_DIR" config user.name Reviewer
+  git -C "$TEST_RACE_DIR" config user.email reviewer@example.invalid
+  echo concurrent > "$TEST_RACE_DIR/concurrent.txt"
+  git -C "$TEST_RACE_DIR" add concurrent.txt
+  git -C "$TEST_RACE_DIR" commit -qm 'Concurrent reviewer work'
+  git -C "$TEST_RACE_DIR" push -q origin HEAD
+fi
+if [[ ${TEST_PR_RACE:-} == notes ]]; then
+  jq '.[0].body += "\nNotes added during generation.\n"' "$TEST_PR_STATE" > "$TEST_PR_STATE.next"
+  mv "$TEST_PR_STATE.next" "$TEST_PR_STATE"
+elif [[ ${TEST_PR_RACE:-} == close ]]; then
+  jq '.[0].state = "CLOSED"' "$TEST_PR_STATE" > "$TEST_PR_STATE.next"
+  mv "$TEST_PR_STATE.next" "$TEST_PR_STATE"
+elif [[ ${TEST_PR_RACE:-} == delete ]]; then
+  git --git-dir="$TEST_REMOTE" update-ref -d refs/heads/sync/service-contract
+fi
 # Simulate partial writes and unrelated build/handwritten changes before failure.
 printf 'partial output\n' > "$TEST_GENERATED"
 printf 'not a generated file\n' > handwritten.txt
@@ -164,64 +191,108 @@ chmod +x "$work/bin/make"
 cat > "$work/bin/gh" <<'GH'
 #!/usr/bin/env bash
 set -euo pipefail
-if [[ "$1 $2" == 'pr list' ]]; then
-  [[ " $* " == *' --state all '* ]]
-  printf '%s\n' "${TEST_PRS:-[]}"
-elif [[ "$1 $2" == 'pr create' ]]; then
-  [[ " $* " == *' --draft '* && " $* " == *' --base main '* ]]
+operation=$2
+if [[ "$1" == api ]]; then
+  [[ " $* " == *' --paginate '* && " $* " == *' head=converge-ai-labs:sync/service-contract '* ]]
+  if [[ -s "$TEST_PR_STATE" ]]; then
+    jq --arg repo "$GITHUB_REPOSITORY" \
+      --arg head "$(git --git-dir="$TEST_REMOTE" rev-parse refs/heads/sync/service-contract 2>/dev/null || true)" '
+      map({number, state: (.state | ascii_downcase),
+        merged_at: (if .state == "MERGED" then "2026-09-17" else null end),
+        head: {repo: {full_name: $repo}, sha: (if .state == "OPEN" then $head else .headRefOid end)}})
+      + [{number:999, state:"closed", merged_at:null, head:{repo:{full_name:"fork/sdk"},sha:$head}}]
+      ' "$TEST_PR_STATE"
+  else
+    echo '[]'
+  fi
+elif [[ "$1 $2" == 'pr view' ]]; then
+  jq '.[0]' "$TEST_PR_STATE"
+elif [[ "$1" == pr && ( "$operation" == create || "$operation" == edit ) ]]; then
+  if [[ "$operation" == create ]]; then
+    [[ " $* " == *' --draft '* && " $* " == *' --base main '* ]]
+  fi
   while [[ "$1" != --body-file ]]; do shift; done
   grep -q 'Full SDK CI runs while this PR is still a draft' "$2"
-  echo created >> "$TEST_PR_LOG"
-  if [[ ${TEST_CREATE_FAIL:-false} == true ]]; then exit 1; fi
+  echo "$operation" >> "$TEST_PR_LOG"
+  if [[ ${TEST_METADATA_FAIL:-false} == true ]]; then exit 1; fi
+  if [[ "$operation" == create ]]; then
+    jq -n --rawfile body "$2" '[{number:1,state:"OPEN",body:$body,isDraft:true}]' > "$TEST_PR_STATE"
+  else
+    jq --rawfile body "$2" '.[0].body = $body' "$TEST_PR_STATE" > "$TEST_PR_STATE.next"
+    mv "$TEST_PR_STATE.next" "$TEST_PR_STATE"
+  fi
+elif [[ "$1 $2" == 'pr ready' ]]; then
+  [[ " $* " == *' --undo '* ]]
+  jq '.[0].isDraft = true' "$TEST_PR_STATE" > "$TEST_PR_STATE.next"
+  mv "$TEST_PR_STATE.next" "$TEST_PR_STATE"
 else
   echo "Unexpected gh call: $*" >&2; exit 1
 fi
 GH
 chmod +x "$work/bin/gh"
 export PATH="$work/bin:$PATH" TEST_PR_LOG="$work/pr.log" GITHUB_REPOSITORY=converge-ai-labs/a13n-sdk-test
+export TEST_PR_STATE="$work/pr-state.json" TEST_REMOTE="$work/remote.git"
 export TEST_GENERATE_LOG="$work/generate.log" GH_TOKEN=not-a-real-token
+export TEST_INSTALLED="$work/installed-dependency"
 : > "$TEST_GENERATE_LOG"
 : > "$TEST_PR_LOG"
+branch=sync/service-contract
+propose() { bash "$sdk/scripts/open-contract-pr.sh" "$upstream" "$1"; }
+head() { git --git-dir="$TEST_REMOTE" rev-parse "refs/heads/$branch"; }
+fresh() {
+  # Only disposable test checkouts are reset; production requires a clean tree.
+  git -C "$sdk" reset --hard -q
+  git -C "$sdk" switch --detach -q main
+  git -C "$sdk" clean -fdq
+}
+set_pr() {
+  jq "$1" "$TEST_PR_STATE" > "$work/pr-next.json"
+  mv "$work/pr-next.json" "$TEST_PR_STATE"
+}
+next_source() {
+  printf '%s\n' "$1" >> "$upstream/runtime.txt"
+  commit_source "$1"
+}
 # An accepted pin is a no-op, even if generation would fail.
 export TEST_GENERATE_FAIL=true
-bash "$sdk/scripts/open-contract-pr.sh"
+propose "$complete"
 [[ ! -s "$TEST_GENERATE_LOG" && ! -s "$TEST_PR_LOG" ]]
+reject propose main
+reject propose "$unmerged"
+printf dirty > "$sdk/dirty.txt"
+reject propose "$runtime"
+rm "$sdk/dirty.txt"
 
 # A semantic/runtime-only update still creates a reviewable pin update.
-cp "$work/current/source.json" "$sdk/contract/"
-cp "$work/current/semantics/api-conventions.md" "$sdk/contract/semantics/"
 export TEST_GENERATE_FAIL=false
-bash "$sdk/scripts/open-contract-pr.sh"
+propose "$runtime"
 [[ -z $(git -C "$sdk" diff main HEAD -- "$TEST_GENERATED" "$TEST_ADDED") ]]
 [[ $(git -C "$sdk" show HEAD:contract/source.json | jq -r .commit) == "$runtime" ]]
 [[ $(git -C "$sdk" show HEAD:handwritten.txt) == handwritten ]]
 ! git -C "$sdk" cat-file -e HEAD:unexpected.txt 2>/dev/null
+first_head=$(head)
 
-# Fresh ephemeral checkout and a real input change (generation is stubbed here).
-git -C "$sdk" reset --hard -q
-git -C "$sdk" switch -q main
-git -C "$sdk" clean -fdq
+# A real HTTP input change fails without altering the existing remote proposal.
+fresh
 cp "$work/initial/run-stream-event.schema.json" "$upstream/proto/a13n-service/run-stream-event.schema.json"
 jq '.paths["/api/v1/probe"] = {get:{operationId:"probe",responses:{"204":{description:"No content"}}}}' \
   "$upstream/proto/a13n-service/openapi.json" > "$work/http.json"
 cp "$work/http.json" "$upstream/proto/a13n-service/openapi.json"
 http=$(commit_source 'HTTP operation added')
-sync "$http"
-branch="sync/service-contract-$http"
-base=$(git -C "$sdk" rev-parse HEAD)
 export TEST_GENERATE_FAIL=true
-reject bash "$sdk/scripts/open-contract-pr.sh"
-[[ $(git -C "$sdk" rev-parse HEAD) == "$base" ]]
+reject propose "$http"
+[[ $(head) == "$first_head" ]]
 [[ -z $(git -C "$sdk" diff --cached) ]]
 [[ $(cat "$sdk/$TEST_GENERATED") == 'partial output' ]]
-! git --git-dir="$work/remote.git" show-ref --verify --quiet "refs/heads/$branch"
-[[ $(wc -l < "$TEST_PR_LOG" | tr -d ' ') == 1 ]]
+[[ $(grep -c create "$TEST_PR_LOG") == 1 ]]
 
-# Retry succeeds; the commit includes generated changes/deletions, not other files.
-export TEST_GENERATE_FAIL=false TEST_CREATE_FAIL=true
-reject bash "$sdk/scripts/open-contract-pr.sh"
-first_head=$(git --git-dir="$work/remote.git" rev-parse "refs/heads/$branch")
-[[ $(git -C "$sdk" show HEAD:contract/source.json | jq -r .commit) == "$http" ]]
+# Retry advances the same branch; failed metadata reconciliation is recoverable.
+fresh
+export TEST_GENERATE_FAIL=false TEST_METADATA_FAIL=true
+reject propose "$http"
+http_head=$(head)
+[[ "$http_head" != "$first_head" ]]
+git -C "$sdk" merge-base --is-ancestor "$first_head" "$http_head"
 for output in "$TEST_GENERATED" "$TEST_ADDED"; do
   git -C "$sdk" show "HEAD:$output" > "$work/actual"
   cmp "$work/actual" "$work/http.json"
@@ -229,30 +300,180 @@ done
 if [[ -n "$TEST_REMOVED" ]]; then ! git -C "$sdk" cat-file -e "HEAD:$TEST_REMOVED" 2>/dev/null; fi
 [[ $(git -C "$sdk" show HEAD:handwritten.txt) == handwritten ]]
 ! git -C "$sdk" cat-file -e HEAD:unexpected.txt 2>/dev/null
+fresh
+export TEST_METADATA_FAIL=false TEST_GENERATE_FAIL=true
+before=$(wc -l < "$TEST_GENERATE_LOG")
+propose "$http"
+[[ $(wc -l < "$TEST_GENERATE_LOG") == "$before" && $(head) == "$http_head" ]]
+jq -e --arg sha "$http" '.[0].body | contains($sha)' "$TEST_PR_STATE" >/dev/null
 
-# Reviewer edits survive a retry after push succeeded but PR creation failed.
+# Old events cannot rewind an unmerged newer proposal. Same-SHA retries preserve
+# reviewer commits, notes, and readiness rather than regenerating their changes.
+fresh
+propose "$runtime"
+[[ $(head) == "$http_head" ]]
+git -C "$sdk" switch --detach -q "$http_head"
 printf 'reviewer adaptation\n' > "$sdk/$TEST_GENERATED"
-git -C "$sdk" add -- "$TEST_GENERATED"
+printf 'reviewer handwritten adaptation\n' > "$sdk/handwritten.txt"
+printf 'updated generator dependency\n' > "$sdk/generator-dependency.txt"
+git -C "$sdk" add -- "$TEST_GENERATED" handwritten.txt generator-dependency.txt
 git -C "$sdk" commit -qm 'Reviewer adaptation'
 git -C "$sdk" push -q origin "HEAD:refs/heads/$branch"
-reviewed_head=$(git --git-dir="$work/remote.git" rev-parse "refs/heads/$branch")
-[[ "$reviewed_head" != "$first_head" ]]
-git -C "$sdk" reset --hard -q
+reviewed_head=$(head)
+set_pr '.[0].body += "\nMaintainer notes: keep this context.\n" | .[0].isDraft = false'
+fresh
+propose "$http"
+[[ $(head) == "$reviewed_head" && $(wc -l < "$TEST_GENERATE_LOG") == "$before" ]]
+[[ $(jq -r '.[0].isDraft' "$TEST_PR_STATE") == false ]]
+grep -q 'Maintainer notes' "$TEST_PR_STATE"
+
+# SDK main can advance while a proposal is open. Merge its fixes, preserve
+# handwritten adaptation, and return a genuinely newer source revision to draft.
+fresh
 git -C "$sdk" switch -q main
-git -C "$sdk" clean -fdq
-sync "$http"
-export TEST_CREATE_FAIL=false TEST_GENERATE_FAIL=true
+printf 'accepted SDK fix\n' > "$sdk/sdk-fix.txt"
+git -C "$sdk" add sdk-fix.txt
+git -C "$sdk" commit -qm 'SDK main fix'
+git -C "$sdk" push -q origin main
+newer=$(next_source 'Newer runtime')
+export TEST_GENERATE_FAIL=false TEST_PR_RACE=notes
+propose "$newer"
+unset TEST_PR_RACE
+grep -q 'Notes added during generation' "$TEST_PR_STATE"
+[[ $(git -C "$sdk" show HEAD:handwritten.txt) == 'reviewer handwritten adaptation' ]]
+[[ $(git -C "$sdk" show HEAD:sdk-fix.txt) == 'accepted SDK fix' ]]
+git -C "$sdk" merge-base --is-ancestor "$reviewed_head" HEAD
+[[ $(jq -r '.[0].isDraft' "$TEST_PR_STATE") == true ]]
+[[ $(grep -c create "$TEST_PR_LOG") == 1 ]]
+grep -q 'Maintainer notes' "$TEST_PR_STATE"
+
+# Closing is an explicit pause, not permission to recreate the same proposal.
+fresh
+set_pr '.[0].state = "CLOSED"'
+closed_head=$(head)
+after_closed=$(next_source 'After closure')
+propose "$after_closed"
+[[ $(head) == "$closed_head" ]]
+set_pr '.[0].state = "OPEN"'
+propose "$after_closed"
+
+# Squash merge and automatic branch deletion start a new cycle from SDK main.
+fresh
+git -C "$sdk" fetch -q origin "$branch"
+merged_head=$(head)
+git -C "$sdk" switch -q main
+git -C "$sdk" merge --squash "$merged_head"
+git -C "$sdk" commit -qm 'Accept contract'
+git -C "$sdk" push -q origin main
+set_pr ".[0].state = \"MERGED\" | .[0].headRefOid = \"$merged_head\""
+git -C "$sdk" push -q origin ":refs/heads/$branch"
+after_merge=$(next_source 'After merge')
+export TEST_METADATA_FAIL=true
+reject propose "$after_merge"
+new_head=$(head)
+git -C "$sdk" merge-base --is-ancestor main "$new_head"
+# Retry after push succeeded but creation failed must not regenerate or lose work.
+fresh
+export TEST_GENERATE_FAIL=true TEST_METADATA_FAIL=false
 before=$(wc -l < "$TEST_GENERATE_LOG")
-bash "$sdk/scripts/open-contract-pr.sh"
-[[ $(wc -l < "$TEST_GENERATE_LOG") == "$before" ]]
-[[ $(git --git-dir="$work/remote.git" rev-parse "refs/heads/$branch") == "$reviewed_head" ]]
-[[ $(wc -l < "$TEST_PR_LOG" | tr -d ' ') == 3 ]]
-export TEST_PRS='[{"number":1}]'
-bash "$sdk/scripts/open-contract-pr.sh"
-[[ $(wc -l < "$TEST_GENERATE_LOG") == "$before" ]]
-[[ $(wc -l < "$TEST_PR_LOG" | tr -d ' ') == 3 ]]
-[[ $(git --git-dir="$work/remote.git" rev-parse "refs/heads/$branch") == "$reviewed_head" ]]
-[[ -z $(git --git-dir="$work/remote.git" tag -l) ]]
+propose "$after_merge"
+[[ $(head) == "$new_head" && $(wc -l < "$TEST_GENERATE_LOG") == "$before" ]]
+[[ $(jq -r '.[0].state' "$TEST_PR_STATE") == OPEN ]]
+
+# A retained, exactly merged branch can also be recycled without force-updating
+# history. A failed generation must leave that retained branch untouched.
+fresh
+git -C "$sdk" switch -q main
+git -C "$sdk" merge --squash "$new_head"
+git -C "$sdk" commit -qm 'Accept next contract'
+git -C "$sdk" push -q origin main
+set_pr ".[0].state = \"MERGED\" | .[0].headRefOid = \"$new_head\""
+latest=$(next_source 'Retained branch cycle')
+reject propose "$latest"
+[[ $(head) == "$new_head" ]]
+fresh
+export TEST_GENERATE_FAIL=false
+propose "$latest"
+git -C "$sdk" merge-base --is-ancestor main HEAD
+[[ $(jq -r '.[0].state' "$TEST_PR_STATE") == OPEN ]]
+# Old accepted events do not create more PRs, and no tags/releases were emitted.
+fresh
+before=$(wc -l < "$TEST_PR_LOG")
+propose "$runtime"
+[[ $(wc -l < "$TEST_PR_LOG") == "$before" ]]
+[[ -z $(git --git-dir="$TEST_REMOTE" tag -l) ]]
+
+# A concurrent reviewer push rejects our non-fast-forward update; retry keeps it.
+export TEST_CONCURRENT=true TEST_RACE_DIR="$work/racing-reviewer"
+concurrent=$(next_source 'Concurrent update')
+reject propose "$concurrent"
+racing_head=$(head)
+[[ $(git --git-dir="$TEST_REMOTE" show "$racing_head:contract/source.json" | jq -r .commit) == "$latest" ]]
+fresh
+export TEST_CONCURRENT=false
+propose "$concurrent"
+git -C "$sdk" merge-base --is-ancestor "$racing_head" HEAD
+[[ $(git -C "$sdk" show HEAD:concurrent.txt) == concurrent ]]
+
+# Human PR closure during generation is respected before publishing any update.
+fresh
+before_close=$(head)
+closing=$(next_source 'Closure race')
+export TEST_PR_RACE=close
+reject propose "$closing"
+[[ $(head) == "$before_close" ]]
+set_pr '.[0].state = "OPEN"'
+fresh
+# A branch deleted between fetch and push must not be silently recreated.
+export TEST_PR_RACE=delete
+reject propose "$closing"
+! git --git-dir="$TEST_REMOTE" show-ref --verify --quiet "refs/heads/$branch"
+unset TEST_PR_RACE
+# Restore the disposable fixture's deleted branch before testing recovery.
+git --git-dir="$TEST_REMOTE" update-ref "refs/heads/$branch" "$before_close"
+fresh
+propose "$closing"
+
+# Same-SHA recovery verifies Git provenance, not only self-declared hashes.
+fresh
+git -C "$sdk" switch --detach -q "$(head)"
+valid_head=$(head)
+printf 'tampered evidence\n' >> "$sdk/contract/semantics/api-conventions.md"
+jq --arg hash "$(hash "$sdk/contract/semantics/api-conventions.md")" \
+  '.files["semantics/api-conventions.md"].sha256 = $hash' "$sdk/contract/source.json" > "$work/manifest"
+cp "$work/manifest" "$sdk/contract/source.json"
+git -C "$sdk" add contract
+git -C "$sdk" commit -qm 'Invalid self-consistent evidence'
+git -C "$sdk" push -q origin "HEAD:refs/heads/$branch"
+invalid_head=$(head)
+fresh
+reject propose "$closing"
+[[ $(head) == "$invalid_head" ]]
+git -C "$sdk" switch --detach -q "$invalid_head"
+git -C "$sdk" restore --source="$valid_head" -- contract
+git -C "$sdk" commit -qam 'Restore evidence'
+git -C "$sdk" push -q origin "HEAD:refs/heads/$branch"
+
+# Conflicting accepted SDK changes stop instead of overwriting adaptation work.
+fresh
+git -C "$sdk" switch --detach -q "$(head)"
+echo 'proposal adaptation' > "$sdk/handwritten.txt"
+git -C "$sdk" commit -qam 'Proposal adaptation'
+git -C "$sdk" push -q origin "HEAD:refs/heads/$branch"
+conflict_head=$(head)
+fresh
+git -C "$sdk" switch -q main
+echo 'different accepted adaptation' > "$sdk/handwritten.txt"
+git -C "$sdk" commit -qam 'Accepted adaptation'
+git -C "$sdk" push -q origin main
+conflict=$(next_source 'Conflict update')
+reject propose "$conflict"
+[[ $(head) == "$conflict_head" ]]
+fresh
+
+# An open PR whose branch disappeared must not silently lose reviewer work.
+git -C "$sdk" push -q origin ":refs/heads/$branch"
+reject propose "$conflict"
 
 # Drafts use the same complete CI gate; no draft-specific condition may skip it.
 ci="$scripts/../.github/workflows/ci.yml"
