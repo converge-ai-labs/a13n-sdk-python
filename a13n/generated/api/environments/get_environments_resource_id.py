@@ -5,7 +5,7 @@ from urllib.parse import quote
 import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
-from ...models.environment import Environment
+from ...models.environment_detail import EnvironmentDetail
 from ...models.error_response import ErrorResponse
 from ...types import Response
 
@@ -24,9 +24,11 @@ def build_request(
     return _kwargs
 
 
-def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Environment | ErrorResponse:
+def _parse_response(
+    *, client: AuthenticatedClient | Client, response: httpx.Response
+) -> EnvironmentDetail | ErrorResponse:
     if response.status_code == 200:
-        response_200 = Environment.from_dict(response.json())
+        response_200 = EnvironmentDetail.from_dict(response.json())
 
         return response_200
 
@@ -42,7 +44,7 @@ def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Res
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[Environment | ErrorResponse]:
+) -> Response[EnvironmentDetail | ErrorResponse]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -55,7 +57,7 @@ def sync_detailed(
     resource_id: str,
     *,
     client: AuthenticatedClient,
-) -> Response[Environment | ErrorResponse]:
+) -> Response[EnvironmentDetail | ErrorResponse]:
     """Get Environment
 
     Args:
@@ -66,7 +68,7 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Environment | ErrorResponse]
+        Response[EnvironmentDetail | ErrorResponse]
     """
 
     kwargs = build_request(
@@ -84,7 +86,7 @@ def sync(
     resource_id: str,
     *,
     client: AuthenticatedClient,
-) -> Environment | ErrorResponse | None:
+) -> EnvironmentDetail | ErrorResponse | None:
     """Get Environment
 
     Args:
@@ -95,7 +97,7 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Environment | ErrorResponse
+        EnvironmentDetail | ErrorResponse
     """
 
     return sync_detailed(
@@ -108,7 +110,7 @@ async def asyncio_detailed(
     resource_id: str,
     *,
     client: AuthenticatedClient,
-) -> Response[Environment | ErrorResponse]:
+) -> Response[EnvironmentDetail | ErrorResponse]:
     """Get Environment
 
     Args:
@@ -119,7 +121,7 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Environment | ErrorResponse]
+        Response[EnvironmentDetail | ErrorResponse]
     """
 
     kwargs = build_request(
@@ -135,7 +137,7 @@ async def asyncio(
     resource_id: str,
     *,
     client: AuthenticatedClient,
-) -> Environment | ErrorResponse | None:
+) -> EnvironmentDetail | ErrorResponse | None:
     """Get Environment
 
     Args:
@@ -146,7 +148,7 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Environment | ErrorResponse
+        EnvironmentDetail | ErrorResponse
     """
 
     return (

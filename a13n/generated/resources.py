@@ -2233,7 +2233,7 @@ class EnvironmentsEnvironmentId(Resource):
             )
         )
 
-    async def get(self) -> Result[wire.Environment]:
+    async def get(self) -> Result[wire.EnvironmentDetail]:
         """Get Environment. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: get_environments_resource_id.asyncio_detailed(

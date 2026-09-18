@@ -270,6 +270,10 @@ from .environment_access import EnvironmentAccess
 from .environment_command import EnvironmentCommand
 from .environment_command_action import EnvironmentCommandAction
 from .environment_command_status import EnvironmentCommandStatus
+from .environment_detail import EnvironmentDetail
+from .environment_detail_labels import EnvironmentDetailLabels
+from .environment_detail_ownership import EnvironmentDetailOwnership
+from .environment_detail_retention_condition import EnvironmentDetailRetentionCondition
 from .environment_labels import EnvironmentLabels
 from .environment_ownership import EnvironmentOwnership
 from .environment_provider import EnvironmentProvider
@@ -1007,6 +1011,10 @@ __all__ = (
     "EnvironmentCommand",
     "EnvironmentCommandAction",
     "EnvironmentCommandStatus",
+    "EnvironmentDetail",
+    "EnvironmentDetailLabels",
+    "EnvironmentDetailOwnership",
+    "EnvironmentDetailRetentionCondition",
     "EnvironmentLabels",
     "EnvironmentOwnership",
     "EnvironmentProvider",
