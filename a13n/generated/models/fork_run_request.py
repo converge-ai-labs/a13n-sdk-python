@@ -29,7 +29,7 @@ class ForkRunRequest:
         agent_revision_id (None | str | Unset):
         config_override (AgentRunOverrideInput | None | Unset):
         environment (ExistingEnvironmentSelection | NewEnvironmentSelection | None | Unset):
-        expected_current_revision_id (None | str | Unset):
+        expected_default_revision_id (None | str | Unset):
         hook_subscription (InlineHookSubscriptionInput | None | Unset):
         labels (ForkRunRequestLabels | Unset):
         thread_labels (ForkRunRequestThreadLabels | Unset):
@@ -40,7 +40,7 @@ class ForkRunRequest:
     agent_revision_id: str | Unset | None = UNSET
     config_override: AgentRunOverrideInput | Unset | None = UNSET
     environment: ExistingEnvironmentSelection | NewEnvironmentSelection | Unset | None = UNSET
-    expected_current_revision_id: str | Unset | None = UNSET
+    expected_default_revision_id: str | Unset | None = UNSET
     hook_subscription: InlineHookSubscriptionInput | Unset | None = UNSET
     labels: ForkRunRequestLabels | Unset = UNSET
     thread_labels: ForkRunRequestThreadLabels | Unset = UNSET
@@ -83,11 +83,11 @@ class ForkRunRequest:
         else:
             environment = self.environment
 
-        expected_current_revision_id: str | Unset | None
-        if isinstance(self.expected_current_revision_id, Unset):
-            expected_current_revision_id = UNSET
+        expected_default_revision_id: str | Unset | None
+        if isinstance(self.expected_default_revision_id, Unset):
+            expected_default_revision_id = UNSET
         else:
-            expected_current_revision_id = self.expected_current_revision_id
+            expected_default_revision_id = self.expected_default_revision_id
 
         hook_subscription: dict[str, Any] | Unset | None
         if isinstance(self.hook_subscription, Unset):
@@ -120,8 +120,8 @@ class ForkRunRequest:
             field_dict["config_override"] = config_override
         if environment is not UNSET:
             field_dict["environment"] = environment
-        if expected_current_revision_id is not UNSET:
-            field_dict["expected_current_revision_id"] = expected_current_revision_id
+        if expected_default_revision_id is not UNSET:
+            field_dict["expected_default_revision_id"] = expected_default_revision_id
         if hook_subscription is not UNSET:
             field_dict["hook_subscription"] = hook_subscription
         if labels is not UNSET:
@@ -204,14 +204,14 @@ class ForkRunRequest:
 
         environment = _parse_environment(d.pop("environment", UNSET))
 
-        def _parse_expected_current_revision_id(data: object) -> str | Unset | None:
+        def _parse_expected_default_revision_id(data: object) -> str | Unset | None:
             if data is None:
                 return data
             if isinstance(data, Unset):
                 return data
             return cast(str | Unset | None, data)
 
-        expected_current_revision_id = _parse_expected_current_revision_id(d.pop("expected_current_revision_id", UNSET))
+        expected_default_revision_id = _parse_expected_default_revision_id(d.pop("expected_default_revision_id", UNSET))
 
         def _parse_hook_subscription(data: object) -> InlineHookSubscriptionInput | Unset | None:
             if data is None:
@@ -250,7 +250,7 @@ class ForkRunRequest:
             agent_revision_id=agent_revision_id,
             config_override=config_override,
             environment=environment,
-            expected_current_revision_id=expected_current_revision_id,
+            expected_default_revision_id=expected_default_revision_id,
             hook_subscription=hook_subscription,
             labels=labels,
             thread_labels=thread_labels,

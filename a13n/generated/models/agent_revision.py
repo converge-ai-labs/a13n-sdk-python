@@ -39,6 +39,7 @@ class AgentRevision:
         source_revision_id (None | str):
         version (int):
         workspace_id (str):
+        change_summary (None | str | Unset):
         connection_tools (list[ConnectionToolSelection] | Unset):
     """
 
@@ -56,6 +57,7 @@ class AgentRevision:
     source_revision_id: str | None
     version: int
     workspace_id: str
+    change_summary: str | Unset | None = UNSET
     connection_tools: list[ConnectionToolSelection] | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
@@ -100,6 +102,12 @@ class AgentRevision:
 
         workspace_id = self.workspace_id
 
+        change_summary: str | Unset | None
+        if isinstance(self.change_summary, Unset):
+            change_summary = UNSET
+        else:
+            change_summary = self.change_summary
+
         connection_tools: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.connection_tools, Unset):
             connection_tools = []
@@ -127,6 +135,8 @@ class AgentRevision:
                 "workspace_id": workspace_id,
             }
         )
+        if change_summary is not UNSET:
+            field_dict["change_summary"] = change_summary
         if connection_tools is not UNSET:
             field_dict["connection_tools"] = connection_tools
 
@@ -201,6 +211,15 @@ class AgentRevision:
 
         workspace_id = d.pop("workspace_id")
 
+        def _parse_change_summary(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        change_summary = _parse_change_summary(d.pop("change_summary", UNSET))
+
         _connection_tools = d.pop("connection_tools", UNSET)
         connection_tools: list[ConnectionToolSelection] | Unset = UNSET
         if _connection_tools is not UNSET:
@@ -225,6 +244,7 @@ class AgentRevision:
             source_revision_id=source_revision_id,
             version=version,
             workspace_id=workspace_id,
+            change_summary=change_summary,
             connection_tools=connection_tools,
         )
 

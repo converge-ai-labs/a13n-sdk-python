@@ -37,6 +37,7 @@ class AgentConfigOutput:
         protocol (ProtocolConfig):
         client_tools (list[ClientToolDefinition] | Unset):
         connection_tools (list[ConnectionToolSelection] | Unset):
+        default_environment_template_id (None | str | Unset):
         instructions (str | Unset):
         memory (MemorySelection | None | Unset):
         output_spec (None | OutputSpec | Unset):
@@ -55,6 +56,7 @@ class AgentConfigOutput:
     protocol: ProtocolConfig
     client_tools: list[ClientToolDefinition] | Unset = UNSET
     connection_tools: list[ConnectionToolSelection] | Unset = UNSET
+    default_environment_template_id: str | Unset | None = UNSET
     instructions: str | Unset = UNSET
     memory: MemorySelection | Unset | None = UNSET
     output_spec: OutputSpec | Unset | None = UNSET
@@ -92,6 +94,12 @@ class AgentConfigOutput:
             for connection_tools_item_data in self.connection_tools:
                 connection_tools_item = connection_tools_item_data.to_dict()
                 connection_tools.append(connection_tools_item)
+
+        default_environment_template_id: str | Unset | None
+        if isinstance(self.default_environment_template_id, Unset):
+            default_environment_template_id = UNSET
+        else:
+            default_environment_template_id = self.default_environment_template_id
 
         instructions = self.instructions
 
@@ -173,6 +181,8 @@ class AgentConfigOutput:
             field_dict["client_tools"] = client_tools
         if connection_tools is not UNSET:
             field_dict["connection_tools"] = connection_tools
+        if default_environment_template_id is not UNSET:
+            field_dict["default_environment_template_id"] = default_environment_template_id
         if instructions is not UNSET:
             field_dict["instructions"] = instructions
         if memory is not UNSET:
@@ -239,6 +249,17 @@ class AgentConfigOutput:
                 connection_tools_item = ConnectionToolSelection.from_dict(connection_tools_item_data)
 
                 connection_tools.append(connection_tools_item)
+
+        def _parse_default_environment_template_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        default_environment_template_id = _parse_default_environment_template_id(
+            d.pop("default_environment_template_id", UNSET)
+        )
 
         instructions = d.pop("instructions", UNSET)
 
@@ -364,6 +385,7 @@ class AgentConfigOutput:
             protocol=protocol,
             client_tools=client_tools,
             connection_tools=connection_tools,
+            default_environment_template_id=default_environment_template_id,
             instructions=instructions,
             memory=memory,
             output_spec=output_spec,

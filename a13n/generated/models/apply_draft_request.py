@@ -21,7 +21,7 @@ class ApplyDraftRequest:
         content_digest (str):
         dependency_digest (str):
         expected_version (int):
-        expected_target_version (int | None | Unset):
+        change_summary (None | str | Unset):
         verification_acknowledgement (None | Unset | VerificationAcknowledgement):
         verification_run_ids (list[str] | Unset):
     """
@@ -29,7 +29,7 @@ class ApplyDraftRequest:
     content_digest: str
     dependency_digest: str
     expected_version: int
-    expected_target_version: int | Unset | None = UNSET
+    change_summary: str | Unset | None = UNSET
     verification_acknowledgement: Unset | VerificationAcknowledgement | None = UNSET
     verification_run_ids: list[str] | Unset = UNSET
 
@@ -42,11 +42,11 @@ class ApplyDraftRequest:
 
         expected_version = self.expected_version
 
-        expected_target_version: int | Unset | None
-        if isinstance(self.expected_target_version, Unset):
-            expected_target_version = UNSET
+        change_summary: str | Unset | None
+        if isinstance(self.change_summary, Unset):
+            change_summary = UNSET
         else:
-            expected_target_version = self.expected_target_version
+            change_summary = self.change_summary
 
         verification_acknowledgement: dict[str, Any] | Unset | None
         if isinstance(self.verification_acknowledgement, Unset):
@@ -69,8 +69,8 @@ class ApplyDraftRequest:
                 "expected_version": expected_version,
             }
         )
-        if expected_target_version is not UNSET:
-            field_dict["expected_target_version"] = expected_target_version
+        if change_summary is not UNSET:
+            field_dict["change_summary"] = change_summary
         if verification_acknowledgement is not UNSET:
             field_dict["verification_acknowledgement"] = verification_acknowledgement
         if verification_run_ids is not UNSET:
@@ -89,14 +89,14 @@ class ApplyDraftRequest:
 
         expected_version = d.pop("expected_version")
 
-        def _parse_expected_target_version(data: object) -> int | Unset | None:
+        def _parse_change_summary(data: object) -> str | Unset | None:
             if data is None:
                 return data
             if isinstance(data, Unset):
                 return data
-            return cast(int | Unset | None, data)
+            return cast(str | Unset | None, data)
 
-        expected_target_version = _parse_expected_target_version(d.pop("expected_target_version", UNSET))
+        change_summary = _parse_change_summary(d.pop("change_summary", UNSET))
 
         def _parse_verification_acknowledgement(data: object) -> Unset | VerificationAcknowledgement | None:
             if data is None:
@@ -121,7 +121,7 @@ class ApplyDraftRequest:
             content_digest=content_digest,
             dependency_digest=dependency_digest,
             expected_version=expected_version,
-            expected_target_version=expected_target_version,
+            change_summary=change_summary,
             verification_acknowledgement=verification_acknowledgement,
             verification_run_ids=verification_run_ids,
         )

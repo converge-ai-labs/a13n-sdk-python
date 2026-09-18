@@ -531,7 +531,6 @@ from .resolved_subagent_edge import ResolvedSubagentEdge
 from .resource_lifecycle_event_page import ResourceLifecycleEventPage
 from .resource_lifecycle_event_page_resource_type import ResourceLifecycleEventPageResourceType
 from .respond_pending_resolution import RespondPendingResolution
-from .restore_agent_revision_request import RestoreAgentRevisionRequest
 from .resume_entry import ResumeEntry
 from .resume_entry_status import ResumeEntryStatus
 from .retention_policy import RetentionPolicy
@@ -574,6 +573,7 @@ from .session_collection import SessionCollection
 from .session_preview import SessionPreview
 from .session_resource import SessionResource
 from .session_resource_labels import SessionResourceLabels
+from .set_default_agent_revision_request import SetDefaultAgentRevisionRequest
 from .set_operation import SetOperation
 from .set_role_request import SetRoleRequest
 from .set_role_request_role import SetRoleRequestRole
@@ -1252,7 +1252,6 @@ __all__ = (
     "ResourceLifecycleEventPage",
     "ResourceLifecycleEventPageResourceType",
     "RespondPendingResolution",
-    "RestoreAgentRevisionRequest",
     "ResumeEntry",
     "ResumeEntryStatus",
     "RetentionPolicy",
@@ -1295,6 +1294,7 @@ __all__ = (
     "SessionPreview",
     "SessionResource",
     "SessionResourceLabels",
+    "SetDefaultAgentRevisionRequest",
     "SetOperation",
     "SetRoleRequest",
     "SetRoleRequestRole",

@@ -25,12 +25,14 @@ class UpdateConfigurationDraftRequest:
         creation_metadata (CreationMetadata | None | Unset):
         expected_digest (None | str | Unset):
         operations (list[RemoveOperation | ReplaceTextOperation | SetOperation] | Unset):
+        suggested_change_summary (None | str | Unset):
     """
 
     expected_version: int
     creation_metadata: CreationMetadata | Unset | None = UNSET
     expected_digest: str | Unset | None = UNSET
     operations: list[RemoveOperation | ReplaceTextOperation | SetOperation] | Unset = UNSET
+    suggested_change_summary: str | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
         from ..models.creation_metadata import CreationMetadata
@@ -67,6 +69,12 @@ class UpdateConfigurationDraftRequest:
 
                 operations.append(operations_item)
 
+        suggested_change_summary: str | Unset | None
+        if isinstance(self.suggested_change_summary, Unset):
+            suggested_change_summary = UNSET
+        else:
+            suggested_change_summary = self.suggested_change_summary
+
         field_dict: dict[str, Any] = {}
 
         field_dict.update(
@@ -80,6 +88,8 @@ class UpdateConfigurationDraftRequest:
             field_dict["expected_digest"] = expected_digest
         if operations is not UNSET:
             field_dict["operations"] = operations
+        if suggested_change_summary is not UNSET:
+            field_dict["suggested_change_summary"] = suggested_change_summary
 
         return field_dict
 
@@ -152,11 +162,21 @@ class UpdateConfigurationDraftRequest:
 
                 operations.append(operations_item)
 
+        def _parse_suggested_change_summary(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        suggested_change_summary = _parse_suggested_change_summary(d.pop("suggested_change_summary", UNSET))
+
         update_configuration_draft_request = cls(
             expected_version=expected_version,
             creation_metadata=creation_metadata,
             expected_digest=expected_digest,
             operations=operations,
+            suggested_change_summary=suggested_change_summary,
         )
 
         return update_configuration_draft_request
