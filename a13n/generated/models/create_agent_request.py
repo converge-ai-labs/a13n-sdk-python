@@ -21,7 +21,6 @@ class CreateAgentRequest:
     Attributes:
         config (AgentConfigInput):
         name (str):
-        default_environment_template_id (None | str | Unset):
         description (None | str | Unset):
         key (None | str | Unset):
         labels (CreateAgentRequestLabels | Unset):
@@ -29,7 +28,6 @@ class CreateAgentRequest:
 
     config: AgentConfigInput
     name: str
-    default_environment_template_id: str | Unset | None = UNSET
     description: str | Unset | None = UNSET
     key: str | Unset | None = UNSET
     labels: CreateAgentRequestLabels | Unset = UNSET
@@ -38,12 +36,6 @@ class CreateAgentRequest:
         config = self.config.to_dict()
 
         name = self.name
-
-        default_environment_template_id: str | Unset | None
-        if isinstance(self.default_environment_template_id, Unset):
-            default_environment_template_id = UNSET
-        else:
-            default_environment_template_id = self.default_environment_template_id
 
         description: str | Unset | None
         if isinstance(self.description, Unset):
@@ -69,8 +61,6 @@ class CreateAgentRequest:
                 "name": name,
             }
         )
-        if default_environment_template_id is not UNSET:
-            field_dict["default_environment_template_id"] = default_environment_template_id
         if description is not UNSET:
             field_dict["description"] = description
         if key is not UNSET:
@@ -89,17 +79,6 @@ class CreateAgentRequest:
         config = AgentConfigInput.from_dict(d.pop("config"))
 
         name = d.pop("name")
-
-        def _parse_default_environment_template_id(data: object) -> str | Unset | None:
-            if data is None:
-                return data
-            if isinstance(data, Unset):
-                return data
-            return cast(str | Unset | None, data)
-
-        default_environment_template_id = _parse_default_environment_template_id(
-            d.pop("default_environment_template_id", UNSET)
-        )
 
         def _parse_description(data: object) -> str | Unset | None:
             if data is None:
@@ -129,7 +108,6 @@ class CreateAgentRequest:
         create_agent_request = cls(
             config=config,
             name=name,
-            default_environment_template_id=default_environment_template_id,
             description=description,
             key=key,
             labels=labels,

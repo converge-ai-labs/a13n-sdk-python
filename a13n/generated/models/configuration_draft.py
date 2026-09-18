@@ -39,11 +39,12 @@ class ConfigurationDraft:
         updated_at (datetime.datetime):
         version (int):
         workspace_id (str):
-        base_agent_version (int | None | Unset):
+        base_agent_etag (None | str | Unset):
         creation_metadata (CreationMetadata | None | Unset):
         evidence_refs (list[str] | Unset):
         latest_validation (ConfigurationValidation | None | Unset):
         source_agent_revision_version (int | None | Unset):
+        suggested_change_summary (None | str | Unset):
         terminal_reason (None | str | Unset):
     """
 
@@ -62,11 +63,12 @@ class ConfigurationDraft:
     updated_at: datetime.datetime
     version: int
     workspace_id: str
-    base_agent_version: int | Unset | None = UNSET
+    base_agent_etag: str | Unset | None = UNSET
     creation_metadata: CreationMetadata | Unset | None = UNSET
     evidence_refs: list[str] | Unset = UNSET
     latest_validation: ConfigurationValidation | Unset | None = UNSET
     source_agent_revision_version: int | Unset | None = UNSET
+    suggested_change_summary: str | Unset | None = UNSET
     terminal_reason: str | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
@@ -111,11 +113,11 @@ class ConfigurationDraft:
 
         workspace_id = self.workspace_id
 
-        base_agent_version: int | Unset | None
-        if isinstance(self.base_agent_version, Unset):
-            base_agent_version = UNSET
+        base_agent_etag: str | Unset | None
+        if isinstance(self.base_agent_etag, Unset):
+            base_agent_etag = UNSET
         else:
-            base_agent_version = self.base_agent_version
+            base_agent_etag = self.base_agent_etag
 
         creation_metadata: dict[str, Any] | Unset | None
         if isinstance(self.creation_metadata, Unset):
@@ -142,6 +144,12 @@ class ConfigurationDraft:
             source_agent_revision_version = UNSET
         else:
             source_agent_revision_version = self.source_agent_revision_version
+
+        suggested_change_summary: str | Unset | None
+        if isinstance(self.suggested_change_summary, Unset):
+            suggested_change_summary = UNSET
+        else:
+            suggested_change_summary = self.suggested_change_summary
 
         terminal_reason: str | Unset | None
         if isinstance(self.terminal_reason, Unset):
@@ -170,8 +178,8 @@ class ConfigurationDraft:
                 "workspace_id": workspace_id,
             }
         )
-        if base_agent_version is not UNSET:
-            field_dict["base_agent_version"] = base_agent_version
+        if base_agent_etag is not UNSET:
+            field_dict["base_agent_etag"] = base_agent_etag
         if creation_metadata is not UNSET:
             field_dict["creation_metadata"] = creation_metadata
         if evidence_refs is not UNSET:
@@ -180,6 +188,8 @@ class ConfigurationDraft:
             field_dict["latest_validation"] = latest_validation
         if source_agent_revision_version is not UNSET:
             field_dict["source_agent_revision_version"] = source_agent_revision_version
+        if suggested_change_summary is not UNSET:
+            field_dict["suggested_change_summary"] = suggested_change_summary
         if terminal_reason is not UNSET:
             field_dict["terminal_reason"] = terminal_reason
 
@@ -251,14 +261,14 @@ class ConfigurationDraft:
 
         workspace_id = d.pop("workspace_id")
 
-        def _parse_base_agent_version(data: object) -> int | Unset | None:
+        def _parse_base_agent_etag(data: object) -> str | Unset | None:
             if data is None:
                 return data
             if isinstance(data, Unset):
                 return data
-            return cast(int | Unset | None, data)
+            return cast(str | Unset | None, data)
 
-        base_agent_version = _parse_base_agent_version(d.pop("base_agent_version", UNSET))
+        base_agent_etag = _parse_base_agent_etag(d.pop("base_agent_etag", UNSET))
 
         def _parse_creation_metadata(data: object) -> CreationMetadata | Unset | None:
             if data is None:
@@ -307,6 +317,15 @@ class ConfigurationDraft:
             d.pop("source_agent_revision_version", UNSET)
         )
 
+        def _parse_suggested_change_summary(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        suggested_change_summary = _parse_suggested_change_summary(d.pop("suggested_change_summary", UNSET))
+
         def _parse_terminal_reason(data: object) -> str | Unset | None:
             if data is None:
                 return data
@@ -332,11 +351,12 @@ class ConfigurationDraft:
             updated_at=updated_at,
             version=version,
             workspace_id=workspace_id,
-            base_agent_version=base_agent_version,
+            base_agent_etag=base_agent_etag,
             creation_metadata=creation_metadata,
             evidence_refs=evidence_refs,
             latest_validation=latest_validation,
             source_agent_revision_version=source_agent_revision_version,
+            suggested_change_summary=suggested_change_summary,
             terminal_reason=terminal_reason,
         )
 

@@ -25,7 +25,7 @@ class Agent:
         archived_at (datetime.datetime | None):
         created_at (datetime.datetime):
         created_by (PrincipalRef | SystemActorRef):
-        current_revision_id (None | str):
+        default_revision_id (None | str):
         description (None | str):
         duplicated_from_agent_id (None | str):
         duplicated_from_revision_id (None | str):
@@ -37,9 +37,7 @@ class Agent:
         source (AgentSource):
         updated_at (datetime.datetime):
         updated_by (PrincipalRef | SystemActorRef):
-        version (int):
         workspace_id (str):
-        default_environment_template_id (None | str | Unset):
         image_url (None | str | Unset):
         labels (AgentLabels | Unset):
         system_purpose (Literal['configuration_assistant'] | None | Unset):
@@ -48,7 +46,7 @@ class Agent:
     archived_at: datetime.datetime | None
     created_at: datetime.datetime
     created_by: PrincipalRef | SystemActorRef
-    current_revision_id: str | None
+    default_revision_id: str | None
     description: str | None
     duplicated_from_agent_id: str | None
     duplicated_from_revision_id: str | None
@@ -60,9 +58,7 @@ class Agent:
     source: AgentSource
     updated_at: datetime.datetime
     updated_by: PrincipalRef | SystemActorRef
-    version: int
     workspace_id: str
-    default_environment_template_id: str | Unset | None = UNSET
     image_url: str | Unset | None = UNSET
     labels: AgentLabels | Unset = UNSET
     system_purpose: Literal["configuration_assistant"] | Unset | None = UNSET
@@ -84,8 +80,8 @@ class Agent:
         else:
             created_by = self.created_by.to_dict()
 
-        current_revision_id: str | None
-        current_revision_id = self.current_revision_id
+        default_revision_id: str | None
+        default_revision_id = self.default_revision_id
 
         description: str | None
         description = self.description
@@ -116,15 +112,7 @@ class Agent:
         else:
             updated_by = self.updated_by.to_dict()
 
-        version = self.version
-
         workspace_id = self.workspace_id
-
-        default_environment_template_id: str | Unset | None
-        if isinstance(self.default_environment_template_id, Unset):
-            default_environment_template_id = UNSET
-        else:
-            default_environment_template_id = self.default_environment_template_id
 
         image_url: str | Unset | None
         if isinstance(self.image_url, Unset):
@@ -149,7 +137,7 @@ class Agent:
                 "archived_at": archived_at,
                 "created_at": created_at,
                 "created_by": created_by,
-                "current_revision_id": current_revision_id,
+                "default_revision_id": default_revision_id,
                 "description": description,
                 "duplicated_from_agent_id": duplicated_from_agent_id,
                 "duplicated_from_revision_id": duplicated_from_revision_id,
@@ -161,12 +149,9 @@ class Agent:
                 "source": source,
                 "updated_at": updated_at,
                 "updated_by": updated_by,
-                "version": version,
                 "workspace_id": workspace_id,
             }
         )
-        if default_environment_template_id is not UNSET:
-            field_dict["default_environment_template_id"] = default_environment_template_id
         if image_url is not UNSET:
             field_dict["image_url"] = image_url
         if labels is not UNSET:
@@ -218,12 +203,12 @@ class Agent:
 
         created_by = _parse_created_by(d.pop("created_by"))
 
-        def _parse_current_revision_id(data: object) -> str | None:
+        def _parse_default_revision_id(data: object) -> str | None:
             if data is None:
                 return data
             return cast(str | None, data)
 
-        current_revision_id = _parse_current_revision_id(d.pop("current_revision_id"))
+        default_revision_id = _parse_default_revision_id(d.pop("default_revision_id"))
 
         def _parse_description(data: object) -> str | None:
             if data is None:
@@ -277,20 +262,7 @@ class Agent:
 
         updated_by = _parse_updated_by(d.pop("updated_by"))
 
-        version = d.pop("version")
-
         workspace_id = d.pop("workspace_id")
-
-        def _parse_default_environment_template_id(data: object) -> str | Unset | None:
-            if data is None:
-                return data
-            if isinstance(data, Unset):
-                return data
-            return cast(str | Unset | None, data)
-
-        default_environment_template_id = _parse_default_environment_template_id(
-            d.pop("default_environment_template_id", UNSET)
-        )
 
         def _parse_image_url(data: object) -> str | Unset | None:
             if data is None:
@@ -327,7 +299,7 @@ class Agent:
             archived_at=archived_at,
             created_at=created_at,
             created_by=created_by,
-            current_revision_id=current_revision_id,
+            default_revision_id=default_revision_id,
             description=description,
             duplicated_from_agent_id=duplicated_from_agent_id,
             duplicated_from_revision_id=duplicated_from_revision_id,
@@ -339,9 +311,7 @@ class Agent:
             source=source,
             updated_at=updated_at,
             updated_by=updated_by,
-            version=version,
             workspace_id=workspace_id,
-            default_environment_template_id=default_environment_template_id,
             image_url=image_url,
             labels=labels,
             system_purpose=system_purpose,

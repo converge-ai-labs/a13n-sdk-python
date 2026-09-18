@@ -14,24 +14,16 @@ T = TypeVar("T", bound="UpdateAgentRequest")
 class UpdateAgentRequest:
     """
     Attributes:
-        default_environment_template_id (None | str | Unset):
         description (None | str | Unset):
         key (None | str | Unset):
         name (None | str | Unset):
     """
 
-    default_environment_template_id: str | Unset | None = UNSET
     description: str | Unset | None = UNSET
     key: str | Unset | None = UNSET
     name: str | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
-        default_environment_template_id: str | Unset | None
-        if isinstance(self.default_environment_template_id, Unset):
-            default_environment_template_id = UNSET
-        else:
-            default_environment_template_id = self.default_environment_template_id
-
         description: str | Unset | None
         if isinstance(self.description, Unset):
             description = UNSET
@@ -53,8 +45,6 @@ class UpdateAgentRequest:
         field_dict: dict[str, Any] = {}
 
         field_dict.update({})
-        if default_environment_template_id is not UNSET:
-            field_dict["default_environment_template_id"] = default_environment_template_id
         if description is not UNSET:
             field_dict["description"] = description
         if key is not UNSET:
@@ -67,17 +57,6 @@ class UpdateAgentRequest:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-
-        def _parse_default_environment_template_id(data: object) -> str | Unset | None:
-            if data is None:
-                return data
-            if isinstance(data, Unset):
-                return data
-            return cast(str | Unset | None, data)
-
-        default_environment_template_id = _parse_default_environment_template_id(
-            d.pop("default_environment_template_id", UNSET)
-        )
 
         def _parse_description(data: object) -> str | Unset | None:
             if data is None:
@@ -107,7 +86,6 @@ class UpdateAgentRequest:
         name = _parse_name(d.pop("name", UNSET))
 
         update_agent_request = cls(
-            default_environment_template_id=default_environment_template_id,
             description=description,
             key=key,
             name=name,

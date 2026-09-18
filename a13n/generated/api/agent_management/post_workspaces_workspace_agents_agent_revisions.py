@@ -17,9 +17,12 @@ def build_request(
     *,
     body: CreateAgentRevisionRequest,
     idempotency_key: str,
+    if_match: str,
 ) -> dict[str, Any]:
     headers: dict[str, Any] = {}
     headers["Idempotency-Key"] = idempotency_key
+
+    headers["If-Match"] = if_match
 
     _kwargs: dict[str, Any] = {
         "method": "post",
@@ -73,6 +76,7 @@ def sync_detailed(
     client: AuthenticatedClient,
     body: CreateAgentRevisionRequest,
     idempotency_key: str,
+    if_match: str,
 ) -> Response[AgentRevisionCreateResult | ErrorResponse]:
     """Create Agent Revision
 
@@ -80,6 +84,7 @@ def sync_detailed(
         workspace (str):
         agent (str):
         idempotency_key (str):
+        if_match (str):
         body (CreateAgentRevisionRequest):
 
     Raises:
@@ -95,6 +100,7 @@ def sync_detailed(
         agent=agent,
         body=body,
         idempotency_key=idempotency_key,
+        if_match=if_match,
     )
 
     response = client.get_httpx_client().request(
@@ -111,6 +117,7 @@ def sync(
     client: AuthenticatedClient,
     body: CreateAgentRevisionRequest,
     idempotency_key: str,
+    if_match: str,
 ) -> AgentRevisionCreateResult | ErrorResponse | None:
     """Create Agent Revision
 
@@ -118,6 +125,7 @@ def sync(
         workspace (str):
         agent (str):
         idempotency_key (str):
+        if_match (str):
         body (CreateAgentRevisionRequest):
 
     Raises:
@@ -134,6 +142,7 @@ def sync(
         client=client,
         body=body,
         idempotency_key=idempotency_key,
+        if_match=if_match,
     ).parsed
 
 
@@ -144,6 +153,7 @@ async def asyncio_detailed(
     client: AuthenticatedClient,
     body: CreateAgentRevisionRequest,
     idempotency_key: str,
+    if_match: str,
 ) -> Response[AgentRevisionCreateResult | ErrorResponse]:
     """Create Agent Revision
 
@@ -151,6 +161,7 @@ async def asyncio_detailed(
         workspace (str):
         agent (str):
         idempotency_key (str):
+        if_match (str):
         body (CreateAgentRevisionRequest):
 
     Raises:
@@ -166,6 +177,7 @@ async def asyncio_detailed(
         agent=agent,
         body=body,
         idempotency_key=idempotency_key,
+        if_match=if_match,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -180,6 +192,7 @@ async def asyncio(
     client: AuthenticatedClient,
     body: CreateAgentRevisionRequest,
     idempotency_key: str,
+    if_match: str,
 ) -> AgentRevisionCreateResult | ErrorResponse | None:
     """Create Agent Revision
 
@@ -187,6 +200,7 @@ async def asyncio(
         workspace (str):
         agent (str):
         idempotency_key (str):
+        if_match (str):
         body (CreateAgentRevisionRequest):
 
     Raises:
@@ -204,5 +218,6 @@ async def asyncio(
             client=client,
             body=body,
             idempotency_key=idempotency_key,
+            if_match=if_match,
         )
     ).parsed

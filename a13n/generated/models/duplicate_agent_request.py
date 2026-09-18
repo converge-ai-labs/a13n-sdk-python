@@ -18,22 +18,18 @@ T = TypeVar("T", bound="DuplicateAgentRequest")
 class DuplicateAgentRequest:
     """
     Attributes:
-        expected_version (int):
         name (str):
         description (None | str | Unset):
         key (None | str | Unset):
         labels (DuplicateAgentRequestLabels | Unset):
     """
 
-    expected_version: int
     name: str
     description: str | Unset | None = UNSET
     key: str | Unset | None = UNSET
     labels: DuplicateAgentRequestLabels | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
-        expected_version = self.expected_version
-
         name = self.name
 
         description: str | Unset | None
@@ -56,7 +52,6 @@ class DuplicateAgentRequest:
 
         field_dict.update(
             {
-                "expected_version": expected_version,
                 "name": name,
             }
         )
@@ -74,8 +69,6 @@ class DuplicateAgentRequest:
         from ..models.duplicate_agent_request_labels import DuplicateAgentRequestLabels
 
         d = dict(src_dict)
-        expected_version = d.pop("expected_version")
-
         name = d.pop("name")
 
         def _parse_description(data: object) -> str | Unset | None:
@@ -104,7 +97,6 @@ class DuplicateAgentRequest:
             labels = DuplicateAgentRequestLabels.from_dict(_labels)
 
         duplicate_agent_request = cls(
-            expected_version=expected_version,
             name=name,
             description=description,
             key=key,

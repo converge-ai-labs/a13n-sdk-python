@@ -42,7 +42,7 @@ from .api.agent_management import (
     post_workspaces_workspace_agents_agent_action,
     post_workspaces_workspace_agents_agent_duplicate,
     post_workspaces_workspace_agents_agent_revisions,
-    post_workspaces_workspace_agents_agent_revisions_revision_id_restore,
+    post_workspaces_workspace_agents_agent_revisions_revision_id_default,
     post_workspaces_workspace_toolsets_validate,
     put_workspaces_workspace_agents_agent_avatar,
     put_workspaces_workspace_agents_agent_labels,
@@ -4763,7 +4763,9 @@ class _AgentResource(Resource):
     def avatar(self) -> WorkspacesWorkspaceAgentsAgentAvatar:
         return WorkspacesWorkspaceAgentsAgentAvatar(self._client, self._bindings)
 
-    async def duplicate(self, *, body: wire.DuplicateAgentRequest, idempotency_key: str) -> Result[wire.Agent]:
+    async def duplicate(
+        self, *, body: wire.DuplicateAgentRequest, idempotency_key: str, if_match: str
+    ) -> Result[wire.Agent]:
         """Duplicate Agent. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: post_workspaces_workspace_agents_agent_duplicate.asyncio_detailed(
@@ -4772,6 +4774,7 @@ class _AgentResource(Resource):
                 agent=self._bindings["agent"],
                 body=body,
                 idempotency_key=idempotency_key,
+                if_match=if_match,
             )
         )
 
@@ -4887,7 +4890,7 @@ class WorkspacesWorkspaceAgentsAgentRevisions(Resource):
         return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
     async def create(
-        self, *, body: wire.CreateAgentRevisionRequest, idempotency_key: str
+        self, *, body: wire.CreateAgentRevisionRequest, idempotency_key: str, if_match: str
     ) -> Result[wire.AgentRevisionCreateResult]:
         """Create Agent Revision. One HTTP request; no automatic replay."""
         return await self._call(
@@ -4897,6 +4900,7 @@ class WorkspacesWorkspaceAgentsAgentRevisions(Resource):
                 agent=self._bindings["agent"],
                 body=body,
                 idempotency_key=idempotency_key,
+                if_match=if_match,
             )
         )
 
@@ -4907,18 +4911,19 @@ class WorkspacesWorkspaceAgentsAgentRevisions(Resource):
 class WorkspacesWorkspaceAgentsAgentRevisionsRevisionId(Resource):
     """Bound Native resource: /workspaces / {workspace} / agents / {agent} / revisions / {revision_id}."""
 
-    async def restore(
-        self, *, body: wire.RestoreAgentRevisionRequest, idempotency_key: str
+    async def default(
+        self, *, body: wire.SetDefaultAgentRevisionRequest, idempotency_key: str, if_match: str
     ) -> Result[wire.AgentRevisionCreateResult]:
-        """Restore Agent Revision. One HTTP request; no automatic replay."""
+        """Set Default Agent Revision. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: post_workspaces_workspace_agents_agent_revisions_revision_id_restore.asyncio_detailed(
+            lambda client: post_workspaces_workspace_agents_agent_revisions_revision_id_default.asyncio_detailed(
                 client=client,
                 workspace=self._bindings["workspace"],
                 agent=self._bindings["agent"],
                 revision_id=self._bindings["revision_id"],
                 body=body,
                 idempotency_key=idempotency_key,
+                if_match=if_match,
             )
         )
 

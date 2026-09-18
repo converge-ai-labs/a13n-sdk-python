@@ -17,18 +17,18 @@ class RebaseDraftRequest:
     """
     Attributes:
         config (AgentConfigInput):
-        expected_target_version (int):
+        expected_target_etag (str):
         expected_version (int):
     """
 
     config: AgentConfigInput
-    expected_target_version: int
+    expected_target_etag: str
     expected_version: int
 
     def to_dict(self) -> dict[str, Any]:
         config = self.config.to_dict()
 
-        expected_target_version = self.expected_target_version
+        expected_target_etag = self.expected_target_etag
 
         expected_version = self.expected_version
 
@@ -37,7 +37,7 @@ class RebaseDraftRequest:
         field_dict.update(
             {
                 "config": config,
-                "expected_target_version": expected_target_version,
+                "expected_target_etag": expected_target_etag,
                 "expected_version": expected_version,
             }
         )
@@ -51,13 +51,13 @@ class RebaseDraftRequest:
         d = dict(src_dict)
         config = AgentConfigInput.from_dict(d.pop("config"))
 
-        expected_target_version = d.pop("expected_target_version")
+        expected_target_etag = d.pop("expected_target_etag")
 
         expected_version = d.pop("expected_version")
 
         rebase_draft_request = cls(
             config=config,
-            expected_target_version=expected_target_version,
+            expected_target_etag=expected_target_etag,
             expected_version=expected_version,
         )
 

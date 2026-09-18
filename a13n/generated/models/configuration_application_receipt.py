@@ -23,13 +23,12 @@ class ConfigurationApplicationReceipt:
     Attributes:
         agent_id (str):
         agent_revision_id (str):
-        agent_version (int):
+        agent_revision_version (int):
         applied_at (datetime.datetime):
         applied_by_user_id (str):
         draft_id (str):
         no_change (bool):
         reviewed_base_agent_revision_id (None | str):
-        reviewed_base_agent_version (int | None):
         reviewed_creation_metadata (CreationMetadata | None):
         reviewed_digest (str):
         reviewed_mode (ConfigurationApplicationReceiptReviewedMode):
@@ -41,13 +40,12 @@ class ConfigurationApplicationReceipt:
 
     agent_id: str
     agent_revision_id: str
-    agent_version: int
+    agent_revision_version: int
     applied_at: datetime.datetime
     applied_by_user_id: str
     draft_id: str
     no_change: bool
     reviewed_base_agent_revision_id: str | None
-    reviewed_base_agent_version: int | None
     reviewed_creation_metadata: CreationMetadata | None
     reviewed_digest: str
     reviewed_mode: ConfigurationApplicationReceiptReviewedMode
@@ -64,7 +62,7 @@ class ConfigurationApplicationReceipt:
 
         agent_revision_id = self.agent_revision_id
 
-        agent_version = self.agent_version
+        agent_revision_version = self.agent_revision_version
 
         applied_at = self.applied_at.isoformat()
 
@@ -76,9 +74,6 @@ class ConfigurationApplicationReceipt:
 
         reviewed_base_agent_revision_id: str | None
         reviewed_base_agent_revision_id = self.reviewed_base_agent_revision_id
-
-        reviewed_base_agent_version: int | None
-        reviewed_base_agent_version = self.reviewed_base_agent_version
 
         reviewed_creation_metadata: dict[str, Any] | None
         if isinstance(self.reviewed_creation_metadata, CreationMetadata):
@@ -113,13 +108,12 @@ class ConfigurationApplicationReceipt:
             {
                 "agent_id": agent_id,
                 "agent_revision_id": agent_revision_id,
-                "agent_version": agent_version,
+                "agent_revision_version": agent_revision_version,
                 "applied_at": applied_at,
                 "applied_by_user_id": applied_by_user_id,
                 "draft_id": draft_id,
                 "no_change": no_change,
                 "reviewed_base_agent_revision_id": reviewed_base_agent_revision_id,
-                "reviewed_base_agent_version": reviewed_base_agent_version,
                 "reviewed_creation_metadata": reviewed_creation_metadata,
                 "reviewed_digest": reviewed_digest,
                 "reviewed_mode": reviewed_mode,
@@ -144,7 +138,7 @@ class ConfigurationApplicationReceipt:
 
         agent_revision_id = d.pop("agent_revision_id")
 
-        agent_version = d.pop("agent_version")
+        agent_revision_version = d.pop("agent_revision_version")
 
         applied_at = datetime.datetime.fromisoformat(d.pop("applied_at"))
 
@@ -162,13 +156,6 @@ class ConfigurationApplicationReceipt:
         reviewed_base_agent_revision_id = _parse_reviewed_base_agent_revision_id(
             d.pop("reviewed_base_agent_revision_id")
         )
-
-        def _parse_reviewed_base_agent_version(data: object) -> int | None:
-            if data is None:
-                return data
-            return cast(int | None, data)
-
-        reviewed_base_agent_version = _parse_reviewed_base_agent_version(d.pop("reviewed_base_agent_version"))
 
         def _parse_reviewed_creation_metadata(data: object) -> CreationMetadata | None:
             if data is None:
@@ -220,13 +207,12 @@ class ConfigurationApplicationReceipt:
         configuration_application_receipt = cls(
             agent_id=agent_id,
             agent_revision_id=agent_revision_id,
-            agent_version=agent_version,
+            agent_revision_version=agent_revision_version,
             applied_at=applied_at,
             applied_by_user_id=applied_by_user_id,
             draft_id=draft_id,
             no_change=no_change,
             reviewed_base_agent_revision_id=reviewed_base_agent_revision_id,
-            reviewed_base_agent_version=reviewed_base_agent_version,
             reviewed_creation_metadata=reviewed_creation_metadata,
             reviewed_digest=reviewed_digest,
             reviewed_mode=reviewed_mode,
