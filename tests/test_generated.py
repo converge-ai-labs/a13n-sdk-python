@@ -8,6 +8,9 @@ import httpx2 as httpx
 import pytest
 
 from a13n import Client
+from a13n.generated.api.agent_management import (
+    post_workspaces_workspace_agents_agent_revisions_revision_id_default,
+)
 from a13n.generated.api.asset_management import get_assets_asset_id_content
 from a13n.generated.api.identity import get_auth_context
 from a13n.generated.models import (
@@ -20,6 +23,7 @@ from a13n.generated.models import (
     NewEnvironmentSelection,
     PrincipalRef,
     RunStatus,
+    SetDefaultAgentRevisionRequest,
     SystemActorRef,
     ThreadRunSubmissionRequest,
     UpdateAgentRequest,
@@ -113,6 +117,27 @@ def test_generated_calls_share_transport_headers_prefix_and_close() -> None:
         assert len(calls) == 2
 
     asyncio.run(scenario())
+
+
+def test_set_default_agent_revision_route_preserves_etag_and_idempotency_guards() -> None:
+    request = post_workspaces_workspace_agents_agent_revisions_revision_id_default.build_request(
+        "ws/example",
+        "support agent",
+        "apr:2",
+        body=SetDefaultAgentRevisionRequest(),
+        idempotency_key="default-revision-2",
+        if_match='"agent-etag"',
+    )
+    assert request == {
+        "method": "post",
+        "url": "/api/v1/workspaces/ws%2Fexample/agents/support%20agent/revisions/apr%3A2/default",
+        "json": {},
+        "headers": {
+            "Idempotency-Key": "default-revision-2",
+            "If-Match": '"agent-etag"',
+            "Content-Type": "application/json",
+        },
+    }
 
 
 def test_generated_binary_stream_is_lazy_and_cancellable() -> None:

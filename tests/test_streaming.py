@@ -202,7 +202,7 @@ def test_attachment_replay_gap_is_not_retried() -> None:
                     "message": "History expired",
                     "details": {
                         "requested_cursor": "10-0",
-                        "available_floor": "50-0",
+                        "retained_floor": "50-0",
                         "high_watermark": "100-0",
                     },
                     "request_id": "req_gap",
@@ -367,9 +367,7 @@ def test_protocol_failure_closes_stream_without_reconnecting(body: bytes) -> Non
 
 
 def test_in_stream_gap_has_no_checkpoint_or_retry() -> None:
-    body = (
-        b'event: a13n.service.replay_gap\ndata: {"run_id":"run_1","requested_cursor":"1-0","available_floor":"9-0"}\n\n'
-    )
+    body = b'event: a13n.service.replay_gap\ndata: {"run_id":"run_1","requested_cursor":"1-0","retained_floor":"9-0","high_watermark":"12-0"}\n\n'
 
     async def handler(_request: httpx2.Request) -> httpx2.Response:
         return httpx2.Response(200, content=body, headers={"content-type": "text/event-stream"})
@@ -379,7 +377,9 @@ def test_in_stream_gap_has_no_checkpoint_or_retry() -> None:
             async with client.runs("run_1").stream(after="1-0") as stream:
                 with pytest.raises(ReplayGap) as caught:
                     await anext(stream)
+                assert caught.value.requested_cursor == "1-0"
                 assert caught.value.available_floor == "9-0"
+                assert caught.value.high_watermark == "12-0"
                 assert stream.is_closed and stream.last_received_cursor is None
 
     asyncio.run(scenario())
