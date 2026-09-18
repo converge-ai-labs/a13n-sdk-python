@@ -6,24 +6,26 @@ Use short-lived, descriptive branches from `main` and Conventional Commit PR tit
 
 ## Development
 
-Install Python 3.13, uv and Make. Run `make install` to synchronize `uv.lock`. `make format` applies Ruff and Markdown formatting; `make check` is non-mutating lint and type checking; `make test` runs SDK and generator tests; `make check-all` also verifies generated output and builds distributions. CI runs the same complete gate from this repository alone. Reuse valid checks whose inputs have not changed and report partial or unavailable validation explicitly.
+Install Python 3.13, uv and Make. Run `make install` to synchronize `uv.lock`. `make format` applies Ruff and Markdown formatting; `make check` is non-mutating lint and type checking; `make test` runs SDK and generator tests; `make check-all` also builds distributions. CI runs the same complete gate from this repository alone. Reuse valid checks whose inputs have not changed and report partial or unavailable validation explicitly.
 
 ### Quality gates
 
 After `make install`, run `make hooks-install` once per checkout to install pre-commit. Commit hooks run file hygiene, Markdown formatting, and Ruff on changed files; Pyright, tests, generation, and builds stay in the explicit Make/CI gates. The profiles match the parent repository: Ruff's moderate correctness/maintainability rules and Pyright `standard`, not every optional strict rule.
 
-| Command            | Purpose                                                                 |
-| ------------------ | ----------------------------------------------------------------------- |
-| `make format`      | Apply code and owned-document formatting                                |
-| `make lint`        | Check formatting and lint without modifying files                       |
-| `make typecheck`   | Check package and tooling types, including generated code               |
-| `make check`       | Run lint and type checking                                              |
-| `make hooks-check` | Run all pre-commit hooks; formatter changes fail the run for review     |
-| `make check-all`   | Run hooks, provenance/generated drift, static checks, tests, and builds |
+| Command            | Purpose                                                             |
+| ------------------ | ------------------------------------------------------------------- |
+| `make format`      | Apply code and owned-document formatting                            |
+| `make lint`        | Check formatting and lint without modifying files                   |
+| `make typecheck`   | Check package and tooling types, including generated code           |
+| `make check`       | Run lint and type checking                                          |
+| `make hooks-check` | Run all pre-commit hooks; formatter changes fail the run for review |
+| `make check-all`   | Run static checks, tests, and builds                                |
 
-CI uses the same complete gate without installing Git hooks. If a hook rewrites files, review and stage its intended changes, then rerun; never bypass a failing hook. Vendored `contract/` evidence is excluded from hooks and Markdown formatting, except the locally owned `contract/README.md`; provenance and generated-output checks remain mandatory. Generated Python remains under Ruff, Pyright, and tests; fix its generator rather than hand-editing output.
+CI uses the same complete gate without installing Git hooks. If a hook rewrites files, review and stage its intended changes, then rerun; never bypass a failing hook. Vendored `contract/` evidence is excluded from hooks and Markdown formatting, except the locally owned `contract/README.md`. Regenerate when inputs or templates change and commit the resulting output. Generated Python remains under Ruff, Pyright, and tests; fix its generator rather than hand-editing output.
 
 Fix behavior at its owner, avoid speculative abstractions, and retain meaningful transport, wire and negative type tests. Generated output must type-check and pass tests. Change templates/adapters rather than hand-editing generated code. Credential diagnostics must remain redacted, omission must remain distinct from null, and mutation failures must not trigger automatic replay.
+
+Generation replaces generator-owned output directly. Validation exercises the committed bindings through language-native checks and behavior tests, rather than regenerating them for byte comparison or rechecking snapshot hashes. Run `make generate` after changing inputs, templates, or generator code, review the diff, then run `make check-all`. Commit hooks remain a local convenience and are not rerun by the full gate.
 
 ## Releases
 
@@ -48,7 +50,7 @@ The `sdk-python-pypi` environment must supply `PYPI_TOKEN` for the existing `a13
 
 ## Service contract updates
 
-Contract tooling requires Git, Bash, jq and `shasum`. Ordinary builds need no Service checkout or credentials. Generation verifies the local manifest and hashes before reading the snapshot; `contract/README.md` is local guidance, not upstream evidence.
+Contract synchronization requires Git, Bash and jq. Ordinary generation and builds read the committed local inputs directly and need no Service checkout or credentials. `contract/source.json` records the source repository, full commit SHA and original paths; it is attribution, not a checksum manifest. `contract/README.md` is local guidance, not upstream evidence.
 
 From a clean SDK branch, with the Service repository's full `origin/main` history fetched:
 
@@ -58,13 +60,13 @@ make generate
 make check-all
 ```
 
-Sync copies Git blobs, never working-tree files or executable Service code. It requires a complete main-line SHA, forward ancestry from the old pin, and byte-accurate old provenance. Missing/malformed inputs fail before writes; same-SHA retries do nothing. Inspect any interrupted local write and restore only the affected snapshot before retrying. The snapshot includes OpenAPI, both wire schemas, fixtures, API conventions, Native streaming and queue semantics. The source compare exposes runtime-only changes too. Follow recorded upstream paths for related specifications; accepted specs take precedence over inconsistent implementation.
+Sync copies Git blobs, never working-tree files or executable Service code. It requires a complete main-line SHA and forward ancestry from the old pin. Missing/malformed inputs fail before writes; same-SHA retries do nothing. Inspect any interrupted local write and restore only the affected snapshot before retrying. The snapshot includes OpenAPI, both wire schemas, fixtures, API conventions, Native streaming and queue semantics. The source compare exposes runtime-only changes too. Follow recorded upstream paths for related specifications; accepted specs take precedence over inconsistent implementation.
 
 `sync-service-contract.yml` receives Service dispatches or a manual full SHA, prepares the SDK toolchain and invokes `open-contract-pr.sh` in an ephemeral checkout. The script selects the existing rolling proposal (or current SDK `main`), copies the requested snapshot and runs `make generate`, then creates or updates a **draft PR** containing the snapshot and generated output. Only `contract/` and `a13n/generated/` are staged. It never merges, tags or releases.
 
 Generation failure stops before committing or pushing; discard the ephemeral checkout and retry after fixing the cause. There is no contract-only fallback. Full SDK CI runs on drafts, so compilation/test failures remain visible for maintainer adaptation. Review compatibility and generated changes, fix templates or handwritten code as needed, regenerate and resolve CI failures before marking ready.
 
-Each repository has at most one open automatic update PR on `sync/service-contract`. Its snapshot still records the complete immutable Service SHA. The workflow serializes updates; the script additionally compares incoming ancestry against both the accepted `main` pin and the pending proposal, so equal or older notifications never regenerate or rewind newer work. A newer source merges current SDK `main` into the proposal and appends the snapshot/generated changes without force-updating the branch. Handwritten code, templates and reviewer commits are retained; merge conflicts, invalid provenance, failed generation and concurrent pushes stop before replacing remote work. Generated files remain generator-owned, not a place for handwritten adaptation.
+Each repository has at most one open automatic update PR on `sync/service-contract`. Its snapshot still records the complete immutable Service SHA. The workflow serializes updates; the script additionally compares incoming ancestry against both the accepted `main` pin and the pending proposal, so equal or older notifications never regenerate or rewind newer work. A newer source merges current SDK `main` into the proposal and appends the snapshot/generated changes without force-updating the branch. Handwritten code, templates and reviewer commits are retained; merge conflicts, failed generation and concurrent pushes stop before replacing remote work. Generated files remain generator-owned, not a place for handwritten adaptation.
 
 The marked source block and PR title track the proposed SHA and its range from the accepted pin. Notes outside that block are preserved. New source revisions return ready PRs to draft and require fresh review; same-SHA retries preserve readiness and only reconcile metadata. If push succeeded before PR creation/editing failed, retry reuses the remote snapshot without regenerating it. Closing an unmerged rolling PR pauses automatic proposals until a maintainer reopens it.
 

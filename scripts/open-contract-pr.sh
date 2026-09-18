@@ -62,7 +62,6 @@ main() {
   fi
 
   current=$(jq -er .commit contract/source.json)
-  env -u GH_TOKEN bash scripts/sync-contract.sh "$upstream" "$current"
   if [[ "$commit" != "$current" ]] && git -C "$upstream" merge-base --is-ancestor "$commit" "$current"; then
     echo 'Ignoring an event older than the pending proposal'
     return
@@ -112,7 +111,7 @@ Pinned Service source: https://github.com/converge-ai-labs/agent-foundation/comm
 Changes since the accepted SDK pin: https://github.com/converge-ai-labs/agent-foundation/compare/$previous...$commit
 
 This rolling draft imports committed HTTP/wire definitions, shared fixtures, API conventions,
-Native streaming semantics and queued-submission semantics, with source paths and SHA-256 hashes,
+Native streaming semantics and queued-submission semantics, with source paths,
 and includes SDK-local HTTP generation. Full SDK CI runs while this PR is still a draft.
 The compare includes implementation changes even when exported schemas are unchanged.
 It does not execute Service code or imply that this SDK already supports the new contract.

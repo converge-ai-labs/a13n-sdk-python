@@ -21,6 +21,7 @@ from .account_target_target_kind import AccountTargetTargetKind
 from .activate_bot_request import ActivateBotRequest
 from .activity_message import ActivityMessage
 from .activity_message_content import ActivityMessageContent
+from .add_environment_mount_request import AddEnvironmentMountRequest
 from .agent import Agent
 from .agent_collection import AgentCollection
 from .agent_config_input import AgentConfigInput
@@ -100,6 +101,10 @@ from .change_role_request import ChangeRoleRequest
 from .change_role_request_role import ChangeRoleRequestRole
 from .child_environment_policy import ChildEnvironmentPolicy
 from .child_environment_policy_mode import ChildEnvironmentPolicyMode
+from .client_connection_status import ClientConnectionStatus
+from .client_connection_status_error_type_0 import ClientConnectionStatusErrorType0
+from .client_connection_status_status import ClientConnectionStatusStatus
+from .client_connection_ticket import ClientConnectionTicket
 from .client_tool_definition import ClientToolDefinition
 from .client_tool_definition_metadata import ClientToolDefinitionMetadata
 from .client_tool_definition_parameters_json_schema import ClientToolDefinitionParametersJsonSchema
@@ -110,6 +115,7 @@ from .collection_environment_provider import CollectionEnvironmentProvider
 from .collection_environment_provider_definition import CollectionEnvironmentProviderDefinition
 from .collection_environment_template import CollectionEnvironmentTemplate
 from .collection_environment_template_revision import CollectionEnvironmentTemplateRevision
+from .collection_run_environment_mount import CollectionRunEnvironmentMount
 from .complete_authorization_request import CompleteAuthorizationRequest
 from .complete_email_change_request import CompleteEmailChangeRequest
 from .complete_password_reset_request import CompletePasswordResetRequest
@@ -434,6 +440,7 @@ from .model_provider_definition_settings_schemas_additional_property import (
 )
 from .model_settings import ModelSettings
 from .model_test_request import ModelTestRequest
+from .mount_application_status import MountApplicationStatus
 from .new_environment_selection import NewEnvironmentSelection
 from .new_environment_selection_labels import NewEnvironmentSelectionLabels
 from .notification_subscription import NotificationSubscription
@@ -539,6 +546,7 @@ from .run_agent_input import RunAgentInput
 from .run_attempt_collection import RunAttemptCollection
 from .run_attempt_resource import RunAttemptResource
 from .run_collection import RunCollection
+from .run_environment_mount import RunEnvironmentMount
 from .run_lineage import RunLineage
 from .run_lineage_entry import RunLineageEntry
 from .run_lineage_kind import RunLineageKind
@@ -750,6 +758,7 @@ __all__ = (
     "ActivateBotRequest",
     "ActivityMessage",
     "ActivityMessageContent",
+    "AddEnvironmentMountRequest",
     "Agent",
     "AgentCollection",
     "AgentConfigInput",
@@ -829,6 +838,10 @@ __all__ = (
     "ChangeRoleRequestRole",
     "ChildEnvironmentPolicy",
     "ChildEnvironmentPolicyMode",
+    "ClientConnectionStatus",
+    "ClientConnectionStatusErrorType0",
+    "ClientConnectionStatusStatus",
+    "ClientConnectionTicket",
     "ClientToolDefinition",
     "ClientToolDefinitionMetadata",
     "ClientToolDefinitionParametersJsonSchema",
@@ -839,6 +852,7 @@ __all__ = (
     "CollectionEnvironmentProviderDefinition",
     "CollectionEnvironmentTemplate",
     "CollectionEnvironmentTemplateRevision",
+    "CollectionRunEnvironmentMount",
     "CompleteAuthorizationRequest",
     "CompleteEmailChangeRequest",
     "CompletePasswordResetRequest",
@@ -1151,6 +1165,7 @@ __all__ = (
     "ModelProviderDefinitionSettingsSchemasAdditionalProperty",
     "ModelSettings",
     "ModelTestRequest",
+    "MountApplicationStatus",
     "NewEnvironmentSelection",
     "NewEnvironmentSelectionLabels",
     "NotificationSubscription",
@@ -1252,6 +1267,7 @@ __all__ = (
     "RunAttemptCollection",
     "RunAttemptResource",
     "RunCollection",
+    "RunEnvironmentMount",
     "RunLineage",
     "RunLineageEntry",
     "RunLineageKind",

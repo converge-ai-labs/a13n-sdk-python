@@ -1,10 +1,12 @@
 """Bounded async Native transport. Mutations are never replayed automatically."""
 
 import asyncio
+import copy
 import json
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
+from http.cookiejar import Cookie, CookieJar, DefaultCookiePolicy
 from typing import Any, Literal
 from urllib.parse import quote, urlsplit
 
@@ -12,6 +14,16 @@ import httpx2
 from pydantic import BaseModel, JsonValue, TypeAdapter, ValidationError
 
 from .generated.client import AuthenticatedClient
+from .generated.resources import (
+    Organizations,
+    QueuedSubmissions,
+    RunAttempts,
+    Runs,
+    ServiceResources,
+    Sessions,
+    Threads,
+    Workspaces,
+)
 from .generated.types import Response
 from .models import (
     CreateWebProviderRequest,
@@ -29,7 +41,7 @@ class ProtocolError(Exception):
     """A malformed or oversized Service response."""
 
 
-class TransportError(Exception):
+class TransportError(RuntimeError):
     """Transport failed; a mutation's outcome can be unknown."""
 
 
@@ -75,16 +87,94 @@ class _EmptyRequest(BaseModel):
     pass
 
 
-class Client:
-    """Bearer client for the Web Provider surface of Native /api/v1.
+class _RejectCookies(DefaultCookiePolicy):
+    def set_ok(self, cookie: Cookie, request: Any) -> bool:
+        return False
 
-    Owns its transport, including a caller-provided transport. Use as an async
-    context manager or call aclose(). Every operation makes one HTTP request.
-    """
+    def return_ok(self, cookie: Cookie, request: Any) -> bool:
+        return False
+
+
+@dataclass
+class _ManagedAuth(httpx2.Auth):
+    mode: Literal["public", "bearer", "session"]
+    token: str | None = field(default=None, repr=False)
+    origin: str | None = None
+    workspace_id: str | None = None
+    csrf_token: str | None = field(default=None, repr=False)
+
+    def auth_flow(self, request: httpx2.Request):
+        if self.mode != "session":
+            request.headers.pop("Cookie", None)
+        if self.mode == "bearer":
+            assert self.token is not None
+            request.headers["Authorization"] = f"Bearer {self.token}"
+        elif self.mode == "session":
+            assert self.origin is not None
+            request.headers["Origin"] = self.origin
+            if self.workspace_id is not None:
+                request.headers["X-A13N-Workspace-ID"] = self.workspace_id
+            if request.method not in {"GET", "HEAD", "OPTIONS", "TRACE"} and self.csrf_token is not None:
+                request.headers["X-A13N-CSRF-Token"] = self.csrf_token
+        yield request
+
+
+class Client:
+    """Async Native client with one explicit credential mode and owned transport."""
 
     def __init__(
-        self, base_url: str, token: str, *, timeout: float = 30, transport: httpx2.AsyncBaseTransport | None = None
-    ):
+        self,
+        base_url: str,
+        token: str | None = None,
+        *,
+        timeout: float = 30,
+        transport: httpx2.AsyncBaseTransport | None = None,
+    ) -> None:
+        self._initialize(
+            base_url,
+            _ManagedAuth("bearer" if token is not None else "public", token=token),
+            cookies=None,
+            timeout=timeout,
+            transport=transport,
+        )
+
+    @classmethod
+    def session(
+        cls,
+        base_url: str,
+        *,
+        origin: str,
+        workspace_id: str | None = None,
+        cookies: httpx2.Cookies | None = None,
+        csrf_token: str | None = None,
+        timeout: float = 30,
+        transport: httpx2.AsyncBaseTransport | None = None,
+    ) -> "Client":
+        if not origin:
+            raise ValueError("origin must be nonblank")
+        client = cls.__new__(cls)
+        managed_cookies = httpx2.Cookies()
+        if cookies is not None:
+            for cookie in cookies.jar:
+                managed_cookies.jar.set_cookie(copy.copy(cookie))
+        client._initialize(
+            base_url,
+            _ManagedAuth("session", origin=origin, workspace_id=workspace_id, csrf_token=csrf_token),
+            cookies=managed_cookies,
+            timeout=timeout,
+            transport=transport,
+        )
+        return client
+
+    def _initialize(
+        self,
+        base_url: str,
+        auth: _ManagedAuth,
+        *,
+        cookies: httpx2.Cookies | None,
+        timeout: float,
+        transport: httpx2.AsyncBaseTransport | None,
+    ) -> None:
         url = urlsplit(base_url)
         if (
             url.scheme not in {"http", "https"}
@@ -98,74 +188,130 @@ class Client:
         if timeout <= 0:
             raise ValueError("timeout must be positive")
         self._timeout = timeout
-        self._tasks: set[asyncio.Task] = set()
+        self._auth = auth
+        self._tasks: dict[asyncio.Task[Any], int] = {}
+        self._io_changed = asyncio.Event()
+        self._streams: set[httpx2.Response] = set()
         self._closed = False
+        if auth.mode != "session":
+            cookies = httpx2.Cookies(CookieJar(policy=_RejectCookies()))
         self._http = httpx2.AsyncClient(
             base_url=base_url.rstrip("/") + "/",
-            headers={"Authorization": f"Bearer {token}"},
+            auth=auth,
+            cookies=cookies,
             timeout=timeout,
             follow_redirects=False,
             trust_env=False,
             transport=transport,
         )
-
-        # Generated operations and the stable Web facade share one pool.
         self._api = AuthenticatedClient(base_url=base_url, token="").set_async_httpx_client(self._http)
 
-    async def execute[T](self, operation: Callable[[AuthenticatedClient], Awaitable[Response[T]]]) -> Response[T]:
-        """Execute a generated asyncio_detailed operation with this client's lifetime.
+    def set_csrf_token(self, value: str | None) -> None:
+        if self._auth.mode != "session":
+            raise RuntimeError("CSRF proof is available only for session clients")
+        if value is not None and not isinstance(value, str):
+            raise TypeError("csrf_token must be a string or None")
+        self._auth.csrf_token = value
 
-        The result retains response headers and the typed success/error union.
-        Use stream() with the generated build_request() for binary responses.
-        """
+    @property
+    def resources(self) -> ServiceResources:
+        return ServiceResources(self)
+
+    @property
+    def workspaces(self) -> Workspaces:
+        return self.resources.workspaces
+
+    @property
+    def organizations(self) -> Organizations:
+        return self.resources.organizations
+
+    @property
+    def runs(self) -> Runs:
+        return self.resources.runs
+
+    @property
+    def threads(self) -> Threads:
+        return self.resources.threads
+
+    @property
+    def sessions(self) -> Sessions:
+        return self.resources.sessions
+
+    @property
+    def queued_submissions(self) -> QueuedSubmissions:
+        return self.resources.queued_submissions
+
+    @property
+    def run_attempts(self) -> RunAttempts:
+        return self.resources.run_attempts
+
+    def _enter_io(self) -> asyncio.Task[Any] | None:
         if self._closed:
             raise TransportError("Client is closed")
         task = asyncio.current_task()
-        if task:
-            self._tasks.add(task)
+        if task is not None:
+            self._tasks[task] = self._tasks.get(task, 0) + 1
+        return task
+
+    def _leave_io(self, task: asyncio.Task[Any] | None) -> None:
+        if task is None:
+            return
+        remaining = self._tasks[task] - 1
+        if remaining:
+            self._tasks[task] = remaining
+        else:
+            self._tasks.pop(task)
+            self._io_changed.set()
+
+    async def execute[T](self, operation: Callable[[AuthenticatedClient], Awaitable[Response[T]]]) -> Response[T]:
+        """Execute one generated async operation without automatic replay."""
+        task = self._enter_io()
         try:
             async with asyncio.timeout(self._timeout):
                 return await operation(self._api)
         except (httpx2.HTTPError, TimeoutError):
             raise TransportError("Service transport failed; mutation outcome may be unknown") from None
         finally:
-            if task:
-                self._tasks.discard(task)
+            self._leave_io(task)
 
     @asynccontextmanager
     async def stream(self, request: dict[str, Any]) -> AsyncIterator[httpx2.Response]:
-        """Send a generated build_request() without buffering the response body.
-
-        For upload, content can be an async byte iterator. The caller owns HTTP
-        status handling and consumption inside this context manager.
-        """
-        if self._closed:
-            raise TransportError("Client is closed")
-        task = asyncio.current_task()
-        if task:
-            self._tasks.add(task)
+        """Send a generated request without buffering its response body."""
+        task = self._enter_io()
         try:
             async with self._http.stream(**request) as response:
-                yield response
+                self._streams.add(response)
+                try:
+                    yield response
+                finally:
+                    self._streams.discard(response)
         finally:
-            if task:
-                self._tasks.discard(task)
+            self._leave_io(task)
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> "Client":
         return self
 
-    async def __aexit__(self, *_args):
+    async def __aexit__(self, *_args: object) -> None:
         await self.aclose()
 
     async def aclose(self) -> None:
+        if self._closed:
+            return
         self._closed = True
         current = asyncio.current_task()
         active = tuple(task for task in self._tasks if task is not current)
+        for response in tuple(self._streams):
+            await response.aclose()
         for task in active:
             task.cancel()
-        if active:
-            await asyncio.gather(*active, return_exceptions=True)
+        # Cancellation ends owned I/O, not necessarily the caller's application task.
+        while any(task in self._tasks for task in active):
+            self._io_changed.clear()
+            await self._io_changed.wait()
+        self._auth.token = None
+        self._auth.csrf_token = None
         self._http.headers.clear()
+        self._http.cookies.clear()
         await self._http.aclose()
 
     async def _request[T](
@@ -178,15 +324,11 @@ class Client:
         etag: str | None = None,
         params: dict | None = None,
     ) -> Representation[T]:
-        if self._closed:
-            raise TransportError("Client is closed")
+        task = self._enter_io()
         payload = body.model_dump(mode="json", exclude_unset=True) if body else None
         if isinstance(body, CreateWebProviderRequest | UpdateWebProviderRequest) and body.credential is not None:
             assert payload is not None
             payload["credential"] = body.credential.get_secret_value()
-        task = asyncio.current_task()
-        if task:
-            self._tasks.add(task)
         try:
             async with asyncio.timeout(self._timeout):
                 async with self._http.stream(
@@ -228,8 +370,7 @@ class Client:
         finally:
             if payload is not None:
                 payload.clear()
-            if task:
-                self._tasks.discard(task)
+            self._leave_io(task)
 
     async def workspace(self) -> "WorkspaceClient":
         """Bind operations to the API key's Workspace, sharing this transport."""

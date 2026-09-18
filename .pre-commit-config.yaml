@@ -1,4 +1,4 @@
-# Vendored evidence is verified by generated-check, never rewritten by hooks.
+# Vendored evidence is copied from Service, never rewritten by hooks.
 exclude: ^contract/(?!README\.md$)
 
 repos:

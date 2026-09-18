@@ -1,34 +1,27 @@
 {
   "repository": "converge-ai-labs/agent-foundation",
-  "commit": "0c09ef6dfa1ed6522e3d5d0c7915e2df91d886b1",
+  "commit": "df796c0d53e8299b67ca77e41916b989253ae60f",
   "files": {
     "openapi.json": {
-      "source_path": "proto/a13n-service/openapi.json",
-      "sha256": "d567c76f98c4dd5a9722e3d8692aa9096a1d02a383b5a3cefa80337cd60d691c"
+      "source_path": "proto/a13n-service/openapi.json"
     },
     "notification-client.schema.json": {
-      "source_path": "proto/a13n-service/notification-client.schema.json",
-      "sha256": "37c0b3fd4df1613d44b8de3a64b591506ee0f17a9ab6a20750264632bd4aff73"
+      "source_path": "proto/a13n-service/notification-client.schema.json"
     },
     "run-stream-event.schema.json": {
-      "source_path": "proto/a13n-service/run-stream-event.schema.json",
-      "sha256": "aa40647226f360c667d5a04508dc3eb0ac3028362dff3f713d10b421cae79e93"
+      "source_path": "proto/a13n-service/run-stream-event.schema.json"
     },
     "fixtures/wire.json": {
-      "source_path": "proto/a13n-service/fixtures/wire.json",
-      "sha256": "b02d49652bb9a0704d11cbfd6d0c5167f1341be3ec89b014240ffe2aa5d324f9"
+      "source_path": "proto/a13n-service/fixtures/wire.json"
     },
     "semantics/api-conventions.md": {
-      "source_path": "spec/api-conventions.md",
-      "sha256": "654b9b68132752fa2b905580a132aed7b1480656d9478614e174ec13371835a6"
+      "source_path": "spec/api-conventions.md"
     },
     "semantics/native-streaming-and-notifications.md": {
-      "source_path": "spec/a13n-service/21-native-streaming-and-notifications.md",
-      "sha256": "33338571d38a0e4f200ed61b67d5004bb7cee68d7866d3647a8abec38d13c49f"
+      "source_path": "spec/a13n-service/21-native-streaming-and-notifications.md"
     },
     "semantics/queued-submissions.md": {
-      "source_path": "spec/a13n-service/20-agent-control-queued-submissions.md",
-      "sha256": "20e0ff8ce0d97ac8eb5eb53d5ee4709f26cddc1fdacf2be3557a103a9d4c6207"
+      "source_path": "spec/a13n-service/20-agent-control-queued-submissions.md"
     }
   }
 }

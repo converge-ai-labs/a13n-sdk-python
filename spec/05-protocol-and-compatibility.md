@@ -46,7 +46,7 @@ The retained low-level `Client.execute` surface keeps its generated typed succes
 
 - Local invalid helper arguments, such as a non-positive or non-finite wait budget, raise `ValueError` before dispatch.
 - Invalid local lifecycle use, including I/O through a closed Client, repeated stream entry, or concurrent reads of one iterator, raises `RuntimeError` without a remote command.
-- Exhaustion uses `StopAsyncIteration`. An in-stream replay gap raises `ReplayGap` with its metadata and closes the attachment; it is neither normal exhaustion nor a checkpoint-bearing domain event.
+- Exhaustion uses `StopAsyncIteration`. An attachment-time or in-stream replay gap raises `ReplayGap` with its metadata and closes the logical stream; it is neither normal exhaustion nor a checkpoint-bearing domain event. Bounded SSE recovery and retry exhaustion follow [Observation and Data Access](03-observation-and-data-access.md#replay-gaps-and-reconnection), not a general automatic request-retry policy.
 - An SDK wait deadline raises built-in `TimeoutError`. Cancellation of the caller's task propagates `asyncio.CancelledError`; the SDK does not wrap it as `ApiError`, turn it into successful EOF, or send a compensating interrupt.
 - A read of a failed/cancelled/waiting Run is still a successful read of that resource, not an API exception for its execution outcome.
 - Stream-control calls use the same exception mapping as their corresponding Run methods. A lost cancel response can have an unknown outcome even though a received successful interrupt receipt establishes durable cancellation.
@@ -63,11 +63,11 @@ Applications reconcile unknown outcomes using Service state, retained intent, an
 ## Generation and Contract Inputs
 
 - Generation uses the SDK's local pinned protocol inputs and pinned tools.
-- `contract/source.json` retains source identity and provenance hashes for vendored bytes.
+- `contract/source.json` records the upstream repository, complete Service commit SHA, and original paths of the vendored inputs.
 - Generation does not import or execute Service or another SDK repository.
-- Check mode compares generated file names and bytes without replacing committed output.
+- Generation replaces generator-owned output directly. Correctness is established by type checking and wire, transport, and integration tests, not snapshot checksums or generated-file byte comparisons.
 - Mechanical generation and bounded convenience share one wire model and serialization contract.
-- Typed resource coverage is verified independently of which operations have handwritten helpers.
+- Generated bindings cover ordinary Native operations independently of which operations have handwritten helpers.
 - Correcting a known export omission requires evidence from the pinned protocol or its owning Service source; it does not authorize inventing behavior from a route name.
 - A generator adaptation leaves original vendored evidence intact and states its compatibility effect. Publication still requires the SDK's own compatibility review.
 
@@ -92,10 +92,10 @@ Validation establishes the relevant contract at distinct levels:
 - **Coverage:** every pinned Native operation has typed resource navigation and a low-level binding.
 - **Wire behavior:** fixtures preserve omission, null, unions, decimals, extensible status, and declared success/error bodies.
 - **Public typing:** positive and negative examples exercise accepted and rejected request shapes, acceptance-union narrowing, the non-awaitable stream factory, and direct asynchronous iteration.
-- **Transport:** tests preserve base URL prefixes, escaping, authentication, headers, cancellation, nested I/O ownership, and shutdown.
+- **Transport:** tests preserve base URL prefixes, escaping, headers, cancellation, nested I/O ownership, and shutdown. Authentication tests cover compatible Bearer requests, credential-free public calls, explicit session login and cookie retention, Origin/CSRF and fixed Workspace-boundary forwarding, configurable cookie names, and credential isolation/redaction across all Client surfaces.
 - **Interaction and observation:** tests establish the invariants in the owning interaction and observation contracts: exact identity forwarding; required cancel versions; acceptance versus steer consumption; independent local close and remote cancel; bounded wait across all sealed states; and queue waiting without consumption.
-- **Stream lifecycle:** tests cover failed/cancelled entry, EOF, early context exit, malformed events, replay gaps, one-reader rejection, close during a blocked read, cancellation propagation, control calls during iteration and after closure, and preservation of response metadata without automatic checkpoints.
-- **Distribution:** generation, provenance, and package checks are independent of a Service checkout.
+- **Stream lifecycle:** tests cover failed/cancelled entry, early context exit, malformed events, both replay-gap forms, one-reader rejection, close during blocked entry/read/backoff, cancellation propagation, and independent control calls. Deterministic disconnect tests establish exclusive acknowledged-cursor resume, no advancement from prefetch, finite no-progress retries, jitter/Retry-After bounds, retry opt-out, metadata replacement, and EOF behavior for completed/failed/cancelled/waiting Runs, including sealed but unfinalized projections. No test equates an in-memory acknowledgement with a durable application checkpoint.
+- **Distribution:** local generation and package checks require no Service checkout. Input updates retain their source attribution for review.
 - **Integration:** mock, loopback transport, real Service, and real provider evidence are labeled separately.
 
 Validation commands and publication procedure belong to [Contributing](../CONTRIBUTING.md), not this contract. Formatting or mock tests alone do not prove deployed-provider behavior.

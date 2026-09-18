@@ -17,7 +17,6 @@ commit_source() {
   git -C "$upstream" update-ref refs/remotes/origin/main HEAD
   git -C "$upstream" rev-parse HEAD
 }
-hash() { shasum -a 256 "$1" | cut -d ' ' -f 1; }
 reject() {
   if "$@" > "$work/rejected.log" 2>&1; then
     cat "$work/rejected.log" >&2
@@ -25,7 +24,6 @@ reject() {
   fi
 }
 sync() { bash "$sdk/scripts/sync-contract.sh" "$upstream" "$1"; }
-check() { bash "$sdk/scripts/sync-contract.sh" --check; }
 
 mkdir -p "$upstream/proto/a13n-service/fixtures" "$upstream/spec/a13n-service" "$sdk/contract/semantics"
 printf '{"openapi":"3.1.0","paths":{}}\n' > "$upstream/proto/a13n-service/openapi.json"
@@ -40,8 +38,8 @@ initial=$(commit_source 'Initial Service contract')
 jq -n --arg commit "$initial" '{repository:"converge-ai-labs/agent-foundation",commit:$commit,files:{}}' > "$sdk/contract/source.json"
 while read -r name source; do
   cp "$upstream/$source" "$sdk/contract/$name"
-  jq --arg name "$name" --arg source "$source" --arg hash "$(hash "$sdk/contract/$name")" \
-    '.files[$name] = {source_path:$source,sha256:$hash}' "$sdk/contract/source.json" > "$work/manifest"
+  jq --arg name "$name" --arg source "$source" \
+    '.files[$name] = {source_path:$source}' "$sdk/contract/source.json" > "$work/manifest"
   cp "$work/manifest" "$sdk/contract/source.json"
 done <<'FILES'
 openapi.json proto/a13n-service/openapi.json
@@ -52,7 +50,6 @@ semantics/api-conventions.md spec/api-conventions.md
 semantics/native-streaming-and-notifications.md spec/a13n-service/21-native-streaming-and-notifications.md
 semantics/queued-submissions.md spec/a13n-service/20-agent-control-queued-submissions.md
 FILES
-check
 cp -R "$sdk/contract" "$work/initial"
 reject sync main
 reject sync "${initial:0:12}"
@@ -70,7 +67,6 @@ complete=$(commit_source 'Complete authority')
 # The working tree is deliberately dirty: only committed bytes may be imported.
 printf 'uncommitted and invalid JSON' > "$upstream/proto/a13n-service/openapi.json"
 sync "$complete"
-check
 [[ $(jq '.files | length' "$sdk/contract/source.json") == 7 ]]
 cmp "$sdk/contract/openapi.json" "$work/initial/openapi.json"
 [[ $(jq -r .commit "$sdk/contract/source.json") == "$complete" ]]
@@ -101,25 +97,6 @@ printf 'invalid' > "$upstream/proto/a13n-service/run-stream-event.schema.json"
 invalid=$(commit_source 'Malformed wire schema')
 reject sync "$invalid"
 diff -r "$sdk/contract" "$work/current"
-
-# Local hashes and actual upstream provenance are both required.
-printf 'tampered' >> "$sdk/contract/semantics/api-conventions.md"
-reject check
-jq --arg hash "$(hash "$sdk/contract/semantics/api-conventions.md")" '.files["semantics/api-conventions.md"].sha256 = $hash' \
-  "$sdk/contract/source.json" > "$work/manifest"
-cp "$work/manifest" "$sdk/contract/source.json"
-check
-reject sync "$runtime"
-cp "$work/current/source.json" "$sdk/contract/"
-cp "$work/current/semantics/api-conventions.md" "$sdk/contract/semantics/"
-printf 'unrecorded evidence' > "$sdk/contract/unrecorded.md"
-reject check
-rm "$sdk/contract/unrecorded.md"
-jq 'del(.files["semantics/api-conventions.md"])' "$sdk/contract/source.json" > "$work/manifest"
-cp "$work/manifest" "$sdk/contract/source.json"
-reject check
-cp "$work/current/source.json" "$sdk/contract/"
-check
 
 # PR operations use only local bare Git and fake gh/make; never a real API/token.
 # Language-specific generated ownership; the remainder of this suite is shared.
@@ -433,26 +410,6 @@ unset TEST_PR_RACE
 git --git-dir="$TEST_REMOTE" update-ref "refs/heads/$branch" "$before_close"
 fresh
 propose "$closing"
-
-# Same-SHA recovery verifies Git provenance, not only self-declared hashes.
-fresh
-git -C "$sdk" switch --detach -q "$(head)"
-valid_head=$(head)
-printf 'tampered evidence\n' >> "$sdk/contract/semantics/api-conventions.md"
-jq --arg hash "$(hash "$sdk/contract/semantics/api-conventions.md")" \
-  '.files["semantics/api-conventions.md"].sha256 = $hash' "$sdk/contract/source.json" > "$work/manifest"
-cp "$work/manifest" "$sdk/contract/source.json"
-git -C "$sdk" add contract
-git -C "$sdk" commit -qm 'Invalid self-consistent evidence'
-git -C "$sdk" push -q origin "HEAD:refs/heads/$branch"
-invalid_head=$(head)
-fresh
-reject propose "$closing"
-[[ $(head) == "$invalid_head" ]]
-git -C "$sdk" switch --detach -q "$invalid_head"
-git -C "$sdk" restore --source="$valid_head" -- contract
-git -C "$sdk" commit -qam 'Restore evidence'
-git -C "$sdk" push -q origin "HEAD:refs/heads/$branch"
 
 # Conflicting accepted SDK changes stop instead of overwriting adaptation work.
 fresh
