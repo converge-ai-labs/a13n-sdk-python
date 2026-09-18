@@ -77,11 +77,14 @@ Text helpers construct the ordinary versioned text input. Pass a complete `a13n.
 `run.stream()` is synchronous and I/O-free. Enter it once, then iterate it directly:
 
 ```python
-async def observe(run, applied_cursor: str | None) -> None:
+async def observe(run) -> None:
+    applied_cursor = await load_checkpoint(run.id)
     async with run.stream(after=applied_cursor) as stream:
         async for observation in stream:
-            await apply_event(observation.event)
-            await save_checkpoint(observation.cursor)
+            # Commit the application effect and cursor together when possible.
+            async with application_transaction():
+                await apply_event(observation.event)
+                await save_checkpoint(run.id, observation.cursor)
 
             if should_redirect(observation.event):
                 await stream.steer(
@@ -90,7 +93,9 @@ async def observe(run, applied_cursor: str | None) -> None:
                 )
 ```
 
-The default stream retries transient attachment/read failures with bounded jittered backoff and at most five reconnects per no-progress episode. It resumes exclusively after the cursor acknowledged in memory when the caller requests the next observation. That cursor is diagnostic delivery evidence, not a durable application checkpoint; applications persist their own applied cursor.
+The default stream retries transient attachment/read failures with bounded jittered backoff and at most five reconnects per no-progress episode. It resumes exclusively after the cursor acknowledged in memory when the caller requests the next observation. That cursor is diagnostic delivery evidence, not a durable application checkpoint.
+
+Load the durable cursor before attaching, and persist it only after the corresponding event effect is durable. A crash before that commit intentionally replays the event, so event application should be idempotent. Do not persist `last_received_cursor` before applying the event: it reports transport delivery and can advance beyond application state.
 
 `stream.steer`, `stream.cancel`, and `stream.wait` delegate to the exact Run and remain usable before entry or after local stream closure while the Client is open. One stream has one active reader. Replay gaps, malformed events, retry exhaustion, and unconfirmed EOF are explicit failures. Local close detaches only; it does not cancel the durable Run.
 
@@ -162,15 +167,37 @@ Generation reads the pinned local contract, emits attrs wire bindings plus stati
 
 ### Opt-in Service integration
 
-`scripts/service-smoke.py` uses only HTTP and the installed SDK. Supply `A13N_SERVICE_URL`, `A13N_API_TOKEN`, `A13N_WORKSPACE`, and `A13N_AGENT` through your local environment, then run:
+Both integration scripts use only HTTP and an installed SDK. They never import Service source, provision credentials, reset state, or delete resources. Output contains resource identities and protocol evidence, not credentials or model output.
+
+`scripts/service-smoke.py` is the short management and binary check. Supply `A13N_SERVICE_URL`, `A13N_API_TOKEN`, `A13N_WORKSPACE`, and `A13N_AGENT`. It creates and retains one Run and one Asset, explicitly detaches/resumes Run SSE, waits for completion, and verifies a 300,000-byte upload/download.
+
+`scripts/service_acceptance.py` is the release-readiness path. It additionally requires `A13N_CLIENT_TOOL_AGENT`, an Agent configured to enter client-Tool waiting state. Against the local scripted provider it:
+
+- injects one real HTTP read failure after a complete SSE event and verifies automatic reconnect with the exact applied `Last-Event-ID`, without changing Service state or other connections;
+- exercises steer and cancel with current versions;
+- observes a queued Thread submission through `consumed` and follows its exact Run identity;
+- exercises feedback, retry, continue, and fork while checking receipt Run, Thread, and Session identities;
+- records Run sealing separately from retained Item `complete` and `finalized` projection evidence, including explicit `items_unavailable` results.
+
+Run either script with the Python executable from the environment where the artifact is installed. To prove the script is not importing the source tree, copy it to another directory first:
 
 ```bash
-uv run python scripts/service-smoke.py
+cp scripts/service_acceptance.py /tmp/a13n-service-acceptance.py
+/path/to/installed-venv/bin/python /tmp/a13n-service-acceptance.py
 ```
 
-Use an existing configured test Agent with a reachable Model. The script creates and retains one Run and one Asset, checks management reads, explicitly detaches/resumes Run SSE using `Last-Event-ID`, waits for durable completion, and verifies a 300,000-byte binary upload/download. It never provisions credentials, deletes resources, resets a database, or imports Service source. Output contains resource identities and counts, not credentials or model output.
+For the companion local Service checkout, discover the instance with `make dev-status` and use its documented lifecycle. `make service-dev` is sufficient when Console is unnecessary. Do not assume fixed ports. A local scripted model proves the complete Service transport and state path, not connectivity or behavior of an external cloud provider.
 
-For the companion local Service checkout, discover the instance with `make dev-status` and use its documented `make dev` lifecycle; do not assume fixed ports or reset existing state. A local scripted model proves the Service integration path, not connectivity or behavior of a production cloud provider. Automatic disconnect recovery, controls, queue dispositions, successor identities, and cancellation are covered separately by deterministic SDK transport tests.
+### Package release readiness
+
+Build once, then install the wheel and sdist into separate clean virtual environments. Run import/version checks and the copied HTTP acceptance script from outside the source directory in each environment. Keep these evidence classes distinct:
+
+1. unit/static checks prove deterministic SDK behavior and typing;
+2. the local scripted Service proves real HTTP, SSE, control, queue, and successor integration;
+3. isolated wheel and sdist environments prove packaged imports and installed execution;
+4. external cloud validation proves provider connectivity only when an explicit test configuration, cost authorization, and request budget are available.
+
+A successful build is not a publication. Missing external provider configuration does not invalidate local SDK evidence, but must be reported as untested rather than inferred from the scripted provider.
 
 ## License
 
