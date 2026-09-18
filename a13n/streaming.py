@@ -130,7 +130,7 @@ async def _observations(response: httpx2.Response, run_id: str, limit: int) -> A
                         raise ReplayGap(
                             run_id,
                             requested_cursor=_optional_string(value, "requested_cursor"),
-                            available_floor=_optional_string(value, "available_floor"),
+                            available_floor=_optional_string(value, "retained_floor"),
                             high_watermark=_optional_string(value, "high_watermark"),
                         )
                     if not cursor or "\x00" in cursor or value.get("schema_version", "1") != "1":
@@ -394,7 +394,7 @@ class RunStream:
                 raise ReplayGap(
                     self._run.id,
                     requested_cursor=_optional_string(error.details, "requested_cursor") or self._acknowledged_cursor,
-                    available_floor=_optional_string(error.details, "available_floor"),
+                    available_floor=_optional_string(error.details, "retained_floor"),
                     high_watermark=_optional_string(error.details, "high_watermark"),
                     status_code=error.status,
                     request_id=error.request_id,
