@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 from attrs import define as _attrs_define
 
 from ..models.create_template_request_preparation import CreateTemplateRequestPreparation
-from ..models.environment_access import EnvironmentAccess
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
@@ -26,7 +25,6 @@ class CreateTemplateRequest:
         name (str):
         provider_id (str):
         retention (RetentionPolicy):
-        access (EnvironmentAccess | Unset):
         configuration_schema_version (str | Unset):
         description (None | str | Unset):
         labels (CreateTemplateRequestLabels | Unset):
@@ -37,7 +35,6 @@ class CreateTemplateRequest:
     name: str
     provider_id: str
     retention: RetentionPolicy
-    access: EnvironmentAccess | Unset = UNSET
     configuration_schema_version: str | Unset = UNSET
     description: str | Unset | None = UNSET
     labels: CreateTemplateRequestLabels | Unset = UNSET
@@ -51,10 +48,6 @@ class CreateTemplateRequest:
         provider_id = self.provider_id
 
         retention = self.retention.to_dict()
-
-        access: str | Unset = UNSET
-        if not isinstance(self.access, Unset):
-            access = self.access.value
 
         configuration_schema_version = self.configuration_schema_version
 
@@ -82,8 +75,6 @@ class CreateTemplateRequest:
                 "retention": retention,
             }
         )
-        if access is not UNSET:
-            field_dict["access"] = access
         if configuration_schema_version is not UNSET:
             field_dict["configuration_schema_version"] = configuration_schema_version
         if description is not UNSET:
@@ -109,13 +100,6 @@ class CreateTemplateRequest:
         provider_id = d.pop("provider_id")
 
         retention = RetentionPolicy.from_dict(d.pop("retention"))
-
-        _access = d.pop("access", UNSET)
-        access: EnvironmentAccess | Unset
-        if isinstance(_access, Unset):
-            access = UNSET
-        else:
-            access = EnvironmentAccess(_access)
 
         configuration_schema_version = d.pop("configuration_schema_version", UNSET)
 
@@ -147,7 +131,6 @@ class CreateTemplateRequest:
             name=name,
             provider_id=provider_id,
             retention=retention,
-            access=access,
             configuration_schema_version=configuration_schema_version,
             description=description,
             labels=labels,

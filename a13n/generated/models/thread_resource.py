@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 
+from ..models.session_purpose import SessionPurpose
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
@@ -31,6 +32,7 @@ class ThreadResource:
         queue_version (int):
         role (str):
         session_id (str):
+        session_purpose (SessionPurpose):
         updated_at (datetime.datetime):
         version (int):
         configuration_draft_id (None | str | Unset):
@@ -48,6 +50,7 @@ class ThreadResource:
     queue_version: int
     role: str
     session_id: str
+    session_purpose: SessionPurpose
     updated_at: datetime.datetime
     version: int
     configuration_draft_id: str | Unset | None = UNSET
@@ -82,6 +85,8 @@ class ThreadResource:
 
         session_id = self.session_id
 
+        session_purpose = self.session_purpose.value
+
         updated_at = self.updated_at.isoformat()
 
         version = self.version
@@ -108,6 +113,7 @@ class ThreadResource:
                 "queue_version": queue_version,
                 "role": role,
                 "session_id": session_id,
+                "session_purpose": session_purpose,
                 "updated_at": updated_at,
                 "version": version,
             }
@@ -171,6 +177,8 @@ class ThreadResource:
 
         session_id = d.pop("session_id")
 
+        session_purpose = SessionPurpose(d.pop("session_purpose"))
+
         updated_at = datetime.datetime.fromisoformat(d.pop("updated_at"))
 
         version = d.pop("version")
@@ -197,6 +205,7 @@ class ThreadResource:
             queue_version=queue_version,
             role=role,
             session_id=session_id,
+            session_purpose=session_purpose,
             updated_at=updated_at,
             version=version,
             configuration_draft_id=configuration_draft_id,

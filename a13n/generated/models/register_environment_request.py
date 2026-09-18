@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 
-from ..models.environment_access import EnvironmentAccess
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
@@ -23,7 +22,6 @@ class RegisterEnvironmentRequest:
     Attributes:
         configuration (RegisterEnvironmentRequestConfiguration):
         provider_id (str):
-        access (EnvironmentAccess | Unset):
         configuration_schema_version (str | Unset):
         labels (RegisterEnvironmentRequestLabels | Unset):
         name (None | str | Unset):
@@ -32,7 +30,6 @@ class RegisterEnvironmentRequest:
 
     configuration: RegisterEnvironmentRequestConfiguration
     provider_id: str
-    access: EnvironmentAccess | Unset = UNSET
     configuration_schema_version: str | Unset = UNSET
     labels: RegisterEnvironmentRequestLabels | Unset = UNSET
     name: str | Unset | None = UNSET
@@ -44,10 +41,6 @@ class RegisterEnvironmentRequest:
         configuration = self.configuration.to_dict()
 
         provider_id = self.provider_id
-
-        access: str | Unset = UNSET
-        if not isinstance(self.access, Unset):
-            access = self.access.value
 
         configuration_schema_version = self.configuration_schema_version
 
@@ -77,8 +70,6 @@ class RegisterEnvironmentRequest:
                 "provider_id": provider_id,
             }
         )
-        if access is not UNSET:
-            field_dict["access"] = access
         if configuration_schema_version is not UNSET:
             field_dict["configuration_schema_version"] = configuration_schema_version
         if labels is not UNSET:
@@ -102,13 +93,6 @@ class RegisterEnvironmentRequest:
         configuration = RegisterEnvironmentRequestConfiguration.from_dict(d.pop("configuration"))
 
         provider_id = d.pop("provider_id")
-
-        _access = d.pop("access", UNSET)
-        access: EnvironmentAccess | Unset
-        if isinstance(_access, Unset):
-            access = UNSET
-        else:
-            access = EnvironmentAccess(_access)
 
         configuration_schema_version = d.pop("configuration_schema_version", UNSET)
 
@@ -148,7 +132,6 @@ class RegisterEnvironmentRequest:
         register_environment_request = cls(
             configuration=configuration,
             provider_id=provider_id,
-            access=access,
             configuration_schema_version=configuration_schema_version,
             labels=labels,
             name=name,

@@ -266,7 +266,6 @@ from .duplicate_agent_request import DuplicateAgentRequest
 from .duplicate_agent_request_labels import DuplicateAgentRequestLabels
 from .email_change_request import EmailChangeRequest
 from .environment import Environment
-from .environment_access import EnvironmentAccess
 from .environment_command import EnvironmentCommand
 from .environment_command_action import EnvironmentCommandAction
 from .environment_command_status import EnvironmentCommandStatus
@@ -575,6 +574,7 @@ from .selected_assistant_model_settings import SelectedAssistantModelSettings
 from .service_account import ServiceAccount
 from .session_collection import SessionCollection
 from .session_preview import SessionPreview
+from .session_purpose import SessionPurpose
 from .session_resource import SessionResource
 from .session_resource_labels import SessionResourceLabels
 from .set_default_agent_revision_request import SetDefaultAgentRevisionRequest
@@ -1007,7 +1007,6 @@ __all__ = (
     "DuplicateAgentRequestLabels",
     "EmailChangeRequest",
     "Environment",
-    "EnvironmentAccess",
     "EnvironmentCommand",
     "EnvironmentCommandAction",
     "EnvironmentCommandStatus",
@@ -1300,6 +1299,7 @@ __all__ = (
     "ServiceAccount",
     "SessionCollection",
     "SessionPreview",
+    "SessionPurpose",
     "SessionResource",
     "SessionResourceLabels",
     "SetDefaultAgentRevisionRequest",

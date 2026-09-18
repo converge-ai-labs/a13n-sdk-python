@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Any, TypeVar
 from attrs import define as _attrs_define
 
 from ..models.create_template_revision_request_preparation import CreateTemplateRevisionRequestPreparation
-from ..models.environment_access import EnvironmentAccess
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
@@ -25,7 +24,6 @@ class CreateTemplateRevisionRequest:
         expected_version (int):
         provider_id (str):
         retention (RetentionPolicy):
-        access (EnvironmentAccess | Unset):
         configuration_schema_version (str | Unset):
         preparation (CreateTemplateRevisionRequestPreparation | Unset):
     """
@@ -34,7 +32,6 @@ class CreateTemplateRevisionRequest:
     expected_version: int
     provider_id: str
     retention: RetentionPolicy
-    access: EnvironmentAccess | Unset = UNSET
     configuration_schema_version: str | Unset = UNSET
     preparation: CreateTemplateRevisionRequestPreparation | Unset = UNSET
 
@@ -46,10 +43,6 @@ class CreateTemplateRevisionRequest:
         provider_id = self.provider_id
 
         retention = self.retention.to_dict()
-
-        access: str | Unset = UNSET
-        if not isinstance(self.access, Unset):
-            access = self.access.value
 
         configuration_schema_version = self.configuration_schema_version
 
@@ -67,8 +60,6 @@ class CreateTemplateRevisionRequest:
                 "retention": retention,
             }
         )
-        if access is not UNSET:
-            field_dict["access"] = access
         if configuration_schema_version is not UNSET:
             field_dict["configuration_schema_version"] = configuration_schema_version
         if preparation is not UNSET:
@@ -92,13 +83,6 @@ class CreateTemplateRevisionRequest:
 
         retention = RetentionPolicy.from_dict(d.pop("retention"))
 
-        _access = d.pop("access", UNSET)
-        access: EnvironmentAccess | Unset
-        if isinstance(_access, Unset):
-            access = UNSET
-        else:
-            access = EnvironmentAccess(_access)
-
         configuration_schema_version = d.pop("configuration_schema_version", UNSET)
 
         _preparation = d.pop("preparation", UNSET)
@@ -113,7 +97,6 @@ class CreateTemplateRevisionRequest:
             expected_version=expected_version,
             provider_id=provider_id,
             retention=retention,
-            access=access,
             configuration_schema_version=configuration_schema_version,
             preparation=preparation,
         )

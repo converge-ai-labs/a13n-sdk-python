@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 
-from ..models.environment_access import EnvironmentAccess
 from ..models.mount_application_status import MountApplicationStatus
 from ..types import UNSET, Unset
 
@@ -23,7 +22,6 @@ class RunEnvironmentMount:
     """
     Attributes:
         accepting_principal (PrincipalRef):
-        access (EnvironmentAccess):
         created_at (datetime.datetime):
         environment_id (str):
         name (str):
@@ -37,7 +35,6 @@ class RunEnvironmentMount:
     """
 
     accepting_principal: PrincipalRef
-    access: EnvironmentAccess
     created_at: datetime.datetime
     environment_id: str
     name: str
@@ -53,8 +50,6 @@ class RunEnvironmentMount:
         from ..models.safe_failure import SafeFailure
 
         accepting_principal = self.accepting_principal.to_dict()
-
-        access = self.access.value
 
         created_at = self.created_at.isoformat()
 
@@ -109,7 +104,6 @@ class RunEnvironmentMount:
         field_dict.update(
             {
                 "accepting_principal": accepting_principal,
-                "access": access,
                 "created_at": created_at,
                 "environment_id": environment_id,
                 "name": name,
@@ -138,8 +132,6 @@ class RunEnvironmentMount:
 
         d = dict(src_dict)
         accepting_principal = PrincipalRef.from_dict(d.pop("accepting_principal"))
-
-        access = EnvironmentAccess(d.pop("access"))
 
         created_at = datetime.datetime.fromisoformat(d.pop("created_at"))
 
@@ -227,7 +219,6 @@ class RunEnvironmentMount:
 
         run_environment_mount = cls(
             accepting_principal=accepting_principal,
-            access=access,
             created_at=created_at,
             environment_id=environment_id,
             name=name,

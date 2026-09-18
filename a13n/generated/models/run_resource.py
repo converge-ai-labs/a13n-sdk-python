@@ -26,7 +26,6 @@ class RunResource:
         completed_at (datetime.datetime | None):
         created_at (datetime.datetime):
         effective_agent_config_digest (str):
-        environment_access (None | str):
         environment_id (None | str):
         failure (Any | None):
         id (str):
@@ -59,7 +58,6 @@ class RunResource:
     completed_at: datetime.datetime | None
     created_at: datetime.datetime
     effective_agent_config_digest: str
-    environment_access: str | None
     environment_id: str | None
     failure: Any | None
     id: str
@@ -101,9 +99,6 @@ class RunResource:
         created_at = self.created_at.isoformat()
 
         effective_agent_config_digest = self.effective_agent_config_digest
-
-        environment_access: str | None
-        environment_access = self.environment_access
 
         environment_id: str | None
         environment_id = self.environment_id
@@ -191,7 +186,6 @@ class RunResource:
                 "completed_at": completed_at,
                 "created_at": created_at,
                 "effective_agent_config_digest": effective_agent_config_digest,
-                "environment_access": environment_access,
                 "environment_id": environment_id,
                 "failure": failure,
                 "id": id,
@@ -255,13 +249,6 @@ class RunResource:
         created_at = datetime.datetime.fromisoformat(d.pop("created_at"))
 
         effective_agent_config_digest = d.pop("effective_agent_config_digest")
-
-        def _parse_environment_access(data: object) -> str | None:
-            if data is None:
-                return data
-            return cast(str | None, data)
-
-        environment_access = _parse_environment_access(d.pop("environment_access"))
 
         def _parse_environment_id(data: object) -> str | None:
             if data is None:
@@ -420,7 +407,6 @@ class RunResource:
             completed_at=completed_at,
             created_at=created_at,
             effective_agent_config_digest=effective_agent_config_digest,
-            environment_access=environment_access,
             environment_id=environment_id,
             failure=failure,
             id=id,

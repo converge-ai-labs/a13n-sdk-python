@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 
-from ..models.environment_access import EnvironmentAccess
 from ..models.environment_ownership import EnvironmentOwnership
 from ..models.environment_retention_condition import EnvironmentRetentionCondition
 from ..models.environment_status import EnvironmentStatus
@@ -23,7 +22,6 @@ T = TypeVar("T", bound="Environment")
 class Environment:
     """
     Attributes:
-        access (EnvironmentAccess):
         condition_since (datetime.datetime):
         created_at (datetime.datetime):
         generation (int):
@@ -40,7 +38,6 @@ class Environment:
         labels (EnvironmentLabels | Unset):
     """
 
-    access: EnvironmentAccess
     condition_since: datetime.datetime
     created_at: datetime.datetime
     generation: int
@@ -57,8 +54,6 @@ class Environment:
     labels: EnvironmentLabels | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
-        access = self.access.value
-
         condition_since = self.condition_since.isoformat()
 
         created_at = self.created_at.isoformat()
@@ -94,7 +89,6 @@ class Environment:
 
         field_dict.update(
             {
-                "access": access,
                 "condition_since": condition_since,
                 "created_at": created_at,
                 "generation": generation,
@@ -120,8 +114,6 @@ class Environment:
         from ..models.environment_labels import EnvironmentLabels
 
         d = dict(src_dict)
-        access = EnvironmentAccess(d.pop("access"))
-
         condition_since = datetime.datetime.fromisoformat(d.pop("condition_since"))
 
         created_at = datetime.datetime.fromisoformat(d.pop("created_at"))
@@ -161,7 +153,6 @@ class Environment:
             labels = EnvironmentLabels.from_dict(_labels)
 
         environment = cls(
-            access=access,
             condition_since=condition_since,
             created_at=created_at,
             generation=generation,

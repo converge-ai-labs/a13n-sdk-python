@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 
+from ..models.session_purpose import SessionPurpose
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
@@ -35,6 +36,7 @@ class StartRunRequest:
         labels (StartRunRequestLabels | Unset):
         session_id (None | str | Unset):
         session_labels (StartRunRequestSessionLabels | Unset):
+        session_purpose (SessionPurpose | Unset):
         thread_labels (StartRunRequestThreadLabels | Unset):
     """
 
@@ -48,6 +50,7 @@ class StartRunRequest:
     labels: StartRunRequestLabels | Unset = UNSET
     session_id: str | Unset | None = UNSET
     session_labels: StartRunRequestSessionLabels | Unset = UNSET
+    session_purpose: SessionPurpose | Unset = UNSET
     thread_labels: StartRunRequestThreadLabels | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
@@ -112,6 +115,10 @@ class StartRunRequest:
         if not isinstance(self.session_labels, Unset):
             session_labels = self.session_labels.to_dict()
 
+        session_purpose: str | Unset = UNSET
+        if not isinstance(self.session_purpose, Unset):
+            session_purpose = self.session_purpose.value
+
         thread_labels: dict[str, Any] | Unset = UNSET
         if not isinstance(self.thread_labels, Unset):
             thread_labels = self.thread_labels.to_dict()
@@ -140,6 +147,8 @@ class StartRunRequest:
             field_dict["session_id"] = session_id
         if session_labels is not UNSET:
             field_dict["session_labels"] = session_labels
+        if session_purpose is not UNSET:
+            field_dict["session_purpose"] = session_purpose
         if thread_labels is not UNSET:
             field_dict["thread_labels"] = thread_labels
 
@@ -261,6 +270,13 @@ class StartRunRequest:
         else:
             session_labels = StartRunRequestSessionLabels.from_dict(_session_labels)
 
+        _session_purpose = d.pop("session_purpose", UNSET)
+        session_purpose: SessionPurpose | Unset
+        if isinstance(_session_purpose, Unset):
+            session_purpose = UNSET
+        else:
+            session_purpose = SessionPurpose(_session_purpose)
+
         _thread_labels = d.pop("thread_labels", UNSET)
         thread_labels: StartRunRequestThreadLabels | Unset
         if isinstance(_thread_labels, Unset):
@@ -279,6 +295,7 @@ class StartRunRequest:
             labels=labels,
             session_id=session_id,
             session_labels=session_labels,
+            session_purpose=session_purpose,
             thread_labels=thread_labels,
         )
 

@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 
-from ..models.environment_access import EnvironmentAccess
 from ..models.environment_template_revision_preparation import EnvironmentTemplateRevisionPreparation
 from ..types import UNSET, Unset
 
@@ -31,7 +30,6 @@ class EnvironmentTemplateRevision:
         template_id (str):
         version (int):
         workspace_id (None | str):
-        access (EnvironmentAccess | Unset):
         configuration_schema_version (str | Unset):
         preparation (EnvironmentTemplateRevisionPreparation | Unset):
     """
@@ -45,7 +43,6 @@ class EnvironmentTemplateRevision:
     template_id: str
     version: int
     workspace_id: str | None
-    access: EnvironmentAccess | Unset = UNSET
     configuration_schema_version: str | Unset = UNSET
     preparation: EnvironmentTemplateRevisionPreparation | Unset = UNSET
 
@@ -69,10 +66,6 @@ class EnvironmentTemplateRevision:
         workspace_id: str | None
         workspace_id = self.workspace_id
 
-        access: str | Unset = UNSET
-        if not isinstance(self.access, Unset):
-            access = self.access.value
-
         configuration_schema_version = self.configuration_schema_version
 
         preparation: str | Unset = UNSET
@@ -94,8 +87,6 @@ class EnvironmentTemplateRevision:
                 "workspace_id": workspace_id,
             }
         )
-        if access is not UNSET:
-            field_dict["access"] = access
         if configuration_schema_version is not UNSET:
             field_dict["configuration_schema_version"] = configuration_schema_version
         if preparation is not UNSET:
@@ -134,13 +125,6 @@ class EnvironmentTemplateRevision:
 
         workspace_id = _parse_workspace_id(d.pop("workspace_id"))
 
-        _access = d.pop("access", UNSET)
-        access: EnvironmentAccess | Unset
-        if isinstance(_access, Unset):
-            access = UNSET
-        else:
-            access = EnvironmentAccess(_access)
-
         configuration_schema_version = d.pop("configuration_schema_version", UNSET)
 
         _preparation = d.pop("preparation", UNSET)
@@ -160,7 +144,6 @@ class EnvironmentTemplateRevision:
             template_id=template_id,
             version=version,
             workspace_id=workspace_id,
-            access=access,
             configuration_schema_version=configuration_schema_version,
             preparation=preparation,
         )

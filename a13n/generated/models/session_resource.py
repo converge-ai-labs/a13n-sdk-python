@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 
+from ..models.session_purpose import SessionPurpose
+
 if TYPE_CHECKING:
     from ..models.session_preview import SessionPreview
     from ..models.session_resource_labels import SessionResourceLabels
@@ -22,6 +24,7 @@ class SessionResource:
         id (str):
         labels (SessionResourceLabels):
         preview (None | SessionPreview):
+        purpose (SessionPurpose):
         run_count (int | None):
         updated_at (datetime.datetime):
         workspace_id (str):
@@ -31,6 +34,7 @@ class SessionResource:
     id: str
     labels: SessionResourceLabels
     preview: SessionPreview | None
+    purpose: SessionPurpose
     run_count: int | None
     updated_at: datetime.datetime
     workspace_id: str
@@ -50,6 +54,8 @@ class SessionResource:
         else:
             preview = self.preview
 
+        purpose = self.purpose.value
+
         run_count: int | None
         run_count = self.run_count
 
@@ -65,6 +71,7 @@ class SessionResource:
                 "id": id,
                 "labels": labels,
                 "preview": preview,
+                "purpose": purpose,
                 "run_count": run_count,
                 "updated_at": updated_at,
                 "workspace_id": workspace_id,
@@ -100,6 +107,8 @@ class SessionResource:
 
         preview = _parse_preview(d.pop("preview"))
 
+        purpose = SessionPurpose(d.pop("purpose"))
+
         def _parse_run_count(data: object) -> int | None:
             if data is None:
                 return data
@@ -116,6 +125,7 @@ class SessionResource:
             id=id,
             labels=labels,
             preview=preview,
+            purpose=purpose,
             run_count=run_count,
             updated_at=updated_at,
             workspace_id=workspace_id,

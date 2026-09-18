@@ -5,8 +5,6 @@ from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 
-from ..models.environment_access import EnvironmentAccess
-
 T = TypeVar("T", bound="AddEnvironmentMountRequest")
 
 
@@ -14,18 +12,14 @@ T = TypeVar("T", bound="AddEnvironmentMountRequest")
 class AddEnvironmentMountRequest:
     """
     Attributes:
-        access (EnvironmentAccess):
         environment_id (str):
         name (str):
     """
 
-    access: EnvironmentAccess
     environment_id: str
     name: str
 
     def to_dict(self) -> dict[str, Any]:
-        access = self.access.value
-
         environment_id = self.environment_id
 
         name = self.name
@@ -34,7 +28,6 @@ class AddEnvironmentMountRequest:
 
         field_dict.update(
             {
-                "access": access,
                 "environment_id": environment_id,
                 "name": name,
             }
@@ -45,14 +38,11 @@ class AddEnvironmentMountRequest:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        access = EnvironmentAccess(d.pop("access"))
-
         environment_id = d.pop("environment_id")
 
         name = d.pop("name")
 
         add_environment_mount_request = cls(
-            access=access,
             environment_id=environment_id,
             name=name,
         )

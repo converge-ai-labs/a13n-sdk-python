@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 
-from ..models.environment_access import EnvironmentAccess
 from ..models.environment_detail_ownership import EnvironmentDetailOwnership
 from ..models.environment_detail_retention_condition import EnvironmentDetailRetentionCondition
 from ..models.environment_status import EnvironmentStatus
@@ -24,7 +23,6 @@ T = TypeVar("T", bound="EnvironmentDetail")
 class EnvironmentDetail:
     """
     Attributes:
-        access (EnvironmentAccess):
         condition_since (datetime.datetime):
         created_at (datetime.datetime):
         generation (int):
@@ -44,7 +42,6 @@ class EnvironmentDetail:
         labels (EnvironmentDetailLabels | Unset):
     """
 
-    access: EnvironmentAccess
     condition_since: datetime.datetime
     created_at: datetime.datetime
     generation: int
@@ -65,8 +62,6 @@ class EnvironmentDetail:
 
     def to_dict(self) -> dict[str, Any]:
         from ..models.retention_policy import RetentionPolicy
-
-        access = self.access.value
 
         condition_since = self.condition_since.isoformat()
 
@@ -113,7 +108,6 @@ class EnvironmentDetail:
 
         field_dict.update(
             {
-                "access": access,
                 "condition_since": condition_since,
                 "created_at": created_at,
                 "generation": generation,
@@ -143,8 +137,6 @@ class EnvironmentDetail:
         from ..models.retention_policy import RetentionPolicy
 
         d = dict(src_dict)
-        access = EnvironmentAccess(d.pop("access"))
-
         condition_since = datetime.datetime.fromisoformat(d.pop("condition_since"))
 
         created_at = datetime.datetime.fromisoformat(d.pop("created_at"))
@@ -203,7 +195,6 @@ class EnvironmentDetail:
             labels = EnvironmentDetailLabels.from_dict(_labels)
 
         environment_detail = cls(
-            access=access,
             condition_since=condition_since,
             created_at=created_at,
             generation=generation,
