@@ -36,6 +36,8 @@ class EnvironmentDetail:
         retention (None | RetentionPolicy):
         retention_condition (EnvironmentDetailRetentionCondition):
         status (EnvironmentStatus):
+        supports_destroy (bool):
+        supports_stop (bool):
         template_revision_id (None | str):
         updated_at (datetime.datetime):
         workspace_id (str):
@@ -54,6 +56,8 @@ class EnvironmentDetail:
     retention: RetentionPolicy | None
     retention_condition: EnvironmentDetailRetentionCondition
     status: EnvironmentStatus
+    supports_destroy: bool
+    supports_stop: bool
     template_revision_id: str | None
     updated_at: datetime.datetime
     workspace_id: str
@@ -90,6 +94,10 @@ class EnvironmentDetail:
 
         status = self.status.value
 
+        supports_destroy = self.supports_destroy
+
+        supports_stop = self.supports_stop
+
         template_revision_id: str | None
         template_revision_id = self.template_revision_id
 
@@ -117,6 +125,8 @@ class EnvironmentDetail:
                 "retention": retention,
                 "retention_condition": retention_condition,
                 "status": status,
+                "supports_destroy": supports_destroy,
+                "supports_stop": supports_stop,
                 "template_revision_id": template_revision_id,
                 "updated_at": updated_at,
                 "workspace_id": workspace_id,
@@ -170,6 +180,10 @@ class EnvironmentDetail:
 
         status = EnvironmentStatus(d.pop("status"))
 
+        supports_destroy = d.pop("supports_destroy")
+
+        supports_stop = d.pop("supports_stop")
+
         def _parse_template_revision_id(data: object) -> str | None:
             if data is None:
                 return data
@@ -201,6 +215,8 @@ class EnvironmentDetail:
             retention=retention,
             retention_condition=retention_condition,
             status=status,
+            supports_destroy=supports_destroy,
+            supports_stop=supports_stop,
             template_revision_id=template_revision_id,
             updated_at=updated_at,
             workspace_id=workspace_id,
