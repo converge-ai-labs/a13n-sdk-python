@@ -19,22 +19,20 @@ T = TypeVar("T", bound="CreateMemoryProviderRequest")
 class CreateMemoryProviderRequest:
     """
     Attributes:
-        credential (CreateMemoryProviderRequestCredential):
         name (str):
         type_ (str):
         configuration (CreateMemoryProviderRequestConfiguration | Unset):
+        credential (CreateMemoryProviderRequestCredential | Unset):
         enabled (bool | Unset):
     """
 
-    credential: CreateMemoryProviderRequestCredential
     name: str
     type_: str
     configuration: CreateMemoryProviderRequestConfiguration | Unset = UNSET
+    credential: CreateMemoryProviderRequestCredential | Unset = UNSET
     enabled: bool | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
-        credential = self.credential.to_dict()
-
         name = self.name
 
         type_ = self.type_
@@ -43,19 +41,24 @@ class CreateMemoryProviderRequest:
         if not isinstance(self.configuration, Unset):
             configuration = self.configuration.to_dict()
 
+        credential: dict[str, Any] | Unset = UNSET
+        if not isinstance(self.credential, Unset):
+            credential = self.credential.to_dict()
+
         enabled = self.enabled
 
         field_dict: dict[str, Any] = {}
 
         field_dict.update(
             {
-                "credential": credential,
                 "name": name,
                 "type": type_,
             }
         )
         if configuration is not UNSET:
             field_dict["configuration"] = configuration
+        if credential is not UNSET:
+            field_dict["credential"] = credential
         if enabled is not UNSET:
             field_dict["enabled"] = enabled
 
@@ -71,8 +74,6 @@ class CreateMemoryProviderRequest:
         )
 
         d = dict(src_dict)
-        credential = CreateMemoryProviderRequestCredential.from_dict(d.pop("credential"))
-
         name = d.pop("name")
 
         type_ = d.pop("type")
@@ -84,13 +85,20 @@ class CreateMemoryProviderRequest:
         else:
             configuration = CreateMemoryProviderRequestConfiguration.from_dict(_configuration)
 
+        _credential = d.pop("credential", UNSET)
+        credential: CreateMemoryProviderRequestCredential | Unset
+        if isinstance(_credential, Unset):
+            credential = UNSET
+        else:
+            credential = CreateMemoryProviderRequestCredential.from_dict(_credential)
+
         enabled = d.pop("enabled", UNSET)
 
         create_memory_provider_request = cls(
-            credential=credential,
             name=name,
             type_=type_,
             configuration=configuration,
+            credential=credential,
             enabled=enabled,
         )
 

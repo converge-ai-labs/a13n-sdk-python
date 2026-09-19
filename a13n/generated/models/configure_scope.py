@@ -16,6 +16,7 @@ class ConfigureScope:
     """
     Attributes:
         external_conversation_id (str):
+        auto_organize (bool | Unset):
         enabled (bool | Unset):
         expected_version (int | None | Unset):
         save_on_request (bool | Unset):
@@ -25,6 +26,7 @@ class ConfigureScope:
     """
 
     external_conversation_id: str
+    auto_organize: bool | Unset = UNSET
     enabled: bool | Unset = UNSET
     expected_version: int | Unset | None = UNSET
     save_on_request: bool | Unset = UNSET
@@ -34,6 +36,8 @@ class ConfigureScope:
 
     def to_dict(self) -> dict[str, Any]:
         external_conversation_id = self.external_conversation_id
+
+        auto_organize = self.auto_organize
 
         enabled = self.enabled
 
@@ -60,6 +64,8 @@ class ConfigureScope:
                 "external_conversation_id": external_conversation_id,
             }
         )
+        if auto_organize is not UNSET:
+            field_dict["auto_organize"] = auto_organize
         if enabled is not UNSET:
             field_dict["enabled"] = enabled
         if expected_version is not UNSET:
@@ -79,6 +85,8 @@ class ConfigureScope:
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
         external_conversation_id = d.pop("external_conversation_id")
+
+        auto_organize = d.pop("auto_organize", UNSET)
 
         enabled = d.pop("enabled", UNSET)
 
@@ -106,6 +114,7 @@ class ConfigureScope:
 
         configure_scope = cls(
             external_conversation_id=external_conversation_id,
+            auto_organize=auto_organize,
             enabled=enabled,
             expected_version=expected_version,
             save_on_request=save_on_request,

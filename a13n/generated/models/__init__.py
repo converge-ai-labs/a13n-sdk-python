@@ -55,6 +55,7 @@ from .agent_run_override_output_toolsets_type_0 import AgentRunOverrideOutputToo
 from .agent_secret_binding import AgentSecretBinding
 from .agent_source import AgentSource
 from .api_key import ApiKey
+from .append import Append
 from .apply_draft_request import ApplyDraftRequest
 from .approve_pending_resolution import ApprovePendingResolution
 from .asset import Asset
@@ -259,11 +260,16 @@ from .document_collection import DocumentCollection
 from .document_entry import DocumentEntry
 from .document_entry_kind import DocumentEntryKind
 from .document_entry_state import DocumentEntryState
+from .document_heading import DocumentHeading
+from .document_input import DocumentInput
 from .document_input_content import DocumentInputContent
+from .document_input_kind import DocumentInputKind
 from .document_kind import DocumentKind
+from .document_navigation import DocumentNavigation
 from .document_state import DocumentState
 from .duplicate_agent_request import DuplicateAgentRequest
 from .duplicate_agent_request_labels import DuplicateAgentRequestLabels
+from .edit import Edit
 from .email_change_request import EmailChangeRequest
 from .environment import Environment
 from .environment_command import EnvironmentCommand
@@ -304,6 +310,7 @@ from .event_connection_status_transport import EventConnectionStatusTransport
 from .existing_environment_selection import ExistingEnvironmentSelection
 from .expected_version import ExpectedVersion
 from .extended_agent_card_policy import ExtendedAgentCardPolicy
+from .file_document_collection import FileDocumentCollection
 from .fork_run_request import ForkRunRequest
 from .fork_run_request_labels import ForkRunRequestLabels
 from .fork_run_request_thread_labels import ForkRunRequestThreadLabels
@@ -334,6 +341,8 @@ from .image_input_content import ImageInputContent
 from .image_test_response import ImageTestResponse
 from .image_test_response_image_source_type_0 import ImageTestResponseImageSourceType0
 from .inline_hook_subscription_input import InlineHookSubscriptionInput
+from .inline_memory_backend import InlineMemoryBackend
+from .inline_memory_backend_configuration import InlineMemoryBackendConfiguration
 from .input_adapter_config import InputAdapterConfig
 from .input_adapter_config_config import InputAdapterConfigConfig
 from .input_batching_policy import InputBatchingPolicy
@@ -363,6 +372,10 @@ from .lifecycle_event_payload import LifecycleEventPayload
 from .lifecycle_projection_state import LifecycleProjectionState
 from .login_request import LoginRequest
 from .login_result import LoginResult
+from .managed_document_mutation import ManagedDocumentMutation
+from .managed_memory_backend import ManagedMemoryBackend
+from .managed_memory_document import ManagedMemoryDocument
+from .managed_memory_document_kind import ManagedMemoryDocumentKind
 from .mcp_server import MCPServer
 from .mcp_server_auth_mode import MCPServerAuthMode
 from .mcp_server_collection import MCPServerCollection
@@ -399,6 +412,9 @@ from .mcpo_auth_setup_request import MCPOAuthSetupRequest
 from .memory import Memory
 from .memory_access import MemoryAccess
 from .memory_collection import MemoryCollection
+from .memory_entries import MemoryEntries
+from .memory_entry_selection import MemoryEntrySelection
+from .memory_entry_selection_mode import MemoryEntrySelectionMode
 from .memory_index import MemoryIndex
 from .memory_pagination import MemoryPagination
 from .memory_provider import MemoryProvider
@@ -461,6 +477,7 @@ from .observation_status_type_0 import ObservationStatusType0
 from .observation_usage_type_0 import ObservationUsageType0
 from .organization import Organization
 from .organization_permissions import OrganizationPermissions
+from .organization_status import OrganizationStatus
 from .output_spec import OutputSpec
 from .output_spec_resources import OutputSpecResources
 from .output_spec_schema_type_0 import OutputSpecSchemaType0
@@ -477,6 +494,7 @@ from .page_service_account import PageServiceAccount
 from .page_user import PageUser
 from .page_workspace import PageWorkspace
 from .password_reset_request import PasswordResetRequest
+from .patch import Patch
 from .path_binary_source import PathBinarySource
 from .pending_action_collection import PendingActionCollection
 from .pending_action_resource import PendingActionResource
@@ -514,6 +532,7 @@ from .register_environment_request_labels import RegisterEnvironmentRequestLabel
 from .reject_pending_resolution import RejectPendingResolution
 from .remove_operation import RemoveOperation
 from .reorder_queued_submissions_request import ReorderQueuedSubmissionsRequest
+from .replace import Replace
 from .replace_account_credentials_request import ReplaceAccountCredentialsRequest
 from .replace_account_credentials_request_credentials import ReplaceAccountCredentialsRequestCredentials
 from .replace_connector_provider_credentials_request import ReplaceConnectorProviderCredentialsRequest
@@ -527,6 +546,7 @@ from .replace_target_request import ReplaceTargetRequest
 from .replace_target_request_provider_policy_type_0 import ReplaceTargetRequestProviderPolicyType0
 from .replace_target_request_target_kind import ReplaceTargetRequestTargetKind
 from .replace_text_operation import ReplaceTextOperation
+from .replacement import Replacement
 from .resolved_agent_model import ResolvedAgentModel
 from .resolved_agent_model_settings import ResolvedAgentModelSettings
 from .resolved_skill_binding import ResolvedSkillBinding
@@ -542,6 +562,7 @@ from .retry_config import RetryConfig
 from .retry_override import RetryOverride
 from .retry_run_request import RetryRunRequest
 from .retry_run_request_labels import RetryRunRequestLabels
+from .revise_document import ReviseDocument
 from .role_binding import RoleBinding
 from .run_acceptance_receipt import RunAcceptanceReceipt
 from .run_agent_input import RunAgentInput
@@ -607,6 +628,8 @@ from .start_run_request_thread_labels import StartRunRequestThreadLabels
 from .steer_receipt import SteerReceipt
 from .steer_status import SteerStatus
 from .steer_status_status import SteerStatusStatus
+from .stored_memory_scope import StoredMemoryScope
+from .stored_scope_collection import StoredScopeCollection
 from .subagent_override_input import SubagentOverrideInput
 from .subagent_override_output import SubagentOverrideOutput
 from .subagent_selection_input import SubagentSelectionInput
@@ -796,6 +819,7 @@ __all__ = (
     "AgentSecretBinding",
     "AgentSource",
     "ApiKey",
+    "Append",
     "ApplyDraftRequest",
     "ApprovePendingResolution",
     "Asset",
@@ -1000,11 +1024,16 @@ __all__ = (
     "DocumentEntry",
     "DocumentEntryKind",
     "DocumentEntryState",
+    "DocumentHeading",
+    "DocumentInput",
     "DocumentInputContent",
+    "DocumentInputKind",
     "DocumentKind",
+    "DocumentNavigation",
     "DocumentState",
     "DuplicateAgentRequest",
     "DuplicateAgentRequestLabels",
+    "Edit",
     "EmailChangeRequest",
     "Environment",
     "EnvironmentCommand",
@@ -1041,6 +1070,7 @@ __all__ = (
     "ExistingEnvironmentSelection",
     "ExpectedVersion",
     "ExtendedAgentCardPolicy",
+    "FileDocumentCollection",
     "ForkRunRequest",
     "ForkRunRequestLabels",
     "ForkRunRequestThreadLabels",
@@ -1069,6 +1099,8 @@ __all__ = (
     "ImageTestResponse",
     "ImageTestResponseImageSourceType0",
     "InlineHookSubscriptionInput",
+    "InlineMemoryBackend",
+    "InlineMemoryBackendConfiguration",
     "InputAdapterConfig",
     "InputAdapterConfigConfig",
     "InputBatchingPolicy",
@@ -1127,9 +1159,16 @@ __all__ = (
     "MCPToolCollection",
     "MCPToolInputSchema",
     "MCPToolOutputSchemaType0",
+    "ManagedDocumentMutation",
+    "ManagedMemoryBackend",
+    "ManagedMemoryDocument",
+    "ManagedMemoryDocumentKind",
     "Memory",
     "MemoryAccess",
     "MemoryCollection",
+    "MemoryEntries",
+    "MemoryEntrySelection",
+    "MemoryEntrySelectionMode",
     "MemoryIndex",
     "MemoryPagination",
     "MemoryProvider",
@@ -1190,6 +1229,7 @@ __all__ = (
     "ObservationUsageType0",
     "Organization",
     "OrganizationPermissions",
+    "OrganizationStatus",
     "OutputSpec",
     "OutputSpecResources",
     "OutputSpecSchemaType0",
@@ -1206,6 +1246,7 @@ __all__ = (
     "PageUser",
     "PageWorkspace",
     "PasswordResetRequest",
+    "Patch",
     "PathBinarySource",
     "PendingActionCollection",
     "PendingActionResource",
@@ -1241,6 +1282,7 @@ __all__ = (
     "RejectPendingResolution",
     "RemoveOperation",
     "ReorderQueuedSubmissionsRequest",
+    "Replace",
     "ReplaceAccountCredentialsRequest",
     "ReplaceAccountCredentialsRequestCredentials",
     "ReplaceConnectorProviderCredentialsRequest",
@@ -1252,6 +1294,7 @@ __all__ = (
     "ReplaceTargetRequestProviderPolicyType0",
     "ReplaceTargetRequestTargetKind",
     "ReplaceTextOperation",
+    "Replacement",
     "ResolvedAgentModel",
     "ResolvedAgentModelSettings",
     "ResolvedSkillBinding",
@@ -1267,6 +1310,7 @@ __all__ = (
     "RetryOverride",
     "RetryRunRequest",
     "RetryRunRequestLabels",
+    "ReviseDocument",
     "RoleBinding",
     "RunAcceptanceReceipt",
     "RunAgentInput",
@@ -1332,6 +1376,8 @@ __all__ = (
     "SteerReceipt",
     "SteerStatus",
     "SteerStatusStatus",
+    "StoredMemoryScope",
+    "StoredScopeCollection",
     "SubagentOverrideInput",
     "SubagentOverrideOutput",
     "SubagentSelectionInput",

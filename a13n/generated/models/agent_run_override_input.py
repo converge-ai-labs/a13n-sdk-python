@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from ..models.agent_run_override_input_toolsets_type_0 import AgentRunOverrideInputToolsetsType0
     from ..models.client_tool_definition import ClientToolDefinition
     from ..models.connection_tool_selection import ConnectionToolSelection
+    from ..models.memory_entries import MemoryEntries
     from ..models.memory_selection import MemorySelection
     from ..models.model_override import ModelOverride
     from ..models.output_spec import OutputSpec
@@ -31,7 +32,7 @@ class AgentRunOverrideInput:
         client_tools (list[ClientToolDefinition] | None | Unset):
         connection_tools (list[ConnectionToolSelection] | None | Unset):
         instructions (None | str | Unset):
-        memory (MemorySelection | None | Unset):
+        memory (MemoryEntries | MemorySelection | None | Unset):
         model (ModelOverride | None | Unset):
         output_spec (None | OutputSpec | Unset):
         plugins (list[PluginSelection] | None | Unset):
@@ -45,7 +46,7 @@ class AgentRunOverrideInput:
     client_tools: list[ClientToolDefinition] | Unset | None = UNSET
     connection_tools: list[ConnectionToolSelection] | Unset | None = UNSET
     instructions: str | Unset | None = UNSET
-    memory: MemorySelection | Unset | None = UNSET
+    memory: MemoryEntries | MemorySelection | Unset | None = UNSET
     model: ModelOverride | Unset | None = UNSET
     output_spec: OutputSpec | Unset | None = UNSET
     plugins: list[PluginSelection] | Unset | None = UNSET
@@ -63,6 +64,7 @@ class AgentRunOverrideInput:
         from ..models.agent_run_override_input_toolsets_type_0 import (
             AgentRunOverrideInputToolsetsType0,
         )
+        from ..models.memory_entries import MemoryEntries
         from ..models.memory_selection import MemorySelection
         from ..models.model_override import ModelOverride
         from ..models.output_spec import OutputSpec
@@ -102,6 +104,8 @@ class AgentRunOverrideInput:
         if isinstance(self.memory, Unset):
             memory = UNSET
         elif isinstance(self.memory, MemorySelection):
+            memory = self.memory.to_dict()
+        elif isinstance(self.memory, MemoryEntries):
             memory = self.memory.to_dict()
         else:
             memory = self.memory
@@ -219,6 +223,7 @@ class AgentRunOverrideInput:
         )
         from ..models.client_tool_definition import ClientToolDefinition
         from ..models.connection_tool_selection import ConnectionToolSelection
+        from ..models.memory_entries import MemoryEntries
         from ..models.memory_selection import MemorySelection
         from ..models.model_override import ModelOverride
         from ..models.output_spec import OutputSpec
@@ -281,7 +286,7 @@ class AgentRunOverrideInput:
 
         instructions = _parse_instructions(d.pop("instructions", UNSET))
 
-        def _parse_memory(data: object) -> MemorySelection | Unset | None:
+        def _parse_memory(data: object) -> MemoryEntries | MemorySelection | Unset | None:
             if data is None:
                 return data
             if isinstance(data, Unset):
@@ -289,12 +294,20 @@ class AgentRunOverrideInput:
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
-                memory_type_0 = MemorySelection.from_dict(data)
+                componentsschemas_memory_configuration_type_0 = MemorySelection.from_dict(data)
 
-                return memory_type_0
+                return componentsschemas_memory_configuration_type_0
             except (TypeError, ValueError, AttributeError, KeyError):
                 pass
-            return cast(MemorySelection | Unset | None, data)
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                componentsschemas_memory_configuration_type_1 = MemoryEntries.from_dict(data)
+
+                return componentsschemas_memory_configuration_type_1
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(MemoryEntries | MemorySelection | Unset | None, data)
 
         memory = _parse_memory(d.pop("memory", UNSET))
 

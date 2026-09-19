@@ -15,18 +15,22 @@ class MemorySettings:
     """
     Attributes:
         provider_id (str):
+        auto_organize (bool | Unset):
         save_on_request (bool | Unset):
         timezone (str | Unset):
         use_memory (bool | Unset):
     """
 
     provider_id: str
+    auto_organize: bool | Unset = UNSET
     save_on_request: bool | Unset = UNSET
     timezone: str | Unset = UNSET
     use_memory: bool | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
         provider_id = self.provider_id
+
+        auto_organize = self.auto_organize
 
         save_on_request = self.save_on_request
 
@@ -41,6 +45,8 @@ class MemorySettings:
                 "provider_id": provider_id,
             }
         )
+        if auto_organize is not UNSET:
+            field_dict["auto_organize"] = auto_organize
         if save_on_request is not UNSET:
             field_dict["save_on_request"] = save_on_request
         if timezone is not UNSET:
@@ -55,6 +61,8 @@ class MemorySettings:
         d = dict(src_dict)
         provider_id = d.pop("provider_id")
 
+        auto_organize = d.pop("auto_organize", UNSET)
+
         save_on_request = d.pop("save_on_request", UNSET)
 
         timezone = d.pop("timezone", UNSET)
@@ -63,6 +71,7 @@ class MemorySettings:
 
         memory_settings = cls(
             provider_id=provider_id,
+            auto_organize=auto_organize,
             save_on_request=save_on_request,
             timezone=timezone,
             use_memory=use_memory,

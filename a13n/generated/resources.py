@@ -273,6 +273,17 @@ from .api.memory import (
     post_workspaces_workspace_memory_providers_provider_id_memories_search,
     put_workspaces_workspace_memory_providers_provider_id_memories_memory_id,
 )
+from .api.memory_documents import (
+    delete_workspaces_workspace_memory_scopes_scope_id_documents_document_id,
+    get_workspaces_workspace_memory_scopes,
+    get_workspaces_workspace_memory_scopes_scope_id_documents,
+    get_workspaces_workspace_memory_scopes_scope_id_documents_document_id,
+    get_workspaces_workspace_memory_scopes_scope_id_documents_document_id_revisions,
+    get_workspaces_workspace_memory_scopes_scope_id_documents_document_id_toc,
+    get_workspaces_workspace_memory_scopes_scope_id_organization,
+    post_workspaces_workspace_memory_scopes_scope_id_documents,
+    put_workspaces_workspace_memory_scopes_scope_id_documents_document_id,
+)
 from .api.memory_providers import (
     get_memory_provider_types,
     get_memory_provider_types_provider_type,
@@ -4578,6 +4589,10 @@ class Workspace(Resource):
         return WorkspacesWorkspaceMemoryProviders(self._client, self._bindings)
 
     @property
+    def memory_scopes(self) -> WorkspacesWorkspaceMemoryScopes:
+        return WorkspacesWorkspaceMemoryScopes(self._client, self._bindings)
+
+    @property
     def model_catalog(self) -> WorkspacesWorkspaceModelCatalog:
         return WorkspacesWorkspaceModelCatalog(self._client, self._bindings)
 
@@ -5850,6 +5865,240 @@ class WorkspacesWorkspaceMemoryProvidersProviderIdReferences(Resource):
     ) -> AsyncIterator[wire.MemoryProviderReference]:
         """Yield ordinary wire values lazily with a filter snapshot and server order."""
         return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
+
+
+class WorkspacesWorkspaceMemoryScopes(Resource):
+    """Bound Native resource: /workspaces / {workspace} / memory-scopes."""
+
+    async def list(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        environment_id: str | Unset | None = UNSET,
+        subject_id: str | Unset | None = UNSET,
+        conversation_scope_id: str | Unset | None = UNSET,
+    ) -> Result[wire.StoredScopeCollection]:
+        """Scopes. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_workspaces_workspace_memory_scopes.asyncio_detailed(
+                client=client,
+                workspace=self._bindings["workspace"],
+                limit=limit,
+                cursor=cursor,
+                environment_id=environment_id,
+                subject_id=subject_id,
+                conversation_scope_id=conversation_scope_id,
+            )
+        )
+
+    def pages(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        environment_id: str | Unset | None = UNSET,
+        subject_id: str | Unset | None = UNSET,
+        conversation_scope_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[Result[wire.StoredScopeCollection]]:
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        return pages(
+            lambda next_cursor: self.list(
+                limit=limit,
+                environment_id=environment_id,
+                subject_id=subject_id,
+                conversation_scope_id=conversation_scope_id,
+                cursor=next_cursor,
+            ),
+            lambda value: value.next_cursor,
+            cursor,
+        )
+
+    def iter(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        environment_id: str | Unset | None = UNSET,
+        subject_id: str | Unset | None = UNSET,
+        conversation_scope_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[wire.StoredMemoryScope]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(
+                limit=limit,
+                cursor=cursor,
+                environment_id=environment_id,
+                subject_id=subject_id,
+                conversation_scope_id=conversation_scope_id,
+            )
+            for item in page.value.items
+        )
+
+    def __call__(self, scope_id: str) -> WorkspacesWorkspaceMemoryScopesScopeId:
+        return WorkspacesWorkspaceMemoryScopesScopeId(self._client, self._bind("scope_id", scope_id))
+
+
+class WorkspacesWorkspaceMemoryScopesScopeId(Resource):
+    """Bound Native resource: /workspaces / {workspace} / memory-scopes / {scope_id}."""
+
+    @property
+    def documents(self) -> WorkspacesWorkspaceMemoryScopesScopeIdDocuments:
+        return WorkspacesWorkspaceMemoryScopesScopeIdDocuments(self._client, self._bindings)
+
+    @property
+    def organization(self) -> WorkspacesWorkspaceMemoryScopesScopeIdOrganization:
+        return WorkspacesWorkspaceMemoryScopesScopeIdOrganization(self._client, self._bindings)
+
+
+class WorkspacesWorkspaceMemoryScopesScopeIdDocuments(Resource):
+    """Bound Native resource: /workspaces / {workspace} / memory-scopes / {scope_id} / documents."""
+
+    async def list(
+        self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
+    ) -> Result[wire.FileDocumentCollection]:
+        """Listing. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_workspaces_workspace_memory_scopes_scope_id_documents.asyncio_detailed(
+                client=client,
+                workspace=self._bindings["workspace"],
+                scope_id=self._bindings["scope_id"],
+                limit=limit,
+                cursor=cursor,
+            )
+        )
+
+    def pages(
+        self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
+    ) -> AsyncIterator[Result[wire.FileDocumentCollection]]:
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        return pages(
+            lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
+        )
+
+    def iter(
+        self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
+    ) -> AsyncIterator[wire.DocumentNavigation]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
+
+    async def create(self, *, body: wire.DocumentInput, idempotency_key: str) -> Result[wire.ManagedDocumentMutation]:
+        """Create. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: post_workspaces_workspace_memory_scopes_scope_id_documents.asyncio_detailed(
+                client=client,
+                workspace=self._bindings["workspace"],
+                scope_id=self._bindings["scope_id"],
+                body=body,
+                idempotency_key=idempotency_key,
+            )
+        )
+
+    def __call__(self, document_id: str) -> WorkspacesWorkspaceMemoryScopesScopeIdDocumentsDocumentId:
+        return WorkspacesWorkspaceMemoryScopesScopeIdDocumentsDocumentId(
+            self._client, self._bind("document_id", document_id)
+        )
+
+
+class WorkspacesWorkspaceMemoryScopesScopeIdDocumentsDocumentId(Resource):
+    """Bound Native resource: /workspaces / {workspace} / memory-scopes / {scope_id} / documents / {document_id}."""
+
+    async def delete(self) -> Result[None]:
+        """Remove. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: delete_workspaces_workspace_memory_scopes_scope_id_documents_document_id.asyncio_detailed(
+                client=client,
+                workspace=self._bindings["workspace"],
+                scope_id=self._bindings["scope_id"],
+                document_id=self._bindings["document_id"],
+            )
+        )
+
+    async def get(self, *, version: int | Unset | None = UNSET) -> Result[wire.ManagedMemoryDocument]:
+        """Read. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_workspaces_workspace_memory_scopes_scope_id_documents_document_id.asyncio_detailed(
+                client=client,
+                workspace=self._bindings["workspace"],
+                scope_id=self._bindings["scope_id"],
+                document_id=self._bindings["document_id"],
+                version=version,
+            )
+        )
+
+    async def replace(
+        self, *, body: wire.ReviseDocument, idempotency_key: str, if_match: str
+    ) -> Result[wire.ManagedDocumentMutation]:
+        """Revise. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: put_workspaces_workspace_memory_scopes_scope_id_documents_document_id.asyncio_detailed(
+                client=client,
+                workspace=self._bindings["workspace"],
+                scope_id=self._bindings["scope_id"],
+                document_id=self._bindings["document_id"],
+                body=body,
+                idempotency_key=idempotency_key,
+                if_match=if_match,
+            )
+        )
+
+    @property
+    def revisions(self) -> WorkspacesWorkspaceMemoryScopesScopeIdDocumentsDocumentIdRevisions:
+        return WorkspacesWorkspaceMemoryScopesScopeIdDocumentsDocumentIdRevisions(self._client, self._bindings)
+
+    @property
+    def toc(self) -> WorkspacesWorkspaceMemoryScopesScopeIdDocumentsDocumentIdToc:
+        return WorkspacesWorkspaceMemoryScopesScopeIdDocumentsDocumentIdToc(self._client, self._bindings)
+
+
+class WorkspacesWorkspaceMemoryScopesScopeIdDocumentsDocumentIdRevisions(Resource):
+    """Bound Native resource: /workspaces / {workspace} / memory-scopes / {scope_id} / documents / {document_id} / revisions."""
+
+    async def get(
+        self, *, before_version: int | Unset | None = UNSET, limit: int | Unset = UNSET
+    ) -> Result[list[wire.ManagedMemoryDocument]]:
+        """History. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: (
+                get_workspaces_workspace_memory_scopes_scope_id_documents_document_id_revisions.asyncio_detailed(
+                    client=client,
+                    workspace=self._bindings["workspace"],
+                    scope_id=self._bindings["scope_id"],
+                    document_id=self._bindings["document_id"],
+                    before_version=before_version,
+                    limit=limit,
+                )
+            )
+        )
+
+
+class WorkspacesWorkspaceMemoryScopesScopeIdDocumentsDocumentIdToc(Resource):
+    """Bound Native resource: /workspaces / {workspace} / memory-scopes / {scope_id} / documents / {document_id} / toc."""
+
+    async def get(self, *, version: int | Unset | None = UNSET) -> Result[list[wire.DocumentHeading]]:
+        """Toc. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_workspaces_workspace_memory_scopes_scope_id_documents_document_id_toc.asyncio_detailed(
+                client=client,
+                workspace=self._bindings["workspace"],
+                scope_id=self._bindings["scope_id"],
+                document_id=self._bindings["document_id"],
+                version=version,
+            )
+        )
+
+
+class WorkspacesWorkspaceMemoryScopesScopeIdOrganization(Resource):
+    """Bound Native resource: /workspaces / {workspace} / memory-scopes / {scope_id} / organization."""
+
+    async def get(self) -> Result[list[wire.OrganizationStatus]]:
+        """Organization Status. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_workspaces_workspace_memory_scopes_scope_id_organization.asyncio_detailed(
+                client=client, workspace=self._bindings["workspace"], scope_id=self._bindings["scope_id"]
+            )
+        )
 
 
 class WorkspacesWorkspaceModelCatalog(Resource):

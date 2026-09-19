@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any, TypeVar
+from typing import Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 
@@ -23,6 +23,8 @@ class Scope:
         name (str):
         provider_id (str):
         version (int):
+        auto_organize (bool | Unset):
+        backend_type (None | str | Unset):
         enabled (bool | Unset):
         save_on_request (bool | Unset):
         timezone (str | Unset):
@@ -37,6 +39,8 @@ class Scope:
     name: str
     provider_id: str
     version: int
+    auto_organize: bool | Unset = UNSET
+    backend_type: str | Unset | None = UNSET
     enabled: bool | Unset = UNSET
     save_on_request: bool | Unset = UNSET
     timezone: str | Unset = UNSET
@@ -57,6 +61,14 @@ class Scope:
         provider_id = self.provider_id
 
         version = self.version
+
+        auto_organize = self.auto_organize
+
+        backend_type: str | Unset | None
+        if isinstance(self.backend_type, Unset):
+            backend_type = UNSET
+        else:
+            backend_type = self.backend_type
 
         enabled = self.enabled
 
@@ -83,6 +95,10 @@ class Scope:
                 "version": version,
             }
         )
+        if auto_organize is not UNSET:
+            field_dict["auto_organize"] = auto_organize
+        if backend_type is not UNSET:
+            field_dict["backend_type"] = backend_type
         if enabled is not UNSET:
             field_dict["enabled"] = enabled
         if save_on_request is not UNSET:
@@ -113,6 +129,17 @@ class Scope:
 
         version = d.pop("version")
 
+        auto_organize = d.pop("auto_organize", UNSET)
+
+        def _parse_backend_type(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        backend_type = _parse_backend_type(d.pop("backend_type", UNSET))
+
         enabled = d.pop("enabled", UNSET)
 
         save_on_request = d.pop("save_on_request", UNSET)
@@ -136,6 +163,8 @@ class Scope:
             name=name,
             provider_id=provider_id,
             version=version,
+            auto_organize=auto_organize,
+            backend_type=backend_type,
             enabled=enabled,
             save_on_request=save_on_request,
             timezone=timezone,
