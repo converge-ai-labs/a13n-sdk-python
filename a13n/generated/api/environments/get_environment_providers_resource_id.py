@@ -5,7 +5,7 @@ from urllib.parse import quote
 import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
-from ...models.environment_provider import EnvironmentProvider
+from ...models.environment_provider_account import EnvironmentProviderAccount
 from ...models.error_response import ErrorResponse
 from ...types import Response
 
@@ -26,9 +26,9 @@ def build_request(
 
 def _parse_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> EnvironmentProvider | ErrorResponse:
+) -> EnvironmentProviderAccount | ErrorResponse:
     if response.status_code == 200:
-        response_200 = EnvironmentProvider.from_dict(response.json())
+        response_200 = EnvironmentProviderAccount.from_dict(response.json())
 
         return response_200
 
@@ -44,7 +44,7 @@ def _parse_response(
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[EnvironmentProvider | ErrorResponse]:
+) -> Response[EnvironmentProviderAccount | ErrorResponse]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -57,7 +57,7 @@ def sync_detailed(
     resource_id: str,
     *,
     client: AuthenticatedClient,
-) -> Response[EnvironmentProvider | ErrorResponse]:
+) -> Response[EnvironmentProviderAccount | ErrorResponse]:
     """Get Provider
 
     Args:
@@ -68,7 +68,7 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[EnvironmentProvider | ErrorResponse]
+        Response[EnvironmentProviderAccount | ErrorResponse]
     """
 
     kwargs = build_request(
@@ -86,7 +86,7 @@ def sync(
     resource_id: str,
     *,
     client: AuthenticatedClient,
-) -> EnvironmentProvider | ErrorResponse | None:
+) -> EnvironmentProviderAccount | ErrorResponse | None:
     """Get Provider
 
     Args:
@@ -97,7 +97,7 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        EnvironmentProvider | ErrorResponse
+        EnvironmentProviderAccount | ErrorResponse
     """
 
     return sync_detailed(
@@ -110,7 +110,7 @@ async def asyncio_detailed(
     resource_id: str,
     *,
     client: AuthenticatedClient,
-) -> Response[EnvironmentProvider | ErrorResponse]:
+) -> Response[EnvironmentProviderAccount | ErrorResponse]:
     """Get Provider
 
     Args:
@@ -121,7 +121,7 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[EnvironmentProvider | ErrorResponse]
+        Response[EnvironmentProviderAccount | ErrorResponse]
     """
 
     kwargs = build_request(
@@ -137,7 +137,7 @@ async def asyncio(
     resource_id: str,
     *,
     client: AuthenticatedClient,
-) -> EnvironmentProvider | ErrorResponse | None:
+) -> EnvironmentProviderAccount | ErrorResponse | None:
     """Get Provider
 
     Args:
@@ -148,7 +148,7 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        EnvironmentProvider | ErrorResponse
+        EnvironmentProviderAccount | ErrorResponse
     """
 
     return (

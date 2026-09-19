@@ -22,7 +22,6 @@ class RegisterEnvironmentRequest:
     Attributes:
         configuration (RegisterEnvironmentRequestConfiguration):
         provider_id (str):
-        configuration_schema_version (str | Unset):
         device_id (None | str | Unset):
         labels (RegisterEnvironmentRequestLabels | Unset):
         name (None | str | Unset):
@@ -31,7 +30,6 @@ class RegisterEnvironmentRequest:
 
     configuration: RegisterEnvironmentRequestConfiguration
     provider_id: str
-    configuration_schema_version: str | Unset = UNSET
     device_id: str | Unset | None = UNSET
     labels: RegisterEnvironmentRequestLabels | Unset = UNSET
     name: str | Unset | None = UNSET
@@ -43,8 +41,6 @@ class RegisterEnvironmentRequest:
         configuration = self.configuration.to_dict()
 
         provider_id = self.provider_id
-
-        configuration_schema_version = self.configuration_schema_version
 
         device_id: str | Unset | None
         if isinstance(self.device_id, Unset):
@@ -78,8 +74,6 @@ class RegisterEnvironmentRequest:
                 "provider_id": provider_id,
             }
         )
-        if configuration_schema_version is not UNSET:
-            field_dict["configuration_schema_version"] = configuration_schema_version
         if device_id is not UNSET:
             field_dict["device_id"] = device_id
         if labels is not UNSET:
@@ -103,8 +97,6 @@ class RegisterEnvironmentRequest:
         configuration = RegisterEnvironmentRequestConfiguration.from_dict(d.pop("configuration"))
 
         provider_id = d.pop("provider_id")
-
-        configuration_schema_version = d.pop("configuration_schema_version", UNSET)
 
         def _parse_device_id(data: object) -> str | Unset | None:
             if data is None:
@@ -151,7 +143,6 @@ class RegisterEnvironmentRequest:
         register_environment_request = cls(
             configuration=configuration,
             provider_id=provider_id,
-            configuration_schema_version=configuration_schema_version,
             device_id=device_id,
             labels=labels,
             name=name,

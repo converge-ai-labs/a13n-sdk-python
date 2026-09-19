@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 
@@ -9,7 +9,7 @@ from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.create_memory_provider_request_configuration import CreateMemoryProviderRequestConfiguration
-    from ..models.create_memory_provider_request_credential import CreateMemoryProviderRequestCredential
+    from ..models.create_memory_provider_request_credential_type_0 import CreateMemoryProviderRequestCredentialType0
 
 
 T = TypeVar("T", bound="CreateMemoryProviderRequest")
@@ -22,17 +22,19 @@ class CreateMemoryProviderRequest:
         name (str):
         type_ (str):
         configuration (CreateMemoryProviderRequestConfiguration | Unset):
-        credential (CreateMemoryProviderRequestCredential | Unset):
+        credential (CreateMemoryProviderRequestCredentialType0 | None | Unset):
         enabled (bool | Unset):
     """
 
     name: str
     type_: str
     configuration: CreateMemoryProviderRequestConfiguration | Unset = UNSET
-    credential: CreateMemoryProviderRequestCredential | Unset = UNSET
+    credential: CreateMemoryProviderRequestCredentialType0 | Unset | None = UNSET
     enabled: bool | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.create_memory_provider_request_credential_type_0 import CreateMemoryProviderRequestCredentialType0
+
         name = self.name
 
         type_ = self.type_
@@ -41,9 +43,13 @@ class CreateMemoryProviderRequest:
         if not isinstance(self.configuration, Unset):
             configuration = self.configuration.to_dict()
 
-        credential: dict[str, Any] | Unset = UNSET
-        if not isinstance(self.credential, Unset):
+        credential: dict[str, Any] | Unset | None
+        if isinstance(self.credential, Unset):
+            credential = UNSET
+        elif isinstance(self.credential, CreateMemoryProviderRequestCredentialType0):
             credential = self.credential.to_dict()
+        else:
+            credential = self.credential
 
         enabled = self.enabled
 
@@ -69,8 +75,8 @@ class CreateMemoryProviderRequest:
         from ..models.create_memory_provider_request_configuration import (
             CreateMemoryProviderRequestConfiguration,
         )
-        from ..models.create_memory_provider_request_credential import (
-            CreateMemoryProviderRequestCredential,
+        from ..models.create_memory_provider_request_credential_type_0 import (
+            CreateMemoryProviderRequestCredentialType0,
         )
 
         d = dict(src_dict)
@@ -85,12 +91,22 @@ class CreateMemoryProviderRequest:
         else:
             configuration = CreateMemoryProviderRequestConfiguration.from_dict(_configuration)
 
-        _credential = d.pop("credential", UNSET)
-        credential: CreateMemoryProviderRequestCredential | Unset
-        if isinstance(_credential, Unset):
-            credential = UNSET
-        else:
-            credential = CreateMemoryProviderRequestCredential.from_dict(_credential)
+        def _parse_credential(data: object) -> CreateMemoryProviderRequestCredentialType0 | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                credential_type_0 = CreateMemoryProviderRequestCredentialType0.from_dict(data)
+
+                return credential_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(CreateMemoryProviderRequestCredentialType0 | Unset | None, data)
+
+        credential = _parse_credential(d.pop("credential", UNSET))
 
         enabled = d.pop("enabled", UNSET)
 

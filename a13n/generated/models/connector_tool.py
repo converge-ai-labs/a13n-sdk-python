@@ -8,9 +8,7 @@ from attrs import define as _attrs_define
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
-    from ..models.connector_tool_annotations import ConnectorToolAnnotations
-    from ..models.connector_tool_input_schema import ConnectorToolInputSchema
-    from ..models.connector_tool_output_schema_type_0 import ConnectorToolOutputSchemaType0
+    from ..models.json_object import JsonObject
 
 
 T = TypeVar("T", bound="ConnectorTool")
@@ -21,22 +19,22 @@ class ConnectorTool:
     """
     Attributes:
         description (str):
-        input_schema (ConnectorToolInputSchema):
+        input_schema (JsonObject):
         key (str):
         provider_version (str):
-        annotations (ConnectorToolAnnotations | Unset):
-        output_schema (ConnectorToolOutputSchemaType0 | None | Unset):
+        annotations (JsonObject | Unset):
+        output_schema (JsonObject | None | Unset):
     """
 
     description: str
-    input_schema: ConnectorToolInputSchema
+    input_schema: JsonObject
     key: str
     provider_version: str
-    annotations: ConnectorToolAnnotations | Unset = UNSET
-    output_schema: ConnectorToolOutputSchemaType0 | Unset | None = UNSET
+    annotations: JsonObject | Unset = UNSET
+    output_schema: JsonObject | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.connector_tool_output_schema_type_0 import ConnectorToolOutputSchemaType0
+        from ..models.json_object import JsonObject
 
         description = self.description
 
@@ -53,7 +51,7 @@ class ConnectorTool:
         output_schema: dict[str, Any] | Unset | None
         if isinstance(self.output_schema, Unset):
             output_schema = UNSET
-        elif isinstance(self.output_schema, ConnectorToolOutputSchemaType0):
+        elif isinstance(self.output_schema, JsonObject):
             output_schema = self.output_schema.to_dict()
         else:
             output_schema = self.output_schema
@@ -77,27 +75,25 @@ class ConnectorTool:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.connector_tool_annotations import ConnectorToolAnnotations
-        from ..models.connector_tool_input_schema import ConnectorToolInputSchema
-        from ..models.connector_tool_output_schema_type_0 import ConnectorToolOutputSchemaType0
+        from ..models.json_object import JsonObject
 
         d = dict(src_dict)
         description = d.pop("description")
 
-        input_schema = ConnectorToolInputSchema.from_dict(d.pop("input_schema"))
+        input_schema = JsonObject.from_dict(d.pop("input_schema"))
 
         key = d.pop("key")
 
         provider_version = d.pop("provider_version")
 
         _annotations = d.pop("annotations", UNSET)
-        annotations: ConnectorToolAnnotations | Unset
+        annotations: JsonObject | Unset
         if isinstance(_annotations, Unset):
             annotations = UNSET
         else:
-            annotations = ConnectorToolAnnotations.from_dict(_annotations)
+            annotations = JsonObject.from_dict(_annotations)
 
-        def _parse_output_schema(data: object) -> ConnectorToolOutputSchemaType0 | Unset | None:
+        def _parse_output_schema(data: object) -> JsonObject | Unset | None:
             if data is None:
                 return data
             if isinstance(data, Unset):
@@ -105,12 +101,12 @@ class ConnectorTool:
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
-                output_schema_type_0 = ConnectorToolOutputSchemaType0.from_dict(data)
+                output_schema_type_0 = JsonObject.from_dict(data)
 
                 return output_schema_type_0
             except (TypeError, ValueError, AttributeError, KeyError):
                 pass
-            return cast(ConnectorToolOutputSchemaType0 | Unset | None, data)
+            return cast(JsonObject | Unset | None, data)
 
         output_schema = _parse_output_schema(d.pop("output_schema", UNSET))
 

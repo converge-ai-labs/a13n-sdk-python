@@ -9,6 +9,7 @@ from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.create_model_provider_request_configuration import CreateModelProviderRequestConfiguration
+    from ..models.create_model_provider_request_credential_type_0 import CreateModelProviderRequestCredentialType0
     from ..models.create_model_provider_request_extra_headers import CreateModelProviderRequestExtraHeaders
 
 
@@ -22,7 +23,7 @@ class CreateModelProviderRequest:
         name (str):
         type_ (str):
         configuration (CreateModelProviderRequestConfiguration | Unset):
-        credential (None | str | Unset):
+        credential (CreateModelProviderRequestCredentialType0 | None | Unset):
         enabled (bool | Unset):
         extra_headers (CreateModelProviderRequestExtraHeaders | Unset):
     """
@@ -30,11 +31,13 @@ class CreateModelProviderRequest:
     name: str
     type_: str
     configuration: CreateModelProviderRequestConfiguration | Unset = UNSET
-    credential: str | Unset | None = UNSET
+    credential: CreateModelProviderRequestCredentialType0 | Unset | None = UNSET
     enabled: bool | Unset = UNSET
     extra_headers: CreateModelProviderRequestExtraHeaders | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.create_model_provider_request_credential_type_0 import CreateModelProviderRequestCredentialType0
+
         name = self.name
 
         type_ = self.type_
@@ -43,9 +46,11 @@ class CreateModelProviderRequest:
         if not isinstance(self.configuration, Unset):
             configuration = self.configuration.to_dict()
 
-        credential: str | Unset | None
+        credential: dict[str, Any] | Unset | None
         if isinstance(self.credential, Unset):
             credential = UNSET
+        elif isinstance(self.credential, CreateModelProviderRequestCredentialType0):
+            credential = self.credential.to_dict()
         else:
             credential = self.credential
 
@@ -79,6 +84,9 @@ class CreateModelProviderRequest:
         from ..models.create_model_provider_request_configuration import (
             CreateModelProviderRequestConfiguration,
         )
+        from ..models.create_model_provider_request_credential_type_0 import (
+            CreateModelProviderRequestCredentialType0,
+        )
         from ..models.create_model_provider_request_extra_headers import (
             CreateModelProviderRequestExtraHeaders,
         )
@@ -95,12 +103,20 @@ class CreateModelProviderRequest:
         else:
             configuration = CreateModelProviderRequestConfiguration.from_dict(_configuration)
 
-        def _parse_credential(data: object) -> str | Unset | None:
+        def _parse_credential(data: object) -> CreateModelProviderRequestCredentialType0 | Unset | None:
             if data is None:
                 return data
             if isinstance(data, Unset):
                 return data
-            return cast(str | Unset | None, data)
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                credential_type_0 = CreateModelProviderRequestCredentialType0.from_dict(data)
+
+                return credential_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(CreateModelProviderRequestCredentialType0 | Unset | None, data)
 
         credential = _parse_credential(d.pop("credential", UNSET))
 

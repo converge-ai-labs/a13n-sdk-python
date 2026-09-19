@@ -30,7 +30,6 @@ class EnvironmentTemplateRevision:
         template_id (str):
         version (int):
         workspace_id (None | str):
-        configuration_schema_version (str | Unset):
         preparation (EnvironmentTemplateRevisionPreparation | Unset):
     """
 
@@ -43,7 +42,6 @@ class EnvironmentTemplateRevision:
     template_id: str
     version: int
     workspace_id: str | None
-    configuration_schema_version: str | Unset = UNSET
     preparation: EnvironmentTemplateRevisionPreparation | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
@@ -66,8 +64,6 @@ class EnvironmentTemplateRevision:
         workspace_id: str | None
         workspace_id = self.workspace_id
 
-        configuration_schema_version = self.configuration_schema_version
-
         preparation: str | Unset = UNSET
         if not isinstance(self.preparation, Unset):
             preparation = self.preparation.value
@@ -87,8 +83,6 @@ class EnvironmentTemplateRevision:
                 "workspace_id": workspace_id,
             }
         )
-        if configuration_schema_version is not UNSET:
-            field_dict["configuration_schema_version"] = configuration_schema_version
         if preparation is not UNSET:
             field_dict["preparation"] = preparation
 
@@ -125,8 +119,6 @@ class EnvironmentTemplateRevision:
 
         workspace_id = _parse_workspace_id(d.pop("workspace_id"))
 
-        configuration_schema_version = d.pop("configuration_schema_version", UNSET)
-
         _preparation = d.pop("preparation", UNSET)
         preparation: EnvironmentTemplateRevisionPreparation | Unset
         if isinstance(_preparation, Unset):
@@ -144,7 +136,6 @@ class EnvironmentTemplateRevision:
             template_id=template_id,
             version=version,
             workspace_id=workspace_id,
-            configuration_schema_version=configuration_schema_version,
             preparation=preparation,
         )
 

@@ -69,6 +69,8 @@ from .assistant_readiness_setup_actions_item import AssistantReadinessSetupActio
 from .audio_input_content import AudioInputContent
 from .auth_configuration import AuthConfiguration
 from .auth_session import AuthSession
+from .authentication import Authentication
+from .authentication_case import AuthenticationCase
 from .authorization import Authorization
 from .authorization_action import AuthorizationAction
 from .authorization_action_type import AuthorizationActionType
@@ -112,8 +114,7 @@ from .client_tool_definition_parameters_json_schema import ClientToolDefinitionP
 from .client_tool_definition_permission import ClientToolDefinitionPermission
 from .client_tool_policy import ClientToolPolicy
 from .collection_environment import CollectionEnvironment
-from .collection_environment_provider import CollectionEnvironmentProvider
-from .collection_environment_provider_definition import CollectionEnvironmentProviderDefinition
+from .collection_environment_provider_account import CollectionEnvironmentProviderAccount
 from .collection_environment_template import CollectionEnvironmentTemplate
 from .collection_environment_template_revision import CollectionEnvironmentTemplateRevision
 from .collection_run_environment_mount import CollectionRunEnvironmentMount
@@ -165,19 +166,15 @@ from .connector_provider import ConnectorProvider
 from .connector_provider_collection import ConnectorProviderCollection
 from .connector_provider_command_request import ConnectorProviderCommandRequest
 from .connector_provider_configuration import ConnectorProviderConfiguration
-from .connector_provider_definition import ConnectorProviderDefinition
-from .connector_provider_definition_collection import ConnectorProviderDefinitionCollection
-from .connector_provider_definition_configuration_schema import ConnectorProviderDefinitionConfigurationSchema
-from .connector_provider_definition_credential_schema import ConnectorProviderDefinitionCredentialSchema
+from .connector_provider_metadata import ConnectorProviderMetadata
+from .connector_provider_metadata_configuration_schema import ConnectorProviderMetadataConfigurationSchema
+from .connector_provider_metadata_credential_schema_type_0 import ConnectorProviderMetadataCredentialSchemaType0
 from .connector_provider_status import ConnectorProviderStatus
 from .connector_provider_test_result import ConnectorProviderTestResult
 from .connector_provider_test_result_verified_access_item import ConnectorProviderTestResultVerifiedAccessItem
 from .connector_setup_schema import ConnectorSetupSchema
 from .connector_source import ConnectorSource
 from .connector_tool import ConnectorTool
-from .connector_tool_annotations import ConnectorToolAnnotations
-from .connector_tool_input_schema import ConnectorToolInputSchema
-from .connector_tool_output_schema_type_0 import ConnectorToolOutputSchemaType0
 from .connector_tool_page import ConnectorToolPage
 from .consume_queued_submission_request import ConsumeQueuedSubmissionRequest
 from .content import Content
@@ -204,7 +201,7 @@ from .create_configuration_thread_request import CreateConfigurationThreadReques
 from .create_connection_request import CreateConnectionRequest
 from .create_connector_provider_request import CreateConnectorProviderRequest
 from .create_connector_provider_request_configuration import CreateConnectorProviderRequestConfiguration
-from .create_connector_provider_request_credentials import CreateConnectorProviderRequestCredentials
+from .create_connector_provider_request_credentials_type_0 import CreateConnectorProviderRequestCredentialsType0
 from .create_document import CreateDocument
 from .create_document_kind import CreateDocumentKind
 from .create_hook_subscription_request import CreateHookSubscriptionRequest
@@ -214,9 +211,10 @@ from .create_managed_environment_request import CreateManagedEnvironmentRequest
 from .create_managed_environment_request_labels import CreateManagedEnvironmentRequestLabels
 from .create_memory_provider_request import CreateMemoryProviderRequest
 from .create_memory_provider_request_configuration import CreateMemoryProviderRequestConfiguration
-from .create_memory_provider_request_credential import CreateMemoryProviderRequestCredential
+from .create_memory_provider_request_credential_type_0 import CreateMemoryProviderRequestCredentialType0
 from .create_model_provider_request import CreateModelProviderRequest
 from .create_model_provider_request_configuration import CreateModelProviderRequestConfiguration
+from .create_model_provider_request_credential_type_0 import CreateModelProviderRequestCredentialType0
 from .create_model_provider_request_extra_headers import CreateModelProviderRequestExtraHeaders
 from .create_model_request import CreateModelRequest
 from .create_model_request_settings import CreateModelRequestSettings
@@ -246,6 +244,7 @@ from .create_workspace_request import CreateWorkspaceRequest
 from .created_key import CreatedKey
 from .creation_metadata import CreationMetadata
 from .credential_context import CredentialContext
+from .credential_mode import CredentialMode
 from .delegation_context_policy import DelegationContextPolicy
 from .delegation_context_policy_history import DelegationContextPolicyHistory
 from .delegation_context_policy_task_state import DelegationContextPolicyTaskState
@@ -285,17 +284,14 @@ from .environment_detail_ownership import EnvironmentDetailOwnership
 from .environment_detail_retention_condition import EnvironmentDetailRetentionCondition
 from .environment_labels import EnvironmentLabels
 from .environment_ownership import EnvironmentOwnership
-from .environment_provider import EnvironmentProvider
-from .environment_provider_configuration import EnvironmentProviderConfiguration
-from .environment_provider_configuration_source import EnvironmentProviderConfigurationSource
-from .environment_provider_definition import EnvironmentProviderDefinition
-from .environment_provider_definition_configuration_schema import EnvironmentProviderDefinitionConfigurationSchema
-from .environment_provider_definition_credential_schema_type_0 import EnvironmentProviderDefinitionCredentialSchemaType0
-from .environment_provider_definition_template_configuration_schemas import (
-    EnvironmentProviderDefinitionTemplateConfigurationSchemas,
-)
-from .environment_provider_definition_template_configuration_schemas_additional_property import (
-    EnvironmentProviderDefinitionTemplateConfigurationSchemasAdditionalProperty,
+from .environment_provider_account import EnvironmentProviderAccount
+from .environment_provider_account_configuration import EnvironmentProviderAccountConfiguration
+from .environment_provider_account_configuration_source import EnvironmentProviderAccountConfigurationSource
+from .environment_provider_metadata import EnvironmentProviderMetadata
+from .environment_provider_metadata_configuration_schema import EnvironmentProviderMetadataConfigurationSchema
+from .environment_provider_metadata_credential_schema_type_0 import EnvironmentProviderMetadataCredentialSchemaType0
+from .environment_provider_metadata_template_configuration_schema import (
+    EnvironmentProviderMetadataTemplateConfigurationSchema,
 )
 from .environment_retention_condition import EnvironmentRetentionCondition
 from .environment_state import EnvironmentState
@@ -366,6 +362,7 @@ from .invite_workspace_request_role import InviteWorkspaceRequestRole
 from .invoking_user_secret_credential import InvokingUserSecretCredential
 from .item_collection import ItemCollection
 from .item_resource import ItemResource
+from .json_object import JsonObject
 from .labels_body import LabelsBody
 from .labels_body_labels import LabelsBodyLabels
 from .lark_reply_receipt import LarkReplyReceipt
@@ -424,10 +421,9 @@ from .memory_pagination import MemoryPagination
 from .memory_provider import MemoryProvider
 from .memory_provider_collection import MemoryProviderCollection
 from .memory_provider_configuration import MemoryProviderConfiguration
-from .memory_provider_definition import MemoryProviderDefinition
-from .memory_provider_definition_collection import MemoryProviderDefinitionCollection
-from .memory_provider_definition_configuration_schema import MemoryProviderDefinitionConfigurationSchema
-from .memory_provider_definition_credential_schema import MemoryProviderDefinitionCredentialSchema
+from .memory_provider_metadata import MemoryProviderMetadata
+from .memory_provider_metadata_configuration_schema import MemoryProviderMetadataConfigurationSchema
+from .memory_provider_metadata_credential_schema_type_0 import MemoryProviderMetadataCredentialSchemaType0
 from .memory_provider_reference import MemoryProviderReference
 from .memory_provider_reference_collection import MemoryProviderReferenceCollection
 from .memory_scope import MemoryScope
@@ -452,14 +448,13 @@ from .model_override_settings_type_0 import ModelOverrideSettingsType0
 from .model_provider import ModelProvider
 from .model_provider_collection import ModelProviderCollection
 from .model_provider_configuration import ModelProviderConfiguration
-from .model_provider_definition import ModelProviderDefinition
-from .model_provider_definition_collection import ModelProviderDefinitionCollection
-from .model_provider_definition_configuration_schema import ModelProviderDefinitionConfigurationSchema
-from .model_provider_definition_credential_schema import ModelProviderDefinitionCredentialSchema
-from .model_provider_definition_model_api_labels import ModelProviderDefinitionModelApiLabels
-from .model_provider_definition_settings_schemas import ModelProviderDefinitionSettingsSchemas
-from .model_provider_definition_settings_schemas_additional_property import (
-    ModelProviderDefinitionSettingsSchemasAdditionalProperty,
+from .model_provider_metadata import ModelProviderMetadata
+from .model_provider_metadata_configuration_schema import ModelProviderMetadataConfigurationSchema
+from .model_provider_metadata_credential_schema_type_0 import ModelProviderMetadataCredentialSchemaType0
+from .model_provider_metadata_model_api_labels import ModelProviderMetadataModelApiLabels
+from .model_provider_metadata_settings_schemas import ModelProviderMetadataSettingsSchemas
+from .model_provider_metadata_settings_schemas_additional_property import (
+    ModelProviderMetadataSettingsSchemasAdditionalProperty,
 )
 from .model_settings import ModelSettings
 from .model_test_request import ModelTestRequest
@@ -519,6 +514,15 @@ from .protocol_config_state_schema_type_0 import ProtocolConfigStateSchemaType0
 from .protocol_limits import ProtocolLimits
 from .provider_connectivity import ProviderConnectivity
 from .provider_connectivity_status import ProviderConnectivityStatus
+from .provider_metadata_collection_connector_provider_metadata import (
+    ProviderMetadataCollectionConnectorProviderMetadata,
+)
+from .provider_metadata_collection_environment_provider_metadata import (
+    ProviderMetadataCollectionEnvironmentProviderMetadata,
+)
+from .provider_metadata_collection_memory_provider_metadata import ProviderMetadataCollectionMemoryProviderMetadata
+from .provider_metadata_collection_model_provider_metadata import ProviderMetadataCollectionModelProviderMetadata
+from .provider_metadata_collection_web_provider_metadata import ProviderMetadataCollectionWebProviderMetadata
 from .queued_submission import QueuedSubmission
 from .queued_submission_collection import QueuedSubmissionCollection
 from .queued_submission_consumption_receipt import QueuedSubmissionConsumptionReceipt
@@ -540,8 +544,8 @@ from .replace import Replace
 from .replace_account_credentials_request import ReplaceAccountCredentialsRequest
 from .replace_account_credentials_request_credentials import ReplaceAccountCredentialsRequestCredentials
 from .replace_connector_provider_credentials_request import ReplaceConnectorProviderCredentialsRequest
-from .replace_connector_provider_credentials_request_credentials import (
-    ReplaceConnectorProviderCredentialsRequestCredentials,
+from .replace_connector_provider_credentials_request_credentials_type_0 import (
+    ReplaceConnectorProviderCredentialsRequestCredentialsType0,
 )
 from .replace_credential_request import ReplaceCredentialRequest
 from .replace_credential_request_credential_type_0 import ReplaceCredentialRequestCredentialType0
@@ -719,6 +723,7 @@ from .update_memory_provider_request import UpdateMemoryProviderRequest
 from .update_memory_provider_request_credential_type_0 import UpdateMemoryProviderRequestCredentialType0
 from .update_model_provider_request import UpdateModelProviderRequest
 from .update_model_provider_request_configuration_type_0 import UpdateModelProviderRequestConfigurationType0
+from .update_model_provider_request_credential_type_0 import UpdateModelProviderRequestCredentialType0
 from .update_model_provider_request_extra_headers import UpdateModelProviderRequestExtraHeaders
 from .update_model_request import UpdateModelRequest
 from .update_model_request_settings_type_0 import UpdateModelRequestSettingsType0
@@ -752,11 +757,10 @@ from .waiting_run_feedback_request_labels import WaitingRunFeedbackRequestLabels
 from .web_provider import WebProvider
 from .web_provider_collection import WebProviderCollection
 from .web_provider_configuration import WebProviderConfiguration
-from .web_provider_definition import WebProviderDefinition
-from .web_provider_definition_collection import WebProviderDefinitionCollection
-from .web_provider_definition_configuration_schema import WebProviderDefinitionConfigurationSchema
-from .web_provider_definition_credential_schema import WebProviderDefinitionCredentialSchema
-from .web_provider_definition_operations_item import WebProviderDefinitionOperationsItem
+from .web_provider_metadata import WebProviderMetadata
+from .web_provider_metadata_configuration_schema import WebProviderMetadataConfigurationSchema
+from .web_provider_metadata_credential_schema_type_0 import WebProviderMetadataCredentialSchemaType0
+from .web_provider_metadata_operations_item import WebProviderMetadataOperationsItem
 from .web_provider_reference import WebProviderReference
 from .web_provider_reference_collection import WebProviderReferenceCollection
 from .web_provider_test_result import WebProviderTestResult
@@ -837,6 +841,8 @@ __all__ = (
     "AudioInputContent",
     "AuthConfiguration",
     "AuthSession",
+    "Authentication",
+    "AuthenticationCase",
     "Authorization",
     "AuthorizationAction",
     "AuthorizationActionType",
@@ -880,8 +886,7 @@ __all__ = (
     "ClientToolDefinitionPermission",
     "ClientToolPolicy",
     "CollectionEnvironment",
-    "CollectionEnvironmentProvider",
-    "CollectionEnvironmentProviderDefinition",
+    "CollectionEnvironmentProviderAccount",
     "CollectionEnvironmentTemplate",
     "CollectionEnvironmentTemplateRevision",
     "CollectionRunEnvironmentMount",
@@ -933,19 +938,15 @@ __all__ = (
     "ConnectorProviderCollection",
     "ConnectorProviderCommandRequest",
     "ConnectorProviderConfiguration",
-    "ConnectorProviderDefinition",
-    "ConnectorProviderDefinitionCollection",
-    "ConnectorProviderDefinitionConfigurationSchema",
-    "ConnectorProviderDefinitionCredentialSchema",
+    "ConnectorProviderMetadata",
+    "ConnectorProviderMetadataConfigurationSchema",
+    "ConnectorProviderMetadataCredentialSchemaType0",
     "ConnectorProviderStatus",
     "ConnectorProviderTestResult",
     "ConnectorProviderTestResultVerifiedAccessItem",
     "ConnectorSetupSchema",
     "ConnectorSource",
     "ConnectorTool",
-    "ConnectorToolAnnotations",
-    "ConnectorToolInputSchema",
-    "ConnectorToolOutputSchemaType0",
     "ConnectorToolPage",
     "ConsumeQueuedSubmissionRequest",
     "Content",
@@ -972,7 +973,7 @@ __all__ = (
     "CreateConnectionRequest",
     "CreateConnectorProviderRequest",
     "CreateConnectorProviderRequestConfiguration",
-    "CreateConnectorProviderRequestCredentials",
+    "CreateConnectorProviderRequestCredentialsType0",
     "CreateDocument",
     "CreateDocumentKind",
     "CreateHookSubscriptionRequest",
@@ -982,9 +983,10 @@ __all__ = (
     "CreateManagedEnvironmentRequestLabels",
     "CreateMemoryProviderRequest",
     "CreateMemoryProviderRequestConfiguration",
-    "CreateMemoryProviderRequestCredential",
+    "CreateMemoryProviderRequestCredentialType0",
     "CreateModelProviderRequest",
     "CreateModelProviderRequestConfiguration",
+    "CreateModelProviderRequestCredentialType0",
     "CreateModelProviderRequestExtraHeaders",
     "CreateModelRequest",
     "CreateModelRequestSettings",
@@ -1014,6 +1016,7 @@ __all__ = (
     "CreatedKey",
     "CreationMetadata",
     "CredentialContext",
+    "CredentialMode",
     "DelegationContextPolicy",
     "DelegationContextPolicyHistory",
     "DelegationContextPolicyTaskState",
@@ -1053,14 +1056,13 @@ __all__ = (
     "EnvironmentDetailRetentionCondition",
     "EnvironmentLabels",
     "EnvironmentOwnership",
-    "EnvironmentProvider",
-    "EnvironmentProviderConfiguration",
-    "EnvironmentProviderConfigurationSource",
-    "EnvironmentProviderDefinition",
-    "EnvironmentProviderDefinitionConfigurationSchema",
-    "EnvironmentProviderDefinitionCredentialSchemaType0",
-    "EnvironmentProviderDefinitionTemplateConfigurationSchemas",
-    "EnvironmentProviderDefinitionTemplateConfigurationSchemasAdditionalProperty",
+    "EnvironmentProviderAccount",
+    "EnvironmentProviderAccountConfiguration",
+    "EnvironmentProviderAccountConfigurationSource",
+    "EnvironmentProviderMetadata",
+    "EnvironmentProviderMetadataConfigurationSchema",
+    "EnvironmentProviderMetadataCredentialSchemaType0",
+    "EnvironmentProviderMetadataTemplateConfigurationSchema",
     "EnvironmentRetentionCondition",
     "EnvironmentState",
     "EnvironmentStatus",
@@ -1128,6 +1130,7 @@ __all__ = (
     "InvokingUserSecretCredential",
     "ItemCollection",
     "ItemResource",
+    "JsonObject",
     "LabelsBody",
     "LabelsBodyLabels",
     "LarkReplyReceipt",
@@ -1182,10 +1185,9 @@ __all__ = (
     "MemoryProvider",
     "MemoryProviderCollection",
     "MemoryProviderConfiguration",
-    "MemoryProviderDefinition",
-    "MemoryProviderDefinitionCollection",
-    "MemoryProviderDefinitionConfigurationSchema",
-    "MemoryProviderDefinitionCredentialSchema",
+    "MemoryProviderMetadata",
+    "MemoryProviderMetadataConfigurationSchema",
+    "MemoryProviderMetadataCredentialSchemaType0",
     "MemoryProviderReference",
     "MemoryProviderReferenceCollection",
     "MemoryScope",
@@ -1210,13 +1212,12 @@ __all__ = (
     "ModelProvider",
     "ModelProviderCollection",
     "ModelProviderConfiguration",
-    "ModelProviderDefinition",
-    "ModelProviderDefinitionCollection",
-    "ModelProviderDefinitionConfigurationSchema",
-    "ModelProviderDefinitionCredentialSchema",
-    "ModelProviderDefinitionModelApiLabels",
-    "ModelProviderDefinitionSettingsSchemas",
-    "ModelProviderDefinitionSettingsSchemasAdditionalProperty",
+    "ModelProviderMetadata",
+    "ModelProviderMetadataConfigurationSchema",
+    "ModelProviderMetadataCredentialSchemaType0",
+    "ModelProviderMetadataModelApiLabels",
+    "ModelProviderMetadataSettingsSchemas",
+    "ModelProviderMetadataSettingsSchemasAdditionalProperty",
     "ModelSettings",
     "ModelTestRequest",
     "MountApplicationStatus",
@@ -1273,6 +1274,11 @@ __all__ = (
     "ProtocolLimits",
     "ProviderConnectivity",
     "ProviderConnectivityStatus",
+    "ProviderMetadataCollectionConnectorProviderMetadata",
+    "ProviderMetadataCollectionEnvironmentProviderMetadata",
+    "ProviderMetadataCollectionMemoryProviderMetadata",
+    "ProviderMetadataCollectionModelProviderMetadata",
+    "ProviderMetadataCollectionWebProviderMetadata",
     "QueuedSubmission",
     "QueuedSubmissionCollection",
     "QueuedSubmissionConsumptionReceipt",
@@ -1294,7 +1300,7 @@ __all__ = (
     "ReplaceAccountCredentialsRequest",
     "ReplaceAccountCredentialsRequestCredentials",
     "ReplaceConnectorProviderCredentialsRequest",
-    "ReplaceConnectorProviderCredentialsRequestCredentials",
+    "ReplaceConnectorProviderCredentialsRequestCredentialsType0",
     "ReplaceCredentialRequest",
     "ReplaceCredentialRequestCredentialType0",
     "ReplaceMemorySettings",
@@ -1471,6 +1477,7 @@ __all__ = (
     "UpdateMemoryProviderRequestCredentialType0",
     "UpdateModelProviderRequest",
     "UpdateModelProviderRequestConfigurationType0",
+    "UpdateModelProviderRequestCredentialType0",
     "UpdateModelProviderRequestExtraHeaders",
     "UpdateModelRequest",
     "UpdateModelRequestSettingsType0",
@@ -1504,11 +1511,10 @@ __all__ = (
     "WebProvider",
     "WebProviderCollection",
     "WebProviderConfiguration",
-    "WebProviderDefinition",
-    "WebProviderDefinitionCollection",
-    "WebProviderDefinitionConfigurationSchema",
-    "WebProviderDefinitionCredentialSchema",
-    "WebProviderDefinitionOperationsItem",
+    "WebProviderMetadata",
+    "WebProviderMetadataConfigurationSchema",
+    "WebProviderMetadataCredentialSchemaType0",
+    "WebProviderMetadataOperationsItem",
     "WebProviderReference",
     "WebProviderReferenceCollection",
     "WebProviderTestResult",

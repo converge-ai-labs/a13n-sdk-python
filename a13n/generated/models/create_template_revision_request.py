@@ -24,7 +24,6 @@ class CreateTemplateRevisionRequest:
         expected_version (int):
         provider_id (str):
         retention (RetentionPolicy):
-        configuration_schema_version (str | Unset):
         preparation (CreateTemplateRevisionRequestPreparation | Unset):
     """
 
@@ -32,7 +31,6 @@ class CreateTemplateRevisionRequest:
     expected_version: int
     provider_id: str
     retention: RetentionPolicy
-    configuration_schema_version: str | Unset = UNSET
     preparation: CreateTemplateRevisionRequestPreparation | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
@@ -43,8 +41,6 @@ class CreateTemplateRevisionRequest:
         provider_id = self.provider_id
 
         retention = self.retention.to_dict()
-
-        configuration_schema_version = self.configuration_schema_version
 
         preparation: str | Unset = UNSET
         if not isinstance(self.preparation, Unset):
@@ -60,8 +56,6 @@ class CreateTemplateRevisionRequest:
                 "retention": retention,
             }
         )
-        if configuration_schema_version is not UNSET:
-            field_dict["configuration_schema_version"] = configuration_schema_version
         if preparation is not UNSET:
             field_dict["preparation"] = preparation
 
@@ -83,8 +77,6 @@ class CreateTemplateRevisionRequest:
 
         retention = RetentionPolicy.from_dict(d.pop("retention"))
 
-        configuration_schema_version = d.pop("configuration_schema_version", UNSET)
-
         _preparation = d.pop("preparation", UNSET)
         preparation: CreateTemplateRevisionRequestPreparation | Unset
         if isinstance(_preparation, Unset):
@@ -97,7 +89,6 @@ class CreateTemplateRevisionRequest:
             expected_version=expected_version,
             provider_id=provider_id,
             retention=retention,
-            configuration_schema_version=configuration_schema_version,
             preparation=preparation,
         )
 

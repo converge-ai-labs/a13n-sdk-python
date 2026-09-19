@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, Literal, TypeVar, cast
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 
@@ -16,13 +16,14 @@ T = TypeVar("T", bound="InlineMemoryBackend")
 
 @_attrs_define(repr=False)
 class InlineMemoryBackend:
-    """
+    """A document Provider configured on the Agent instead of a saved Memory Provider.
+
     Attributes:
-        type_ (Literal['a13n.filesystem']):
+        type_ (str):
         configuration (InlineMemoryBackendConfiguration | Unset):
     """
 
-    type_: Literal["a13n.filesystem"]
+    type_: str
     configuration: InlineMemoryBackendConfiguration | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
@@ -49,9 +50,7 @@ class InlineMemoryBackend:
         from ..models.inline_memory_backend_configuration import InlineMemoryBackendConfiguration
 
         d = dict(src_dict)
-        type_ = cast(Literal["a13n.filesystem"], d.pop("type"))
-        if type_ != "a13n.filesystem":
-            raise ValueError(f"type must match const 'a13n.filesystem', got '{type_}'")
+        type_ = d.pop("type")
 
         _configuration = d.pop("configuration", UNSET)
         configuration: InlineMemoryBackendConfiguration | Unset

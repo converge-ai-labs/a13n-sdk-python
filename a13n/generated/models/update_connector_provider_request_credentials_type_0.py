@@ -11,7 +11,7 @@ T = TypeVar("T", bound="UpdateConnectorProviderRequestCredentialsType0")
 
 @_attrs_define(repr=False)
 class UpdateConnectorProviderRequestCredentialsType0:
-    additional_properties: dict[str, str] = _attrs_field(init=False, factory=dict)
+    additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
 
@@ -32,10 +32,10 @@ class UpdateConnectorProviderRequestCredentialsType0:
     def additional_keys(self) -> list[str]:
         return list(self.additional_properties.keys())
 
-    def __getitem__(self, key: str) -> str:
+    def __getitem__(self, key: str) -> Any:
         return self.additional_properties[key]
 
-    def __setitem__(self, key: str, value: str) -> None:
+    def __setitem__(self, key: str, value: Any) -> None:
         self.additional_properties[key] = value
 
     def __delitem__(self, key: str) -> None:

@@ -111,6 +111,7 @@ from .api.connectivity_management import (
     get_application_accounts_account_id_targets_target_id,
     get_connections_connection_id_mcp_oauth_client,
     get_connector_provider_types,
+    get_connector_provider_types_provider_type,
     get_connector_providers_connector_provider_id,
     get_connector_providers_connector_provider_id_connectors_connector_key,
     get_connector_providers_connector_provider_id_connectors_connector_key_tools,
@@ -303,6 +304,7 @@ from .api.memory_providers import (
 )
 from .api.model_management import (
     get_model_provider_types,
+    get_model_provider_types_provider_type,
     get_organizations_organization_model_catalog,
     get_organizations_organization_model_providers,
     get_organizations_organization_model_providers_provider_id,
@@ -1819,9 +1821,24 @@ class ConnectionsConnectionIdMcpOauthClient(Resource):
 class ConnectorProviderTypes(Resource):
     """Bound Native resource: /connector-provider-types."""
 
-    async def list(self) -> Result[wire.ConnectorProviderDefinitionCollection]:
+    async def list(self) -> Result[wire.ProviderMetadataCollectionConnectorProviderMetadata]:
         """List Connector Provider Types. One HTTP request; no automatic replay."""
         return await self._call(lambda client: get_connector_provider_types.asyncio_detailed(client=client))
+
+    def __call__(self, provider_type: str) -> ConnectorProviderTypesProviderType:
+        return ConnectorProviderTypesProviderType(self._client, self._bind("provider_type", provider_type))
+
+
+class ConnectorProviderTypesProviderType(Resource):
+    """Bound Native resource: /connector-provider-types / {provider_type}."""
+
+    async def get(self) -> Result[wire.ConnectorProviderMetadata]:
+        """Get Connector Provider Type. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_connector_provider_types_provider_type.asyncio_detailed(
+                client=client, provider_type=self._bindings["provider_type"]
+            )
+        )
 
 
 class ConnectorProviders(Resource):
@@ -2007,7 +2024,7 @@ class EnvironmentCommandsCommandId(Resource):
 class EnvironmentProviderTypes(Resource):
     """Bound Native resource: /environment-provider-types."""
 
-    async def list(self) -> Result[wire.CollectionEnvironmentProviderDefinition]:
+    async def list(self) -> Result[wire.ProviderMetadataCollectionEnvironmentProviderMetadata]:
         """Provider Types. One HTTP request; no automatic replay."""
         return await self._call(lambda client: get_environment_provider_types.asyncio_detailed(client=client))
 
@@ -2018,7 +2035,7 @@ class EnvironmentProviderTypes(Resource):
 class EnvironmentProviderTypesProviderType(Resource):
     """Bound Native resource: /environment-provider-types / {provider_type}."""
 
-    async def get(self) -> Result[wire.EnvironmentProviderDefinition]:
+    async def get(self) -> Result[wire.EnvironmentProviderMetadata]:
         """Get Provider Type. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: get_environment_provider_types_provider_type.asyncio_detailed(
@@ -2037,7 +2054,9 @@ class EnvironmentProviders(Resource):
 class EnvironmentProvidersProviderId(Resource):
     """Bound Native resource: /environment-providers / {provider_id}."""
 
-    async def update(self, *, body: wire.UpdateProviderRequest, if_match: str) -> Result[wire.EnvironmentProvider]:
+    async def update(
+        self, *, body: wire.UpdateProviderRequest, if_match: str
+    ) -> Result[wire.EnvironmentProviderAccount]:
         """Update Provider. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: patch_environment_providers_provider_id.asyncio_detailed(
@@ -2045,7 +2064,7 @@ class EnvironmentProvidersProviderId(Resource):
             )
         )
 
-    async def get(self) -> Result[wire.EnvironmentProvider]:
+    async def get(self) -> Result[wire.EnvironmentProviderAccount]:
         """Get Provider. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: get_environment_providers_resource_id.asyncio_detailed(
@@ -2081,7 +2100,9 @@ class EnvironmentProvidersProviderIdConnectivity(Resource):
 class EnvironmentProvidersProviderIdCredential(Resource):
     """Bound Native resource: /environment-providers / {provider_id} / credential."""
 
-    async def replace(self, *, body: wire.ReplaceCredentialRequest, if_match: str) -> Result[wire.EnvironmentProvider]:
+    async def replace(
+        self, *, body: wire.ReplaceCredentialRequest, if_match: str
+    ) -> Result[wire.EnvironmentProviderAccount]:
         """Replace Credential. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: put_environment_providers_provider_id_credential.asyncio_detailed(
@@ -2534,7 +2555,7 @@ class McpServersServerKey(Resource):
 class MemoryProviderTypes(Resource):
     """Bound Native resource: /memory-provider-types."""
 
-    async def list(self) -> Result[wire.MemoryProviderDefinitionCollection]:
+    async def list(self) -> Result[wire.ProviderMetadataCollectionMemoryProviderMetadata]:
         """List Types. One HTTP request; no automatic replay."""
         return await self._call(lambda client: get_memory_provider_types.asyncio_detailed(client=client))
 
@@ -2545,7 +2566,7 @@ class MemoryProviderTypes(Resource):
 class MemoryProviderTypesProviderType(Resource):
     """Bound Native resource: /memory-provider-types / {provider_type}."""
 
-    async def get(self) -> Result[wire.MemoryProviderDefinition]:
+    async def get(self) -> Result[wire.MemoryProviderMetadata]:
         """Get Type. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: get_memory_provider_types_provider_type.asyncio_detailed(
@@ -2557,9 +2578,24 @@ class MemoryProviderTypesProviderType(Resource):
 class ModelProviderTypes(Resource):
     """Bound Native resource: /model-provider-types."""
 
-    async def list(self) -> Result[wire.ModelProviderDefinitionCollection]:
+    async def list(self) -> Result[wire.ProviderMetadataCollectionModelProviderMetadata]:
         """List Model Provider Types. One HTTP request; no automatic replay."""
         return await self._call(lambda client: get_model_provider_types.asyncio_detailed(client=client))
+
+    def __call__(self, provider_type: str) -> ModelProviderTypesProviderType:
+        return ModelProviderTypesProviderType(self._client, self._bind("provider_type", provider_type))
+
+
+class ModelProviderTypesProviderType(Resource):
+    """Bound Native resource: /model-provider-types / {provider_type}."""
+
+    async def get(self) -> Result[wire.ModelProviderMetadata]:
+        """Get Model Provider Type. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_model_provider_types_provider_type.asyncio_detailed(
+                client=client, provider_type=self._bindings["provider_type"]
+            )
+        )
 
 
 class Organizations(Resource):
@@ -2696,7 +2732,7 @@ class OrganizationsOrganizationEnvironmentProviders(Resource):
 
     async def list(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
-    ) -> Result[wire.CollectionEnvironmentProvider]:
+    ) -> Result[wire.CollectionEnvironmentProviderAccount]:
         """Organization List Providers. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: get_organizations_organization_environment_providers.asyncio_detailed(
@@ -2706,7 +2742,7 @@ class OrganizationsOrganizationEnvironmentProviders(Resource):
 
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
-    ) -> AsyncIterator[Result[wire.CollectionEnvironmentProvider]]:
+    ) -> AsyncIterator[Result[wire.CollectionEnvironmentProviderAccount]]:
         """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
@@ -2714,11 +2750,11 @@ class OrganizationsOrganizationEnvironmentProviders(Resource):
 
     def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
-    ) -> AsyncIterator[wire.EnvironmentProvider]:
+    ) -> AsyncIterator[wire.EnvironmentProviderAccount]:
         """Yield ordinary wire values lazily with a filter snapshot and server order."""
         return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
-    async def create(self, *, body: wire.CreateProviderRequest) -> Result[wire.EnvironmentProvider]:
+    async def create(self, *, body: wire.CreateProviderRequest) -> Result[wire.EnvironmentProviderAccount]:
         """Organization Create Provider. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: post_organizations_organization_environment_providers.asyncio_detailed(
@@ -4532,7 +4568,7 @@ class UsersUserIdAvatarImageId(Resource):
 class WebProviderTypes(Resource):
     """Bound Native resource: /web-provider-types."""
 
-    async def list(self) -> Result[wire.WebProviderDefinitionCollection]:
+    async def list(self) -> Result[wire.ProviderMetadataCollectionWebProviderMetadata]:
         """List Types. One HTTP request; no automatic replay."""
         return await self._call(lambda client: get_web_provider_types.asyncio_detailed(client=client))
 
@@ -4543,7 +4579,7 @@ class WebProviderTypes(Resource):
 class WebProviderTypesProviderType(Resource):
     """Bound Native resource: /web-provider-types / {provider_type}."""
 
-    async def get(self) -> Result[wire.WebProviderDefinition]:
+    async def get(self) -> Result[wire.WebProviderMetadata]:
         """Get Type. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: get_web_provider_types_provider_type.asyncio_detailed(
@@ -5406,7 +5442,7 @@ class WorkspacesWorkspaceEnvironmentProviders(Resource):
 
     async def list(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
-    ) -> Result[wire.CollectionEnvironmentProvider]:
+    ) -> Result[wire.CollectionEnvironmentProviderAccount]:
         """List Providers. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: get_workspaces_workspace_environment_providers.asyncio_detailed(
@@ -5416,7 +5452,7 @@ class WorkspacesWorkspaceEnvironmentProviders(Resource):
 
     def pages(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
-    ) -> AsyncIterator[Result[wire.CollectionEnvironmentProvider]]:
+    ) -> AsyncIterator[Result[wire.CollectionEnvironmentProviderAccount]]:
         """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
@@ -5424,11 +5460,11 @@ class WorkspacesWorkspaceEnvironmentProviders(Resource):
 
     def iter(
         self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
-    ) -> AsyncIterator[wire.EnvironmentProvider]:
+    ) -> AsyncIterator[wire.EnvironmentProviderAccount]:
         """Yield ordinary wire values lazily with a filter snapshot and server order."""
         return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
 
-    async def create(self, *, body: wire.CreateProviderRequest) -> Result[wire.EnvironmentProvider]:
+    async def create(self, *, body: wire.CreateProviderRequest) -> Result[wire.EnvironmentProviderAccount]:
         """Create Provider. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: post_workspaces_workspace_environment_providers.asyncio_detailed(

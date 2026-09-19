@@ -5,7 +5,9 @@ import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
 from ...models.error_response import ErrorResponse
-from ...models.model_provider_definition_collection import ModelProviderDefinitionCollection
+from ...models.provider_metadata_collection_model_provider_metadata import (
+    ProviderMetadataCollectionModelProviderMetadata,
+)
 from ...types import Response
 
 
@@ -21,9 +23,9 @@ def build_request() -> dict[str, Any]:
 
 def _parse_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> ErrorResponse | ModelProviderDefinitionCollection:
+) -> ErrorResponse | ProviderMetadataCollectionModelProviderMetadata:
     if response.status_code == 200:
-        response_200 = ModelProviderDefinitionCollection.from_dict(response.json())
+        response_200 = ProviderMetadataCollectionModelProviderMetadata.from_dict(response.json())
 
         return response_200
 
@@ -34,7 +36,7 @@ def _parse_response(
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[ErrorResponse | ModelProviderDefinitionCollection]:
+) -> Response[ErrorResponse | ProviderMetadataCollectionModelProviderMetadata]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -46,7 +48,7 @@ def _build_response(
 def sync_detailed(
     *,
     client: AuthenticatedClient,
-) -> Response[ErrorResponse | ModelProviderDefinitionCollection]:
+) -> Response[ErrorResponse | ProviderMetadataCollectionModelProviderMetadata]:
     """List Model Provider Types
 
     Raises:
@@ -54,7 +56,7 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorResponse | ModelProviderDefinitionCollection]
+        Response[ErrorResponse | ProviderMetadataCollectionModelProviderMetadata]
     """
 
     kwargs = build_request()
@@ -69,7 +71,7 @@ def sync_detailed(
 def sync(
     *,
     client: AuthenticatedClient,
-) -> ErrorResponse | ModelProviderDefinitionCollection | None:
+) -> ErrorResponse | ProviderMetadataCollectionModelProviderMetadata | None:
     """List Model Provider Types
 
     Raises:
@@ -77,7 +79,7 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorResponse | ModelProviderDefinitionCollection
+        ErrorResponse | ProviderMetadataCollectionModelProviderMetadata
     """
 
     return sync_detailed(
@@ -88,7 +90,7 @@ def sync(
 async def asyncio_detailed(
     *,
     client: AuthenticatedClient,
-) -> Response[ErrorResponse | ModelProviderDefinitionCollection]:
+) -> Response[ErrorResponse | ProviderMetadataCollectionModelProviderMetadata]:
     """List Model Provider Types
 
     Raises:
@@ -96,7 +98,7 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorResponse | ModelProviderDefinitionCollection]
+        Response[ErrorResponse | ProviderMetadataCollectionModelProviderMetadata]
     """
 
     kwargs = build_request()
@@ -109,7 +111,7 @@ async def asyncio_detailed(
 async def asyncio(
     *,
     client: AuthenticatedClient,
-) -> ErrorResponse | ModelProviderDefinitionCollection | None:
+) -> ErrorResponse | ProviderMetadataCollectionModelProviderMetadata | None:
     """List Model Provider Types
 
     Raises:
@@ -117,7 +119,7 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorResponse | ModelProviderDefinitionCollection
+        ErrorResponse | ProviderMetadataCollectionModelProviderMetadata
     """
 
     return (

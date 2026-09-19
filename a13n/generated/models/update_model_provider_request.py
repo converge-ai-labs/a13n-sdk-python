@@ -9,6 +9,7 @@ from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.update_model_provider_request_configuration_type_0 import UpdateModelProviderRequestConfigurationType0
+    from ..models.update_model_provider_request_credential_type_0 import UpdateModelProviderRequestCredentialType0
     from ..models.update_model_provider_request_extra_headers import UpdateModelProviderRequestExtraHeaders
 
 
@@ -20,14 +21,14 @@ class UpdateModelProviderRequest:
     """
     Attributes:
         configuration (None | Unset | UpdateModelProviderRequestConfigurationType0):
-        credential (None | str | Unset):
+        credential (None | Unset | UpdateModelProviderRequestCredentialType0):
         enabled (bool | None | Unset):
         extra_headers (UpdateModelProviderRequestExtraHeaders | Unset):
         name (None | str | Unset):
     """
 
     configuration: Unset | UpdateModelProviderRequestConfigurationType0 | None = UNSET
-    credential: str | Unset | None = UNSET
+    credential: Unset | UpdateModelProviderRequestCredentialType0 | None = UNSET
     enabled: bool | Unset | None = UNSET
     extra_headers: UpdateModelProviderRequestExtraHeaders | Unset = UNSET
     name: str | Unset | None = UNSET
@@ -35,6 +36,9 @@ class UpdateModelProviderRequest:
     def to_dict(self) -> dict[str, Any]:
         from ..models.update_model_provider_request_configuration_type_0 import (
             UpdateModelProviderRequestConfigurationType0,
+        )
+        from ..models.update_model_provider_request_credential_type_0 import (
+            UpdateModelProviderRequestCredentialType0,
         )
 
         configuration: dict[str, Any] | Unset | None
@@ -45,9 +49,11 @@ class UpdateModelProviderRequest:
         else:
             configuration = self.configuration
 
-        credential: str | Unset | None
+        credential: dict[str, Any] | Unset | None
         if isinstance(self.credential, Unset):
             credential = UNSET
+        elif isinstance(self.credential, UpdateModelProviderRequestCredentialType0):
+            credential = self.credential.to_dict()
         else:
             credential = self.credential
 
@@ -88,6 +94,9 @@ class UpdateModelProviderRequest:
         from ..models.update_model_provider_request_configuration_type_0 import (
             UpdateModelProviderRequestConfigurationType0,
         )
+        from ..models.update_model_provider_request_credential_type_0 import (
+            UpdateModelProviderRequestCredentialType0,
+        )
         from ..models.update_model_provider_request_extra_headers import (
             UpdateModelProviderRequestExtraHeaders,
         )
@@ -111,12 +120,20 @@ class UpdateModelProviderRequest:
 
         configuration = _parse_configuration(d.pop("configuration", UNSET))
 
-        def _parse_credential(data: object) -> str | Unset | None:
+        def _parse_credential(data: object) -> Unset | UpdateModelProviderRequestCredentialType0 | None:
             if data is None:
                 return data
             if isinstance(data, Unset):
                 return data
-            return cast(str | Unset | None, data)
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                credential_type_0 = UpdateModelProviderRequestCredentialType0.from_dict(data)
+
+                return credential_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(Unset | UpdateModelProviderRequestCredentialType0 | None, data)
 
         credential = _parse_credential(d.pop("credential", UNSET))
 

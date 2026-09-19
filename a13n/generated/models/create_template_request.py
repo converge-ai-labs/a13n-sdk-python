@@ -25,7 +25,6 @@ class CreateTemplateRequest:
         name (str):
         provider_id (str):
         retention (RetentionPolicy):
-        configuration_schema_version (str | Unset):
         description (None | str | Unset):
         labels (CreateTemplateRequestLabels | Unset):
         preparation (CreateTemplateRequestPreparation | Unset):
@@ -35,7 +34,6 @@ class CreateTemplateRequest:
     name: str
     provider_id: str
     retention: RetentionPolicy
-    configuration_schema_version: str | Unset = UNSET
     description: str | Unset | None = UNSET
     labels: CreateTemplateRequestLabels | Unset = UNSET
     preparation: CreateTemplateRequestPreparation | Unset = UNSET
@@ -48,8 +46,6 @@ class CreateTemplateRequest:
         provider_id = self.provider_id
 
         retention = self.retention.to_dict()
-
-        configuration_schema_version = self.configuration_schema_version
 
         description: str | Unset | None
         if isinstance(self.description, Unset):
@@ -75,8 +71,6 @@ class CreateTemplateRequest:
                 "retention": retention,
             }
         )
-        if configuration_schema_version is not UNSET:
-            field_dict["configuration_schema_version"] = configuration_schema_version
         if description is not UNSET:
             field_dict["description"] = description
         if labels is not UNSET:
@@ -100,8 +94,6 @@ class CreateTemplateRequest:
         provider_id = d.pop("provider_id")
 
         retention = RetentionPolicy.from_dict(d.pop("retention"))
-
-        configuration_schema_version = d.pop("configuration_schema_version", UNSET)
 
         def _parse_description(data: object) -> str | Unset | None:
             if data is None:
@@ -131,7 +123,6 @@ class CreateTemplateRequest:
             name=name,
             provider_id=provider_id,
             retention=retention,
-            configuration_schema_version=configuration_schema_version,
             description=description,
             labels=labels,
             preparation=preparation,
