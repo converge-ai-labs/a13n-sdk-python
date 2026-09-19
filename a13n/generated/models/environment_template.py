@@ -21,7 +21,7 @@ class EnvironmentTemplate:
     Attributes:
         archived_at (datetime.datetime | None):
         created_at (datetime.datetime):
-        current_revision_id (str):
+        default_revision_id (str):
         description (None | str):
         id (str):
         name (str):
@@ -34,7 +34,7 @@ class EnvironmentTemplate:
 
     archived_at: datetime.datetime | None
     created_at: datetime.datetime
-    current_revision_id: str
+    default_revision_id: str
     description: str | None
     id: str
     name: str
@@ -53,7 +53,7 @@ class EnvironmentTemplate:
 
         created_at = self.created_at.isoformat()
 
-        current_revision_id = self.current_revision_id
+        default_revision_id = self.default_revision_id
 
         description: str | None
         description = self.description
@@ -81,7 +81,7 @@ class EnvironmentTemplate:
             {
                 "archived_at": archived_at,
                 "created_at": created_at,
-                "current_revision_id": current_revision_id,
+                "default_revision_id": default_revision_id,
                 "description": description,
                 "id": id,
                 "name": name,
@@ -119,7 +119,7 @@ class EnvironmentTemplate:
 
         created_at = datetime.datetime.fromisoformat(d.pop("created_at"))
 
-        current_revision_id = d.pop("current_revision_id")
+        default_revision_id = d.pop("default_revision_id")
 
         def _parse_description(data: object) -> str | None:
             if data is None:
@@ -155,7 +155,7 @@ class EnvironmentTemplate:
         environment_template = cls(
             archived_at=archived_at,
             created_at=created_at,
-            current_revision_id=current_revision_id,
+            default_revision_id=default_revision_id,
             description=description,
             id=id,
             name=name,

@@ -165,6 +165,7 @@ from .api.environments import (
     post_environment_providers_provider_id_test_image,
     post_environment_providers_provider_id_test_image_request_id_cancel,
     post_environment_templates_template_id_revisions,
+    post_environment_templates_template_id_revisions_revision_id_default,
     post_environments_environment_id_connection_tickets,
     post_environments_environment_id_delete,
     post_environments_environment_id_stop,
@@ -374,6 +375,7 @@ from .api.skill_management import (
     get_workspaces_workspace_skills_skill_key,
     patch_skills_skill_id,
     post_skills_skill_id_revisions,
+    post_skills_skill_id_revisions_skill_revision_id_default,
     post_workspaces_workspace_skill_uploads,
     post_workspaces_workspace_skills,
     put_skills_skill_id_labels,
@@ -2224,6 +2226,24 @@ class EnvironmentTemplatesResourceIdRevisions(Resource):
         return await self._call(
             lambda client: post_environment_templates_template_id_revisions.asyncio_detailed(
                 client=client, template_id=self._bindings["resource_id"], body=body
+            )
+        )
+
+    def __call__(self, revision_id: str) -> EnvironmentTemplatesResourceIdRevisionsRevisionId:
+        return EnvironmentTemplatesResourceIdRevisionsRevisionId(self._client, self._bind("revision_id", revision_id))
+
+
+class EnvironmentTemplatesResourceIdRevisionsRevisionId(Resource):
+    """Bound Native resource: /environment-templates / {resource_id} / revisions / {revision_id}."""
+
+    async def default(self, *, if_match: str) -> Result[wire.EnvironmentTemplate]:
+        """Set Default Revision. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: post_environment_templates_template_id_revisions_revision_id_default.asyncio_detailed(
+                client=client,
+                template_id=self._bindings["resource_id"],
+                revision_id=self._bindings["revision_id"],
+                if_match=if_match,
             )
         )
 
@@ -4186,6 +4206,24 @@ class SkillsSkillIdRevisions(Resource):
         return await self._call(
             lambda client: post_skills_skill_id_revisions.asyncio_detailed(
                 client=client, skill_id=self._bindings["skill_id"], body=body, idempotency_key=idempotency_key
+            )
+        )
+
+    def __call__(self, skill_revision_id: str) -> SkillsSkillIdRevisionsSkillRevisionId:
+        return SkillsSkillIdRevisionsSkillRevisionId(self._client, self._bind("skill_revision_id", skill_revision_id))
+
+
+class SkillsSkillIdRevisionsSkillRevisionId(Resource):
+    """Bound Native resource: /skills / {skill_id} / revisions / {skill_revision_id}."""
+
+    async def default(self, *, if_match: str) -> Result[wire.Skill]:
+        """Set Default Skill Revision. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: post_skills_skill_id_revisions_skill_revision_id_default.asyncio_detailed(
+                client=client,
+                skill_id=self._bindings["skill_id"],
+                skill_revision_id=self._bindings["skill_revision_id"],
+                if_match=if_match,
             )
         )
 

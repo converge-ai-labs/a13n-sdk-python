@@ -2,7 +2,7 @@ from enum import StrEnum
 
 
 class SkillPublicationReceiptOutcome(StrEnum):
-    ALREADY_CURRENT = "already_current"
+    ALREADY_DEFAULT = "already_default"
     PUBLISHED = "published"
 
     def __str__(self) -> str:

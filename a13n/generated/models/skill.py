@@ -22,7 +22,7 @@ class Skill:
     Attributes:
         created_at (datetime.datetime):
         created_by (PrincipalRef):
-        current_revision_id (str):
+        default_revision_id (str):
         deleted_at (datetime.datetime | None):
         id (str):
         key (str):
@@ -37,7 +37,7 @@ class Skill:
 
     created_at: datetime.datetime
     created_by: PrincipalRef
-    current_revision_id: str
+    default_revision_id: str
     deleted_at: datetime.datetime | None
     id: str
     key: str
@@ -54,7 +54,7 @@ class Skill:
 
         created_by = self.created_by.to_dict()
 
-        current_revision_id = self.current_revision_id
+        default_revision_id = self.default_revision_id
 
         deleted_at: str | None
         if isinstance(self.deleted_at, datetime.datetime):
@@ -88,7 +88,7 @@ class Skill:
             {
                 "created_at": created_at,
                 "created_by": created_by,
-                "current_revision_id": current_revision_id,
+                "default_revision_id": default_revision_id,
                 "deleted_at": deleted_at,
                 "id": id,
                 "key": key,
@@ -115,7 +115,7 @@ class Skill:
 
         created_by = PrincipalRef.from_dict(d.pop("created_by"))
 
-        current_revision_id = d.pop("current_revision_id")
+        default_revision_id = d.pop("default_revision_id")
 
         def _parse_deleted_at(data: object) -> datetime.datetime | None:
             if data is None:
@@ -158,7 +158,7 @@ class Skill:
         skill = cls(
             created_at=created_at,
             created_by=created_by,
-            current_revision_id=current_revision_id,
+            default_revision_id=default_revision_id,
             deleted_at=deleted_at,
             id=id,
             key=key,
