@@ -35,6 +35,7 @@ class Environment:
         template_revision_id (None | str):
         updated_at (datetime.datetime):
         workspace_id (str):
+        device_id (None | str | Unset):
         labels (EnvironmentLabels | Unset):
     """
 
@@ -51,6 +52,7 @@ class Environment:
     template_revision_id: str | None
     updated_at: datetime.datetime
     workspace_id: str
+    device_id: str | Unset | None = UNSET
     labels: EnvironmentLabels | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
@@ -81,6 +83,12 @@ class Environment:
 
         workspace_id = self.workspace_id
 
+        device_id: str | Unset | None
+        if isinstance(self.device_id, Unset):
+            device_id = UNSET
+        else:
+            device_id = self.device_id
+
         labels: dict[str, Any] | Unset = UNSET
         if not isinstance(self.labels, Unset):
             labels = self.labels.to_dict()
@@ -104,6 +112,8 @@ class Environment:
                 "workspace_id": workspace_id,
             }
         )
+        if device_id is not UNSET:
+            field_dict["device_id"] = device_id
         if labels is not UNSET:
             field_dict["labels"] = labels
 
@@ -145,6 +155,15 @@ class Environment:
 
         workspace_id = d.pop("workspace_id")
 
+        def _parse_device_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        device_id = _parse_device_id(d.pop("device_id", UNSET))
+
         _labels = d.pop("labels", UNSET)
         labels: EnvironmentLabels | Unset
         if isinstance(_labels, Unset):
@@ -166,6 +185,7 @@ class Environment:
             template_revision_id=template_revision_id,
             updated_at=updated_at,
             workspace_id=workspace_id,
+            device_id=device_id,
             labels=labels,
         )
 

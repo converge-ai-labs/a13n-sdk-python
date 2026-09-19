@@ -27,6 +27,7 @@ class RunResource:
         created_at (datetime.datetime):
         effective_agent_config_digest (str):
         environment_id (None | str):
+        environment_working_directory (None | str):
         failure (Any | None):
         id (str):
         input_ (Any | None):
@@ -59,6 +60,7 @@ class RunResource:
     created_at: datetime.datetime
     effective_agent_config_digest: str
     environment_id: str | None
+    environment_working_directory: str | None
     failure: Any | None
     id: str
     input_: Any | None
@@ -102,6 +104,9 @@ class RunResource:
 
         environment_id: str | None
         environment_id = self.environment_id
+
+        environment_working_directory: str | None
+        environment_working_directory = self.environment_working_directory
 
         failure: Any | None
         failure = self.failure
@@ -187,6 +192,7 @@ class RunResource:
                 "created_at": created_at,
                 "effective_agent_config_digest": effective_agent_config_digest,
                 "environment_id": environment_id,
+                "environment_working_directory": environment_working_directory,
                 "failure": failure,
                 "id": id,
                 "input": input_,
@@ -256,6 +262,13 @@ class RunResource:
             return cast(str | None, data)
 
         environment_id = _parse_environment_id(d.pop("environment_id"))
+
+        def _parse_environment_working_directory(data: object) -> str | None:
+            if data is None:
+                return data
+            return cast(str | None, data)
+
+        environment_working_directory = _parse_environment_working_directory(d.pop("environment_working_directory"))
 
         def _parse_failure(data: object) -> Any | None:
             if data is None:
@@ -408,6 +421,7 @@ class RunResource:
             created_at=created_at,
             effective_agent_config_digest=effective_agent_config_digest,
             environment_id=environment_id,
+            environment_working_directory=environment_working_directory,
             failure=failure,
             id=id,
             input_=input_,

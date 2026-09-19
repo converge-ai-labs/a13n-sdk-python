@@ -32,6 +32,7 @@ class Thread:
         version (int):
         current_run_id (None | str | Unset):
         default_environment_id (None | str | Unset):
+        default_environment_working_directory (None | str | Unset):
         head_run_id (None | str | Unset):
         labels (ThreadLabels | Unset):
         origin_run_id (None | str | Unset):
@@ -49,6 +50,7 @@ class Thread:
     version: int
     current_run_id: str | Unset | None = UNSET
     default_environment_id: str | Unset | None = UNSET
+    default_environment_working_directory: str | Unset | None = UNSET
     head_run_id: str | Unset | None = UNSET
     labels: ThreadLabels | Unset = UNSET
     origin_run_id: str | Unset | None = UNSET
@@ -84,6 +86,12 @@ class Thread:
             default_environment_id = UNSET
         else:
             default_environment_id = self.default_environment_id
+
+        default_environment_working_directory: str | Unset | None
+        if isinstance(self.default_environment_working_directory, Unset):
+            default_environment_working_directory = UNSET
+        else:
+            default_environment_working_directory = self.default_environment_working_directory
 
         head_run_id: str | Unset | None
         if isinstance(self.head_run_id, Unset):
@@ -126,6 +134,8 @@ class Thread:
             field_dict["current_run_id"] = current_run_id
         if default_environment_id is not UNSET:
             field_dict["default_environment_id"] = default_environment_id
+        if default_environment_working_directory is not UNSET:
+            field_dict["default_environment_working_directory"] = default_environment_working_directory
         if head_run_id is not UNSET:
             field_dict["head_run_id"] = head_run_id
         if labels is not UNSET:
@@ -178,6 +188,17 @@ class Thread:
 
         default_environment_id = _parse_default_environment_id(d.pop("default_environment_id", UNSET))
 
+        def _parse_default_environment_working_directory(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        default_environment_working_directory = _parse_default_environment_working_directory(
+            d.pop("default_environment_working_directory", UNSET)
+        )
+
         def _parse_head_run_id(data: object) -> str | Unset | None:
             if data is None:
                 return data
@@ -224,6 +245,7 @@ class Thread:
             version=version,
             current_run_id=current_run_id,
             default_environment_id=default_environment_id,
+            default_environment_working_directory=default_environment_working_directory,
             head_run_id=head_run_id,
             labels=labels,
             origin_run_id=origin_run_id,

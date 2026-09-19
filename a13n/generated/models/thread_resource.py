@@ -23,6 +23,7 @@ class ThreadResource:
         created_at (datetime.datetime):
         current_run_id (None | str):
         default_environment_id (None | str):
+        default_environment_working_directory (None | str):
         head_run_id (None | str):
         id (str):
         labels (ThreadResourceLabels):
@@ -41,6 +42,7 @@ class ThreadResource:
     created_at: datetime.datetime
     current_run_id: str | None
     default_environment_id: str | None
+    default_environment_working_directory: str | None
     head_run_id: str | None
     id: str
     labels: ThreadResourceLabels
@@ -63,6 +65,9 @@ class ThreadResource:
 
         default_environment_id: str | None
         default_environment_id = self.default_environment_id
+
+        default_environment_working_directory: str | None
+        default_environment_working_directory = self.default_environment_working_directory
 
         head_run_id: str | None
         head_run_id = self.head_run_id
@@ -104,6 +109,7 @@ class ThreadResource:
                 "created_at": created_at,
                 "current_run_id": current_run_id,
                 "default_environment_id": default_environment_id,
+                "default_environment_working_directory": default_environment_working_directory,
                 "head_run_id": head_run_id,
                 "id": id,
                 "labels": labels,
@@ -143,6 +149,15 @@ class ThreadResource:
             return cast(str | None, data)
 
         default_environment_id = _parse_default_environment_id(d.pop("default_environment_id"))
+
+        def _parse_default_environment_working_directory(data: object) -> str | None:
+            if data is None:
+                return data
+            return cast(str | None, data)
+
+        default_environment_working_directory = _parse_default_environment_working_directory(
+            d.pop("default_environment_working_directory")
+        )
 
         def _parse_head_run_id(data: object) -> str | None:
             if data is None:
@@ -196,6 +211,7 @@ class ThreadResource:
             created_at=created_at,
             current_run_id=current_run_id,
             default_environment_id=default_environment_id,
+            default_environment_working_directory=default_environment_working_directory,
             head_run_id=head_run_id,
             id=id,
             labels=labels,

@@ -32,6 +32,7 @@ class RunEnvironmentMount:
         error (None | SafeFailure | Unset):
         observed_at (datetime.datetime | None | Unset):
         use_started_at (datetime.datetime | None | Unset):
+        working_directory (None | str | Unset):
     """
 
     accepting_principal: PrincipalRef
@@ -45,6 +46,7 @@ class RunEnvironmentMount:
     error: SafeFailure | Unset | None = UNSET
     observed_at: datetime.datetime | Unset | None = UNSET
     use_started_at: datetime.datetime | Unset | None = UNSET
+    working_directory: str | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
         from ..models.safe_failure import SafeFailure
@@ -99,6 +101,12 @@ class RunEnvironmentMount:
         else:
             use_started_at = self.use_started_at
 
+        working_directory: str | Unset | None
+        if isinstance(self.working_directory, Unset):
+            working_directory = UNSET
+        else:
+            working_directory = self.working_directory
+
         field_dict: dict[str, Any] = {}
 
         field_dict.update(
@@ -122,6 +130,8 @@ class RunEnvironmentMount:
             field_dict["observed_at"] = observed_at
         if use_started_at is not UNSET:
             field_dict["use_started_at"] = use_started_at
+        if working_directory is not UNSET:
+            field_dict["working_directory"] = working_directory
 
         return field_dict
 
@@ -217,6 +227,15 @@ class RunEnvironmentMount:
 
         use_started_at = _parse_use_started_at(d.pop("use_started_at", UNSET))
 
+        def _parse_working_directory(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        working_directory = _parse_working_directory(d.pop("working_directory", UNSET))
+
         run_environment_mount = cls(
             accepting_principal=accepting_principal,
             created_at=created_at,
@@ -229,6 +248,7 @@ class RunEnvironmentMount:
             error=error,
             observed_at=observed_at,
             use_started_at=use_started_at,
+            working_directory=working_directory,
         )
 
         return run_environment_mount

@@ -149,6 +149,8 @@ from .api.environments import (
     get_environment_templates_template_id_labels,
     get_environment_templates_template_id_revisions,
     get_environments_environment_id_connection,
+    get_environments_environment_id_device,
+    get_environments_environment_id_directories,
     get_environments_environment_id_labels,
     get_environments_resource_id,
     get_organizations_organization_environment_providers,
@@ -2269,6 +2271,14 @@ class EnvironmentsEnvironmentId(Resource):
         )
 
     @property
+    def device(self) -> EnvironmentsEnvironmentIdDevice:
+        return EnvironmentsEnvironmentIdDevice(self._client, self._bindings)
+
+    @property
+    def directories(self) -> EnvironmentsEnvironmentIdDirectories:
+        return EnvironmentsEnvironmentIdDirectories(self._client, self._bindings)
+
+    @property
     def labels(self) -> EnvironmentsEnvironmentIdLabels:
         return EnvironmentsEnvironmentIdLabels(self._client, self._bindings)
 
@@ -2301,6 +2311,32 @@ class EnvironmentsEnvironmentIdConnectionTickets(Resource):
         return await self._call(
             lambda client: post_environments_environment_id_connection_tickets.asyncio_detailed(
                 client=client, environment_id=self._bindings["environment_id"]
+            )
+        )
+
+
+class EnvironmentsEnvironmentIdDevice(Resource):
+    """Bound Native resource: /environments / {environment_id} / device."""
+
+    async def get(self) -> Result[wire.DeviceInfo]:
+        """Device Info. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_environments_environment_id_device.asyncio_detailed(
+                client=client, environment_id=self._bindings["environment_id"]
+            )
+        )
+
+
+class EnvironmentsEnvironmentIdDirectories(Resource):
+    """Bound Native resource: /environments / {environment_id} / directories."""
+
+    async def get(
+        self, *, path: str | Unset | None = UNSET, offset: int | Unset = UNSET, limit: int | Unset = UNSET
+    ) -> Result[wire.DirectoryListResult]:
+        """Device Directories. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_environments_environment_id_directories.asyncio_detailed(
+                client=client, environment_id=self._bindings["environment_id"], path=path, offset=offset, limit=limit
             )
         )
 

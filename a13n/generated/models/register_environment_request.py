@@ -23,6 +23,7 @@ class RegisterEnvironmentRequest:
         configuration (RegisterEnvironmentRequestConfiguration):
         provider_id (str):
         configuration_schema_version (str | Unset):
+        device_id (None | str | Unset):
         labels (RegisterEnvironmentRequestLabels | Unset):
         name (None | str | Unset):
         state (EnvironmentState | None | Unset):
@@ -31,6 +32,7 @@ class RegisterEnvironmentRequest:
     configuration: RegisterEnvironmentRequestConfiguration
     provider_id: str
     configuration_schema_version: str | Unset = UNSET
+    device_id: str | Unset | None = UNSET
     labels: RegisterEnvironmentRequestLabels | Unset = UNSET
     name: str | Unset | None = UNSET
     state: EnvironmentState | Unset | None = UNSET
@@ -43,6 +45,12 @@ class RegisterEnvironmentRequest:
         provider_id = self.provider_id
 
         configuration_schema_version = self.configuration_schema_version
+
+        device_id: str | Unset | None
+        if isinstance(self.device_id, Unset):
+            device_id = UNSET
+        else:
+            device_id = self.device_id
 
         labels: dict[str, Any] | Unset = UNSET
         if not isinstance(self.labels, Unset):
@@ -72,6 +80,8 @@ class RegisterEnvironmentRequest:
         )
         if configuration_schema_version is not UNSET:
             field_dict["configuration_schema_version"] = configuration_schema_version
+        if device_id is not UNSET:
+            field_dict["device_id"] = device_id
         if labels is not UNSET:
             field_dict["labels"] = labels
         if name is not UNSET:
@@ -95,6 +105,15 @@ class RegisterEnvironmentRequest:
         provider_id = d.pop("provider_id")
 
         configuration_schema_version = d.pop("configuration_schema_version", UNSET)
+
+        def _parse_device_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        device_id = _parse_device_id(d.pop("device_id", UNSET))
 
         _labels = d.pop("labels", UNSET)
         labels: RegisterEnvironmentRequestLabels | Unset
@@ -133,6 +152,7 @@ class RegisterEnvironmentRequest:
             configuration=configuration,
             provider_id=provider_id,
             configuration_schema_version=configuration_schema_version,
+            device_id=device_id,
             labels=labels,
             name=name,
             state=state,

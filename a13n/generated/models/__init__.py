@@ -250,6 +250,10 @@ from .delegation_context_policy import DelegationContextPolicy
 from .delegation_context_policy_history import DelegationContextPolicyHistory
 from .delegation_context_policy_task_state import DelegationContextPolicyTaskState
 from .developer_message import DeveloperMessage
+from .device_info import DeviceInfo
+from .device_info_path_style import DeviceInfoPathStyle
+from .directory_entry import DirectoryEntry
+from .directory_list_result import DirectoryListResult
 from .discard_draft_request import DiscardDraftRequest
 from .discover_feishu_installation_request import DiscoverFeishuInstallationRequest
 from .discover_git_hub_user_request import DiscoverGitHubUserRequest
@@ -1014,6 +1018,10 @@ __all__ = (
     "DelegationContextPolicyHistory",
     "DelegationContextPolicyTaskState",
     "DeveloperMessage",
+    "DeviceInfo",
+    "DeviceInfoPathStyle",
+    "DirectoryEntry",
+    "DirectoryListResult",
     "DiscardDraftRequest",
     "DiscoverFeishuInstallationRequest",
     "DiscoverGitHubUserRequest",
