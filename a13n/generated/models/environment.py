@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 
+from ..models.environment_device_registration_type_0 import EnvironmentDeviceRegistrationType0
 from ..models.environment_ownership import EnvironmentOwnership
 from ..models.environment_retention_condition import EnvironmentRetentionCondition
 from ..models.environment_status import EnvironmentStatus
@@ -36,6 +37,7 @@ class Environment:
         updated_at (datetime.datetime):
         workspace_id (str):
         device_id (None | str | Unset):
+        device_registration (EnvironmentDeviceRegistrationType0 | None | Unset):
         labels (EnvironmentLabels | Unset):
     """
 
@@ -53,6 +55,7 @@ class Environment:
     updated_at: datetime.datetime
     workspace_id: str
     device_id: str | Unset | None = UNSET
+    device_registration: EnvironmentDeviceRegistrationType0 | Unset | None = UNSET
     labels: EnvironmentLabels | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
@@ -89,6 +92,14 @@ class Environment:
         else:
             device_id = self.device_id
 
+        device_registration: str | Unset | None
+        if isinstance(self.device_registration, Unset):
+            device_registration = UNSET
+        elif isinstance(self.device_registration, EnvironmentDeviceRegistrationType0):
+            device_registration = self.device_registration.value
+        else:
+            device_registration = self.device_registration
+
         labels: dict[str, Any] | Unset = UNSET
         if not isinstance(self.labels, Unset):
             labels = self.labels.to_dict()
@@ -114,6 +125,8 @@ class Environment:
         )
         if device_id is not UNSET:
             field_dict["device_id"] = device_id
+        if device_registration is not UNSET:
+            field_dict["device_registration"] = device_registration
         if labels is not UNSET:
             field_dict["labels"] = labels
 
@@ -164,6 +177,23 @@ class Environment:
 
         device_id = _parse_device_id(d.pop("device_id", UNSET))
 
+        def _parse_device_registration(data: object) -> EnvironmentDeviceRegistrationType0 | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, str):
+                    raise TypeError()
+                device_registration_type_0 = EnvironmentDeviceRegistrationType0(data)
+
+                return device_registration_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(EnvironmentDeviceRegistrationType0 | Unset | None, data)
+
+        device_registration = _parse_device_registration(d.pop("device_registration", UNSET))
+
         _labels = d.pop("labels", UNSET)
         labels: EnvironmentLabels | Unset
         if isinstance(_labels, Unset):
@@ -186,6 +216,7 @@ class Environment:
             updated_at=updated_at,
             workspace_id=workspace_id,
             device_id=device_id,
+            device_registration=device_registration,
             labels=labels,
         )
 

@@ -157,6 +157,7 @@ from .api.environments import (
     get_organizations_organization_environment_providers,
     get_organizations_organization_environment_templates,
     get_runs_run_id_environment_mounts,
+    get_workspaces_workspace_device_pairings_pairing_id,
     get_workspaces_workspace_environment_providers,
     get_workspaces_workspace_environment_templates,
     get_workspaces_workspace_environments,
@@ -169,10 +170,13 @@ from .api.environments import (
     post_environment_templates_template_id_revisions_revision_id_default,
     post_environments_environment_id_connection_tickets,
     post_environments_environment_id_delete,
+    post_environments_environment_id_revoke_device,
     post_environments_environment_id_stop,
     post_organizations_organization_environment_providers,
     post_organizations_organization_environment_templates,
     post_runs_run_id_environment_mounts,
+    post_workspaces_workspace_device_pairings_pairing_id_approve,
+    post_workspaces_workspace_device_pairings_pairing_id_reject,
     post_workspaces_workspace_environment_providers,
     post_workspaces_workspace_environment_templates,
     post_workspaces_workspace_environments,
@@ -2322,6 +2326,14 @@ class EnvironmentsEnvironmentId(Resource):
     @property
     def labels(self) -> EnvironmentsEnvironmentIdLabels:
         return EnvironmentsEnvironmentIdLabels(self._client, self._bindings)
+
+    async def revoke_device(self) -> Result[wire.Environment]:
+        """Revoke Device. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: post_environments_environment_id_revoke_device.asyncio_detailed(
+                client=client, environment_id=self._bindings["environment_id"]
+            )
+        )
 
     async def stop(self, *, idempotency_key: str) -> Result[wire.EnvironmentCommand]:
         """Stop Environment. One HTTP request; no automatic replay."""
@@ -4663,6 +4675,10 @@ class Workspace(Resource):
         return WorkspacesWorkspaceConnectorProviders(self._client, self._bindings)
 
     @property
+    def device_pairings(self) -> WorkspacesWorkspaceDevicePairings:
+        return WorkspacesWorkspaceDevicePairings(self._client, self._bindings)
+
+    @property
     def environment_providers(self) -> WorkspacesWorkspaceEnvironmentProviders:
         return WorkspacesWorkspaceEnvironmentProviders(self._client, self._bindings)
 
@@ -5433,6 +5449,41 @@ class WorkspacesWorkspaceConnectorProviders(Resource):
         return await self._call(
             lambda client: post_workspaces_workspace_connector_providers.asyncio_detailed(
                 client=client, workspace=self._bindings["workspace"], body=body, idempotency_key=idempotency_key
+            )
+        )
+
+
+class WorkspacesWorkspaceDevicePairings(Resource):
+    """Bound Native resource: /workspaces / {workspace} / device-pairings."""
+
+    def __call__(self, pairing_id: str) -> WorkspacesWorkspaceDevicePairingsPairingId:
+        return WorkspacesWorkspaceDevicePairingsPairingId(self._client, self._bind("pairing_id", pairing_id))
+
+
+class WorkspacesWorkspaceDevicePairingsPairingId(Resource):
+    """Bound Native resource: /workspaces / {workspace} / device-pairings / {pairing_id}."""
+
+    async def get(self) -> Result[wire.PairingChallenge]:
+        """Inspect Pairing. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_workspaces_workspace_device_pairings_pairing_id.asyncio_detailed(
+                client=client, workspace=self._bindings["workspace"], pairing_id=self._bindings["pairing_id"]
+            )
+        )
+
+    async def approve(self) -> Result[wire.Environment]:
+        """Approve Pairing. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: post_workspaces_workspace_device_pairings_pairing_id_approve.asyncio_detailed(
+                client=client, workspace=self._bindings["workspace"], pairing_id=self._bindings["pairing_id"]
+            )
+        )
+
+    async def reject(self) -> Result[None]:
+        """Reject Pairing. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: post_workspaces_workspace_device_pairings_pairing_id_reject.asyncio_detailed(
+                client=client, workspace=self._bindings["workspace"], pairing_id=self._bindings["pairing_id"]
             )
         )
 

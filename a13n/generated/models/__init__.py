@@ -279,9 +279,11 @@ from .environment_command import EnvironmentCommand
 from .environment_command_action import EnvironmentCommandAction
 from .environment_command_status import EnvironmentCommandStatus
 from .environment_detail import EnvironmentDetail
+from .environment_detail_device_registration_type_0 import EnvironmentDetailDeviceRegistrationType0
 from .environment_detail_labels import EnvironmentDetailLabels
 from .environment_detail_ownership import EnvironmentDetailOwnership
 from .environment_detail_retention_condition import EnvironmentDetailRetentionCondition
+from .environment_device_registration_type_0 import EnvironmentDeviceRegistrationType0
 from .environment_labels import EnvironmentLabels
 from .environment_ownership import EnvironmentOwnership
 from .environment_provider_account import EnvironmentProviderAccount
@@ -492,6 +494,9 @@ from .page_security_event import PageSecurityEvent
 from .page_service_account import PageServiceAccount
 from .page_user import PageUser
 from .page_workspace import PageWorkspace
+from .pairing_approved import PairingApproved
+from .pairing_challenge import PairingChallenge
+from .pairing_pending import PairingPending
 from .password_reset_request import PasswordResetRequest
 from .patch import Patch
 from .path_binary_source import PathBinarySource
@@ -1051,9 +1056,11 @@ __all__ = (
     "EnvironmentCommandAction",
     "EnvironmentCommandStatus",
     "EnvironmentDetail",
+    "EnvironmentDetailDeviceRegistrationType0",
     "EnvironmentDetailLabels",
     "EnvironmentDetailOwnership",
     "EnvironmentDetailRetentionCondition",
+    "EnvironmentDeviceRegistrationType0",
     "EnvironmentLabels",
     "EnvironmentOwnership",
     "EnvironmentProviderAccount",
@@ -1254,6 +1261,9 @@ __all__ = (
     "PageServiceAccount",
     "PageUser",
     "PageWorkspace",
+    "PairingApproved",
+    "PairingChallenge",
+    "PairingPending",
     "PasswordResetRequest",
     "Patch",
     "PathBinarySource",
