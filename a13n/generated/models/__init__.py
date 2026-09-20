@@ -412,6 +412,8 @@ from .mcpo_auth_setup_action_grant_types_item import MCPOAuthSetupActionGrantTyp
 from .mcpo_auth_setup_action_token_endpoint_auth_methods_item import MCPOAuthSetupActionTokenEndpointAuthMethodsItem
 from .mcpo_auth_setup_action_type import MCPOAuthSetupActionType
 from .mcpo_auth_setup_request import MCPOAuthSetupRequest
+from .media_understanding_defaults import MediaUnderstandingDefaults
+from .media_understanding_selection import MediaUnderstandingSelection
 from .memory import Memory
 from .memory_access import MemoryAccess
 from .memory_collection import MemoryCollection
@@ -1181,6 +1183,8 @@ __all__ = (
     "ManagedMemoryBackend",
     "ManagedMemoryDocument",
     "ManagedMemoryDocumentKind",
+    "MediaUnderstandingDefaults",
+    "MediaUnderstandingSelection",
     "Memory",
     "MemoryAccess",
     "MemoryCollection",

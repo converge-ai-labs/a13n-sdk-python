@@ -314,6 +314,7 @@ from .api.model_management import (
     get_organizations_organization_model_providers_provider_id,
     get_organizations_organization_models,
     get_organizations_organization_models_model_id,
+    get_workspaces_workspace_media_understanding_defaults,
     get_workspaces_workspace_model_catalog,
     get_workspaces_workspace_model_providers,
     get_workspaces_workspace_model_providers_provider_id,
@@ -331,6 +332,7 @@ from .api.model_management import (
     post_workspaces_workspace_model_providers_provider_id_test,
     post_workspaces_workspace_models,
     post_workspaces_workspace_models_model_id_test,
+    put_workspaces_workspace_media_understanding_defaults,
 )
 from .api.protocol_gateway import (
     delete_queued_submissions_queued_submission_id,
@@ -4707,6 +4709,10 @@ class Workspace(Resource):
         return WorkspacesWorkspaceInvitations(self._client, self._bindings)
 
     @property
+    def media_understanding_defaults(self) -> WorkspacesWorkspaceMediaUnderstandingDefaults:
+        return WorkspacesWorkspaceMediaUnderstandingDefaults(self._client, self._bindings)
+
+    @property
     def members(self) -> WorkspacesWorkspaceMembers:
         return WorkspacesWorkspaceMembers(self._client, self._bindings)
 
@@ -5743,6 +5749,28 @@ class WorkspacesWorkspaceInvitations(Resource):
         return await self._call(
             lambda client: post_workspaces_workspace_invitations.asyncio_detailed(
                 client=client, workspace=self._bindings["workspace"], body=body
+            )
+        )
+
+
+class WorkspacesWorkspaceMediaUnderstandingDefaults(Resource):
+    """Bound Native resource: /workspaces / {workspace} / media-understanding-defaults."""
+
+    async def get(self) -> Result[wire.MediaUnderstandingDefaults]:
+        """Get Media Understanding Defaults. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_workspaces_workspace_media_understanding_defaults.asyncio_detailed(
+                client=client, workspace=self._bindings["workspace"]
+            )
+        )
+
+    async def replace(
+        self, *, body: wire.MediaUnderstandingSelection, if_match: str
+    ) -> Result[wire.MediaUnderstandingDefaults]:
+        """Replace Media Understanding Defaults. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: put_workspaces_workspace_media_understanding_defaults.asyncio_detailed(
+                client=client, workspace=self._bindings["workspace"], body=body, if_match=if_match
             )
         )
 
