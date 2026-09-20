@@ -16,22 +16,24 @@ T = TypeVar("T", bound="CreateDocument")
 class CreateDocument:
     """
     Attributes:
+        kind (CreateDocumentKind):
         text (str):
         title (str):
         activity_date (datetime.date | None | Unset):
         correction_of (None | str | Unset):
         description (str | Unset):
-        kind (CreateDocumentKind | Unset):
     """
 
+    kind: CreateDocumentKind
     text: str
     title: str
     activity_date: datetime.date | Unset | None = UNSET
     correction_of: str | Unset | None = UNSET
     description: str | Unset = UNSET
-    kind: CreateDocumentKind | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
+        kind = self.kind.value
+
         text = self.text
 
         title = self.title
@@ -52,14 +54,11 @@ class CreateDocument:
 
         description = self.description
 
-        kind: str | Unset = UNSET
-        if not isinstance(self.kind, Unset):
-            kind = self.kind.value
-
         field_dict: dict[str, Any] = {}
 
         field_dict.update(
             {
+                "kind": kind,
                 "text": text,
                 "title": title,
             }
@@ -70,14 +69,14 @@ class CreateDocument:
             field_dict["correction_of"] = correction_of
         if description is not UNSET:
             field_dict["description"] = description
-        if kind is not UNSET:
-            field_dict["kind"] = kind
 
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
+        kind = CreateDocumentKind(d.pop("kind"))
+
         text = d.pop("text")
 
         title = d.pop("title")
@@ -110,20 +109,13 @@ class CreateDocument:
 
         description = d.pop("description", UNSET)
 
-        _kind = d.pop("kind", UNSET)
-        kind: CreateDocumentKind | Unset
-        if isinstance(_kind, Unset):
-            kind = UNSET
-        else:
-            kind = CreateDocumentKind(_kind)
-
         create_document = cls(
+            kind=kind,
             text=text,
             title=title,
             activity_date=activity_date,
             correction_of=correction_of,
             description=description,
-            kind=kind,
         )
 
         return create_document

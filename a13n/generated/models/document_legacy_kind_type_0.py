@@ -1,7 +1,7 @@
 from enum import StrEnum
 
 
-class DocumentKind(StrEnum):
+class DocumentLegacyKindType0(StrEnum):
     DAILY = "daily"
     LONG_TERM = "long_term"
 

@@ -6,7 +6,8 @@ from typing import Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 
-from ..models.document_entry_kind import DocumentEntryKind
+from ..models.document_entry_kind_type_0 import DocumentEntryKindType0
+from ..models.document_entry_legacy_kind_type_0 import DocumentEntryLegacyKindType0
 from ..models.document_entry_state import DocumentEntryState
 from ..types import UNSET, Unset
 
@@ -20,7 +21,7 @@ class DocumentEntry:
         activity_date (datetime.date):
         description (str):
         id (str):
-        kind (DocumentEntryKind):
+        kind (DocumentEntryKindType0 | None):
         path (str):
         saved_at (datetime.datetime | None):
         scope_id (str):
@@ -28,6 +29,7 @@ class DocumentEntry:
         timezone (str):
         title (str):
         correction_of (None | str | Unset):
+        legacy_kind (DocumentEntryLegacyKindType0 | None | Unset):
         publication_source_id (None | str | Unset):
         shared (bool | Unset):
         version (int | Unset):
@@ -36,7 +38,7 @@ class DocumentEntry:
     activity_date: datetime.date
     description: str
     id: str
-    kind: DocumentEntryKind
+    kind: DocumentEntryKindType0 | None
     path: str
     saved_at: datetime.datetime | None
     scope_id: str
@@ -44,6 +46,7 @@ class DocumentEntry:
     timezone: str
     title: str
     correction_of: str | Unset | None = UNSET
+    legacy_kind: DocumentEntryLegacyKindType0 | Unset | None = UNSET
     publication_source_id: str | Unset | None = UNSET
     shared: bool | Unset = UNSET
     version: int | Unset = UNSET
@@ -55,7 +58,11 @@ class DocumentEntry:
 
         id = self.id
 
-        kind = self.kind.value
+        kind: str | None
+        if isinstance(self.kind, DocumentEntryKindType0):
+            kind = self.kind.value
+        else:
+            kind = self.kind
 
         path = self.path
 
@@ -78,6 +85,14 @@ class DocumentEntry:
             correction_of = UNSET
         else:
             correction_of = self.correction_of
+
+        legacy_kind: str | Unset | None
+        if isinstance(self.legacy_kind, Unset):
+            legacy_kind = UNSET
+        elif isinstance(self.legacy_kind, DocumentEntryLegacyKindType0):
+            legacy_kind = self.legacy_kind.value
+        else:
+            legacy_kind = self.legacy_kind
 
         publication_source_id: str | Unset | None
         if isinstance(self.publication_source_id, Unset):
@@ -107,6 +122,8 @@ class DocumentEntry:
         )
         if correction_of is not UNSET:
             field_dict["correction_of"] = correction_of
+        if legacy_kind is not UNSET:
+            field_dict["legacy_kind"] = legacy_kind
         if publication_source_id is not UNSET:
             field_dict["publication_source_id"] = publication_source_id
         if shared is not UNSET:
@@ -125,7 +142,20 @@ class DocumentEntry:
 
         id = d.pop("id")
 
-        kind = DocumentEntryKind(d.pop("kind"))
+        def _parse_kind(data: object) -> DocumentEntryKindType0 | None:
+            if data is None:
+                return data
+            try:
+                if not isinstance(data, str):
+                    raise TypeError()
+                kind_type_0 = DocumentEntryKindType0(data)
+
+                return kind_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(DocumentEntryKindType0 | None, data)
+
+        kind = _parse_kind(d.pop("kind"))
 
         path = d.pop("path")
 
@@ -161,6 +191,23 @@ class DocumentEntry:
 
         correction_of = _parse_correction_of(d.pop("correction_of", UNSET))
 
+        def _parse_legacy_kind(data: object) -> DocumentEntryLegacyKindType0 | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, str):
+                    raise TypeError()
+                legacy_kind_type_0 = DocumentEntryLegacyKindType0(data)
+
+                return legacy_kind_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(DocumentEntryLegacyKindType0 | Unset | None, data)
+
+        legacy_kind = _parse_legacy_kind(d.pop("legacy_kind", UNSET))
+
         def _parse_publication_source_id(data: object) -> str | Unset | None:
             if data is None:
                 return data
@@ -186,6 +233,7 @@ class DocumentEntry:
             timezone=timezone,
             title=title,
             correction_of=correction_of,
+            legacy_kind=legacy_kind,
             publication_source_id=publication_source_id,
             shared=shared,
             version=version,

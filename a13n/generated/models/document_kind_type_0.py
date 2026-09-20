@@ -1,7 +1,7 @@
 from enum import StrEnum
 
 
-class GetApplicationAccountsAccountIdMemoryScopesScopeIdDocumentsKindType0(StrEnum):
+class DocumentKindType0(StrEnum):
     EPISODIC = "episodic"
     PROCEDURAL = "procedural"
     SEMANTIC = "semantic"

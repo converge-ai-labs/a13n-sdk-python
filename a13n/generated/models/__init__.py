@@ -261,13 +261,15 @@ from .document_access_reason import DocumentAccessReason
 from .document_access_reason_kind import DocumentAccessReasonKind
 from .document_collection import DocumentCollection
 from .document_entry import DocumentEntry
-from .document_entry_kind import DocumentEntryKind
+from .document_entry_kind_type_0 import DocumentEntryKindType0
+from .document_entry_legacy_kind_type_0 import DocumentEntryLegacyKindType0
 from .document_entry_state import DocumentEntryState
 from .document_heading import DocumentHeading
 from .document_input import DocumentInput
 from .document_input_content import DocumentInputContent
 from .document_input_kind import DocumentInputKind
-from .document_kind import DocumentKind
+from .document_kind_type_0 import DocumentKindType0
+from .document_legacy_kind_type_0 import DocumentLegacyKindType0
 from .document_navigation import DocumentNavigation
 from .document_state import DocumentState
 from .duplicate_agent_request import DuplicateAgentRequest
@@ -1041,13 +1043,15 @@ __all__ = (
     "DocumentAccessReasonKind",
     "DocumentCollection",
     "DocumentEntry",
-    "DocumentEntryKind",
+    "DocumentEntryKindType0",
+    "DocumentEntryLegacyKindType0",
     "DocumentEntryState",
     "DocumentHeading",
     "DocumentInput",
     "DocumentInputContent",
     "DocumentInputKind",
-    "DocumentKind",
+    "DocumentKindType0",
+    "DocumentLegacyKindType0",
     "DocumentNavigation",
     "DocumentState",
     "DuplicateAgentRequest",
