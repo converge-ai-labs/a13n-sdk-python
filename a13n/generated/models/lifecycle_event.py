@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 
+from ..models.hook_dispatch_state import HookDispatchState
 from ..models.lifecycle_entity_type import LifecycleEntityType
 from ..models.lifecycle_projection_state import LifecycleProjectionState
 from ..types import UNSET, Unset
@@ -28,6 +29,8 @@ class LifecycleEvent:
         entity_type (LifecycleEntityType):
         entity_version (int):
         event_type (str):
+        hook_dispatch_attempts (int):
+        hook_dispatch_state (HookDispatchState):
         id (str):
         mutation_id (str):
         occurred_at (datetime.datetime):
@@ -40,6 +43,9 @@ class LifecycleEvent:
         schema_version (str):
         seq (int):
         actor_id (None | str | Unset):
+        hook_dispatch_error (None | SafeFailure | Unset):
+        hook_dispatch_next_attempt_at (datetime.datetime | None | Unset):
+        hook_dispatched_at (datetime.datetime | None | Unset):
         projected_at (datetime.datetime | None | Unset):
         projection_error (None | SafeFailure | Unset):
         projection_lease_expires_at (datetime.datetime | None | Unset):
@@ -55,6 +61,8 @@ class LifecycleEvent:
     entity_type: LifecycleEntityType
     entity_version: int
     event_type: str
+    hook_dispatch_attempts: int
+    hook_dispatch_state: HookDispatchState
     id: str
     mutation_id: str
     occurred_at: datetime.datetime
@@ -67,6 +75,9 @@ class LifecycleEvent:
     schema_version: str
     seq: int
     actor_id: str | Unset | None = UNSET
+    hook_dispatch_error: SafeFailure | Unset | None = UNSET
+    hook_dispatch_next_attempt_at: datetime.datetime | Unset | None = UNSET
+    hook_dispatched_at: datetime.datetime | Unset | None = UNSET
     projected_at: datetime.datetime | Unset | None = UNSET
     projection_error: SafeFailure | Unset | None = UNSET
     projection_lease_expires_at: datetime.datetime | Unset | None = UNSET
@@ -89,6 +100,10 @@ class LifecycleEvent:
         entity_version = self.entity_version
 
         event_type = self.event_type
+
+        hook_dispatch_attempts = self.hook_dispatch_attempts
+
+        hook_dispatch_state = self.hook_dispatch_state.value
 
         id = self.id
 
@@ -117,6 +132,30 @@ class LifecycleEvent:
             actor_id = UNSET
         else:
             actor_id = self.actor_id
+
+        hook_dispatch_error: dict[str, Any] | Unset | None
+        if isinstance(self.hook_dispatch_error, Unset):
+            hook_dispatch_error = UNSET
+        elif isinstance(self.hook_dispatch_error, SafeFailure):
+            hook_dispatch_error = self.hook_dispatch_error.to_dict()
+        else:
+            hook_dispatch_error = self.hook_dispatch_error
+
+        hook_dispatch_next_attempt_at: str | Unset | None
+        if isinstance(self.hook_dispatch_next_attempt_at, Unset):
+            hook_dispatch_next_attempt_at = UNSET
+        elif isinstance(self.hook_dispatch_next_attempt_at, datetime.datetime):
+            hook_dispatch_next_attempt_at = self.hook_dispatch_next_attempt_at.isoformat()
+        else:
+            hook_dispatch_next_attempt_at = self.hook_dispatch_next_attempt_at
+
+        hook_dispatched_at: str | Unset | None
+        if isinstance(self.hook_dispatched_at, Unset):
+            hook_dispatched_at = UNSET
+        elif isinstance(self.hook_dispatched_at, datetime.datetime):
+            hook_dispatched_at = self.hook_dispatched_at.isoformat()
+        else:
+            hook_dispatched_at = self.hook_dispatched_at
 
         projected_at: str | Unset | None
         if isinstance(self.projected_at, Unset):
@@ -178,6 +217,8 @@ class LifecycleEvent:
                 "entity_type": entity_type,
                 "entity_version": entity_version,
                 "event_type": event_type,
+                "hook_dispatch_attempts": hook_dispatch_attempts,
+                "hook_dispatch_state": hook_dispatch_state,
                 "id": id,
                 "mutation_id": mutation_id,
                 "occurred_at": occurred_at,
@@ -193,6 +234,12 @@ class LifecycleEvent:
         )
         if actor_id is not UNSET:
             field_dict["actor_id"] = actor_id
+        if hook_dispatch_error is not UNSET:
+            field_dict["hook_dispatch_error"] = hook_dispatch_error
+        if hook_dispatch_next_attempt_at is not UNSET:
+            field_dict["hook_dispatch_next_attempt_at"] = hook_dispatch_next_attempt_at
+        if hook_dispatched_at is not UNSET:
+            field_dict["hook_dispatched_at"] = hook_dispatched_at
         if projected_at is not UNSET:
             field_dict["projected_at"] = projected_at
         if projection_error is not UNSET:
@@ -228,6 +275,10 @@ class LifecycleEvent:
 
         event_type = d.pop("event_type")
 
+        hook_dispatch_attempts = d.pop("hook_dispatch_attempts")
+
+        hook_dispatch_state = HookDispatchState(d.pop("hook_dispatch_state"))
+
         id = d.pop("id")
 
         mutation_id = d.pop("mutation_id")
@@ -258,6 +309,59 @@ class LifecycleEvent:
             return cast(str | Unset | None, data)
 
         actor_id = _parse_actor_id(d.pop("actor_id", UNSET))
+
+        def _parse_hook_dispatch_error(data: object) -> SafeFailure | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                hook_dispatch_error_type_0 = SafeFailure.from_dict(data)
+
+                return hook_dispatch_error_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(SafeFailure | Unset | None, data)
+
+        hook_dispatch_error = _parse_hook_dispatch_error(d.pop("hook_dispatch_error", UNSET))
+
+        def _parse_hook_dispatch_next_attempt_at(data: object) -> datetime.datetime | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, str):
+                    raise TypeError()
+                hook_dispatch_next_attempt_at_type_0 = datetime.datetime.fromisoformat(data)
+
+                return hook_dispatch_next_attempt_at_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(datetime.datetime | Unset | None, data)
+
+        hook_dispatch_next_attempt_at = _parse_hook_dispatch_next_attempt_at(
+            d.pop("hook_dispatch_next_attempt_at", UNSET)
+        )
+
+        def _parse_hook_dispatched_at(data: object) -> datetime.datetime | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, str):
+                    raise TypeError()
+                hook_dispatched_at_type_0 = datetime.datetime.fromisoformat(data)
+
+                return hook_dispatched_at_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(datetime.datetime | Unset | None, data)
+
+        hook_dispatched_at = _parse_hook_dispatched_at(d.pop("hook_dispatched_at", UNSET))
 
         def _parse_projected_at(data: object) -> datetime.datetime | Unset | None:
             if data is None:
@@ -361,6 +465,8 @@ class LifecycleEvent:
             entity_type=entity_type,
             entity_version=entity_version,
             event_type=event_type,
+            hook_dispatch_attempts=hook_dispatch_attempts,
+            hook_dispatch_state=hook_dispatch_state,
             id=id,
             mutation_id=mutation_id,
             occurred_at=occurred_at,
@@ -373,6 +479,9 @@ class LifecycleEvent:
             schema_version=schema_version,
             seq=seq,
             actor_id=actor_id,
+            hook_dispatch_error=hook_dispatch_error,
+            hook_dispatch_next_attempt_at=hook_dispatch_next_attempt_at,
+            hook_dispatched_at=hook_dispatched_at,
             projected_at=projected_at,
             projection_error=projection_error,
             projection_lease_expires_at=projection_lease_expires_at,

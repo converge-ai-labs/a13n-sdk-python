@@ -333,6 +333,7 @@ from .git_hub_skill_import_provenance import GitHubSkillImportProvenance
 from .grant import Grant
 from .grant_resource_type import GrantResourceType
 from .grant_role_key import GrantRoleKey
+from .hook_dispatch_state import HookDispatchState
 from .hook_subscription import HookSubscription
 from .hook_subscription_collection import HookSubscriptionCollection
 from .hook_subscription_revision import HookSubscriptionRevision
@@ -1109,6 +1110,7 @@ __all__ = (
     "GrantResourceType",
     "GrantRoleKey",
     "HTTPValidationError",
+    "HookDispatchState",
     "HookSubscription",
     "HookSubscriptionCollection",
     "HookSubscriptionRevision",
