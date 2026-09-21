@@ -12,7 +12,8 @@ T = TypeVar("T", bound="MediaUnderstandingSelection")
 
 @_attrs_define(repr=False)
 class MediaUnderstandingSelection:
-    """
+    """Per-kind auxiliary Model choice shared by Workspace, Agent, and Run levels.
+
     Attributes:
         audio (None | str | Unset):
         image (None | str | Unset):

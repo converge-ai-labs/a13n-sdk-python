@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from ..models.agent_run_override_output_toolsets_type_0 import AgentRunOverrideOutputToolsetsType0
     from ..models.client_tool_definition import ClientToolDefinition
     from ..models.connection_tool_selection import ConnectionToolSelection
+    from ..models.media_understanding_selection import MediaUnderstandingSelection
     from ..models.memory_entries import MemoryEntries
     from ..models.memory_selection import MemorySelection
     from ..models.model_override import ModelOverride
@@ -32,6 +33,7 @@ class AgentRunOverrideOutput:
         client_tools (list[ClientToolDefinition] | None | Unset):
         connection_tools (list[ConnectionToolSelection] | None | Unset):
         instructions (None | str | Unset):
+        media_understanding (MediaUnderstandingSelection | None | Unset):
         memory (MemoryEntries | MemorySelection | None | Unset):
         model (ModelOverride | None | Unset):
         output_spec (None | OutputSpec | Unset):
@@ -46,6 +48,7 @@ class AgentRunOverrideOutput:
     client_tools: list[ClientToolDefinition] | Unset | None = UNSET
     connection_tools: list[ConnectionToolSelection] | Unset | None = UNSET
     instructions: str | Unset | None = UNSET
+    media_understanding: MediaUnderstandingSelection | Unset | None = UNSET
     memory: MemoryEntries | MemorySelection | Unset | None = UNSET
     model: ModelOverride | Unset | None = UNSET
     output_spec: OutputSpec | Unset | None = UNSET
@@ -64,6 +67,7 @@ class AgentRunOverrideOutput:
         from ..models.agent_run_override_output_toolsets_type_0 import (
             AgentRunOverrideOutputToolsetsType0,
         )
+        from ..models.media_understanding_selection import MediaUnderstandingSelection
         from ..models.memory_entries import MemoryEntries
         from ..models.memory_selection import MemorySelection
         from ..models.model_override import ModelOverride
@@ -99,6 +103,14 @@ class AgentRunOverrideOutput:
             instructions = UNSET
         else:
             instructions = self.instructions
+
+        media_understanding: dict[str, Any] | Unset | None
+        if isinstance(self.media_understanding, Unset):
+            media_understanding = UNSET
+        elif isinstance(self.media_understanding, MediaUnderstandingSelection):
+            media_understanding = self.media_understanding.to_dict()
+        else:
+            media_understanding = self.media_understanding
 
         memory: dict[str, Any] | Unset | None
         if isinstance(self.memory, Unset):
@@ -191,6 +203,8 @@ class AgentRunOverrideOutput:
             field_dict["connection_tools"] = connection_tools
         if instructions is not UNSET:
             field_dict["instructions"] = instructions
+        if media_understanding is not UNSET:
+            field_dict["media_understanding"] = media_understanding
         if memory is not UNSET:
             field_dict["memory"] = memory
         if model is not UNSET:
@@ -223,6 +237,7 @@ class AgentRunOverrideOutput:
         )
         from ..models.client_tool_definition import ClientToolDefinition
         from ..models.connection_tool_selection import ConnectionToolSelection
+        from ..models.media_understanding_selection import MediaUnderstandingSelection
         from ..models.memory_entries import MemoryEntries
         from ..models.memory_selection import MemorySelection
         from ..models.model_override import ModelOverride
@@ -285,6 +300,23 @@ class AgentRunOverrideOutput:
             return cast(str | Unset | None, data)
 
         instructions = _parse_instructions(d.pop("instructions", UNSET))
+
+        def _parse_media_understanding(data: object) -> MediaUnderstandingSelection | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                media_understanding_type_0 = MediaUnderstandingSelection.from_dict(data)
+
+                return media_understanding_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(MediaUnderstandingSelection | Unset | None, data)
+
+        media_understanding = _parse_media_understanding(d.pop("media_understanding", UNSET))
 
         def _parse_memory(data: object) -> MemoryEntries | MemorySelection | Unset | None:
             if data is None:
@@ -461,6 +493,7 @@ class AgentRunOverrideOutput:
             client_tools=client_tools,
             connection_tools=connection_tools,
             instructions=instructions,
+            media_understanding=media_understanding,
             memory=memory,
             model=model,
             output_spec=output_spec,

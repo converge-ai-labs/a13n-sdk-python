@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from ..models.client_tool_definition import ClientToolDefinition
     from ..models.connection_tool_selection import ConnectionToolSelection
     from ..models.input_adapter_config import InputAdapterConfig
+    from ..models.media_understanding_selection import MediaUnderstandingSelection
     from ..models.memory_entries import MemoryEntries
     from ..models.memory_selection import MemorySelection
     from ..models.output_spec import OutputSpec
@@ -40,6 +41,8 @@ class AgentConfigOutput:
         connection_tools (list[ConnectionToolSelection] | Unset):
         default_environment_template_id (None | str | Unset):
         instructions (str | Unset):
+        media_understanding (MediaUnderstandingSelection | Unset): Per-kind auxiliary Model choice shared by Workspace,
+            Agent, and Run levels.
         memory (MemoryEntries | MemorySelection | None | Unset):
         output_spec (None | OutputSpec | Unset):
         plugins (list[PluginSelection] | Unset):
@@ -59,6 +62,7 @@ class AgentConfigOutput:
     connection_tools: list[ConnectionToolSelection] | Unset = UNSET
     default_environment_template_id: str | Unset | None = UNSET
     instructions: str | Unset = UNSET
+    media_understanding: MediaUnderstandingSelection | Unset = UNSET
     memory: MemoryEntries | MemorySelection | Unset | None = UNSET
     output_spec: OutputSpec | Unset | None = UNSET
     plugins: list[PluginSelection] | Unset = UNSET
@@ -104,6 +108,10 @@ class AgentConfigOutput:
             default_environment_template_id = self.default_environment_template_id
 
         instructions = self.instructions
+
+        media_understanding: dict[str, Any] | Unset = UNSET
+        if not isinstance(self.media_understanding, Unset):
+            media_understanding = self.media_understanding.to_dict()
 
         memory: dict[str, Any] | Unset | None
         if isinstance(self.memory, Unset):
@@ -189,6 +197,8 @@ class AgentConfigOutput:
             field_dict["default_environment_template_id"] = default_environment_template_id
         if instructions is not UNSET:
             field_dict["instructions"] = instructions
+        if media_understanding is not UNSET:
+            field_dict["media_understanding"] = media_understanding
         if memory is not UNSET:
             field_dict["memory"] = memory
         if output_spec is not UNSET:
@@ -221,6 +231,7 @@ class AgentConfigOutput:
         from ..models.client_tool_definition import ClientToolDefinition
         from ..models.connection_tool_selection import ConnectionToolSelection
         from ..models.input_adapter_config import InputAdapterConfig
+        from ..models.media_understanding_selection import MediaUnderstandingSelection
         from ..models.memory_entries import MemoryEntries
         from ..models.memory_selection import MemorySelection
         from ..models.output_spec import OutputSpec
@@ -267,6 +278,13 @@ class AgentConfigOutput:
         )
 
         instructions = d.pop("instructions", UNSET)
+
+        _media_understanding = d.pop("media_understanding", UNSET)
+        media_understanding: MediaUnderstandingSelection | Unset
+        if isinstance(_media_understanding, Unset):
+            media_understanding = UNSET
+        else:
+            media_understanding = MediaUnderstandingSelection.from_dict(_media_understanding)
 
         def _parse_memory(data: object) -> MemoryEntries | MemorySelection | Unset | None:
             if data is None:
@@ -400,6 +418,7 @@ class AgentConfigOutput:
             connection_tools=connection_tools,
             default_environment_template_id=default_environment_template_id,
             instructions=instructions,
+            media_understanding=media_understanding,
             memory=memory,
             output_spec=output_spec,
             plugins=plugins,
