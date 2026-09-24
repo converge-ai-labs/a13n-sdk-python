@@ -16,7 +16,7 @@ These documents define the Python contract, not the implementation status of a r
 | Concern                                                                   | Owner                                                                                                                                                           |
 | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Shared SDK experience and domain boundaries                               | [Service SDK Design and Contract Distribution](https://github.com/converge-ai-labs/agent-foundation/blob/main/spec/a13n-service/37-service-sdks-and-clients.md) |
-| Session, Thread, Run, and Item meaning                                    | [Platform Interaction Model](https://github.com/converge-ai-labs/agent-foundation/blob/main/spec/interaction-model.md)                                          |
+| Session, Thread, inbox Entry, Run, and Item meaning                       | [Pinned Run semantics](../contract/semantics/runs.md)                                                                                                           |
 | Declared protocol inputs and source identity                              | [Pinned Service contract](../contract/README.md) and `contract/source.json`                                                                                     |
 | Python API, runtime behavior, compatibility, and independent distribution | This specification set                                                                                                                                          |
 | Contribution, validation commands, and publication workflow               | [Contributing](../CONTRIBUTING.md)                                                                                                                              |
@@ -25,14 +25,14 @@ The SDK consumes public Service protocols. It does not import Service startup, s
 
 ## Specification Catalog
 
-| Document                                                                | Owning contract                                                                                                            |
-| ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| [00 Overview](00-overview.md)                                           | Architecture, dependency direction, end-to-end flow, and completion boundaries                                             |
-| [01 Resources and Client Lifetime](01-resources-and-client-lifetime.md) | Python reference/snapshot roles, `Result[T]`, authentication modes, local bindings, and transport ownership                |
-| [02 Interaction and Control](02-interaction-and-control.md)             | Typed acceptance, Run/queue waiting, steer/cancel, feedback, continuation, fork, and retry                                 |
-| [03 Observation and Data Access](03-observation-and-data-access.md)     | `RunStream` lifetime and bounded reconnection, concurrent control, applied cursors, replay gaps, snapshots, and pagination |
-| [04 Resource Management](04-resource-management.md)                     | Management-family coverage, owning scopes, configuration provenance, and independent resource lifecycles                   |
-| [05 Protocol and Compatibility](05-protocol-and-compatibility.md)       | Wire fidelity, errors, concurrency, idempotency, diagnostics, contract generation, and compatibility axes                  |
+| Document                                                                | Owning contract                                                                                             |
+| ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| [00 Overview](00-overview.md)                                           | Architecture, dependency direction, end-to-end flow, and completion boundaries                              |
+| [01 Resources and Client Lifetime](01-resources-and-client-lifetime.md) | Python reference/snapshot roles, `Result[T]`, authentication modes, local bindings, and transport ownership |
+| [02 Interaction and Control](02-interaction-and-control.md)             | Workspace start, Thread inbox submission, Run/Entry waiting, interrupt, resume, and fork                    |
+| [03 Observation and Data Access](03-observation-and-data-access.md)     | Five-frame `ThreadStream`, cursor acknowledgement, bounded reconnection, explicit readback, and pagination  |
+| [04 Resource Management](04-resource-management.md)                     | Management-family coverage, owning scopes, configuration provenance, and independent resource lifecycles    |
+| [05 Protocol and Compatibility](05-protocol-and-compatibility.md)       | Wire fidelity, errors, concurrency, idempotency, diagnostics, contract generation, and compatibility axes   |
 
 ## Reading Paths
 

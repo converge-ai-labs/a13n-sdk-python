@@ -14,51 +14,51 @@ T = TypeVar("T", bound="SkillSelection")
 class SkillSelection:
     """
     Attributes:
-        skill_key (str):
-        version (int | None | Unset):
+        skill_id (str):
+        revision_id (None | str | Unset):
     """
 
-    skill_key: str
-    version: int | Unset | None = UNSET
+    skill_id: str
+    revision_id: str | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
-        skill_key = self.skill_key
+        skill_id = self.skill_id
 
-        version: int | Unset | None
-        if isinstance(self.version, Unset):
-            version = UNSET
+        revision_id: str | Unset | None
+        if isinstance(self.revision_id, Unset):
+            revision_id = UNSET
         else:
-            version = self.version
+            revision_id = self.revision_id
 
         field_dict: dict[str, Any] = {}
 
         field_dict.update(
             {
-                "skill_key": skill_key,
+                "skill_id": skill_id,
             }
         )
-        if version is not UNSET:
-            field_dict["version"] = version
+        if revision_id is not UNSET:
+            field_dict["revision_id"] = revision_id
 
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        skill_key = d.pop("skill_key")
+        skill_id = d.pop("skill_id")
 
-        def _parse_version(data: object) -> int | Unset | None:
+        def _parse_revision_id(data: object) -> str | Unset | None:
             if data is None:
                 return data
             if isinstance(data, Unset):
                 return data
-            return cast(int | Unset | None, data)
+            return cast(str | Unset | None, data)
 
-        version = _parse_version(d.pop("version", UNSET))
+        revision_id = _parse_revision_id(d.pop("revision_id", UNSET))
 
         skill_selection = cls(
-            skill_key=skill_key,
-            version=version,
+            skill_id=skill_id,
+            revision_id=revision_id,
         )
 
         return skill_selection

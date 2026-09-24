@@ -2,10 +2,14 @@ from __future__ import annotations
 
 import datetime
 from collections.abc import Mapping
-from typing import Any, TypeVar, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
+
+if TYPE_CHECKING:
+    from ..models.principal_summary import PrincipalSummary
+
 
 T = TypeVar("T", bound="ApiKey")
 
@@ -14,38 +18,36 @@ T = TypeVar("T", bound="ApiKey")
 class ApiKey:
     """
     Attributes:
-        boundary_id (str):
-        boundary_type (str):
         created_at (datetime.datetime):
+        created_by_id (str):
         expires_at (datetime.datetime | None):
         id (str):
+        last_used_at (datetime.datetime | None):
         name (str):
         organization_id (str):
-        principal_id (str):
-        principal_type (str):
+        principal (PrincipalSummary):
         revoked_at (datetime.datetime | None):
-        updated_at (datetime.datetime):
+        version (int):
+        workspace_id (str):
     """
 
-    boundary_id: str
-    boundary_type: str
     created_at: datetime.datetime
+    created_by_id: str
     expires_at: datetime.datetime | None
     id: str
+    last_used_at: datetime.datetime | None
     name: str
     organization_id: str
-    principal_id: str
-    principal_type: str
+    principal: PrincipalSummary
     revoked_at: datetime.datetime | None
-    updated_at: datetime.datetime
+    version: int
+    workspace_id: str
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        boundary_id = self.boundary_id
-
-        boundary_type = self.boundary_type
-
         created_at = self.created_at.isoformat()
+
+        created_by_id = self.created_by_id
 
         expires_at: str | None
         if isinstance(self.expires_at, datetime.datetime):
@@ -55,13 +57,17 @@ class ApiKey:
 
         id = self.id
 
+        last_used_at: str | None
+        if isinstance(self.last_used_at, datetime.datetime):
+            last_used_at = self.last_used_at.isoformat()
+        else:
+            last_used_at = self.last_used_at
+
         name = self.name
 
         organization_id = self.organization_id
 
-        principal_id = self.principal_id
-
-        principal_type = self.principal_type
+        principal = self.principal.to_dict()
 
         revoked_at: str | None
         if isinstance(self.revoked_at, datetime.datetime):
@@ -69,23 +75,25 @@ class ApiKey:
         else:
             revoked_at = self.revoked_at
 
-        updated_at = self.updated_at.isoformat()
+        version = self.version
+
+        workspace_id = self.workspace_id
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
-                "boundary_id": boundary_id,
-                "boundary_type": boundary_type,
                 "created_at": created_at,
+                "created_by_id": created_by_id,
                 "expires_at": expires_at,
                 "id": id,
+                "last_used_at": last_used_at,
                 "name": name,
                 "organization_id": organization_id,
-                "principal_id": principal_id,
-                "principal_type": principal_type,
+                "principal": principal,
                 "revoked_at": revoked_at,
-                "updated_at": updated_at,
+                "version": version,
+                "workspace_id": workspace_id,
             }
         )
 
@@ -93,12 +101,12 @@ class ApiKey:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.principal_summary import PrincipalSummary
+
         d = dict(src_dict)
-        boundary_id = d.pop("boundary_id")
-
-        boundary_type = d.pop("boundary_type")
-
         created_at = datetime.datetime.fromisoformat(d.pop("created_at"))
+
+        created_by_id = d.pop("created_by_id")
 
         def _parse_expires_at(data: object) -> datetime.datetime | None:
             if data is None:
@@ -117,13 +125,26 @@ class ApiKey:
 
         id = d.pop("id")
 
+        def _parse_last_used_at(data: object) -> datetime.datetime | None:
+            if data is None:
+                return data
+            try:
+                if not isinstance(data, str):
+                    raise TypeError()
+                last_used_at_type_0 = datetime.datetime.fromisoformat(data)
+
+                return last_used_at_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(datetime.datetime | None, data)
+
+        last_used_at = _parse_last_used_at(d.pop("last_used_at"))
+
         name = d.pop("name")
 
         organization_id = d.pop("organization_id")
 
-        principal_id = d.pop("principal_id")
-
-        principal_type = d.pop("principal_type")
+        principal = PrincipalSummary.from_dict(d.pop("principal"))
 
         def _parse_revoked_at(data: object) -> datetime.datetime | None:
             if data is None:
@@ -140,20 +161,22 @@ class ApiKey:
 
         revoked_at = _parse_revoked_at(d.pop("revoked_at"))
 
-        updated_at = datetime.datetime.fromisoformat(d.pop("updated_at"))
+        version = d.pop("version")
+
+        workspace_id = d.pop("workspace_id")
 
         api_key = cls(
-            boundary_id=boundary_id,
-            boundary_type=boundary_type,
             created_at=created_at,
+            created_by_id=created_by_id,
             expires_at=expires_at,
             id=id,
+            last_used_at=last_used_at,
             name=name,
             organization_id=organization_id,
-            principal_id=principal_id,
-            principal_type=principal_type,
+            principal=principal,
             revoked_at=revoked_at,
-            updated_at=updated_at,
+            version=version,
+            workspace_id=workspace_id,
         )
 
         api_key.additional_properties = d

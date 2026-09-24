@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 import httpx2
 
 from .generated.client import AuthenticatedClient
-from .generated.models.error_response import ErrorResponse
+from .generated.models.error_envelope import ErrorEnvelope
 from .generated.types import Response, Unset
 
 if TYPE_CHECKING:
@@ -70,7 +70,7 @@ class Resource:
         return {**self._bindings, name: value}
 
     async def _call[T](
-        self, operation: Callable[[AuthenticatedClient], Awaitable[Response[T | ErrorResponse]]]
+        self, operation: Callable[[AuthenticatedClient], Awaitable[Response[T | ErrorEnvelope] | Response[T]]]
     ) -> Result[T]:
         from .client import ApiError, ProtocolError
 
@@ -79,13 +79,13 @@ class Resource:
         except (ValueError, KeyError, TypeError, AttributeError):
             raise ProtocolError("Malformed Service response") from None
         parsed = response.parsed
-        if isinstance(parsed, ErrorResponse):
+        if isinstance(parsed, ErrorEnvelope):
             error = parsed.error
             raise ApiError(
                 status=int(response.status_code),
                 code=error.code,
                 message=error.message,
-                details={} if isinstance(error.details, Unset) or error.details is None else error.details.to_dict(),
+                details=error.details.to_dict(),
                 request_id=response.headers.get("x-request-id") or error.request_id,
                 retry_after=response.headers.get("retry-after"),
             )

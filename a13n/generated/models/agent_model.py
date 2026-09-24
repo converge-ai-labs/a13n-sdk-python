@@ -19,17 +19,18 @@ T = TypeVar("T", bound="AgentModel")
 class AgentModel:
     """
     Attributes:
-        model_key (str):
-        characteristics (AgentModelCharacteristics | Unset): Agent-owned context policy layered over Model declarations.
+        model_id (str):
+        characteristics (AgentModelCharacteristics | Unset): The agent's context policy, layered over what the model
+            declares.
         settings (AgentModelSettings | Unset):
     """
 
-    model_key: str
+    model_id: str
     characteristics: AgentModelCharacteristics | Unset = UNSET
     settings: AgentModelSettings | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
-        model_key = self.model_key
+        model_id = self.model_id
 
         characteristics: dict[str, Any] | Unset = UNSET
         if not isinstance(self.characteristics, Unset):
@@ -43,7 +44,7 @@ class AgentModel:
 
         field_dict.update(
             {
-                "model_key": model_key,
+                "model_id": model_id,
             }
         )
         if characteristics is not UNSET:
@@ -59,7 +60,7 @@ class AgentModel:
         from ..models.agent_model_settings import AgentModelSettings
 
         d = dict(src_dict)
-        model_key = d.pop("model_key")
+        model_id = d.pop("model_id")
 
         _characteristics = d.pop("characteristics", UNSET)
         characteristics: AgentModelCharacteristics | Unset
@@ -76,7 +77,7 @@ class AgentModel:
             settings = AgentModelSettings.from_dict(_settings)
 
         agent_model = cls(
-            model_key=model_key,
+            model_id=model_id,
             characteristics=characteristics,
             settings=settings,
         )

@@ -18,13 +18,16 @@ T = TypeVar("T", bound="OutputSpec")
 
 @_attrs_define(repr=False)
 class OutputSpec:
-    """
-    Attributes:
-        description (None | str | Unset):
-        name (None | str | Unset):
-        resources (OutputSpecResources | Unset):
-        schema (None | OutputSpecSchemaType0 | Unset):
-        variants (list[OutputVariant] | None | Unset):
+    """Plain text without a schema, one structured output, or at least two named variants.
+
+    `resources` are the schemas `$ref`s may name besides the schema's own definitions.
+
+        Attributes:
+            description (None | str | Unset):
+            name (None | str | Unset):
+            resources (OutputSpecResources | Unset):
+            schema (None | OutputSpecSchemaType0 | Unset):
+            variants (list[OutputVariant] | None | Unset):
     """
 
     description: str | Unset | None = UNSET

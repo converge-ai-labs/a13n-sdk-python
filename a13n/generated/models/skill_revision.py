@@ -2,15 +2,13 @@ from __future__ import annotations
 
 import datetime
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
+from attrs import field as _attrs_field
 
 if TYPE_CHECKING:
-    from ..models.git_hub_skill_import_provenance import GitHubSkillImportProvenance
-    from ..models.principal_ref import PrincipalRef
-    from ..models.skill_package_manifest import SkillPackageManifest
-    from ..models.zip_skill_import_provenance import ZipSkillImportProvenance
+    from ..models.skill_manifest import SkillManifest
 
 
 T = TypeVar("T", bound="SkillRevision")
@@ -20,64 +18,61 @@ T = TypeVar("T", bound="SkillRevision")
 class SkillRevision:
     """
     Attributes:
+        config (SkillManifest): The frozen configuration of a skill revision: what its SKILL.md declares and the exact
+            package bytes.
         created_at (datetime.datetime):
-        created_by (PrincipalRef):
+        created_by_id (str):
+        digest (str):
         id (str):
-        imported_from (GitHubSkillImportProvenance | ZipSkillImportProvenance):
-        manifest (SkillPackageManifest):
-        organization_id (str):
+        note (None | str):
+        number (int):
         skill_id (str):
-        version (int):
         workspace_id (str):
     """
 
+    config: SkillManifest
     created_at: datetime.datetime
-    created_by: PrincipalRef
+    created_by_id: str
+    digest: str
     id: str
-    imported_from: GitHubSkillImportProvenance | ZipSkillImportProvenance
-    manifest: SkillPackageManifest
-    organization_id: str
+    note: str | None
+    number: int
     skill_id: str
-    version: int
     workspace_id: str
+    additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.zip_skill_import_provenance import ZipSkillImportProvenance
+        config = self.config.to_dict()
 
         created_at = self.created_at.isoformat()
 
-        created_by = self.created_by.to_dict()
+        created_by_id = self.created_by_id
+
+        digest = self.digest
 
         id = self.id
 
-        imported_from: dict[str, Any]
-        if isinstance(self.imported_from, ZipSkillImportProvenance):
-            imported_from = self.imported_from.to_dict()
-        else:
-            imported_from = self.imported_from.to_dict()
+        note: str | None
+        note = self.note
 
-        manifest = self.manifest.to_dict()
-
-        organization_id = self.organization_id
+        number = self.number
 
         skill_id = self.skill_id
-
-        version = self.version
 
         workspace_id = self.workspace_id
 
         field_dict: dict[str, Any] = {}
-
+        field_dict.update(self.additional_properties)
         field_dict.update(
             {
+                "config": config,
                 "created_at": created_at,
-                "created_by": created_by,
+                "created_by_id": created_by_id,
+                "digest": digest,
                 "id": id,
-                "imported_from": imported_from,
-                "manifest": manifest,
-                "organization_id": organization_id,
+                "note": note,
+                "number": number,
                 "skill_id": skill_id,
-                "version": version,
                 "workspace_id": workspace_id,
             }
         )
@@ -86,55 +81,59 @@ class SkillRevision:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.git_hub_skill_import_provenance import GitHubSkillImportProvenance
-        from ..models.principal_ref import PrincipalRef
-        from ..models.skill_package_manifest import SkillPackageManifest
-        from ..models.zip_skill_import_provenance import ZipSkillImportProvenance
+        from ..models.skill_manifest import SkillManifest
 
         d = dict(src_dict)
+        config = SkillManifest.from_dict(d.pop("config"))
+
         created_at = datetime.datetime.fromisoformat(d.pop("created_at"))
 
-        created_by = PrincipalRef.from_dict(d.pop("created_by"))
+        created_by_id = d.pop("created_by_id")
+
+        digest = d.pop("digest")
 
         id = d.pop("id")
 
-        def _parse_imported_from(data: object) -> GitHubSkillImportProvenance | ZipSkillImportProvenance:
-            try:
-                if not isinstance(data, dict):
-                    raise TypeError()
-                imported_from_type_0 = ZipSkillImportProvenance.from_dict(data)
+        def _parse_note(data: object) -> str | None:
+            if data is None:
+                return data
+            return cast(str | None, data)
 
-                return imported_from_type_0
-            except (TypeError, ValueError, AttributeError, KeyError):
-                pass
-            if not isinstance(data, dict):
-                raise TypeError()
-            imported_from_type_1 = GitHubSkillImportProvenance.from_dict(data)
+        note = _parse_note(d.pop("note"))
 
-            return imported_from_type_1
-
-        imported_from = _parse_imported_from(d.pop("imported_from"))
-
-        manifest = SkillPackageManifest.from_dict(d.pop("manifest"))
-
-        organization_id = d.pop("organization_id")
+        number = d.pop("number")
 
         skill_id = d.pop("skill_id")
-
-        version = d.pop("version")
 
         workspace_id = d.pop("workspace_id")
 
         skill_revision = cls(
+            config=config,
             created_at=created_at,
-            created_by=created_by,
+            created_by_id=created_by_id,
+            digest=digest,
             id=id,
-            imported_from=imported_from,
-            manifest=manifest,
-            organization_id=organization_id,
+            note=note,
+            number=number,
             skill_id=skill_id,
-            version=version,
             workspace_id=workspace_id,
         )
 
+        skill_revision.additional_properties = d
         return skill_revision
+
+    @property
+    def additional_keys(self) -> list[str]:
+        return list(self.additional_properties.keys())
+
+    def __getitem__(self, key: str) -> Any:
+        return self.additional_properties[key]
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        self.additional_properties[key] = value
+
+    def __delitem__(self, key: str) -> None:
+        del self.additional_properties[key]
+
+    def __contains__(self, key: str) -> bool:
+        return key in self.additional_properties

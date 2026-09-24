@@ -41,8 +41,17 @@ def prepare(document: dict) -> dict:
             for child in schema.get(keyword, []):
                 strip_defaults(child)
 
-    for schema in schemas.values():
+    for name, schema in schemas.items():
         strip_defaults(schema)
+        # Pydantic gives its distinct input/output components the same title;
+        # the generator otherwise collides their names and drops response refs.
+        if name.endswith(("-Input", "-Output")):
+            schema.pop("title", None)
+        if name == "UploadCreate":
+            file_part = schema["properties"]["file"]
+            if file_part.get("contentMediaType") != "application/octet-stream" or file_part.get("type") != "string":
+                raise ValueError("Unsupported Service upload part schema")
+            file_part["format"] = "binary"
 
     def visit(value: object) -> None:
         if isinstance(value, dict):
@@ -55,6 +64,19 @@ def prepare(document: dict) -> dict:
                 visit(child)
 
     visit(document)
+    for operations in document["paths"].values():
+        for operation in operations.values():
+            if not isinstance(operation, dict) or "responses" not in operation:
+                continue
+            for response in operation["responses"].values():
+                if isinstance(response, dict) and response.get("content", {}).get("*/*"):
+                    response["content"]["application/octet-stream"] = response["content"].pop("*/*")
+            request = operation.get("requestBody", {})
+            content = request.get("content", {})
+            if {"image/jpeg", "image/png", "image/webp"} <= content.keys():
+                # One generated binary method uses WEBP. Other image types remain
+                # available via the unbuffered transport with an explicit Content-Type.
+                request["content"] = {"image/webp": content["image/webp"]}
     return document
 
 
@@ -99,6 +121,10 @@ def generate(document: dict, work: Path) -> Path:
                 "    response = await client.get_async_httpx_client().request(",
                 '    kwargs["content"] = file_chunks(body.payload)\n\n    response = await client.get_async_httpx_client().request(',
             )
+        if '_kwargs["files"] = body.to_multipart()' in text:
+            # httpx constructs a fresh multipart boundary. The generator's
+            # literal +++ header does not match the serialized file body.
+            text = text.replace('    headers["Content-Type"] = "multipart/form-data; boundary=+++"\n', "")
         text = text.replace("_get_kwargs", "build_request")
         if path.name == "client.py":
             text = text.replace("import ssl", "import ssl\nfrom types import TracebackType").replace(

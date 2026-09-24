@@ -1,133 +1,49 @@
 # Resources and Client Lifetime
 
-## Design Position
-
-Python 3.13+ is async-first. Resource operations use asynchronous methods; streaming and lazy collection traversal use asynchronous iteration. Async-first does not remove an existing synchronous API.
-
-This document owns Python resource roles, local bindings, values, and lifetime. [Interaction and Control](02-interaction-and-control.md) owns command semantics; [Protocol and Compatibility](05-protocol-and-compatibility.md) owns wire and error rules.
-
 ## Resource Roles
 
-| Role                        | Responsibility                                                                | Identity boundary                                          |
-| --------------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| Client                      | Explicit endpoint, credential, resource access, and local transport ownership | No implicit Agent or Thread                                |
-| Agent reference             | Read or manage one managed Agent and start work with an explicit selection    | No hidden current conversation                             |
-| Session reference           | Navigate exported interaction-scope operations and Threads                    | Not a continuation state or IAM session                    |
-| Thread reference            | Read one continuing history, submit input, and inspect Runs and queued intent | Current Run and selected continuation head remain distinct |
-| Run reference               | Read, observe, and explicitly control one exact accepted Run                  | Never rebinds to a successor                               |
-| Queued-submission reference | Read, edit, withdraw, or observe one queued intent                            | Not a Run before consumption                               |
-| RunAttempt reference        | Read an operational attempt and its diagnostics                               | No Worker control authority                                |
-| Collection                  | Discover resources and expose supported collection operations                 | Discovery scope does not imply item ownership              |
+Python 3.13+ SDK calls are async-first. The Client owns one endpoint, credential mode, and transport; references only bind selectors. Binding a resource, reading its identity, or constructing a stream sends no request. An ID is not proof of existence or authority.
 
-Read-only projections and command receipts do not need mutable resource objects. Item access retains the Service's exported collection shape rather than inventing a single-Item endpoint.
+- `client.workspaces(workspace_id)` binds a Workspace. Navigation such as `.agents(agent_id)`, `.threads(thread_id)`, `.runs(run_id)`, and `.assets(asset_id)` stays in that Workspace. `client.resources` exposes the full generated resource tree; Organization and Service-level resources retain their own explicit scopes.
+- A `Thread` refers to a continuing history and its inbox; a `Run` refers to one exact accepted execution; an `InboxEntry` is submitted intent, not a Run. `Session` groups Threads but is neither an IAM session nor a hidden current conversation. A RunAttempt is operational evidence, not Worker control authority.
+- Named child collections expose only declared capabilities. A collection's `list`, `pages`, or `iter` performs requests only on iteration/awaiting; a reference's `get` returns a fresh snapshot, never an implicit cache. There is no dirty tracking or generic `save()`.
+- References derived from a receipt are locally bound after identity validation. They do not follow successors automatically or own a separate transport. Mutable generated model fields are local values; changing them does not write remotely.
 
-## Binding and Navigation
+## Result and Low-Level Access
 
-- Construction and property access are local and perform no I/O.
-- A binding retains the explicit Client and resource selector; a key remains a selector until Service resolves it.
-- IDs and bindings do not prove existence or grant authority.
-- `client.workspaces(id).agents(key)`, `client.threads(id)`, and `client.runs(id)` express the primary Python navigation shape.
-- `Client.resources` exposes complete typed management navigation without replacing the compatible Web facade.
-- Identified collection children are callable selectors. Collection operations use `list` and `create`; identified resources use `get`, `update`, `replace`, and `delete` where exported.
-- Nested collections and named commands remain statically typed and discoverable. Required protocol preconditions remain explicit.
-- Mutations address the actual owning scope under [Resource Management](04-resource-management.md#scope-and-authority), not an ownership assumption derived from a list query.
+One-request resource operations return `Result[T]` with `.value`, `.status_code`, case-insensitive `.headers`, original `.content`, `.etag`, and `.request_id`. The envelope is a snapshot, not a second resource. Success may legitimately contain `None` or binary content. HTTP rejection raises `ApiError`; malformed required responses raise `ProtocolError`.
 
-### References and Snapshots
-
-- Public interaction references are named `Agent`, `Session`, `Thread`, `Run`, and `QueuedSubmission`. Their names describe remote resources, not local execution engines.
-- A reference's Client, scope, and selector are read-only. Reading or updating a resource returns a new snapshot and never retargets an existing reference.
-- `await ref.get()` performs a fresh read where that endpoint exists. There is no implicit cache, property-triggered refresh, or active-record `save()`.
-- Mutable fields such as Run status, Thread versions, and Agent current Revision belong to returned representations, not apparently live reference properties.
-- Navigation that needs unknown relationship IDs requires a representation or receipt first. A Run bound by ID does not fetch a Thread merely because a property is accessed.
-- References have no independent transport context manager or `aclose()`. Closing a reference must not accidentally close the shared Client.
-- A reference is not awaitable. Factories bind locally, `await` marks a request or wait, and `async with` marks an owned I/O scope.
-
-## Values and Response Evidence
-
-Resource calls return typed values together with HTTP evidence:
-
-- status and response headers;
-- ETag and request ID when supplied;
-- the original response content;
-- the actual command receipt or resource representation.
-
-`Result[T]` has this conceptual public Python shape; it is not a serialized Service schema:
-
-```python
-class Result[T]:
-    value: T
-    status_code: int
-    headers: Mapping[str, str]
-    content: bytes
-    etag: str | None
-    request_id: str | None
-```
-
-- The envelope is read-only. `value` is the declared successful representation, receipt, binary value, or `None` for an empty/null success, not an optional parse attempt.
-- Header lookup is case-insensitive. `etag` preserves the complete header value, including quoting; absent metadata is `None`.
-- A `Result[T]` is a snapshot envelope, not a second durable resource. Generated model mutability does not confer persistence; mutating a local value causes no remote write and does not rewrite original `content`.
-- Failure uses the resource exception contract rather than a false-valued envelope. No truthiness, tuple unpacking, or attribute forwarding substitutes for explicit `.value` access.
-- Acceptance helpers return a [typed disposition](02-interaction-and-control.md#acceptance-values), containing the full `Result` receipt and its corresponding references. They do not hide the receipt on a mutable Run handle.
-
-Complete request and response models remain available under `a13n.generated.models`. A resource reference and a similarly named wire representation are distinct types. Existing Pydantic Web/configuration models and `Representation` remain compatible; the resource interface does not silently replace them with another model family.
+`a13n.generated.models` retains all generated attrs models; `a13n.generated.api` retains typed HTTP operations. `Client.execute` returns the generated `Response` including a typed error union and raw evidence; it does not use resource-level error mapping. `Client.stream(request)` returns a raw response context. `Thread.stream()` is the distinct, parsed domain SSE attachment. There is no duplicate Web/configuration DTO facade or `Representation` type.
 
 ## Authentication
 
-The Client has one explicit credential mode for its lifetime. Authentication configuration performs no I/O and introduces no credential-provider framework.
-
 ```python
-Client(base_url, token=None, *, timeout=30, transport=None)
-Client.session(base_url, *, origin, workspace_id=None, cookies=None, csrf_token=None, timeout=30, transport=None)
-client.set_csrf_token(value)  # Session mode only; str or None, no I/O.
+Client(base_url, token=None, *, timeout=30, ca_bundle=None, transport=None)
+Client.session(base_url, *, origin, cookies=None, csrf_token=None,
+               timeout=30, ca_bundle=None, transport=None)
+client.set_csrf_token(value)  # Session mode only; no I/O
 ```
 
-- `Client(base_url, token)` preserves the existing positional Bearer interface. It sends `Authorization: Bearer <token>` and does not send cookies, including cookies received from a response.
-- `Client(base_url)` is a public client: it sends neither Authorization nor cookies and does not fabricate an empty Bearer credential. Public operations that require Origin, including login and invitation acceptance, use `Client.session` with an initially empty jar. A response never silently switches a public Client into session mode.
-- `Client.session(...)` creates a cookie-session client with an explicit accepted `origin`. `cookies` is an optional `httpx2.Cookies` value copied into the Client-owned cookie jar; omitting it permits an explicit login using that same Client. Normal cookie domain, path, Secure, expiry, and Set-Cookie behavior apply. The SDK does not hard-code the deployment's session-cookie name.
-- `workspace_id` is an optional fixed session request boundary. When supplied, every request, including SSE reattachments, sends `X-A13N-Workspace-ID`; when absent the header is omitted for Organization-scoped use. Direct Run observation requires the Workspace boundary because Service does not derive it from the Run ID. The SDK does not infer or switch this boundary from navigation; use a separately configured Client for another boundary. A selector/header mismatch remains a Service rejection.
-- Session requests send the configured `Origin`; state-changing requests additionally send `X-A13N-CSRF-Token` when `csrf_token` is set. The application obtains the proof through an exported login or CSRF read and explicitly installs or clears it with `set_csrf_token`. The SDK does not derive a proof from the cookie, perform login automatically, refresh credentials, or replay a rejected request.
-- Public and Bearer clients reject `set_csrf_token` locally. Session clients never send Bearer authorization. A Client does not combine credential modes or infer credentials from ambient environment variables.
-- Session cookie/proof changes are configuration changes, not a per-request identity switch. Applications sequence them outside concurrent requests; already dispatched requests are not rewritten. Logout follows server Set-Cookie behavior; clearing the proof remains explicit.
-- All resource calls, the compatible Web facade, `execute`, and raw `stream` share the selected Client mode. Raw caller-authored request headers remain explicit low-level input, not another managed credential mode.
-- Credentials, cookies, CSRF proofs, and Set-Cookie values remain absent from ordinary diagnostics. Explicit response evidence remains available under the existing redaction contract.
+- Supplying a token selects Bearer authentication. A public Client sends no Authorization or cookies. Bearer/public Clients reject incoming cookies; neither silently becomes a session client.
+- `Client.session` sends the supplied Origin, owns a copied cookie jar when provided, and sends `X-CSRF-Token` on mutating requests when explicitly configured. It does not log in, infer a cookie name, derive a CSRF proof from cookies, or refresh credentials automatically. Authentication configuration is fixed per Client; applications sequence cookie/proof changes outside concurrent requests.
+- `ca_bundle` supplies a CA file to a verifying TLS context, including SSE connections. No certificate-verification bypass is provided. A caller-supplied transport is owned by the Client and must implement its own verification.
+- Raw caller-authored headers are explicit low-level inputs, not another managed credential mode. Credential values and response payloads are excluded from ordinary diagnostic `repr`; explicitly requested raw HTTP content remains accessible.
 
-## Client Lifetime
+## Lifetime and Cancellation
 
-- A Client owns its authenticated asynchronous HTTP pool, including a transport supplied to that Client.
-- References derived from the Client share configuration, transport, and lifetime.
-- One Client supports concurrent asynchronous requests on its owning event loop, including commands while a stream is open. It does not promise cross-thread or cross-event-loop use.
-- `aclose()` is idempotent and final; a closed Client cannot be reopened. Local reference binding and inspection of already returned evidence remain possible after closure, but further I/O fails locally.
-- `async with Client(...)` and `aclose()` provide explicit shutdown.
-- Closing the Client rejects further owned I/O, cancels active owned transport work, and releases open streaming responses.
-- Nested requests inside a streaming scope do not end the outer scope's ownership.
-- Separately constructed generated synchronous clients retain a separate lifetime.
-- Caller-owned upload sources remain caller-owned and are not closed by the SDK.
+Use `async with Client(...)` or await `aclose()`. The Client owns its async HTTP pool, supplied transport, and live responses; close is idempotent and final. It cancels outstanding owned I/O and releases active streams. Derived references share the Client but cannot close it. One Client supports concurrent tasks on its owning event loop, not arbitrary cross-loop use.
 
-Closing, timing out, or cancelling local work does not interrupt a durable Run, consume queued input, delete a resource, or destroy an Environment. Remote effects require an explicit supported command.
+`ThreadStream` is single-use and an async context manager. Exit releases the local SSE attachment even after an early iteration exit. Breaking `async for` alone does not close the context. A caller-owned upload stream remains open after a request. Local cancellation, timeout, or Client close neither interrupts a remote Run nor withdraws an Entry nor rolls back an accepted mutation; explicit commands are required for remote effects.
 
-## Compatibility
+## Public Call Shapes
 
-The resource interface preserves these distinct return contracts:
+| Call                                                      | Result                                                                   |
+| --------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `await client.execute(operation)`                         | Generated `Response[T]` with status, raw content and typed success/error |
+| `client.stream(request)`                                  | Raw asynchronous response context                                        |
+| `await resource.get()` / `await collection.list(...)`     | One typed `Result[T]`                                                    |
+| `await workspace.start(...)` / `await thread.submit(...)` | `Submitted` with validated references and receipt                        |
+| `thread.stream(...)`                                      | I/O-free `ThreadStream` factory                                          |
+| `collection.pages(...)` / `collection.iter(...)`          | Lazy asynchronous traversal                                              |
 
-| Call                                                   | Return contract                                                                            | Ownership                                                                                               |
-| ------------------------------------------------------ | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
-| `await client.execute(...)`                            | Generated `Response[T]`, including its typed success/error union and optional parsed value | Retained low-level HTTP                                                                                 |
-| `client.stream(request)`                               | Async context manager yielding raw `httpx2.Response`                                       | Caller handles status and consumes response bytes                                                       |
-| `await client.workspace(...)`                          | Existing `WorkspaceClient` discovery result                                                | Compatible Pydantic Web facade and shared Client lifetime                                               |
-| Resource `get`, ordinary commands, and one-page `list` | `Result[T]`                                                                                | Typed successful value and original HTTP evidence                                                       |
-| `agent.start(...)` and `thread.submit(...)`            | Awaitable typed acceptance/disposition result                                              | Receipt and references; not completion                                                                  |
-| `run.stream(...)`                                      | Concrete `RunStream`, without awaiting the factory                                         | Domain SSE attachment under [Observation](03-observation-and-data-access.md#runstream-public-interface) |
-| Collection `pages(...)` / `iter(...)`                  | Lazy asynchronous iterators                                                                | Page evidence / explicitly flattened values                                                             |
-
-The existing Pydantic Web facade, its `Representation` values, and independently constructed generated synchronous clients remain available. `Client.stream` is not changed to return `RunStream`, and a `RunStream` does not expose a raw response body for competing consumption.
-
-Operation-specific response bounds and exception behavior are not silently imposed on the retained low-level surface. Detailed error ownership belongs to [Protocol and Compatibility](05-protocol-and-compatibility.md#failure-semantics).
-
-## Invariants
-
-1. Binding a reference sends no request.
-2. An existing reference's identity does not change after another command succeeds.
-3. A snapshot mutation causes no remote write.
-4. All derived references respect the parent Client's closure.
-5. Early exit from an observation scope releases its local response lifetime.
-6. Local cancellation or shutdown performs no remote lifecycle command.
+A collection is not implicitly awaitable or iterable. The caller chooses one-page, page-wise, or item-wise access; pagination does not promise snapshot isolation.

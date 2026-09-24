@@ -20,12 +20,12 @@ class ModelOverride:
     """
     Attributes:
         characteristics (AgentModelCharacteristics | None | Unset):
-        model_key (None | str | Unset):
+        model_id (None | str | Unset):
         settings (ModelOverrideSettingsType0 | None | Unset):
     """
 
     characteristics: AgentModelCharacteristics | Unset | None = UNSET
-    model_key: str | Unset | None = UNSET
+    model_id: str | Unset | None = UNSET
     settings: ModelOverrideSettingsType0 | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
@@ -40,11 +40,11 @@ class ModelOverride:
         else:
             characteristics = self.characteristics
 
-        model_key: str | Unset | None
-        if isinstance(self.model_key, Unset):
-            model_key = UNSET
+        model_id: str | Unset | None
+        if isinstance(self.model_id, Unset):
+            model_id = UNSET
         else:
-            model_key = self.model_key
+            model_id = self.model_id
 
         settings: dict[str, Any] | Unset | None
         if isinstance(self.settings, Unset):
@@ -59,8 +59,8 @@ class ModelOverride:
         field_dict.update({})
         if characteristics is not UNSET:
             field_dict["characteristics"] = characteristics
-        if model_key is not UNSET:
-            field_dict["model_key"] = model_key
+        if model_id is not UNSET:
+            field_dict["model_id"] = model_id
         if settings is not UNSET:
             field_dict["settings"] = settings
 
@@ -90,14 +90,14 @@ class ModelOverride:
 
         characteristics = _parse_characteristics(d.pop("characteristics", UNSET))
 
-        def _parse_model_key(data: object) -> str | Unset | None:
+        def _parse_model_id(data: object) -> str | Unset | None:
             if data is None:
                 return data
             if isinstance(data, Unset):
                 return data
             return cast(str | Unset | None, data)
 
-        model_key = _parse_model_key(d.pop("model_key", UNSET))
+        model_id = _parse_model_id(d.pop("model_id", UNSET))
 
         def _parse_settings(data: object) -> ModelOverrideSettingsType0 | Unset | None:
             if data is None:
@@ -118,7 +118,7 @@ class ModelOverride:
 
         model_override = cls(
             characteristics=characteristics,
-            model_key=model_key,
+            model_id=model_id,
             settings=settings,
         )
 
