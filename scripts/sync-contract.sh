@@ -5,15 +5,7 @@ root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$root"
 fail() { echo "Contract sync: $*" >&2; exit 1; }
 repository=converge-ai-labs/agent-foundation
-files='{
-  "openapi.json": "proto/a13n-service/openapi.json",
-  "notification-client.schema.json": "proto/a13n-service/notification-client.schema.json",
-  "run-stream-event.schema.json": "proto/a13n-service/run-stream-event.schema.json",
-  "fixtures/wire.json": "proto/a13n-service/fixtures/wire.json",
-  "semantics/api-conventions.md": "spec/api-conventions.md",
-  "semantics/native-streaming-and-notifications.md": "spec/a13n-service/21-native-streaming-and-notifications.md",
-  "semantics/queued-submissions.md": "spec/a13n-service/20-agent-control-queued-submissions.md"
-}'
+source "$root/scripts/contract-inputs.sh"
 
 [[ $# == 2 ]] || fail 'usage: bash scripts/sync-contract.sh SERVICE_CHECKOUT FULL_SHA'
 upstream=$(cd "$1" && pwd)
@@ -26,6 +18,11 @@ git -C "$upstream" merge-base --is-ancestor "$previous" "$commit" || fail 'sourc
 
 if [[ "$previous" == "$commit" ]]; then
   echo "Contract already pinned to $commit"
+  exit 0
+fi
+
+if ! contract_inputs_changed "$upstream" "$previous" "$commit"; then
+  echo "Contract inputs unchanged; keeping source pin $previous"
   exit 0
 fi
 
@@ -48,5 +45,10 @@ while IFS= read -r name; do
   mkdir -p "contract/$(dirname "$name")"
   cp "$stage/$name" "contract/$name"
 done < <(jq -r '.files | keys[]' "$stage/source.json")
+# Retire only inputs owned by the previous source manifest, never SDK-local files.
+while IFS= read -r name; do
+  rm -f -- "contract/$name"
+done < <(jq -r --slurpfile next "$stage/source.json" \
+  '.files | keys[] | select(. as $name | $next[0].files | has($name) | not)' contract/source.json)
 cp "$stage/source.json" contract/source.json
 echo "Pinned Service contract to $commit; run make generate and make check-all before accepting it."

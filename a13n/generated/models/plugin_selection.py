@@ -16,7 +16,8 @@ T = TypeVar("T", bound="PluginSelection")
 
 @_attrs_define(repr=False)
 class PluginSelection:
-    """
+    """One instance of a Harness plugin factory the deployment installed.
+
     Attributes:
         instance_name (str):
         plugin_key (str):

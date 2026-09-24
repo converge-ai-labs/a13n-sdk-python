@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 
-from ..models.toolset_definition_key import ToolsetDefinitionKey
+from ..models.toolset_key import ToolsetKey
 
 if TYPE_CHECKING:
     from ..models.tool_definition import ToolDefinition
@@ -22,14 +22,14 @@ class ToolsetDefinition:
         config_schema (ToolsetDefinitionConfigSchema):
         default_enabled (bool):
         display_name (str):
-        key (ToolsetDefinitionKey):
+        key (ToolsetKey):
         tools (list[ToolDefinition]):
     """
 
     config_schema: ToolsetDefinitionConfigSchema
     default_enabled: bool
     display_name: str
-    key: ToolsetDefinitionKey
+    key: ToolsetKey
     tools: list[ToolDefinition]
 
     def to_dict(self) -> dict[str, Any]:
@@ -72,7 +72,7 @@ class ToolsetDefinition:
 
         display_name = d.pop("display_name")
 
-        key = ToolsetDefinitionKey(d.pop("key"))
+        key = ToolsetKey(d.pop("key"))
 
         tools = []
         _tools = d.pop("tools")

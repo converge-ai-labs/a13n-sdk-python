@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any, TypeVar, cast
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 
+from ..models.secret_scope import SecretScope
 from ..types import UNSET, Unset
 
 T = TypeVar("T", bound="SecretRequirement")
@@ -12,27 +13,22 @@ T = TypeVar("T", bound="SecretRequirement")
 
 @_attrs_define(repr=False)
 class SecretRequirement:
-    """
+    """A secret an agent revision needs at execution; `user` resolves to the run principal's own secret.
+
     Attributes:
         key (str):
-        description (None | str | Unset):
-        required (bool | Unset):
+        scope (SecretScope | Unset):
     """
 
     key: str
-    description: str | Unset | None = UNSET
-    required: bool | Unset = UNSET
+    scope: SecretScope | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
         key = self.key
 
-        description: str | Unset | None
-        if isinstance(self.description, Unset):
-            description = UNSET
-        else:
-            description = self.description
-
-        required = self.required
+        scope: str | Unset = UNSET
+        if not isinstance(self.scope, Unset):
+            scope = self.scope.value
 
         field_dict: dict[str, Any] = {}
 
@@ -41,10 +37,8 @@ class SecretRequirement:
                 "key": key,
             }
         )
-        if description is not UNSET:
-            field_dict["description"] = description
-        if required is not UNSET:
-            field_dict["required"] = required
+        if scope is not UNSET:
+            field_dict["scope"] = scope
 
         return field_dict
 
@@ -53,21 +47,16 @@ class SecretRequirement:
         d = dict(src_dict)
         key = d.pop("key")
 
-        def _parse_description(data: object) -> str | Unset | None:
-            if data is None:
-                return data
-            if isinstance(data, Unset):
-                return data
-            return cast(str | Unset | None, data)
-
-        description = _parse_description(d.pop("description", UNSET))
-
-        required = d.pop("required", UNSET)
+        _scope = d.pop("scope", UNSET)
+        scope: SecretScope | Unset
+        if isinstance(_scope, Unset):
+            scope = UNSET
+        else:
+            scope = SecretScope(_scope)
 
         secret_requirement = cls(
             key=key,
-            description=description,
-            required=required,
+            scope=scope,
         )
 
         return secret_requirement

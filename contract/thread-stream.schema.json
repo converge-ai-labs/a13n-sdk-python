@@ -1,0 +1,154 @@
+{
+  "$defs": {
+    "Boundary": {
+      "description": "The run committed a checkpoint whose display covers the attempt up to `sequence`.",
+      "properties": {
+        "attempt": {
+          "title": "Attempt",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "sequence": {
+          "title": "Sequence",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "run_id",
+        "attempt",
+        "sequence"
+      ],
+      "title": "Boundary",
+      "type": "object"
+    },
+    "Changed": {
+      "properties": {
+        "version": {
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "version"
+      ],
+      "title": "Changed",
+      "type": "object"
+    },
+    "Delta": {
+      "description": "A data frame: one AG-UI event of a run's attempt at its per-attempt sequence, and the item it changed.",
+      "properties": {
+        "attempt": {
+          "title": "Attempt",
+          "type": "integer"
+        },
+        "event": {
+          "additionalProperties": true,
+          "title": "Event",
+          "type": "object"
+        },
+        "item": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ItemRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "sequence": {
+          "title": "Sequence",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "run_id",
+        "attempt",
+        "sequence",
+        "event",
+        "item"
+      ],
+      "title": "Delta",
+      "type": "object"
+    },
+    "ItemKind": {
+      "enum": [
+        "text_message",
+        "reasoning_message",
+        "tool_call",
+        "observation"
+      ],
+      "type": "string"
+    },
+    "ItemRef": {
+      "description": "The item a live event changed, and its state after the event.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/ItemKind"
+        },
+        "state": {
+          "$ref": "#/$defs/ItemState"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "state"
+      ],
+      "title": "ItemRef",
+      "type": "object"
+    },
+    "ItemState": {
+      "enum": [
+        "in_progress",
+        "completed",
+        "interrupted",
+        "failed"
+      ],
+      "type": "string"
+    },
+    "RunSignal": {
+      "description": "The payload of `reset` and `gap`.",
+      "properties": {
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id"
+      ],
+      "title": "RunSignal",
+      "type": "object"
+    }
+  },
+  "frames": {
+    "boundary": {
+      "$ref": "#/$defs/Boundary"
+    },
+    "changed": {
+      "$ref": "#/$defs/Changed"
+    },
+    "delta": {
+      "$ref": "#/$defs/Delta"
+    },
+    "gap": {
+      "$ref": "#/$defs/RunSignal"
+    },
+    "reset": {
+      "$ref": "#/$defs/RunSignal"
+    }
+  },
+  "title": "Thread stream frames"
+}

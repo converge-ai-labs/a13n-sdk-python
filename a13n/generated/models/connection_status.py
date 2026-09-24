@@ -2,10 +2,9 @@ from enum import StrEnum
 
 
 class ConnectionStatus(StrEnum):
-    ACTION_REQUIRED = "action_required"
-    DISABLED = "disabled"
     PENDING = "pending"
     READY = "ready"
+    REAUTHORIZATION_REQUIRED = "reauthorization_required"
 
     def __str__(self) -> str:
         return str(self.value)

@@ -12,7 +12,7 @@ T = TypeVar("T", bound="AgentModelCharacteristics")
 
 @_attrs_define(repr=False)
 class AgentModelCharacteristics:
-    """Agent-owned context policy layered over Model declarations.
+    """The agent's context policy, layered over what the model declares.
 
     Attributes:
         compact_threshold (float | Unset):
