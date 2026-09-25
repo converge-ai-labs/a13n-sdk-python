@@ -65,6 +65,7 @@ def run_view(run_id: str = "run_1", thread_id: str = "thr_1", status: str = "acc
         "created_at": NOW,
         "current_attempt_id": None,
         "environment_mounts": [],
+        "memory_mounts": [],
         "failure": None,
         "id": run_id,
         "labels": {},

@@ -275,9 +275,12 @@ def generate_resources(document: dict, output: Path) -> None:
                         if argument.arg == original_param and argument.annotation:
                             selector_type = typed(ast.unparse(argument.annotation))
                     break
+                # Resource identities are stored as path text; retain the public
+                # numeric type and reconstruct it when calling the wire binding.
+                binding = selector if selector_type == "str" else f"str({selector})"
                 lines += [
                     f"    def __call__(self, {selector}: {selector_type}) -> {child.name}:",
-                    f"        return {child.name}(self._client, self._bind({param!r}, {selector}))",
+                    f"        return {child.name}(self._client, self._bind({param!r}, {binding}))",
                     "",
                 ]
                 continue

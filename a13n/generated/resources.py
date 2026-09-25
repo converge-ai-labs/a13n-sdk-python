@@ -42,6 +42,7 @@ from .api.assets import (
 from .api.auth import (
     accept_api_v1_invitations_invitation_id_accept_post,
     auth_configuration_api_v1_auth_configuration_get,
+    bootstrap_administrator_api_v1_auth_bootstrap_post,
     change_password_api_v1_users_me_password_post,
     confirm_email_change_api_v1_auth_email_change_confirm_post,
     confirm_password_reset_api_v1_auth_password_reset_confirm_post,
@@ -94,6 +95,32 @@ from .api.environments import (
     update_environment_api_v1_workspaces_workspace_id_environments_environment_id_patch,
     update_template_api_v1_workspaces_workspace_id_environment_templates_template_id_patch,
 )
+from .api.memories import (
+    add_mount_api_v1_workspaces_workspace_id_threads_thread_id_memories_post,
+    add_record_api_v1_workspaces_workspace_id_memories_memory_id_records_post,
+    create_file_api_v1_workspaces_workspace_id_memories_memory_id_files_post,
+    create_memory_api_v1_workspaces_workspace_id_memories_post,
+    delete_file_api_v1_workspaces_workspace_id_memories_memory_id_files_path_delete,
+    delete_memory_api_v1_workspaces_workspace_id_memories_memory_id_delete,
+    delete_record_api_v1_workspaces_workspace_id_memories_memory_id_records_record_id_delete,
+    get_memory_api_v1_workspaces_workspace_id_memories_memory_id_get,
+    get_revision_api_v1_workspaces_workspace_id_memories_memory_id_revisions_seq_get,
+    list_files_api_v1_workspaces_workspace_id_memories_memory_id_files_get,
+    list_memories_api_v1_workspaces_workspace_id_memories_get,
+    list_mounts_api_v1_workspaces_workspace_id_threads_thread_id_memories_get,
+    list_records_api_v1_workspaces_workspace_id_memories_memory_id_records_get,
+    list_revisions_api_v1_workspaces_workspace_id_memories_memory_id_revisions_get,
+    move_file_api_v1_workspaces_workspace_id_memories_memory_id_files_move_post,
+    purge_history_api_v1_workspaces_workspace_id_memories_memory_id_revisions_delete,
+    read_file_api_v1_workspaces_workspace_id_memories_memory_id_files_path_get,
+    remove_mount_api_v1_workspaces_workspace_id_threads_thread_id_memories_name_delete,
+    replace_file_api_v1_workspaces_workspace_id_memories_memory_id_files_path_put,
+    restore_revision_api_v1_workspaces_workspace_id_memories_memory_id_revisions_seq_restore_post,
+    search_records_api_v1_workspaces_workspace_id_memories_memory_id_records_search_post,
+    update_memory_api_v1_workspaces_workspace_id_memories_memory_id_patch,
+    update_mount_api_v1_workspaces_workspace_id_threads_thread_id_memories_name_patch,
+    update_record_api_v1_workspaces_workspace_id_memories_memory_id_records_record_id_put,
+)
 from .api.models import (
     create_model_api_v1_organizations_organization_id_models_post,
     get_media_defaults_api_v1_workspaces_workspace_id_media_understanding_defaults_get,
@@ -106,23 +133,28 @@ from .api.models import (
 from .api.providers import (
     create_provider_api_v1_organizations_organization_id_connector_providers_post,
     create_provider_api_v1_organizations_organization_id_environment_providers_post,
+    create_provider_api_v1_organizations_organization_id_memory_providers_post,
     create_provider_api_v1_organizations_organization_id_model_providers_post,
     create_provider_api_v1_organizations_organization_id_web_providers_post,
     get_provider_api_v1_organizations_organization_id_connector_providers_provider_id_get,
     get_provider_api_v1_organizations_organization_id_environment_providers_provider_id_get,
+    get_provider_api_v1_organizations_organization_id_memory_providers_provider_id_get,
     get_provider_api_v1_organizations_organization_id_model_providers_provider_id_get,
     get_provider_api_v1_organizations_organization_id_web_providers_provider_id_get,
     list_provider_types_api_v1_provider_types_kind_get,
     list_providers_api_v1_organizations_organization_id_connector_providers_get,
     list_providers_api_v1_organizations_organization_id_environment_providers_get,
+    list_providers_api_v1_organizations_organization_id_memory_providers_get,
     list_providers_api_v1_organizations_organization_id_model_providers_get,
     list_providers_api_v1_organizations_organization_id_web_providers_get,
     test_provider_api_v1_organizations_organization_id_connector_providers_provider_id_test_post,
     test_provider_api_v1_organizations_organization_id_environment_providers_provider_id_test_post,
+    test_provider_api_v1_organizations_organization_id_memory_providers_provider_id_test_post,
     test_provider_api_v1_organizations_organization_id_model_providers_provider_id_test_post,
     test_provider_api_v1_organizations_organization_id_web_providers_provider_id_test_post,
     update_provider_api_v1_organizations_organization_id_connector_providers_provider_id_patch,
     update_provider_api_v1_organizations_organization_id_environment_providers_provider_id_patch,
+    update_provider_api_v1_organizations_organization_id_memory_providers_provider_id_patch,
     update_provider_api_v1_organizations_organization_id_model_providers_provider_id_patch,
     update_provider_api_v1_organizations_organization_id_web_providers_provider_id_patch,
 )
@@ -288,6 +320,12 @@ class ServiceResources(Resource):
 
 class Auth(Resource):
     """Bound Native resource: /auth."""
+
+    async def bootstrap(self, *, body: wire.BootstrapInput) -> Result[wire.LoginOutput]:
+        """Bootstrap Administrator. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: bootstrap_administrator_api_v1_auth_bootstrap_post.asyncio_detailed(client=client, body=body)
+        )
 
     @property
     def configuration(self) -> AuthConfiguration:
@@ -546,6 +584,10 @@ class Organization(Resource):
     @property
     def members(self) -> OrganizationsOrganizationIdMembers:
         return OrganizationsOrganizationIdMembers(self._client, self._bindings)
+
+    @property
+    def memory_providers(self) -> OrganizationsOrganizationIdMemoryProviders:
+        return OrganizationsOrganizationIdMemoryProviders(self._client, self._bindings)
 
     @property
     def model_providers(self) -> OrganizationsOrganizationIdModelProviders:
@@ -1021,6 +1063,111 @@ class OrganizationsOrganizationIdMembers(Resource):
         return (item async for page in self.pages(kind=kind, limit=limit, cursor=cursor) for item in page.value.items)
 
 
+class OrganizationsOrganizationIdMemoryProviders(Resource):
+    """Bound Native resource: /organizations / {organization_id} / memory-providers."""
+
+    async def list(
+        self,
+        *,
+        workspace_id: str | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+    ) -> Result[wire.ProviderPage]:
+        """List Providers. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: list_providers_api_v1_organizations_organization_id_memory_providers_get.asyncio_detailed(
+                client=client,
+                organization_id=self._bindings["organization_id"],
+                workspace_id=workspace_id,
+                limit=limit,
+                cursor=cursor,
+            )
+        )
+
+    def pages(
+        self,
+        *,
+        workspace_id: str | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+    ) -> AsyncIterator[Result[wire.ProviderPage]]:
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        return pages(
+            lambda next_cursor: self.list(workspace_id=workspace_id, limit=limit, cursor=next_cursor),
+            lambda value: value.next_cursor,
+            cursor,
+        )
+
+    def iter(
+        self,
+        *,
+        workspace_id: str | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+    ) -> AsyncIterator[wire.Provider]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(workspace_id=workspace_id, limit=limit, cursor=cursor)
+            for item in page.value.items
+        )
+
+    async def create(self, *, body: wire.ProviderCreate) -> Result[wire.Provider]:
+        """Create Provider. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: create_provider_api_v1_organizations_organization_id_memory_providers_post.asyncio_detailed(
+                client=client, organization_id=self._bindings["organization_id"], body=body
+            )
+        )
+
+    def __call__(self, provider_id: str) -> OrganizationsOrganizationIdMemoryProvidersProviderId:
+        return OrganizationsOrganizationIdMemoryProvidersProviderId(
+            self._client, self._bind("provider_id", provider_id)
+        )
+
+
+class OrganizationsOrganizationIdMemoryProvidersProviderId(Resource):
+    """Bound Native resource: /organizations / {organization_id} / memory-providers / {provider_id}."""
+
+    async def get(self) -> Result[wire.Provider]:
+        """Get Provider. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: (
+                get_provider_api_v1_organizations_organization_id_memory_providers_provider_id_get.asyncio_detailed(
+                    client=client,
+                    organization_id=self._bindings["organization_id"],
+                    provider_id=self._bindings["provider_id"],
+                )
+            )
+        )
+
+    async def update(self, *, body: wire.ProviderUpdate, if_match: str | Unset | None = UNSET) -> Result[wire.Provider]:
+        """Update Provider. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: (
+                update_provider_api_v1_organizations_organization_id_memory_providers_provider_id_patch.asyncio_detailed(
+                    client=client,
+                    organization_id=self._bindings["organization_id"],
+                    provider_id=self._bindings["provider_id"],
+                    body=body,
+                    if_match=if_match,
+                )
+            )
+        )
+
+    async def test(self) -> Result[wire.ProviderTest]:
+        """Test Provider. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: (
+                test_provider_api_v1_organizations_organization_id_memory_providers_provider_id_test_post.asyncio_detailed(
+                    client=client,
+                    organization_id=self._bindings["organization_id"],
+                    provider_id=self._bindings["provider_id"],
+                )
+            )
+        )
+
+
 class OrganizationsOrganizationIdModelProviders(Resource):
     """Bound Native resource: /organizations / {organization_id} / model-providers."""
 
@@ -1352,7 +1499,7 @@ class ProviderTypes(Resource):
     """Bound Native resource: /provider-types."""
 
     def __call__(self, kind: wire.ListProviderTypesApiV1ProviderTypesKindGetKind) -> ProviderTypesKind:
-        return ProviderTypesKind(self._client, self._bind("kind", kind))
+        return ProviderTypesKind(self._client, self._bind("kind", str(kind)))
 
 
 class ProviderTypesKind(Resource):
@@ -1715,6 +1862,10 @@ class _WorkspaceResource(Resource):
     @property
     def media_understanding_defaults(self) -> WorkspacesWorkspaceIdMediaUnderstandingDefaults:
         return WorkspacesWorkspaceIdMediaUnderstandingDefaults(self._client, self._bindings)
+
+    @property
+    def memories(self) -> WorkspacesWorkspaceIdMemories:
+        return WorkspacesWorkspaceIdMemories(self._client, self._bindings)
 
     @property
     def runs(self) -> WorkspacesWorkspaceIdRuns:
@@ -2846,6 +2997,426 @@ class WorkspacesWorkspaceIdMediaUnderstandingDefaults(Resource):
         )
 
 
+class WorkspacesWorkspaceIdMemories(Resource):
+    """Bound Native resource: /workspaces / {workspace_id} / memories."""
+
+    async def list(
+        self,
+        *,
+        label: list[str] | Unset | None = UNSET,
+        kind: wire.MemoryKind | Unset | None = UNSET,
+        type_: str | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+    ) -> Result[wire.MemoryPage]:
+        """List Memories. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: list_memories_api_v1_workspaces_workspace_id_memories_get.asyncio_detailed(
+                client=client,
+                workspace_id=self._bindings["workspace_id"],
+                label=label,
+                kind=kind,
+                type_=type_,
+                limit=limit,
+                cursor=cursor,
+            )
+        )
+
+    def pages(
+        self,
+        *,
+        label: list[str] | Unset | None = UNSET,
+        kind: wire.MemoryKind | Unset | None = UNSET,
+        type_: str | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+    ) -> AsyncIterator[Result[wire.MemoryPage]]:
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        label = label.copy() if isinstance(label, list) else label
+        return pages(
+            lambda next_cursor: self.list(label=label, kind=kind, type_=type_, limit=limit, cursor=next_cursor),
+            lambda value: value.next_cursor,
+            cursor,
+        )
+
+    def iter(
+        self,
+        *,
+        label: list[str] | Unset | None = UNSET,
+        kind: wire.MemoryKind | Unset | None = UNSET,
+        type_: str | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+    ) -> AsyncIterator[wire.Memory]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(label=label, kind=kind, type_=type_, limit=limit, cursor=cursor)
+            for item in page.value.items
+        )
+
+    async def create(self, *, body: wire.MemoryCreate) -> Result[wire.Memory]:
+        """Create Memory. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: create_memory_api_v1_workspaces_workspace_id_memories_post.asyncio_detailed(
+                client=client, workspace_id=self._bindings["workspace_id"], body=body
+            )
+        )
+
+    def __call__(self, memory_id: str) -> WorkspacesWorkspaceIdMemoriesMemoryId:
+        return WorkspacesWorkspaceIdMemoriesMemoryId(self._client, self._bind("memory_id", memory_id))
+
+
+class WorkspacesWorkspaceIdMemoriesMemoryId(Resource):
+    """Bound Native resource: /workspaces / {workspace_id} / memories / {memory_id}."""
+
+    async def delete(self, *, if_match: str | Unset | None = UNSET) -> Result[None]:
+        """Delete Memory. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: delete_memory_api_v1_workspaces_workspace_id_memories_memory_id_delete.asyncio_detailed(
+                client=client,
+                workspace_id=self._bindings["workspace_id"],
+                memory_id=self._bindings["memory_id"],
+                if_match=if_match,
+            )
+        )
+
+    async def get(self) -> Result[wire.Memory]:
+        """Get Memory. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_memory_api_v1_workspaces_workspace_id_memories_memory_id_get.asyncio_detailed(
+                client=client, workspace_id=self._bindings["workspace_id"], memory_id=self._bindings["memory_id"]
+            )
+        )
+
+    async def update(self, *, body: wire.MemoryUpdate, if_match: str | Unset | None = UNSET) -> Result[wire.Memory]:
+        """Update Memory. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: update_memory_api_v1_workspaces_workspace_id_memories_memory_id_patch.asyncio_detailed(
+                client=client,
+                workspace_id=self._bindings["workspace_id"],
+                memory_id=self._bindings["memory_id"],
+                body=body,
+                if_match=if_match,
+            )
+        )
+
+    @property
+    def files(self) -> WorkspacesWorkspaceIdMemoriesMemoryIdFiles:
+        return WorkspacesWorkspaceIdMemoriesMemoryIdFiles(self._client, self._bindings)
+
+    @property
+    def records(self) -> WorkspacesWorkspaceIdMemoriesMemoryIdRecords:
+        return WorkspacesWorkspaceIdMemoriesMemoryIdRecords(self._client, self._bindings)
+
+    @property
+    def revisions(self) -> WorkspacesWorkspaceIdMemoriesMemoryIdRevisions:
+        return WorkspacesWorkspaceIdMemoriesMemoryIdRevisions(self._client, self._bindings)
+
+
+class WorkspacesWorkspaceIdMemoriesMemoryIdFiles(Resource):
+    """Bound Native resource: /workspaces / {workspace_id} / memories / {memory_id} / files."""
+
+    async def list(
+        self, *, prefix: str | Unset = UNSET, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
+    ) -> Result[wire.MemoryFilePage]:
+        """List Files. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: list_files_api_v1_workspaces_workspace_id_memories_memory_id_files_get.asyncio_detailed(
+                client=client,
+                workspace_id=self._bindings["workspace_id"],
+                memory_id=self._bindings["memory_id"],
+                prefix=prefix,
+                limit=limit,
+                cursor=cursor,
+            )
+        )
+
+    def pages(
+        self, *, prefix: str | Unset = UNSET, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
+    ) -> AsyncIterator[Result[wire.MemoryFilePage]]:
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        return pages(
+            lambda next_cursor: self.list(prefix=prefix, limit=limit, cursor=next_cursor),
+            lambda value: value.next_cursor,
+            cursor,
+        )
+
+    def iter(
+        self, *, prefix: str | Unset = UNSET, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
+    ) -> AsyncIterator[wire.MemoryFileEntry]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item async for page in self.pages(prefix=prefix, limit=limit, cursor=cursor) for item in page.value.items
+        )
+
+    async def create(self, *, body: wire.MemoryFileCreate) -> Result[wire.MemoryFile]:
+        """Create File. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: create_file_api_v1_workspaces_workspace_id_memories_memory_id_files_post.asyncio_detailed(
+                client=client,
+                workspace_id=self._bindings["workspace_id"],
+                memory_id=self._bindings["memory_id"],
+                body=body,
+            )
+        )
+
+    async def move(self, *, body: wire.MemoryFileMove, if_match: str | Unset | None = UNSET) -> Result[wire.MemoryFile]:
+        """Move File. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: move_file_api_v1_workspaces_workspace_id_memories_memory_id_files_move_post.asyncio_detailed(
+                client=client,
+                workspace_id=self._bindings["workspace_id"],
+                memory_id=self._bindings["memory_id"],
+                body=body,
+                if_match=if_match,
+            )
+        )
+
+    def __call__(self, path: str) -> WorkspacesWorkspaceIdMemoriesMemoryIdFilesPath:
+        return WorkspacesWorkspaceIdMemoriesMemoryIdFilesPath(self._client, self._bind("path", path))
+
+
+class WorkspacesWorkspaceIdMemoriesMemoryIdFilesPath(Resource):
+    """Bound Native resource: /workspaces / {workspace_id} / memories / {memory_id} / files / {path}."""
+
+    async def delete(self, *, if_match: str | Unset | None = UNSET) -> Result[None]:
+        """Delete File. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: (
+                delete_file_api_v1_workspaces_workspace_id_memories_memory_id_files_path_delete.asyncio_detailed(
+                    client=client,
+                    workspace_id=self._bindings["workspace_id"],
+                    memory_id=self._bindings["memory_id"],
+                    path=self._bindings["path"],
+                    if_match=if_match,
+                )
+            )
+        )
+
+    async def get(self) -> Result[wire.MemoryFile]:
+        """Read File. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: read_file_api_v1_workspaces_workspace_id_memories_memory_id_files_path_get.asyncio_detailed(
+                client=client,
+                workspace_id=self._bindings["workspace_id"],
+                memory_id=self._bindings["memory_id"],
+                path=self._bindings["path"],
+            )
+        )
+
+    async def replace(
+        self, *, body: wire.MemoryFileReplace, if_match: str | Unset | None = UNSET
+    ) -> Result[wire.MemoryFile]:
+        """Replace File. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: (
+                replace_file_api_v1_workspaces_workspace_id_memories_memory_id_files_path_put.asyncio_detailed(
+                    client=client,
+                    workspace_id=self._bindings["workspace_id"],
+                    memory_id=self._bindings["memory_id"],
+                    path=self._bindings["path"],
+                    body=body,
+                    if_match=if_match,
+                )
+            )
+        )
+
+
+class WorkspacesWorkspaceIdMemoriesMemoryIdRecords(Resource):
+    """Bound Native resource: /workspaces / {workspace_id} / memories / {memory_id} / records."""
+
+    async def list(
+        self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
+    ) -> Result[wire.MemoryRecordPage]:
+        """List Records. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: list_records_api_v1_workspaces_workspace_id_memories_memory_id_records_get.asyncio_detailed(
+                client=client,
+                workspace_id=self._bindings["workspace_id"],
+                memory_id=self._bindings["memory_id"],
+                limit=limit,
+                cursor=cursor,
+            )
+        )
+
+    def pages(
+        self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
+    ) -> AsyncIterator[Result[wire.MemoryRecordPage]]:
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        return pages(
+            lambda next_cursor: self.list(limit=limit, cursor=next_cursor), lambda value: value.next_cursor, cursor
+        )
+
+    def iter(
+        self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET
+    ) -> AsyncIterator[wire.MemoryRecordView]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (item async for page in self.pages(limit=limit, cursor=cursor) for item in page.value.items)
+
+    async def create(self, *, body: wire.MemoryRecordText) -> Result[wire.MemoryRecordView]:
+        """Add Record. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: add_record_api_v1_workspaces_workspace_id_memories_memory_id_records_post.asyncio_detailed(
+                client=client,
+                workspace_id=self._bindings["workspace_id"],
+                memory_id=self._bindings["memory_id"],
+                body=body,
+            )
+        )
+
+    async def search(self, *, body: wire.MemoryRecordSearch) -> Result[wire.MemoryRecordPage]:
+        """Search Records. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: (
+                search_records_api_v1_workspaces_workspace_id_memories_memory_id_records_search_post.asyncio_detailed(
+                    client=client,
+                    workspace_id=self._bindings["workspace_id"],
+                    memory_id=self._bindings["memory_id"],
+                    body=body,
+                )
+            )
+        )
+
+    def __call__(self, record_id: str) -> WorkspacesWorkspaceIdMemoriesMemoryIdRecordsRecordId:
+        return WorkspacesWorkspaceIdMemoriesMemoryIdRecordsRecordId(self._client, self._bind("record_id", record_id))
+
+
+class WorkspacesWorkspaceIdMemoriesMemoryIdRecordsRecordId(Resource):
+    """Bound Native resource: /workspaces / {workspace_id} / memories / {memory_id} / records / {record_id}."""
+
+    async def delete(self) -> Result[None]:
+        """Delete Record. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: (
+                delete_record_api_v1_workspaces_workspace_id_memories_memory_id_records_record_id_delete.asyncio_detailed(
+                    client=client,
+                    workspace_id=self._bindings["workspace_id"],
+                    memory_id=self._bindings["memory_id"],
+                    record_id=self._bindings["record_id"],
+                )
+            )
+        )
+
+    async def replace(self, *, body: wire.MemoryRecordText) -> Result[wire.MemoryRecordView]:
+        """Update Record. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: (
+                update_record_api_v1_workspaces_workspace_id_memories_memory_id_records_record_id_put.asyncio_detailed(
+                    client=client,
+                    workspace_id=self._bindings["workspace_id"],
+                    memory_id=self._bindings["memory_id"],
+                    record_id=self._bindings["record_id"],
+                    body=body,
+                )
+            )
+        )
+
+
+class WorkspacesWorkspaceIdMemoriesMemoryIdRevisions(Resource):
+    """Bound Native resource: /workspaces / {workspace_id} / memories / {memory_id} / revisions."""
+
+    async def delete(self, *, path: str) -> Result[wire.HistoryPurge]:
+        """Purge History. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: (
+                purge_history_api_v1_workspaces_workspace_id_memories_memory_id_revisions_delete.asyncio_detailed(
+                    client=client,
+                    workspace_id=self._bindings["workspace_id"],
+                    memory_id=self._bindings["memory_id"],
+                    path=path,
+                )
+            )
+        )
+
+    async def list(
+        self,
+        *,
+        path: str | Unset | None = UNSET,
+        run_id: str | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+    ) -> Result[wire.MemoryRevisionPage]:
+        """List Revisions. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: (
+                list_revisions_api_v1_workspaces_workspace_id_memories_memory_id_revisions_get.asyncio_detailed(
+                    client=client,
+                    workspace_id=self._bindings["workspace_id"],
+                    memory_id=self._bindings["memory_id"],
+                    path=path,
+                    run_id=run_id,
+                    limit=limit,
+                    cursor=cursor,
+                )
+            )
+        )
+
+    def pages(
+        self,
+        *,
+        path: str | Unset | None = UNSET,
+        run_id: str | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+    ) -> AsyncIterator[Result[wire.MemoryRevisionPage]]:
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        return pages(
+            lambda next_cursor: self.list(path=path, run_id=run_id, limit=limit, cursor=next_cursor),
+            lambda value: value.next_cursor,
+            cursor,
+        )
+
+    def iter(
+        self,
+        *,
+        path: str | Unset | None = UNSET,
+        run_id: str | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+    ) -> AsyncIterator[wire.MemoryRevision]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(path=path, run_id=run_id, limit=limit, cursor=cursor)
+            for item in page.value.items
+        )
+
+    def __call__(self, seq: int) -> WorkspacesWorkspaceIdMemoriesMemoryIdRevisionsSeq:
+        return WorkspacesWorkspaceIdMemoriesMemoryIdRevisionsSeq(self._client, self._bind("seq", str(seq)))
+
+
+class WorkspacesWorkspaceIdMemoriesMemoryIdRevisionsSeq(Resource):
+    """Bound Native resource: /workspaces / {workspace_id} / memories / {memory_id} / revisions / {seq}."""
+
+    async def get(self) -> Result[wire.MemoryRevisionDetail]:
+        """Get Revision. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: (
+                get_revision_api_v1_workspaces_workspace_id_memories_memory_id_revisions_seq_get.asyncio_detailed(
+                    client=client,
+                    workspace_id=self._bindings["workspace_id"],
+                    memory_id=self._bindings["memory_id"],
+                    seq=int(self._bindings["seq"]),
+                )
+            )
+        )
+
+    async def restore(self, *, if_match: str | Unset | None = UNSET) -> Result[wire.MemoryFileState]:
+        """Restore Revision. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: (
+                restore_revision_api_v1_workspaces_workspace_id_memories_memory_id_revisions_seq_restore_post.asyncio_detailed(
+                    client=client,
+                    workspace_id=self._bindings["workspace_id"],
+                    memory_id=self._bindings["memory_id"],
+                    seq=int(self._bindings["seq"]),
+                    if_match=if_match,
+                )
+            )
+        )
+
+
 class WorkspacesWorkspaceIdRuns(Resource):
     """Bound Native resource: /workspaces / {workspace_id} / runs."""
 
@@ -3891,6 +4462,10 @@ class _ThreadResource(Resource):
         return WorkspacesWorkspaceIdThreadsThreadIdInbox(self._client, self._bindings)
 
     @property
+    def memories(self) -> WorkspacesWorkspaceIdThreadsThreadIdMemories:
+        return WorkspacesWorkspaceIdThreadsThreadIdMemories(self._client, self._bindings)
+
+    @property
     def runs(self) -> WorkspacesWorkspaceIdThreadsThreadIdRuns:
         return WorkspacesWorkspaceIdThreadsThreadIdRuns(self._client, self._bindings)
 
@@ -4074,6 +4649,68 @@ class _InboxEntryResource(Resource):
                     workspace_id=self._bindings["workspace_id"],
                     thread_id=self._bindings["thread_id"],
                     entry_id=self._bindings["entry_id"],
+                    body=body,
+                    if_match=if_match,
+                )
+            )
+        )
+
+
+class WorkspacesWorkspaceIdThreadsThreadIdMemories(Resource):
+    """Bound Native resource: /workspaces / {workspace_id} / threads / {thread_id} / memories."""
+
+    async def list(self) -> Result[wire.MemoryMountPage]:
+        """List Mounts. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: list_mounts_api_v1_workspaces_workspace_id_threads_thread_id_memories_get.asyncio_detailed(
+                client=client, workspace_id=self._bindings["workspace_id"], thread_id=self._bindings["thread_id"]
+            )
+        )
+
+    async def create(self, *, body: wire.MemoryMount, if_match: str | Unset | None = UNSET) -> Result[wire.MemoryMount]:
+        """Add Mount. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: add_mount_api_v1_workspaces_workspace_id_threads_thread_id_memories_post.asyncio_detailed(
+                client=client,
+                workspace_id=self._bindings["workspace_id"],
+                thread_id=self._bindings["thread_id"],
+                body=body,
+                if_match=if_match,
+            )
+        )
+
+    def __call__(self, name: str) -> WorkspacesWorkspaceIdThreadsThreadIdMemoriesName:
+        return WorkspacesWorkspaceIdThreadsThreadIdMemoriesName(self._client, self._bind("name", name))
+
+
+class WorkspacesWorkspaceIdThreadsThreadIdMemoriesName(Resource):
+    """Bound Native resource: /workspaces / {workspace_id} / threads / {thread_id} / memories / {name}."""
+
+    async def delete(self, *, if_match: str | Unset | None = UNSET) -> Result[None]:
+        """Remove Mount. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: (
+                remove_mount_api_v1_workspaces_workspace_id_threads_thread_id_memories_name_delete.asyncio_detailed(
+                    client=client,
+                    workspace_id=self._bindings["workspace_id"],
+                    thread_id=self._bindings["thread_id"],
+                    name=self._bindings["name"],
+                    if_match=if_match,
+                )
+            )
+        )
+
+    async def update(
+        self, *, body: wire.MemoryMountUpdate, if_match: str | Unset | None = UNSET
+    ) -> Result[wire.MemoryMount]:
+        """Update Mount. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: (
+                update_mount_api_v1_workspaces_workspace_id_threads_thread_id_memories_name_patch.asyncio_detailed(
+                    client=client,
+                    workspace_id=self._bindings["workspace_id"],
+                    thread_id=self._bindings["thread_id"],
+                    name=self._bindings["name"],
                     body=body,
                     if_match=if_match,
                 )

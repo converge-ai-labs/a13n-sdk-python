@@ -10,9 +10,9 @@ Resource routes are served by the `all` and `control` roles; the `worker` role s
 
 ### Authentication
 
-Every route requires a credential except the health routes, the OpenAPI document (`/api/v1/openapi.json`), the API docs (`/api/v1/docs` and `/api/v1/docs/oauth2-redirect`) and the public account flows: authentication configuration, login, password-reset request and confirmation, email-change confirmation, invitation acceptance and the connection OAuth callback. [03](03-tenancy.md#authentication) owns the credentials:
+Every route requires a credential except the health routes, the OpenAPI document (`/api/v1/openapi.json`), the API docs (`/api/v1/docs` and `/api/v1/docs/oauth2-redirect`) and the public account flows: authentication configuration, login, bootstrap while the Service is uninitialized ([03](03-tenancy.md#bootstrap)), password-reset request and confirmation, email-change confirmation, invitation acceptance and the connection OAuth callback. [03](03-tenancy.md#authentication) owns the credentials:
 
-- **Login session.** `POST /auth/login` sets the `__Host-a13n_session` cookie. A cookie request with a method other than GET, HEAD or OPTIONS must send `X-CSRF-Token`, and a present `Origin` must equal the origin of `server.public_url`; either failure is 403 `forbidden`. Login and the other public account `POST`s check `Origin` the same way.
+- **Login session.** `POST /auth/login` sets the `__Host-a13n_session` cookie, or `a13n_session` when `server.public_url` is plain HTTP ([03](03-tenancy.md#authentication)). A cookie request with a method other than GET, HEAD or OPTIONS must send `X-CSRF-Token`, and a present `Origin` must be a public origin of `server.public_url`; either failure is 403 `forbidden`. Login and the other public account `POST`s check `Origin` the same way.
 - **API key.** `Authorization: Bearer a13n_…`. A key is confined to exactly one workspace and holds only its principal's current verbs there, and at most `read` and `run` on organization-shared resources; account operations, issuing API keys or invitations and browser authorizations need a login session (403 `forbidden`, [03](03-tenancy.md#authorization)). When an `Authorization` header is present the cookie is ignored.
 
 A missing or dead credential is 401 `unauthenticated`. Every authenticated response, a route's own response and an error after authentication included, carries `Cache-Control: no-store` (stored content keeps its own `private, no-store`, [representations](#representations)) and any renewed login cookie.
@@ -55,7 +55,7 @@ Every mutable resource has a `version` that a database trigger advances on each 
 Every conditional route declares the `If-Match` header (at most 512 characters). The OpenAPI document marks the header optional, but the server requires it: a missing header is 428 `precondition_required` (details `{header: "If-Match"}`) and a stale one is 412 `precondition_failed` (details `{current_etag}`). These state changes take no `If-Match`:
 
 - creations other than a revision (under its head's ETag, [04](04-resources.md#revisioned-heads)) and a thread mount (under the thread's ETag), and the idempotent submissions below;
-- the public account flows, which a password or a one-use token authorizes;
+- the public account flows, which a password, a one-use token or an uninitialized Service authorizes;
 - a grant's role change and removal, where the grant ID is the precondition because a role change replaces the grant ([03](03-tenancy.md#grants));
 - ending a login session, changing one's password and disabling one's own account, which name one session or check the current password;
 - interrupt, whose outcome follows from the run's state ([05](05-runs.md#waiting-interrupt-and-fork));
@@ -166,7 +166,7 @@ Paths are relative to `/api/v1` unless they start at the root. `{org}` is an org
 
 ### Providers and models
 
-`{kind}-providers` stands for each of `model-providers`, `environment-providers`, `web-providers` and `connector-providers`.
+`{kind}-providers` stands for each of `model-providers`, `environment-providers`, `web-providers`, `connector-providers` and `memory-providers`.
 
 | Path                                                    | Methods    | Owner                                            |
 | ------------------------------------------------------- | ---------- | ------------------------------------------------ |
@@ -276,6 +276,26 @@ Paths are relative to `/api/v1` unless they start at the root. `{org}` is an org
 | `/workspaces/{ws}/environments/{environment}/stop`      | POST               | [06](06-environments.md#stop-start-and-delete)                                                          |
 | `/workspaces/{ws}/threads/{thread}/environments`        | GET, POST          | [06](06-environments.md#mounts)                                                                         |
 | `/workspaces/{ws}/threads/{thread}/environments/{name}` | DELETE             | [06](06-environments.md#mounts)                                                                         |
+
+### Memories
+
+| Path                                                         | Methods            | Owner                                                |
+| ------------------------------------------------------------ | ------------------ | ---------------------------------------------------- |
+| `/workspaces/{ws}/memories`                                  | GET, POST          | [11](11-memory.md#memories)                          |
+| `/workspaces/{ws}/memories/{memory}`                         | GET, PATCH, DELETE | [11](11-memory.md#memories)                          |
+| `/workspaces/{ws}/memories/{memory}/files`                   | GET, POST          | [11](11-memory.md#files-and-history-through-the-api) |
+| `/workspaces/{ws}/memories/{memory}/files/move`              | POST               | [11](11-memory.md#files-and-history-through-the-api) |
+| `/workspaces/{ws}/memories/{memory}/files/{path}`            | GET, PUT, DELETE   | [11](11-memory.md#files-and-history-through-the-api) |
+| `/workspaces/{ws}/memories/{memory}/revisions`               | GET, DELETE        | [11](11-memory.md#files-and-history-through-the-api) |
+| `/workspaces/{ws}/memories/{memory}/revisions/{seq}`         | GET                | [11](11-memory.md#files-and-history-through-the-api) |
+| `/workspaces/{ws}/memories/{memory}/revisions/{seq}/restore` | POST               | [11](11-memory.md#files-and-history-through-the-api) |
+| `/workspaces/{ws}/memories/{memory}/records`                 | GET, POST          | [11](11-memory.md#records-through-the-api)           |
+| `/workspaces/{ws}/memories/{memory}/records/search`          | POST               | [11](11-memory.md#records-through-the-api)           |
+| `/workspaces/{ws}/memories/{memory}/records/{record}`        | PUT, DELETE        | [11](11-memory.md#records-through-the-api)           |
+| `/workspaces/{ws}/threads/{thread}/memories`                 | GET, POST          | [11](11-memory.md#mounts)                            |
+| `/workspaces/{ws}/threads/{thread}/memories/{name}`          | PATCH, DELETE      | [11](11-memory.md#mounts)                            |
+
+A file `{path}` is the file's path in the memory, with its `/` separators. A file's ETag names its current version; creating a file takes no `If-Match`, and a restore takes one only when a file exists at the revision's path. A `{record}` is the backend's record ID, at most 256 characters; records carry no ETag.
 
 ### Usage and traces
 

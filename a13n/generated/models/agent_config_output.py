@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from ..models.client_tool_definition import ClientToolDefinition
     from ..models.connection_selection import ConnectionSelection
     from ..models.media_understanding_selection import MediaUnderstandingSelection
+    from ..models.memory_mount import MemoryMount
     from ..models.output_spec import OutputSpec
     from ..models.plugin_selection import PluginSelection
     from ..models.retry_config import RetryConfig
@@ -37,6 +38,7 @@ class AgentConfigOutput:
         instructions (str | Unset):
         media_understanding (MediaUnderstandingSelection | Unset): The model describing each media kind a model cannot
             read; a kind without one is unavailable.
+        memory_mounts (list[MemoryMount] | Unset):
         output_spec (None | OutputSpec | Unset):
         plugins (list[PluginSelection] | Unset):
         retries (None | RetryConfig | Unset):
@@ -55,6 +57,7 @@ class AgentConfigOutput:
     default_environment_template_id: str | Unset | None = UNSET
     instructions: str | Unset = UNSET
     media_understanding: MediaUnderstandingSelection | Unset = UNSET
+    memory_mounts: list[MemoryMount] | Unset = UNSET
     output_spec: OutputSpec | Unset | None = UNSET
     plugins: list[PluginSelection] | Unset = UNSET
     retries: RetryConfig | Unset | None = UNSET
@@ -98,6 +101,13 @@ class AgentConfigOutput:
         media_understanding: dict[str, Any] | Unset = UNSET
         if not isinstance(self.media_understanding, Unset):
             media_understanding = self.media_understanding.to_dict()
+
+        memory_mounts: list[dict[str, Any]] | Unset = UNSET
+        if not isinstance(self.memory_mounts, Unset):
+            memory_mounts = []
+            for memory_mounts_item_data in self.memory_mounts:
+                memory_mounts_item = memory_mounts_item_data.to_dict()
+                memory_mounts.append(memory_mounts_item)
 
         output_spec: dict[str, Any] | Unset | None
         if isinstance(self.output_spec, Unset):
@@ -175,6 +185,8 @@ class AgentConfigOutput:
             field_dict["instructions"] = instructions
         if media_understanding is not UNSET:
             field_dict["media_understanding"] = media_understanding
+        if memory_mounts is not UNSET:
+            field_dict["memory_mounts"] = memory_mounts
         if output_spec is not UNSET:
             field_dict["output_spec"] = output_spec
         if plugins is not UNSET:
@@ -207,6 +219,7 @@ class AgentConfigOutput:
         from ..models.client_tool_definition import ClientToolDefinition
         from ..models.connection_selection import ConnectionSelection
         from ..models.media_understanding_selection import MediaUnderstandingSelection
+        from ..models.memory_mount import MemoryMount
         from ..models.output_spec import OutputSpec
         from ..models.plugin_selection import PluginSelection
         from ..models.retry_config import RetryConfig
@@ -253,6 +266,15 @@ class AgentConfigOutput:
             media_understanding = UNSET
         else:
             media_understanding = MediaUnderstandingSelection.from_dict(_media_understanding)
+
+        _memory_mounts = d.pop("memory_mounts", UNSET)
+        memory_mounts: list[MemoryMount] | Unset = UNSET
+        if _memory_mounts is not UNSET:
+            memory_mounts = []
+            for memory_mounts_item_data in _memory_mounts:
+                memory_mounts_item = MemoryMount.from_dict(memory_mounts_item_data)
+
+                memory_mounts.append(memory_mounts_item)
 
         def _parse_output_spec(data: object) -> OutputSpec | Unset | None:
             if data is None:
@@ -362,6 +384,7 @@ class AgentConfigOutput:
             default_environment_template_id=default_environment_template_id,
             instructions=instructions,
             media_understanding=media_understanding,
+            memory_mounts=memory_mounts,
             output_spec=output_spec,
             plugins=plugins,
             retries=retries,

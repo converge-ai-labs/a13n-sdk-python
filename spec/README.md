@@ -13,13 +13,13 @@ These documents define the Python contract, not the implementation status of a r
 
 ## Authority
 
-| Concern                                                                   | Owner                                                                                                                                                           |
-| ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Shared SDK experience and domain boundaries                               | [Service SDK Design and Contract Distribution](https://github.com/converge-ai-labs/agent-foundation/blob/main/spec/a13n-service/37-service-sdks-and-clients.md) |
-| Session, Thread, inbox Entry, Run, and Item meaning                       | [Pinned Run semantics](../contract/semantics/runs.md)                                                                                                           |
-| Declared protocol inputs and source identity                              | [Pinned Service contract](../contract/README.md) and `contract/source.json`                                                                                     |
-| Python API, runtime behavior, compatibility, and independent distribution | This specification set                                                                                                                                          |
-| Contribution, validation commands, and publication workflow               | [Contributing](../CONTRIBUTING.md)                                                                                                                              |
+| Concern                                                                   | Owner                                                                       |
+| ------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Shared SDK experience and domain boundaries                               | [Pinned public API boundary](../contract/semantics/api.md)                  |
+| Session, Thread, inbox Entry, Run, and Item meaning                       | [Pinned Run semantics](../contract/semantics/runs.md)                       |
+| Declared protocol inputs and source identity                              | [Pinned Service contract](../contract/README.md) and `contract/source.json` |
+| Python API, runtime behavior, compatibility, and independent distribution | This specification set                                                      |
+| Contribution, validation commands, and publication workflow               | [Contributing](../CONTRIBUTING.md)                                          |
 
 The SDK consumes public Service protocols. It does not import Service startup, storage, migrations, Worker scheduling, or provider-native execution APIs.
 
