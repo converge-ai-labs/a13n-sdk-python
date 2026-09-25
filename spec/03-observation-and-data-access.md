@@ -4,7 +4,7 @@
 
 The pinned [Thread stream contract](../contract/semantics/facts-and-delivery.md#the-thread-stream) owns server semantics. The SDK's `thread.stream(after=None, reconnect=True, max_reconnects=5, max_event_bytes=1048576)` is a synchronous, I/O-free factory for one single-use `ThreadStream`. Enter with `async with`, then use `async for frame in stream`; exit or `aclose()` releases the HTTP attachment. Breaking iteration alone does not close the context. One stream supports one active reader. Client close or caller cancellation ends local I/O but not the remote Run.
 
-`ThreadFrame` has `event_type`, immutable `data`, and `cursor: str | None`. Its five event names have distinct roles:
+`ThreadFrame` is a discriminated union of `DeltaFrame`, `BoundaryFrame`, `ChangedFrame`, `ResetFrame`, and `GapFrame`. Each has a literal `event_type` and read-only typed `data`. Testing `event_type` or the concrete class narrows both payload fields and cursor: `str` for delta/boundary, `None` for the other three. The parser validates these envelope fields (including ItemRef), but the nested AG-UI event is an open JSON object, not a claimed validated AG-UI event union. Read-only payload mappings are shallow; nested arbitrary JSON retains normal JSON values. Its five event names have distinct roles:
 
 | Frame      | `cursor`       | Caller action                                          |
 | ---------- | -------------- | ------------------------------------------------------ |

@@ -17,6 +17,9 @@ def test_adapter_preserves_pinned_contract_and_normalizes_generator_only_shapes(
     assert "*/*" in document["paths"][asset]["get"]["responses"]["200"]["content"]
     assert "application/octet-stream" in adapted["paths"][asset]["get"]["responses"]["200"]["content"]
     assert "*/*" not in adapted["paths"][asset]["get"]["responses"]["200"]["content"]
+    image = "/api/v1/workspaces/{workspace_id}/icon"
+    assert set(document["paths"][image]["put"]["requestBody"]["content"]) == {"image/jpeg", "image/png", "image/webp"}
+    assert set(adapted["paths"][image]["put"]["requestBody"]["content"]) == {"application/octet-stream"}
 
 
 def test_default_response_and_property_named_default_are_not_annotations() -> None:

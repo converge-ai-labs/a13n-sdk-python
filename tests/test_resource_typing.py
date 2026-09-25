@@ -54,3 +54,47 @@ def test_public_typing_rejects_global_paths_and_wrong_payload(tmp_path: Path) ->
     report = run_pyright(source)
     assert report["returncode"] == 1
     assert len(report["generalDiagnostics"]) == 4
+
+
+def test_frame_discriminants_narrow_data_and_cursor(tmp_path: Path) -> None:
+    source = tmp_path / "frames.py"
+    source.write_text(
+        "from a13n import ThreadFrame, Client, Submitted, text_input\n"
+        "from a13n.generated import models as wire\n"
+        "def consume(frame: ThreadFrame) -> None:\n"
+        "    if frame.event_type == 'delta':\n"
+        "        cursor: str = frame.cursor\n"
+        "        run_id: str = frame.data['run_id']\n"
+        "        sequence: int = frame.data['sequence']\n"
+        "        print(frame.data['event'], frame.data['item'])\n"
+        "    elif frame.event_type == 'boundary':\n"
+        "        cursor: str = frame.cursor\n"
+        "        attempt: int = frame.data['attempt']\n"
+        "    elif frame.event_type == 'changed':\n"
+        "        no_cursor: None = frame.cursor\n"
+        "        version: int = frame.data['version']\n"
+        "    else:\n"
+        "        no_cursor: None = frame.cursor\n"
+        "        run_id: str = frame.data['run_id']\n"
+        "async def full(client: Client) -> None:\n"
+        "    result: Submitted = await client.workspaces('ws').threads.create(\n"
+        "        body=wire.NewThread(agent_id='agent', payload=text_input('hello'), memories=[]), idempotency_key='key')\n"
+    )
+    report = run_pyright(source)
+    assert report["returncode"] == 0, report["generalDiagnostics"]
+
+
+def test_frame_typing_rejects_wrong_variant_fields_and_writes(tmp_path: Path) -> None:
+    source = tmp_path / "invalid_frames.py"
+    source.write_text(
+        "from a13n import ThreadFrame\n"
+        "def misuse(frame: ThreadFrame) -> None:\n"
+        "    if frame.event_type == 'changed':\n"
+        "        cursor: str = frame.cursor\n"
+        "        print(frame.data['run_id'])\n"
+        "    elif frame.event_type == 'delta':\n"
+        "        frame.data['sequence'] = 5\n"
+    )
+    report = run_pyright(source)
+    assert report["returncode"] == 1
+    assert len(report["generalDiagnostics"]) == 3

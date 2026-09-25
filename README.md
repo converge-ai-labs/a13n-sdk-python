@@ -46,6 +46,25 @@ async def review(base_url: str, token: str, workspace_id: str, agent_id: str) ->
 
 `Submitted` always contains exact `thread` and inbox `entry` references, plus an optional `run`. A missing Run means retained intent, not failed acceptance or an invented Run. `Thread.submit(text_or_MessagePayload, agent_id=..., idempotency_key=...)` has the same result shape for an existing Thread. The full typed `Submitted` wire receipt remains at `.receipt.value`. Text is converted into an ordinary text part; structured inputs use generated `wire.MessagePayload`.
 
+For a fully configured Thread, use the same bound receipt with the complete generated body:
+
+```python
+from a13n import text_input
+
+submitted = await workspace.threads.create(
+    body=wire.NewThread(
+        agent_id=agent_id,
+        payload=text_input("Review this change"),
+        memories=[wire.MemoryMount(name="notes", memory_id="mem_example", access=wire.MemoryAccess.READ)],
+        environments=[],
+        session_id=None,
+    ),
+    idempotency_key="review-with-memory-42",
+)
+# submitted.thread.stream(), submitted.entry.wait(), and submitted.run.wait()
+# are available just as with workspace.start(). No manual reference reconstruction.
+```
+
 ### Provisional Thread stream
 
 ```python
@@ -60,13 +79,13 @@ async with submitted.thread.stream(after=None, max_reconnects=3) as stream:
             await affected_run.items.get()
 ```
 
-`delta` and `boundary` have a resumable Redis entry ID at `frame.cursor`; `changed`, `reset`, and `gap` do not. The latter require explicit Thread or Run Item readback. Reconnection is bounded and does not turn EOF into Run completion or persist your application checkpoint. Keep the `async with` scope to release the attachment; early `async for` exit alone does not close it.
+`ThreadFrame` is a typed union: checking `event_type` narrows the data fields and cursor. `delta` and `boundary` have a resumable Redis entry ID at `frame.cursor`; `changed`, `reset`, and `gap` do not. The latter require explicit Thread or Run Item readback. Reconnection is bounded and does not turn EOF into Run completion or persist your application checkpoint. Keep the `async with` scope to release the attachment; early `async for` exit alone does not close it.
 
-`Run.interrupt()` targets one exact Run. `Run.resume(wire.ResumeRequest(...), idempotency_key=...)` returns a new Run reference when eligible; `Run.fork(wire.Fork(...), idempotency_key=...)` returns a new `Submitted` Thread/Entry/optional Run. No helper runs client tools, approves actions automatically, or retries uncertain mutations.
+`Run.interrupt()` targets one exact Run. `Run.resume(wire.ResumeRequest(...), idempotency_key=...)` returns a new Run reference when eligible; `Run.fork(body=wire.Fork(...), idempotency_key=...)` returns a new `Submitted` Thread/Entry/optional Run. No helper runs client tools, approves actions automatically, or retries uncertain mutations.
 
 ## Resources and binary content
 
-`client.resources` exposes all generated Service, Organization, and Workspace paths. Bound resource methods return `Result[T]` and preserve status, headers, ETag, request ID, and content; `a13n.generated.models` and `a13n.generated.api` retain full wire access. Collection `list()` fetches one page; `pages()` and `iter()` traverse lazily. `Client.execute()` preserves the generated low-level HTTP response, and `Client.stream()` exposes a raw response context independently from `Thread.stream()`.
+`client.resources` exposes all generated Service, Organization, and Workspace paths. Ordinary resource methods return `Result[T]`; submissions return bound `Submitted` with that evidence at `.receipt`. Both preserve status, headers, ETag, request ID, and content; `a13n.generated.models` and `a13n.generated.api` retain full wire access. Collection `list()` fetches one page; `pages()` and `iter()` traverse lazily. `Client.execute()` preserves the generated low-level HTTP response, and `Client.stream()` exposes a raw response context independently from `Thread.stream()`.
 
 ```python
 from io import BytesIO
@@ -86,7 +105,7 @@ async with workspace.assets(asset.value.id).content.get_stream() as response:
         consume(chunk)
 ```
 
-The SDK does not close caller-owned upload streams. Staging an upload, publishing an Asset, and accepting a Run are separate Service outcomes.
+Image uploads use the same `File` input and require `mime_type="image/png"`, `"image/jpeg"`, or `"image/webp"`, for example `await workspace.icon.replace(body=File(source, mime_type="image/png"), if_match=etag)`. Missing/unsupported image media fails before dispatch rather than silently sending WebP. The SDK does not close caller-owned upload streams. Staging an upload, publishing an Asset, and accepting a Run are separate Service outcomes.
 
 ## Memory
 

@@ -33,11 +33,6 @@ class Result[T]:
     def request_id(self) -> str | None:
         return self.headers.get("x-request-id")
 
-    @property
-    def status(self) -> int:
-        """Compatibility alias for the HTTP status code."""
-        return self.status_code
-
     def __repr__(self) -> str:
         return f"Result(status_code={self.status_code})"
 
@@ -72,12 +67,9 @@ class Resource:
     async def _call[T](
         self, operation: Callable[[AuthenticatedClient], Awaitable[Response[T | ErrorEnvelope] | Response[T]]]
     ) -> Result[T]:
-        from .client import ApiError, ProtocolError
+        from .errors import ApiError, ProtocolError
 
-        try:
-            response = await self._client.execute(operation)
-        except (ValueError, KeyError, TypeError, AttributeError):
-            raise ProtocolError("Malformed Service response") from None
+        response = await self._client.execute(operation)
         parsed = response.parsed
         if isinstance(parsed, ErrorEnvelope):
             error = parsed.error
@@ -116,7 +108,7 @@ async def pages[T](
     cursor: str | Unset | None,
 ) -> AsyncIterator[Result[T]]:
     """Lazy, no prefetch, and never terminate on a short/empty page."""
-    from .client import ProtocolError
+    from .errors import ProtocolError
 
     seen: set[str] = {cursor} if isinstance(cursor, str) else set()
     while True:

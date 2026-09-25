@@ -9,17 +9,32 @@ except PackageNotFoundError:  # pragma: no cover - source-tree imports without i
 
 from ._interaction import Resumed, Submitted, text_input
 from ._resources import Result
-from .client import ApiError, Client, ProtocolError, TransportError
+from .client import Client
+from .errors import ApiError, ProtocolError, TransportError
 from .generated.resources import Agent, InboxEntry, Organization, Run, Session, Thread, Workspace
-from .streaming import StreamResponse, ThreadFrame, ThreadStream
+from .streaming import (
+    BoundaryFrame,
+    ChangedFrame,
+    DeltaFrame,
+    GapFrame,
+    ResetFrame,
+    StreamResponse,
+    ThreadFrame,
+    ThreadStream,
+)
 
 __all__ = [
     "Agent",
     "ApiError",
+    "BoundaryFrame",
+    "ChangedFrame",
     "Client",
+    "DeltaFrame",
+    "GapFrame",
     "InboxEntry",
     "Organization",
     "ProtocolError",
+    "ResetFrame",
     "Result",
     "Resumed",
     "Run",
