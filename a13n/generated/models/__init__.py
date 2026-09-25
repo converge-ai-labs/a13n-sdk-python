@@ -57,6 +57,7 @@ from .authentication_case import AuthenticationCase
 from .authorization_request import AuthorizationRequest
 from .authorization_result import AuthorizationResult
 from .bearer_credential import BearerCredential
+from .bootstrap_input import BootstrapInput
 from .callback_outcome import CallbackOutcome
 from .catalog_model import CatalogModel
 from .catalog_ref import CatalogRef
@@ -125,6 +126,7 @@ from .harness_model_characteristics_output import HarnessModelCharacteristicsOut
 from .headers_credential import HeadersCredential
 from .headers_credential_headers import HeadersCredentialHeaders
 from .health_healthz_get_response_health_healthz_get import HealthHealthzGetResponseHealthHealthzGet
+from .history_purge import HistoryPurge
 from .inbox_order import InboxOrder
 from .instrumentation_scope import InstrumentationScope
 from .invitation import Invitation
@@ -162,6 +164,34 @@ from .mcp_server_page import McpServerPage
 from .media_defaults import MediaDefaults
 from .media_understanding_selection import MediaUnderstandingSelection
 from .member_page import MemberPage
+from .memory import Memory
+from .memory_access import MemoryAccess
+from .memory_create import MemoryCreate
+from .memory_create_labels import MemoryCreateLabels
+from .memory_file import MemoryFile
+from .memory_file_create import MemoryFileCreate
+from .memory_file_entry import MemoryFileEntry
+from .memory_file_move import MemoryFileMove
+from .memory_file_page import MemoryFilePage
+from .memory_file_replace import MemoryFileReplace
+from .memory_file_state import MemoryFileState
+from .memory_kind import MemoryKind
+from .memory_labels import MemoryLabels
+from .memory_mount import MemoryMount
+from .memory_mount_page import MemoryMountPage
+from .memory_mount_update import MemoryMountUpdate
+from .memory_page import MemoryPage
+from .memory_record_page import MemoryRecordPage
+from .memory_record_search import MemoryRecordSearch
+from .memory_record_text import MemoryRecordText
+from .memory_record_view import MemoryRecordView
+from .memory_revision import MemoryRevision
+from .memory_revision_detail import MemoryRevisionDetail
+from .memory_revision_detail_op import MemoryRevisionDetailOp
+from .memory_revision_op import MemoryRevisionOp
+from .memory_revision_page import MemoryRevisionPage
+from .memory_update import MemoryUpdate
+from .memory_update_labels_type_0 import MemoryUpdateLabelsType0
 from .message import Message
 from .message_payload import MessagePayload
 from .model import Model
@@ -439,6 +469,7 @@ __all__ = (
     "AuthorizationRequest",
     "AuthorizationResult",
     "BearerCredential",
+    "BootstrapInput",
     "CallbackOutcome",
     "CatalogModel",
     "CatalogRef",
@@ -507,6 +538,7 @@ __all__ = (
     "HeadersCredential",
     "HeadersCredentialHeaders",
     "HealthHealthzGetResponseHealthHealthzGet",
+    "HistoryPurge",
     "InboxOrder",
     "InstrumentationScope",
     "Invitation",
@@ -540,6 +572,34 @@ __all__ = (
     "MediaDefaults",
     "MediaUnderstandingSelection",
     "MemberPage",
+    "Memory",
+    "MemoryAccess",
+    "MemoryCreate",
+    "MemoryCreateLabels",
+    "MemoryFile",
+    "MemoryFileCreate",
+    "MemoryFileEntry",
+    "MemoryFileMove",
+    "MemoryFilePage",
+    "MemoryFileReplace",
+    "MemoryFileState",
+    "MemoryKind",
+    "MemoryLabels",
+    "MemoryMount",
+    "MemoryMountPage",
+    "MemoryMountUpdate",
+    "MemoryPage",
+    "MemoryRecordPage",
+    "MemoryRecordSearch",
+    "MemoryRecordText",
+    "MemoryRecordView",
+    "MemoryRevision",
+    "MemoryRevisionDetail",
+    "MemoryRevisionDetailOp",
+    "MemoryRevisionOp",
+    "MemoryRevisionPage",
+    "MemoryUpdate",
+    "MemoryUpdateLabelsType0",
     "Message",
     "MessagePayload",
     "Model",

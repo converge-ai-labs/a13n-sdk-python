@@ -17,6 +17,7 @@ from ..types import UNSET, Unset
 if TYPE_CHECKING:
     from ..models.environment_mount import EnvironmentMount
     from ..models.failure import Failure
+    from ..models.memory_mount import MemoryMount
     from ..models.pending import Pending
     from ..models.resume import Resume
     from ..models.run_options_output import RunOptionsOutput
@@ -44,6 +45,7 @@ class RunView:
         labels (RunViewLabels):
         lineage (Lineage):
         max_attempts (int):
+        memory_mounts (list[MemoryMount]):
         options (RunOptionsOutput): What a message may choose for the run it starts. A steer joins a run with the
             defaults or equal options.
         output (Any | None):
@@ -80,6 +82,7 @@ class RunView:
     labels: RunViewLabels
     lineage: Lineage
     max_attempts: int
+    memory_mounts: list[MemoryMount]
     options: RunOptionsOutput
     output: Any | None
     parent_run_id: str | None
@@ -145,6 +148,11 @@ class RunView:
         lineage = self.lineage.value
 
         max_attempts = self.max_attempts
+
+        memory_mounts = []
+        for memory_mounts_item_data in self.memory_mounts:
+            memory_mounts_item = memory_mounts_item_data.to_dict()
+            memory_mounts.append(memory_mounts_item)
 
         options = self.options.to_dict()
 
@@ -238,6 +246,7 @@ class RunView:
                 "labels": labels,
                 "lineage": lineage,
                 "max_attempts": max_attempts,
+                "memory_mounts": memory_mounts,
                 "options": options,
                 "output": output,
                 "parent_run_id": parent_run_id,
@@ -269,6 +278,7 @@ class RunView:
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.environment_mount import EnvironmentMount
         from ..models.failure import Failure
+        from ..models.memory_mount import MemoryMount
         from ..models.pending import Pending
         from ..models.resume import Resume
         from ..models.run_options_output import RunOptionsOutput
@@ -336,6 +346,13 @@ class RunView:
         lineage = Lineage(d.pop("lineage"))
 
         max_attempts = d.pop("max_attempts")
+
+        memory_mounts = []
+        _memory_mounts = d.pop("memory_mounts")
+        for memory_mounts_item_data in _memory_mounts:
+            memory_mounts_item = MemoryMount.from_dict(memory_mounts_item_data)
+
+            memory_mounts.append(memory_mounts_item)
 
         options = RunOptionsOutput.from_dict(d.pop("options"))
 
@@ -505,6 +522,7 @@ class RunView:
             labels=labels,
             lineage=lineage,
             max_attempts=max_attempts,
+            memory_mounts=memory_mounts,
             options=options,
             output=output,
             parent_run_id=parent_run_id,

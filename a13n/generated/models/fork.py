@@ -9,6 +9,7 @@ from ..models.delivery import Delivery
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
+    from ..models.memory_mount import MemoryMount
     from ..models.message_payload import MessagePayload
     from ..models.mount_create import MountCreate
     from ..models.run_options_input import RunOptionsInput
@@ -28,6 +29,7 @@ class Fork:
         environments (list[MountCreate] | Unset):
         fresh_environments (bool | Unset):
         kind (Literal['message'] | Unset):
+        memories (list[MemoryMount] | Unset):
         options (RunOptionsInput | Unset): What a message may choose for the run it starts. A steer joins a run with the
             defaults or equal options.
     """
@@ -39,6 +41,7 @@ class Fork:
     environments: list[MountCreate] | Unset = UNSET
     fresh_environments: bool | Unset = UNSET
     kind: Literal["message"] | Unset = UNSET
+    memories: list[MemoryMount] | Unset = UNSET
     options: RunOptionsInput | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
@@ -67,6 +70,13 @@ class Fork:
 
         kind = self.kind
 
+        memories: list[dict[str, Any]] | Unset = UNSET
+        if not isinstance(self.memories, Unset):
+            memories = []
+            for memories_item_data in self.memories:
+                memories_item = memories_item_data.to_dict()
+                memories.append(memories_item)
+
         options: dict[str, Any] | Unset = UNSET
         if not isinstance(self.options, Unset):
             options = self.options.to_dict()
@@ -89,6 +99,8 @@ class Fork:
             field_dict["fresh_environments"] = fresh_environments
         if kind is not UNSET:
             field_dict["kind"] = kind
+        if memories is not UNSET:
+            field_dict["memories"] = memories
         if options is not UNSET:
             field_dict["options"] = options
 
@@ -96,6 +108,7 @@ class Fork:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.memory_mount import MemoryMount
         from ..models.message_payload import MessagePayload
         from ..models.mount_create import MountCreate
         from ..models.run_options_input import RunOptionsInput
@@ -138,6 +151,15 @@ class Fork:
         if kind != "message" and not isinstance(kind, Unset):
             raise ValueError(f"kind must match const 'message', got '{kind}'")
 
+        _memories = d.pop("memories", UNSET)
+        memories: list[MemoryMount] | Unset = UNSET
+        if _memories is not UNSET:
+            memories = []
+            for memories_item_data in _memories:
+                memories_item = MemoryMount.from_dict(memories_item_data)
+
+                memories.append(memories_item)
+
         _options = d.pop("options", UNSET)
         options: RunOptionsInput | Unset
         if isinstance(_options, Unset):
@@ -153,6 +175,7 @@ class Fork:
             environments=environments,
             fresh_environments=fresh_environments,
             kind=kind,
+            memories=memories,
             options=options,
         )
 

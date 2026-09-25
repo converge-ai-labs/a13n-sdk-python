@@ -88,6 +88,24 @@ async with workspace.assets(asset.value.id).content.get_stream() as response:
 
 The SDK does not close caller-owned upload streams. Staging an upload, publishing an Asset, and accepting a Run are separate Service outcomes.
 
+## Memory
+
+```python
+created = await workspace.memories.create(body=wire.MemoryCreate(key="notes", name="Notes"))
+memory = workspace.memories(created.value.id)
+file = await memory.files.create(body=wire.MemoryFileCreate(path="project/notes.md", content="First note"))
+await memory.files("project/notes.md").replace(
+    body=wire.MemoryFileReplace(content="Updated note"),
+    if_match=file.etag,
+)
+revisions = await memory.revisions.list(path="project/notes.md")
+revision = await memory.revisions(revisions.value.items[0].seq).get()
+```
+
+File writes use file ETags; Memory metadata uses Memory ETags. History includes integer-sequence readback, restore and path-scoped purge. Provider-backed `memory.records` supports list/create/replace/delete and `search(body=wire.MemoryRecordSearch(query=...))`, but no item GET or conditional version. Uncertain provider writes are never replayed. Thread mounts are available at `thread.memories`; mutations require the **Thread** ETag. `wire.NewThread` and `wire.Fork` accept `memories`; `RunView.memory_mounts` reports the accepted snapshot. Organization `memory_providers` exposes list/create/get/update/test.
+
+This snapshot covers **230 HTTP operations across 154 paths**, including all 29 memory/provider operations and public auth bootstrap. Every operation has a generated resource method and low-level binding; this is structural coverage, not a claim that every endpoint has been exercised against every deployment. There are 47 lazy paginated resource collections and seven binary download stream methods; file memory itself is JSON text.
+
 ## Development and acceptance
 
 ```bash
@@ -97,7 +115,7 @@ make check-all
 make hooks-check
 ```
 
-`make generate` reads only the pinned local contract. `scripts/service-smoke.py` and `scripts/service_acceptance.py` are opt-in installed-SDK checks against an **existing disposable HTTPS** Service. Supply `A13N_SERVICE_URL`, `A13N_API_TOKEN`, `A13N_WORKSPACE`, `A13N_AGENT`, and `A13N_CA_BUNDLE`; acceptance also needs `A13N_CLIENT_TOOL_AGENT` configured for a client-tool wait. Run a built wheel in a clean virtual environment and invoke the script outside the source tree. Smoke checks a completed Run and multipart upload/streaming download. Acceptance checks Thread SSE reconnect, inbox consumption, interrupt, fork, and pending-action resume. Neither script provisions credentials, resets Service data, or claims external cloud-provider validation. Success is not publication.
+`make generate` reads only the pinned local contract. `scripts/service-smoke.py` and `scripts/service_acceptance.py` are opt-in installed-SDK checks against an **existing disposable HTTPS** Service. Supply `A13N_SERVICE_URL`, `A13N_API_TOKEN`, `A13N_WORKSPACE`, `A13N_AGENT`, and `A13N_CA_BUNDLE`; acceptance also needs `A13N_CLIENT_TOOL_AGENT` configured for a client-tool wait. Run a built wheel in a clean virtual environment and invoke the script outside the source tree. Smoke checks a completed Run and multipart upload/streaming download. Acceptance checks Thread SSE reconnect, inbox consumption, interrupt, fork, and pending-action resume. `scripts/memory_acceptance.py` additionally requires `A13N_ORGANIZATION` and `A13N_MEMORY_PROVIDER` (an accessible `mem0_oss` provider) and checks file CAS/history/restore, frozen Run mounts, record CRUD/search, provider testing and health probes. These scripts do not provision credentials, reset Service data, or claim external cloud-provider validation. Success is not publication.
 
 ## License
 

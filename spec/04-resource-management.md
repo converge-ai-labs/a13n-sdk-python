@@ -20,3 +20,11 @@ Generated resources cover the exported Service boundary: IAM and organization/wo
 ## Missing Operations
 
 The SDK does not synthesize removed legacy auth-context, queued-submission, Run-stream, lifecycle-notification, steer/feedback/retry/continue, or Web-provider DTO façade endpoints. A missing Native command remains unavailable rather than being emulated with a different lifecycle. Complete generated models and low-level operations remain accessible alongside convenience methods; they all use the same Client lifetime and wire serialization.
+
+## Memory
+
+Workspace `memories` expose metadata, file content and history, or provider-backed records. Organization `memory_providers` retain provider ownership and optional Workspace binding. Generated methods preserve the Service's distinct file and record operations rather than synthesizing common CRUD.
+
+File content is JSON text, not Asset binary transfer. File paths may contain directory separators and Unicode; references encode selectors once. File replacement, deletion and moves require the current file ETag; Memory metadata changes and deletion use the Memory ETag. Revisions bind an integer sequence. Restore undoes that change by writing its previous content; restoring a creation removes the file. It requires the current file ETag when that path exists and may return a null file state. History purge selects a path, not a revision sequence.
+
+Records expose collection reads, creation, POST-body search, replacement and deletion, without an item GET, ETag, or PATCH. A `write_unconfirmed` conflict is an uncertain provider outcome, not permission to replay the mutation. Thread memory mount mutations use the Thread ETag, and their responses retain that ETag. New Thread and Fork bodies accept mounts; the Run view reports the frozen accepted mounts, not later Thread changes. Agent configuration may declare default mounts. The pinned OpenAPI and its referenced Service Memory specification own the schemas and validation rules.

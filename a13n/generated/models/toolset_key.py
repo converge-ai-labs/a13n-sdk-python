@@ -5,6 +5,7 @@ class ToolsetKey(StrEnum):
     ASSETS = "assets"
     CONFIGURATION = "configuration"
     FILES = "files"
+    MEMORY = "memory"
     SHELL = "shell"
     WEB = "web"
 

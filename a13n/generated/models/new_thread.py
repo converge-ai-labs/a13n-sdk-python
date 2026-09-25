@@ -10,6 +10,7 @@ from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.mcp_headers import McpHeaders
+    from ..models.memory_mount import MemoryMount
     from ..models.message_payload import MessagePayload
     from ..models.mount_create import MountCreate
     from ..models.run_options_input import RunOptionsInput
@@ -29,6 +30,7 @@ class NewThread:
         environments (list[MountCreate] | Unset):
         kind (Literal['message'] | Unset):
         mcp_headers (McpHeaders | Unset):
+        memories (list[MemoryMount] | Unset):
         options (RunOptionsInput | Unset): What a message may choose for the run it starts. A steer joins a run with the
             defaults or equal options.
         session_id (None | str | Unset):
@@ -41,6 +43,7 @@ class NewThread:
     environments: list[MountCreate] | Unset = UNSET
     kind: Literal["message"] | Unset = UNSET
     mcp_headers: McpHeaders | Unset = UNSET
+    memories: list[MemoryMount] | Unset = UNSET
     options: RunOptionsInput | Unset = UNSET
     session_id: str | Unset | None = UNSET
 
@@ -72,6 +75,13 @@ class NewThread:
         if not isinstance(self.mcp_headers, Unset):
             mcp_headers = self.mcp_headers.to_dict()
 
+        memories: list[dict[str, Any]] | Unset = UNSET
+        if not isinstance(self.memories, Unset):
+            memories = []
+            for memories_item_data in self.memories:
+                memories_item = memories_item_data.to_dict()
+                memories.append(memories_item)
+
         options: dict[str, Any] | Unset = UNSET
         if not isinstance(self.options, Unset):
             options = self.options.to_dict()
@@ -100,6 +110,8 @@ class NewThread:
             field_dict["kind"] = kind
         if mcp_headers is not UNSET:
             field_dict["mcp_headers"] = mcp_headers
+        if memories is not UNSET:
+            field_dict["memories"] = memories
         if options is not UNSET:
             field_dict["options"] = options
         if session_id is not UNSET:
@@ -110,6 +122,7 @@ class NewThread:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.mcp_headers import McpHeaders
+        from ..models.memory_mount import MemoryMount
         from ..models.message_payload import MessagePayload
         from ..models.mount_create import MountCreate
         from ..models.run_options_input import RunOptionsInput
@@ -157,6 +170,15 @@ class NewThread:
         else:
             mcp_headers = McpHeaders.from_dict(_mcp_headers)
 
+        _memories = d.pop("memories", UNSET)
+        memories: list[MemoryMount] | Unset = UNSET
+        if _memories is not UNSET:
+            memories = []
+            for memories_item_data in _memories:
+                memories_item = MemoryMount.from_dict(memories_item_data)
+
+                memories.append(memories_item)
+
         _options = d.pop("options", UNSET)
         options: RunOptionsInput | Unset
         if isinstance(_options, Unset):
@@ -181,6 +203,7 @@ class NewThread:
             environments=environments,
             kind=kind,
             mcp_headers=mcp_headers,
+            memories=memories,
             options=options,
             session_id=session_id,
         )
