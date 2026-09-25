@@ -139,7 +139,7 @@ def generate_resources(document: dict, output: Path) -> None:
             if successful and all(not response.get("content") for response in successful)
             else success_type(fn.returns)
         )
-        result = typed(raw_result)
+        result = "Submitted" if raw_result == "Submitted" else f"Result[{typed(raw_result)}]"
         bound = {
             segment[1:-1]: node.bindings[i]
             for i, segment in enumerate(segments)
@@ -164,10 +164,13 @@ def generate_resources(document: dict, output: Path) -> None:
             call_args.append(f"{wire_name}={value}")
         call_args += [f"{arg.arg}={arg.arg}" for arg, _ in exposed]
         call = ", ".join(["client=client", *call_args])
+        request = f"await self._call(lambda client: {alias}.asyncio_detailed({call}))"
+        if raw_result == "Submitted":
+            request = f"_submitted(self._client, {request}, thread_id=self._bindings.get('thread_id'))"
         lines = [
-            f"    async def {name}({signature}) -> Result[{result}]:",
+            f"    async def {name}({signature}) -> {result}:",
             f'        """{op.get("summary", alias)}. One HTTP request; no automatic replay."""',
-            f"        return await self._call(lambda client: {alias}.asyncio_detailed({call}))",
+            f"        return {request}",
             "",
         ]
         # Preserve specialized page values and metadata. Only ordinary opaque
@@ -188,7 +191,7 @@ def generate_resources(document: dict, output: Path) -> None:
                     )
                 ]
                 lines += [
-                    f"    def pages({signature}) -> AsyncIterator[Result[{result}]]:",
+                    f"    def pages({signature}) -> AsyncIterator[{result}]:",
                     '        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""',
                     *snapshots,
                     f"        return pages(lambda next_cursor: self.list({', '.join(page_args)}), lambda value: value.next_cursor, cursor)",
@@ -285,8 +288,8 @@ def generate_resources(document: dict, output: Path) -> None:
                 ]
                 continue
             member = snake(key)
-            if node.name == "Run" and member in {"fork", "resume", "interrupt"}:
-                member += "_receipt"
+            if node.name == "Run" and member == "resume":
+                member = "_resume"
             elif node.name == "Thread" and member == "stream":
                 member = "stream_response"
             elif node.name == "Thread" and member == "inbox":
@@ -318,7 +321,7 @@ from typing import Any, Literal
 import httpx2
 from . import models as wire
 from .._resources import Resource, Result, pages
-from .._interaction import WorkspaceMethods, ThreadMethods, RunMethods, InboxEntryMethods
+from .._interaction import WorkspaceMethods, ThreadMethods, RunMethods, InboxEntryMethods, Submitted, _submitted
 '''
     source = prelude + "\n".join(sorted(imports | endpoints)) + "\n\n" + "\n\n".join(classes)
     (output / "resources.py").write_text(source)

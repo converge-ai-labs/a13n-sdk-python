@@ -88,9 +88,9 @@ async def main() -> None:
             ),
             idempotency_key=key,
         )
-        assert submitted.value.run is not None
-        thread = workspace.threads(submitted.value.thread.id)
-        run = workspace.runs(submitted.value.run.id)
+        assert submitted.run is not None
+        thread = submitted.thread
+        run = submitted.run
         assert (await run.wait(timeout=60, poll_interval=0.1)).value.status == wire.RunStatus.COMPLETED
         state = await thread.get()
         mounted = await thread.memories("notes").update(

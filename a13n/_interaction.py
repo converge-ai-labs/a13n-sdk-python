@@ -12,6 +12,7 @@ from .generated import models as wire
 from .generated.types import UNSET, Unset
 
 if TYPE_CHECKING:
+    from .client import Client
     from .generated.resources import InboxEntry, Run, Thread
     from .streaming import ThreadStream
 
@@ -48,15 +49,21 @@ class Resumed:
     receipt: Result[wire.RunView]
 
 
-def _submitted(client: object, workspace_id: str, receipt: Result[wire.Submitted]) -> Submitted:
-    from .client import Client, ProtocolError
+def _submitted(client: Client, receipt: Result[wire.Submitted], *, thread_id: str | None = None) -> Submitted:
+    from .errors import ProtocolError
     from .generated.resources import InboxEntry, Run, Thread
 
-    assert isinstance(client, Client)
     value = receipt.value
     thread, entry, run = value.thread, value.entry, value.run
-    if not thread.id or not entry.id or entry.thread_id != thread.id or thread.workspace_id != workspace_id:
+    if (
+        not thread.id
+        or not entry.id
+        or entry.thread_id != thread.id
+        or not thread.workspace_id
+        or (thread_id is not None and thread.id != thread_id)
+    ):
         raise ProtocolError("Submission has inconsistent thread and entry identities")
+    workspace_id = thread.workspace_id
     if run is not None and (not run.id or run.thread_id != thread.id or run.workspace_id != workspace_id):
         raise ProtocolError("Submission has inconsistent run identity")
     selectors = {"workspace_id": workspace_id, "thread_id": thread.id}
@@ -95,11 +102,9 @@ class WorkspaceMethods(Resource):
             delivery=delivery,
             options=options,
         )
-        return _submitted(
-            self._client,
-            self._bindings["workspace_id"],
-            await self.threads.create(body=body, idempotency_key=idempotency_key),  # type: ignore[attr-defined]
-        )
+        from .generated.resources import Workspace
+
+        return await cast("Workspace", self).threads.create(body=body, idempotency_key=idempotency_key)
 
 
 class ThreadMethods(Resource):
@@ -120,11 +125,7 @@ class ThreadMethods(Resource):
             delivery=delivery,
             options=options,
         )
-        return _submitted(
-            self._client,
-            self._bindings["workspace_id"],
-            await self.inbox_entries.create(body=body, idempotency_key=idempotency_key),  # type: ignore[attr-defined]
-        )
+        return await cast("Thread", self).inbox_entries.create(body=body, idempotency_key=idempotency_key)
 
     def stream(
         self,
@@ -150,30 +151,20 @@ class RunMethods(Resource):
         _validate_wait(timeout, poll_interval)
         async with asyncio.timeout(timeout):
             while True:
-                result = await self.get()  # type: ignore[attr-defined]
+                result = await cast("Run", self).get()
                 if result.value.status in SEALED_STATUSES:
                     return result
                 await asyncio.sleep(poll_interval)
 
-    async def interrupt(self) -> Result[wire.RunView]:
-        return await self.interrupt_receipt()  # type: ignore[attr-defined]
-
     async def resume(self, body: wire.ResumeRequest, *, idempotency_key: str) -> Resumed:
-        from .client import ProtocolError
+        from .errors import ProtocolError
         from .generated.resources import Run
 
-        receipt = await self.resume_receipt(body=body, idempotency_key=idempotency_key)  # type: ignore[attr-defined]
+        receipt = await cast("Run", self)._resume(body=body, idempotency_key=idempotency_key)
         value = receipt.value
-        if not value.id or value.id == self.id or value.workspace_id != self._bindings["workspace_id"]:
-            raise ProtocolError("Resume did not return a new run in this workspace")
+        if not value.id or value.id == self.id or not value.workspace_id:
+            raise ProtocolError("Resume did not return a new run with a workspace identity")
         return Resumed(Run(self._client, {"workspace_id": value.workspace_id, "run_id": value.id}), receipt)
-
-    async def fork(self, body: wire.Fork, *, idempotency_key: str) -> Submitted:
-        return _submitted(
-            self._client,
-            self._bindings["workspace_id"],
-            await self.fork_receipt(body=body, idempotency_key=idempotency_key),  # type: ignore[attr-defined]
-        )
 
 
 class InboxEntryMethods(Resource):
@@ -181,7 +172,7 @@ class InboxEntryMethods(Resource):
         _validate_wait(timeout, poll_interval)
         async with asyncio.timeout(timeout):
             while True:
-                snapshot = await self.get()  # type: ignore[attr-defined]
+                snapshot = await cast("InboxEntry", self).get()
                 if snapshot.value.status in SETTLED_ENTRIES:
                     return snapshot
                 await asyncio.sleep(poll_interval)

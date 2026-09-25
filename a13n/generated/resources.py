@@ -9,7 +9,7 @@ from typing import Any
 
 import httpx2
 
-from .._interaction import InboxEntryMethods, RunMethods, ThreadMethods, WorkspaceMethods
+from .._interaction import InboxEntryMethods, RunMethods, Submitted, ThreadMethods, WorkspaceMethods, _submitted
 from .._resources import Resource, Result, pages
 from . import models as wire
 from .api.agents import (
@@ -3451,19 +3451,23 @@ class _RunResource(Resource):
     def attempts(self) -> WorkspacesWorkspaceIdRunsRunIdAttempts:
         return WorkspacesWorkspaceIdRunsRunIdAttempts(self._client, self._bindings)
 
-    async def fork_receipt(self, *, body: wire.Fork, idempotency_key: str) -> Result[wire.Submitted]:
+    async def fork(self, *, body: wire.Fork, idempotency_key: str) -> Submitted:
         """Fork Run. One HTTP request; no automatic replay."""
-        return await self._call(
-            lambda client: fork_run_api_v1_workspaces_workspace_id_runs_run_id_fork_post.asyncio_detailed(
-                client=client,
-                workspace_id=self._bindings["workspace_id"],
-                run_id=self._bindings["run_id"],
-                body=body,
-                idempotency_key=idempotency_key,
-            )
+        return _submitted(
+            self._client,
+            await self._call(
+                lambda client: fork_run_api_v1_workspaces_workspace_id_runs_run_id_fork_post.asyncio_detailed(
+                    client=client,
+                    workspace_id=self._bindings["workspace_id"],
+                    run_id=self._bindings["run_id"],
+                    body=body,
+                    idempotency_key=idempotency_key,
+                )
+            ),
+            thread_id=self._bindings.get("thread_id"),
         )
 
-    async def interrupt_receipt(self) -> Result[wire.RunView]:
+    async def interrupt(self) -> Result[wire.RunView]:
         """Interrupt Run. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: interrupt_run_api_v1_workspaces_workspace_id_runs_run_id_interrupt_post.asyncio_detailed(
@@ -3479,7 +3483,7 @@ class _RunResource(Resource):
     def lineage(self) -> WorkspacesWorkspaceIdRunsRunIdLineage:
         return WorkspacesWorkspaceIdRunsRunIdLineage(self._client, self._bindings)
 
-    async def resume_receipt(self, *, body: wire.ResumeRequest, idempotency_key: str) -> Result[wire.RunView]:
+    async def _resume(self, *, body: wire.ResumeRequest, idempotency_key: str) -> Result[wire.RunView]:
         """Resume Run. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: resume_run_api_v1_workspaces_workspace_id_runs_run_id_resume_post.asyncio_detailed(
@@ -4405,12 +4409,19 @@ class WorkspacesWorkspaceIdThreads(Resource):
             for item in page.value.items
         )
 
-    async def create(self, *, body: wire.NewThread, idempotency_key: str) -> Result[wire.Submitted]:
+    async def create(self, *, body: wire.NewThread, idempotency_key: str) -> Submitted:
         """Create Thread. One HTTP request; no automatic replay."""
-        return await self._call(
-            lambda client: create_thread_api_v1_workspaces_workspace_id_threads_post.asyncio_detailed(
-                client=client, workspace_id=self._bindings["workspace_id"], body=body, idempotency_key=idempotency_key
-            )
+        return _submitted(
+            self._client,
+            await self._call(
+                lambda client: create_thread_api_v1_workspaces_workspace_id_threads_post.asyncio_detailed(
+                    client=client,
+                    workspace_id=self._bindings["workspace_id"],
+                    body=body,
+                    idempotency_key=idempotency_key,
+                )
+            ),
+            thread_id=self._bindings.get("thread_id"),
         )
 
     def __call__(self, thread_id: str) -> Thread:
@@ -4572,16 +4583,22 @@ class WorkspacesWorkspaceIdThreadsThreadIdInbox(Resource):
             item async for page in self.pages(status=status, limit=limit, cursor=cursor) for item in page.value.items
         )
 
-    async def create(self, *, body: wire.Message, idempotency_key: str) -> Result[wire.Submitted]:
+    async def create(self, *, body: wire.Message, idempotency_key: str) -> Submitted:
         """Submit Message. One HTTP request; no automatic replay."""
-        return await self._call(
-            lambda client: submit_message_api_v1_workspaces_workspace_id_threads_thread_id_inbox_post.asyncio_detailed(
-                client=client,
-                workspace_id=self._bindings["workspace_id"],
-                thread_id=self._bindings["thread_id"],
-                body=body,
-                idempotency_key=idempotency_key,
-            )
+        return _submitted(
+            self._client,
+            await self._call(
+                lambda client: (
+                    submit_message_api_v1_workspaces_workspace_id_threads_thread_id_inbox_post.asyncio_detailed(
+                        client=client,
+                        workspace_id=self._bindings["workspace_id"],
+                        thread_id=self._bindings["thread_id"],
+                        body=body,
+                        idempotency_key=idempotency_key,
+                    )
+                )
+            ),
+            thread_id=self._bindings.get("thread_id"),
         )
 
     @property
@@ -4613,18 +4630,22 @@ class WorkspacesWorkspaceIdThreadsThreadIdInboxOrder(Resource):
 class _InboxEntryResource(Resource):
     """Bound Native resource: /workspaces / {workspace_id} / threads / {thread_id} / inbox / {entry_id}."""
 
-    async def delete(self, *, if_match: str | Unset | None = UNSET) -> Result[wire.Submitted]:
+    async def delete(self, *, if_match: str | Unset | None = UNSET) -> Submitted:
         """Withdraw Entry. One HTTP request; no automatic replay."""
-        return await self._call(
-            lambda client: (
-                withdraw_entry_api_v1_workspaces_workspace_id_threads_thread_id_inbox_entry_id_delete.asyncio_detailed(
-                    client=client,
-                    workspace_id=self._bindings["workspace_id"],
-                    thread_id=self._bindings["thread_id"],
-                    entry_id=self._bindings["entry_id"],
-                    if_match=if_match,
+        return _submitted(
+            self._client,
+            await self._call(
+                lambda client: (
+                    withdraw_entry_api_v1_workspaces_workspace_id_threads_thread_id_inbox_entry_id_delete.asyncio_detailed(
+                        client=client,
+                        workspace_id=self._bindings["workspace_id"],
+                        thread_id=self._bindings["thread_id"],
+                        entry_id=self._bindings["entry_id"],
+                        if_match=if_match,
+                    )
                 )
-            )
+            ),
+            thread_id=self._bindings.get("thread_id"),
         )
 
     async def get(self) -> Result[wire.EntryView]:
@@ -4640,19 +4661,23 @@ class _InboxEntryResource(Resource):
             )
         )
 
-    async def update(self, *, body: wire.EntryUpdate, if_match: str | Unset | None = UNSET) -> Result[wire.Submitted]:
+    async def update(self, *, body: wire.EntryUpdate, if_match: str | Unset | None = UNSET) -> Submitted:
         """Edit Entry. One HTTP request; no automatic replay."""
-        return await self._call(
-            lambda client: (
-                edit_entry_api_v1_workspaces_workspace_id_threads_thread_id_inbox_entry_id_patch.asyncio_detailed(
-                    client=client,
-                    workspace_id=self._bindings["workspace_id"],
-                    thread_id=self._bindings["thread_id"],
-                    entry_id=self._bindings["entry_id"],
-                    body=body,
-                    if_match=if_match,
+        return _submitted(
+            self._client,
+            await self._call(
+                lambda client: (
+                    edit_entry_api_v1_workspaces_workspace_id_threads_thread_id_inbox_entry_id_patch.asyncio_detailed(
+                        client=client,
+                        workspace_id=self._bindings["workspace_id"],
+                        thread_id=self._bindings["thread_id"],
+                        entry_id=self._bindings["entry_id"],
+                        body=body,
+                        if_match=if_match,
+                    )
                 )
-            )
+            ),
+            thread_id=self._bindings.get("thread_id"),
         )
 
 

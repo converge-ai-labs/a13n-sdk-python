@@ -217,7 +217,7 @@ async def _resume_and_fork(client: Client, workspace_id: str, agent: str, client
     original = _accepted_run(completed)
     first = await _wait_run(original, wire.RunStatus.COMPLETED)
     forked = await original.fork(
-        wire.Fork(
+        body=wire.Fork(
             agent_id=agent, payload=wire.MessagePayload(content=[wire.TextPart(type_="text", text="Forked response.")])
         ),
         idempotency_key=_key("fork"),

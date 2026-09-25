@@ -11,36 +11,12 @@ from typing import Any, Literal
 from urllib.parse import urlsplit
 
 import httpx2
-from pydantic import JsonValue
 
+from .errors import TransportError
 from .generated.client import AuthenticatedClient
 from .generated.models import ErrorEnvelope
 from .generated.resources import Organizations, ServiceResources, Workspaces
 from .generated.types import Response
-
-
-class ProtocolError(Exception):
-    """A malformed or oversized Service response."""
-
-
-class TransportError(RuntimeError):
-    """Transport failed; a mutation's outcome can be unknown."""
-
-
-@dataclass(repr=False)
-class ApiError(Exception):
-    status: int
-    code: str
-    message: str
-    details: dict[str, JsonValue] = field(default_factory=dict)
-    request_id: str | None = None
-    retry_after: str | None = None
-
-    def __str__(self) -> str:
-        return f"{self.code}: {self.message} ({self.status})"
-
-    def __repr__(self) -> str:
-        return f"ApiError(status={self.status}, code={self.code!r})"
 
 
 class _RejectCookies(DefaultCookiePolicy):

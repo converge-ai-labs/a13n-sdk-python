@@ -156,3 +156,56 @@ def test_bounded_eof_recovery_does_not_claim_run_completion(monkeypatch: pytest.
             assert count == 2
 
     asyncio.run(scenario())
+
+
+@pytest.mark.parametrize(
+    "event,data,cursor",
+    [
+        ("changed", {"version": True}, None),
+        ("boundary", {"run_id": "r", "attempt": True, "sequence": 1}, "1-0"),
+        ("delta", {"run_id": "r", "attempt": 1, "sequence": 1, "event": {}, "item": {}}, "1-0"),
+        (
+            "delta",
+            {
+                "run_id": "r",
+                "attempt": 1,
+                "sequence": 1,
+                "event": {},
+                "item": {"id": "i", "kind": "invalid", "state": "completed"},
+            },
+            "1-0",
+        ),
+    ],
+)
+def test_typed_frame_fields_are_validated(event: str, data: dict, cursor: str | None) -> None:
+    from a13n.streaming import _frame
+
+    with pytest.raises(ProtocolError):
+        _frame(event, [json.dumps(data)], cursor)
+
+
+def test_delta_exposes_readonly_typed_envelope_without_claiming_agui_validation() -> None:
+    from a13n import DeltaFrame
+    from a13n.streaming import _frame
+
+    frame = _frame(
+        "delta",
+        [
+            json.dumps(
+                {
+                    "run_id": "run_1",
+                    "attempt": 2,
+                    "sequence": 3,
+                    "event": {"future_event": {"value": True}},
+                    "item": {"id": "item_1", "kind": "tool_call", "state": "in_progress"},
+                }
+            )
+        ],
+        "100-0",
+    )
+    assert isinstance(frame, DeltaFrame)
+    assert frame.data["attempt"] == 2
+    assert frame.data["item"] is not None and frame.data["item"]["id"] == "item_1"
+    assert frame.data["event"]["future_event"] == {"value": True}
+    with pytest.raises(TypeError):
+        frame.data["sequence"] = 4  # type: ignore[reportTypedDictNotRequiredAccess, reportTypedDictReadOnlyAccess]

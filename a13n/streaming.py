@@ -8,15 +8,16 @@ import random
 import re
 from collections.abc import AsyncGenerator, AsyncIterator, Mapping
 from contextlib import AbstractAsyncContextManager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Any, Literal, Self
+from typing import TYPE_CHECKING, Any, Literal, ReadOnly, Self, TypedDict, cast
 
 import httpx2
+from pydantic import JsonValue
 
-from .client import ApiError, ProtocolError, TransportError
+from .errors import ApiError, ProtocolError, TransportError
 from .generated.api.runs import thread_stream_api_v1_workspaces_workspace_id_threads_thread_id_stream_get
 from .generated.models import ErrorEnvelope
 from .generated.types import UNSET
@@ -31,13 +32,68 @@ _CURSOR = re.compile(r"[0-9]{1,20}-[0-9]{1,20}\Z")
 _TYPES = frozenset({"delta", "boundary", "changed", "reset", "gap"})
 
 
-@dataclass(frozen=True, repr=False)
-class ThreadFrame:
-    """Only delta/boundary have cursors. Reset/gap demand explicit items readback."""
+class BoundaryData(TypedDict):
+    run_id: ReadOnly[str]
+    attempt: ReadOnly[int]
+    sequence: ReadOnly[int]
 
-    event_type: Literal["delta", "boundary", "changed", "reset", "gap"]
-    data: Mapping[str, Any]
-    cursor: str | None
+
+class ItemRef(TypedDict):
+    id: ReadOnly[str]
+    kind: ReadOnly[Literal["text_message", "reasoning_message", "tool_call", "observation"]]
+    state: ReadOnly[Literal["in_progress", "completed", "interrupted", "failed"]]
+
+
+class DeltaData(BoundaryData):
+    # The envelope is validated; AG-UI event semantics remain application-owned.
+    event: ReadOnly[Mapping[str, JsonValue]]
+    item: ReadOnly[ItemRef | None]
+
+
+class ChangedData(TypedDict):
+    version: ReadOnly[int]
+
+
+class RunSignalData(TypedDict):
+    run_id: ReadOnly[str]
+
+
+@dataclass(frozen=True, repr=False)
+class DeltaFrame:
+    data: DeltaData
+    cursor: str
+    event_type: Literal["delta"] = field(default="delta", init=False)
+
+
+@dataclass(frozen=True, repr=False)
+class BoundaryFrame:
+    data: BoundaryData
+    cursor: str
+    event_type: Literal["boundary"] = field(default="boundary", init=False)
+
+
+@dataclass(frozen=True, repr=False)
+class ChangedFrame:
+    data: ChangedData
+    cursor: None = field(default=None, init=False)
+    event_type: Literal["changed"] = field(default="changed", init=False)
+
+
+@dataclass(frozen=True, repr=False)
+class ResetFrame:
+    data: RunSignalData
+    cursor: None = field(default=None, init=False)
+    event_type: Literal["reset"] = field(default="reset", init=False)
+
+
+@dataclass(frozen=True, repr=False)
+class GapFrame:
+    data: RunSignalData
+    cursor: None = field(default=None, init=False)
+    event_type: Literal["gap"] = field(default="gap", init=False)
+
+
+ThreadFrame = DeltaFrame | BoundaryFrame | ChangedFrame | ResetFrame | GapFrame
 
 
 @dataclass(frozen=True, repr=False)
@@ -84,20 +140,39 @@ def _frame(event_type: str, data: list[str], cursor: str | None) -> ThreadFrame:
                 raise ValueError
             if not isinstance(value.get("run_id"), str) or not value["run_id"]:
                 raise ValueError
-            if not isinstance(value.get("attempt"), int) or not isinstance(value.get("sequence"), int):
+            if any(
+                not isinstance(value.get(key), int) or isinstance(value[key], bool) for key in ("attempt", "sequence")
+            ):
                 raise ValueError
-            if event_type == "delta" and (not isinstance(value.get("event"), dict) or "item" not in value):
+            if event_type == "boundary":
+                return BoundaryFrame(cast("BoundaryData", MappingProxyType(value)), cursor)
+            if not isinstance(value.get("event"), dict) or "item" not in value:
                 raise ValueError
+            item = value["item"]
+            if item is not None:
+                if (
+                    not isinstance(item, dict)
+                    or not isinstance(item.get("id"), str)
+                    or item.get("kind") not in ("text_message", "reasoning_message", "tool_call", "observation")
+                    or item.get("state") not in ("in_progress", "completed", "interrupted", "failed")
+                ):
+                    raise ValueError
+                value["item"] = MappingProxyType(item)
+            value["event"] = MappingProxyType(value["event"])
+            return DeltaFrame(cast("DeltaData", MappingProxyType(value)), cursor)
         else:
             if cursor is not None:
                 raise ValueError
-            if event_type == "changed" and not isinstance(value.get("version"), int):
+            if event_type == "changed":
+                if not isinstance(value.get("version"), int) or isinstance(value["version"], bool):
+                    raise ValueError
+                return ChangedFrame(cast("ChangedData", MappingProxyType(value)))
+            if not isinstance(value.get("run_id"), str) or not value["run_id"]:
                 raise ValueError
-            if event_type in {"reset", "gap"} and (not isinstance(value.get("run_id"), str) or not value["run_id"]):
-                raise ValueError
+            signal = cast("RunSignalData", MappingProxyType(value))
+            return ResetFrame(signal) if event_type == "reset" else GapFrame(signal)
     except (ValueError, TypeError):
         raise ProtocolError("Malformed Thread stream frame") from None
-    return ThreadFrame(event_type, MappingProxyType(value), cursor)  # type: ignore[arg-type]
 
 
 async def _frames(response: httpx2.Response, limit: int) -> AsyncGenerator[ThreadFrame]:

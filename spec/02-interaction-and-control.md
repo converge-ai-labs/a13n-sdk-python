@@ -2,6 +2,8 @@
 
 ## Inputs and Submission
 
+`workspace.threads.create(body=wire.NewThread(...), idempotency_key=...)` is the complete new-Thread entry point. `thread.inbox_entries.create(body=wire.Message(...), idempotency_key=...)` submits a complete Message. Both return the same bound `Submitted` used by the shortcuts below; all NewThread fields, including memories, environments, MCP headers, and explicit null/omission, stay available without reconstructing references manually. Generated operations returning the Service `Submitted` shape (including Entry edits/withdrawal and Run fork) use this same result. Low-level generated HTTP operations retain the raw wire response.
+
 `Workspace.start(input, *, agent_id, idempotency_key, ...)` creates a Thread and submits its initial inbox Message. `Thread.submit(input, *, agent_id, idempotency_key, ...)` submits to an existing Thread. `input` is a string or generated `MessagePayload`; `text_input` constructs one ordinary `TextPart`. Agent revision, delivery, and Run options remain explicit typed inputs. `UNSET` preserves omission; `None` is explicit null where the schema permits it. No helper infers a current Agent, Thread, Workspace, or Session.
 
 ```python
@@ -14,7 +16,7 @@ else:
         run = client.workspaces(workspace_id).runs(entry.value.assigned_run_id)
 ```
 
-Both helpers return immutable `Submitted(thread: Thread, entry: InboxEntry, run: Run | None, receipt: Result[wire.Submitted])`. The Run is present only when Service accepted it immediately. The full receipt preserves wire status and HTTP evidence; resource references are locally bound only after validating reported identities. A queued Entry is not a Run. No hidden read, queue consumption, execution loop, or automatic mutation retry occurs.
+Submission operations return immutable `Submitted(thread: Thread, entry: InboxEntry, run: Run | None, receipt: Result[wire.Submitted])`. The Run is present only when Service accepted it immediately. The full receipt preserves wire status and HTTP evidence; resource references are locally bound only after validating reported identities. A queued Entry is not a Run. No hidden read, queue consumption, execution loop, or automatic mutation retry occurs.
 
 A Thread's inbox has explicit generated operations for listing, reading, editing, withdrawing, and ordering Entry intent where exported. `InboxEntry.wait(timeout=..., poll_interval=...)` performs fresh reads until `consumed`, `failed`, or `withdrawn`. A consumed Entry's `assigned_run_id` identifies its accepted Run; neither waiting nor reordering fabricates one. Native inbox and Thread semantics in the pinned contract own its ordering, delivery, and concurrency rules; the SDK does not impose the old queue-version protocol.
 
@@ -30,7 +32,7 @@ A Thread's inbox has explicit generated operations for listing, reading, editing
 | ---------------------------------------------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------- |
 | `await run.interrupt()`                                          | `Result[RunView]` via the declared interrupt command | Targets this Run; no local stream closure is implied                   |
 | `await run.resume(wire.ResumeRequest(...), idempotency_key=key)` | `Resumed(run: Run, receipt: Result[RunView])`        | Eligible waiting Run yields a new Run; source reference is unchanged   |
-| `await run.fork(wire.Fork(...), idempotency_key=key)`            | `Submitted`                                          | Creates an independent Thread and first Entry, optionally accepted Run |
+| `await run.fork(body=wire.Fork(...), idempotency_key=key)`       | `Submitted`                                          | Creates an independent Thread and first Entry, optionally accepted Run |
 
 The generated model defines complete resume answers (`Approve`, `Reject`, or `Complete`); the SDK does not automatically execute client tools or approve pending work. The application reads `RunView.pending`, constructs all required answers, and reconciles its own external side effects. Resume and fork preserve caller-supplied idempotency keys and Service authorization, never read-and-retry on conflict. Interrupt acceptance is not proof every remote process stopped or side effects rolled back.
 

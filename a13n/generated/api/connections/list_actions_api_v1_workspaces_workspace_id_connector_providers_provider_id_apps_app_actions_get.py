@@ -49,12 +49,17 @@ def _parse_response(
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
 ) -> Response[ConnectorActionPage | ErrorEnvelope]:
-    return Response(
-        status_code=HTTPStatus(response.status_code),
-        content=response.content,
-        headers=response.headers,
-        parsed=_parse_response(client=client, response=response),
-    )
+    from ....errors import ProtocolError
+
+    try:
+        return Response(
+            status_code=HTTPStatus(response.status_code),
+            content=response.content,
+            headers=response.headers,
+            parsed=_parse_response(client=client, response=response),
+        )
+    except (ValueError, KeyError, TypeError, AttributeError):
+        raise ProtocolError("Malformed Service response") from None
 
 
 def sync_detailed(
