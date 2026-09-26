@@ -20,6 +20,25 @@ def test_generated_request_omission_and_explicit_null() -> None:
     assert "secret" not in repr(absent)
 
 
+@pytest.mark.parametrize("model", [wire.ModelPriceRuleInput, wire.ModelPriceRuleOutput])
+def test_model_price_rule_selectors_preserve_omission_null_and_values(
+    model: type[wire.ModelPriceRuleInput] | type[wire.ModelPriceRuleOutput],
+) -> None:
+    absent = model(prices=[], rule_id="default")
+    assert absent.max_input_tokens is UNSET
+    assert absent.service_tier is UNSET
+    assert absent.to_dict() == {"prices": [], "rule_id": "default"}
+    for selectors in (
+        {"max_input_tokens": None, "service_tier": None},
+        {"max_input_tokens": 128_000, "service_tier": "priority"},
+    ):
+        payload = {**absent.to_dict(), **selectors}
+        parsed = model.from_dict(payload)
+        assert parsed.max_input_tokens == selectors["max_input_tokens"]
+        assert parsed.service_tier == selectors["service_tier"]
+        assert parsed.to_dict() == payload
+
+
 def test_generated_binary_download_is_unbuffered_and_workspace_bound() -> None:
     async def scenario() -> None:
         paths: list[str] = []
