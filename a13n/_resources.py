@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 import httpx2
 
 from .generated.client import AuthenticatedClient
-from .generated.models.error_response import ErrorResponse
+from .generated.models.error_envelope import ErrorEnvelope
 from .generated.types import Response, Unset
 
 if TYPE_CHECKING:
@@ -32,11 +32,6 @@ class Result[T]:
     @property
     def request_id(self) -> str | None:
         return self.headers.get("x-request-id")
-
-    @property
-    def status(self) -> int:
-        """Compatibility alias for the HTTP status code."""
-        return self.status_code
 
     def __repr__(self) -> str:
         return f"Result(status_code={self.status_code})"
@@ -70,22 +65,19 @@ class Resource:
         return {**self._bindings, name: value}
 
     async def _call[T](
-        self, operation: Callable[[AuthenticatedClient], Awaitable[Response[T | ErrorResponse]]]
+        self, operation: Callable[[AuthenticatedClient], Awaitable[Response[T | ErrorEnvelope] | Response[T]]]
     ) -> Result[T]:
-        from .client import ApiError, ProtocolError
+        from .errors import ApiError, ProtocolError
 
-        try:
-            response = await self._client.execute(operation)
-        except (ValueError, KeyError, TypeError, AttributeError):
-            raise ProtocolError("Malformed Service response") from None
+        response = await self._client.execute(operation)
         parsed = response.parsed
-        if isinstance(parsed, ErrorResponse):
+        if isinstance(parsed, ErrorEnvelope):
             error = parsed.error
             raise ApiError(
                 status=int(response.status_code),
                 code=error.code,
                 message=error.message,
-                details={} if isinstance(error.details, Unset) or error.details is None else error.details.to_dict(),
+                details=error.details.to_dict(),
                 request_id=response.headers.get("x-request-id") or error.request_id,
                 retry_after=response.headers.get("retry-after"),
             )
@@ -116,7 +108,7 @@ async def pages[T](
     cursor: str | Unset | None,
 ) -> AsyncIterator[Result[T]]:
     """Lazy, no prefetch, and never terminate on a short/empty page."""
-    from .client import ProtocolError
+    from .errors import ProtocolError
 
     seen: set[str] = {cursor} if isinstance(cursor, str) else set()
     while True:

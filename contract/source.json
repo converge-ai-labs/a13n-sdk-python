@@ -1,27 +1,24 @@
 {
   "repository": "converge-ai-labs/agent-foundation",
-  "commit": "d59a88bdb906b17eb8dce54f522eea16227c02d4",
+  "commit": "9b24dcf0cf8fff554d663ecee0d2d469b93d2a4c",
   "files": {
     "openapi.json": {
       "source_path": "proto/a13n-service/openapi.json"
     },
-    "notification-client.schema.json": {
-      "source_path": "proto/a13n-service/notification-client.schema.json"
-    },
-    "run-stream-event.schema.json": {
-      "source_path": "proto/a13n-service/run-stream-event.schema.json"
-    },
-    "fixtures/wire.json": {
-      "source_path": "proto/a13n-service/fixtures/wire.json"
+    "thread-stream.schema.json": {
+      "source_path": "proto/a13n-service/thread-stream.schema.json"
     },
     "semantics/api-conventions.md": {
       "source_path": "spec/api-conventions.md"
     },
-    "semantics/native-streaming-and-notifications.md": {
-      "source_path": "spec/a13n-service/21-native-streaming-and-notifications.md"
+    "semantics/runs.md": {
+      "source_path": "spec/a13n-service/05-runs.md"
     },
-    "semantics/queued-submissions.md": {
-      "source_path": "spec/a13n-service/20-agent-control-queued-submissions.md"
+    "semantics/facts-and-delivery.md": {
+      "source_path": "spec/a13n-service/07-facts-and-delivery.md"
+    },
+    "semantics/api.md": {
+      "source_path": "spec/a13n-service/10-api.md"
     }
   }
 }

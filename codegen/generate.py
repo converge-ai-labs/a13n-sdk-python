@@ -3,6 +3,7 @@
 Generation does not import, check out, or execute the Service.
 """
 
+import ast
 import json
 import shutil
 import subprocess
@@ -41,8 +42,17 @@ def prepare(document: dict) -> dict:
             for child in schema.get(keyword, []):
                 strip_defaults(child)
 
-    for schema in schemas.values():
+    for name, schema in schemas.items():
         strip_defaults(schema)
+        # Pydantic gives its distinct input/output components the same title;
+        # the generator otherwise collides their names and drops response refs.
+        if name.endswith(("-Input", "-Output")):
+            schema.pop("title", None)
+        if name == "UploadCreate":
+            file_part = schema["properties"]["file"]
+            if file_part.get("contentMediaType") != "application/octet-stream" or file_part.get("type") != "string":
+                raise ValueError("Unsupported Service upload part schema")
+            file_part["format"] = "binary"
 
     def visit(value: object) -> None:
         if isinstance(value, dict):
@@ -55,6 +65,21 @@ def prepare(document: dict) -> dict:
                 visit(child)
 
     visit(document)
+    for operations in document["paths"].values():
+        for operation in operations.values():
+            if not isinstance(operation, dict) or "responses" not in operation:
+                continue
+            for response in operation["responses"].values():
+                if isinstance(response, dict) and response.get("content", {}).get("*/*"):
+                    response["content"]["application/octet-stream"] = response["content"].pop("*/*")
+            request = operation.get("requestBody", {})
+            content = request.get("content", {})
+            if len(content) > 1 and all(
+                entry.get("schema") == {"type": "string", "format": "binary"} for entry in content.values()
+            ):
+                # Generate one File parameter; restore all declared media choices
+                # in build_request rather than silently choosing one wire format.
+                request["content"] = {"application/octet-stream": next(iter(content.values()))}
     return document
 
 
@@ -82,6 +107,15 @@ def generate(document: dict, work: Path) -> Path:
         "--custom-template-path",
         str(CONFIG / "templates"),
     )
+    binary_media = {
+        operation["operationId"].replace("__", "_"): tuple(content)
+        for operations in document["paths"].values()
+        for operation in operations.values()
+        if isinstance(operation, dict) and "operationId" in operation
+        if (content := operation.get("requestBody", {}).get("content", {}))
+        and len(content) > 1
+        and all(entry.get("schema") == {"type": "string", "format": "binary"} for entry in content.values())
+    }
     for path in output.rglob("*.py"):
         text = (
             path.read_text()
@@ -93,13 +127,41 @@ def generate(document: dict, work: Path) -> Path:
         text = text.replace("@_attrs_define\n", "@_attrs_define(repr=False)\n").replace(
             "@define\n", "@define(repr=False)\n"
         )
+        if path.stem in binary_media:
+            media = binary_media[path.stem]
+            text = text.replace(
+                '    headers["Content-Type"] = "application/octet-stream"',
+                f"    if body.mime_type not in {media!r}:\n"
+                f'        raise ValueError("File.mime_type must be one of: {", ".join(media)}")\n'
+                '    headers["Content-Type"] = body.mime_type',
+            )
         if '_kwargs["content"] = body.payload' in text:
             text = "from ...._binary import file_chunks\n" + text
             text = text.replace(
                 "    response = await client.get_async_httpx_client().request(",
                 '    kwargs["content"] = file_chunks(body.payload)\n\n    response = await client.get_async_httpx_client().request(',
             )
+        if '_kwargs["files"] = body.to_multipart()' in text:
+            # httpx constructs a fresh multipart boundary. The generator's
+            # literal +++ header does not match the serialized file body.
+            text = text.replace('    headers["Content-Type"] = "multipart/form-data; boundary=+++"\n', "")
         text = text.replace("_get_kwargs", "build_request")
+        # Classify failures at the response parser, not around request building,
+        # so invalid local inputs retain their original exception and no I/O claim.
+        for node in ast.parse(text).body:
+            if isinstance(node, ast.FunctionDef) and node.name == "_build_response":
+                lines = text.splitlines(keepends=True)
+                start, end = node.body[0].lineno - 1, node.end_lineno
+                body = "".join("    " + line if line.strip() else line for line in lines[start:end])
+                lines[start:end] = [
+                    "    from ....errors import ProtocolError\n\n",
+                    "    try:\n",
+                    body,
+                    "    except (ValueError, KeyError, TypeError, AttributeError):\n",
+                    '        raise ProtocolError("Malformed Service response") from None\n',
+                ]
+                text = "".join(lines)
+                break
         if path.name == "client.py":
             text = text.replace("import ssl", "import ssl\nfrom types import TracebackType").replace(
                 "@define\n", "@define(repr=False)\n"

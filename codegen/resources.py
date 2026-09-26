@@ -16,13 +16,17 @@ CORE = {
     ("workspaces", "{}"): "Workspace",
     ("organizations", "{}"): "Organization",
     ("workspaces", "{}", "agents", "{}"): "Agent",
-    ("sessions", "{}"): "Session",
-    ("threads", "{}"): "Thread",
-    ("runs", "{}"): "Run",
-    ("queued-submissions", "{}"): "QueuedSubmission",
-    ("run-attempts", "{}"): "RunAttempt",
+    ("workspaces", "{}", "sessions", "{}"): "Session",
+    ("workspaces", "{}", "threads", "{}"): "Thread",
+    ("workspaces", "{}", "runs", "{}"): "Run",
+    ("workspaces", "{}", "threads", "{}", "inbox", "{}"): "InboxEntry",
 }
-MIXINS = {"Agent": "AgentMethods", "Thread": "ThreadMethods", "Run": "RunMethods", "QueuedSubmission": "QueueMethods"}
+MIXINS = {
+    "Workspace": "WorkspaceMethods",
+    "Thread": "ThreadMethods",
+    "Run": "RunMethods",
+    "InboxEntry": "InboxEntryMethods",
+}
 VERBS = {
     "post": "create",
     "patch": "update",
@@ -64,7 +68,7 @@ def success_type(annotation: ast.expr) -> str:
     def parts(node: ast.expr) -> list[str]:
         if isinstance(node, ast.BinOp) and isinstance(node.op, ast.BitOr):
             return parts(node.left) + parts(node.right)
-        return [] if ast.unparse(node) == "ErrorResponse" else [ast.unparse(node)]
+        return [] if ast.unparse(node) == "ErrorEnvelope" else [ast.unparse(node)]
 
     return " | ".join(parts(annotation.slice)) or "None"
 
@@ -73,9 +77,12 @@ def generate_resources(document: dict, output: Path) -> None:
     root = Node((), ())
     nodes: dict[tuple[str, ...], Node] = {(): root}
     for path, operations in document["paths"].items():
-        if not path.startswith("/api/v1/"):
+        if path.startswith("/api/v1/"):
+            segments = tuple(path.removeprefix("/api/v1/").split("/"))
+        elif path in {"/healthz", "/readyz"}:
+            segments = (path.lstrip("/"),)
+        else:
             raise ValueError(f"Unsupported resource path: {path}")
-        segments = tuple(path.removeprefix("/api/v1/").split("/"))
         node = root
         for segment in segments:
             key = "{}" if segment.startswith("{") else segment
@@ -103,7 +110,7 @@ def generate_resources(document: dict, output: Path) -> None:
     classes: list[str] = []
 
     def endpoint(operation: dict) -> tuple[ast.AsyncFunctionDef, str]:
-        module = modules[operation["operationId"]]
+        module = modules[operation["operationId"].replace("__", "_")]
         tree = ast.parse(module.read_text())
         for imp in tree.body:
             if isinstance(imp, ast.ImportFrom) and imp.module:
@@ -119,7 +126,7 @@ def generate_resources(document: dict, output: Path) -> None:
                         imports.add("import datetime")
         function = next(n for n in tree.body if isinstance(n, ast.AsyncFunctionDef) and n.name == "asyncio_detailed")
         mod = module.relative_to(output).with_suffix("").as_posix().replace("/", ".")
-        alias = operation["operationId"]
+        alias = operation["operationId"].replace("__", "_")
         endpoints.add(f"from .{mod.rsplit('.', 1)[0]} import {alias}")
         return function, alias
 
@@ -132,7 +139,7 @@ def generate_resources(document: dict, output: Path) -> None:
             if successful and all(not response.get("content") for response in successful)
             else success_type(fn.returns)
         )
-        result = typed(raw_result)
+        result = "Submitted" if raw_result == "Submitted" else f"Result[{typed(raw_result)}]"
         bound = {
             segment[1:-1]: node.bindings[i]
             for i, segment in enumerate(segments)
@@ -157,10 +164,13 @@ def generate_resources(document: dict, output: Path) -> None:
             call_args.append(f"{wire_name}={value}")
         call_args += [f"{arg.arg}={arg.arg}" for arg, _ in exposed]
         call = ", ".join(["client=client", *call_args])
+        request = f"await self._call(lambda client: {alias}.asyncio_detailed({call}))"
+        if raw_result == "Submitted":
+            request = f"_submitted(self._client, {request}, thread_id=self._bindings.get('thread_id'))"
         lines = [
-            f"    async def {name}({signature}) -> Result[{result}]:",
+            f"    async def {name}({signature}) -> {result}:",
             f'        """{op.get("summary", alias)}. One HTTP request; no automatic replay."""',
-            f"        return await self._call(lambda client: {alias}.asyncio_detailed({call}))",
+            f"        return {request}",
             "",
         ]
         # Preserve specialized page values and metadata. Only ordinary opaque
@@ -181,7 +191,7 @@ def generate_resources(document: dict, output: Path) -> None:
                     )
                 ]
                 lines += [
-                    f"    def pages({signature}) -> AsyncIterator[Result[{result}]]:",
+                    f"    def pages({signature}) -> AsyncIterator[{result}]:",
                     '        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""',
                     *snapshots,
                     f"        return pages(lambda next_cursor: self.list({', '.join(page_args)}), lambda value: value.next_cursor, cursor)",
@@ -268,18 +278,22 @@ def generate_resources(document: dict, output: Path) -> None:
                         if argument.arg == original_param and argument.annotation:
                             selector_type = typed(ast.unparse(argument.annotation))
                     break
+                # Resource identities are stored as path text; retain the public
+                # numeric type and reconstruct it when calling the wire binding.
+                binding = selector if selector_type == "str" else f"str({selector})"
                 lines += [
                     f"    def __call__(self, {selector}: {selector_type}) -> {child.name}:",
-                    f"        return {child.name}(self._client, self._bind({param!r}, {selector}))",
+                    f"        return {child.name}(self._client, self._bind({param!r}, {binding}))",
                     "",
                 ]
                 continue
             member = snake(key)
-            if node.name == "Run":
-                if member in {"feedback", "retry", "fork", "continue_", "steer"}:
-                    member = member.rstrip("_") + "_receipt"
-                elif member == "stream":
-                    member = "stream_response"
+            if node.name == "Run" and member == "resume":
+                member = "_resume"
+            elif node.name == "Thread" and member == "stream":
+                member = "stream_response"
+            elif node.name == "Thread" and member == "inbox":
+                member = "inbox_entries"
             if member in members:
                 raise ValueError(f"Resource member collision: {node.name}.{member}")
             if flattened(child):
@@ -307,7 +321,7 @@ from typing import Any, Literal
 import httpx2
 from . import models as wire
 from .._resources import Resource, Result, pages
-from .._interaction import AgentMethods, ThreadMethods, RunMethods, QueueMethods
+from .._interaction import WorkspaceMethods, ThreadMethods, RunMethods, InboxEntryMethods, Submitted, _submitted
 '''
     source = prelude + "\n".join(sorted(imports | endpoints)) + "\n\n" + "\n\n".join(classes)
     (output / "resources.py").write_text(source)

@@ -3,6 +3,7 @@ from enum import StrEnum
 
 class ModelCapability(StrEnum):
     AUDIO_UNDERSTANDING = "audio_understanding"
+    DOCUMENT_UNDERSTANDING = "document_understanding"
     IMAGE_UNDERSTANDING = "image_understanding"
     VIDEO_UNDERSTANDING = "video_understanding"
 

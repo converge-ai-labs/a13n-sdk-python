@@ -5,12 +5,11 @@ from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
-
-from ..types import UNSET, Unset
+from attrs import field as _attrs_field
 
 if TYPE_CHECKING:
-    from ..models.principal_ref import PrincipalRef
     from ..models.skill_labels import SkillLabels
+    from ..models.skill_revision_summary import SkillRevisionSummary
 
 
 T = TypeVar("T", bound="Skill")
@@ -20,51 +19,69 @@ T = TypeVar("T", bound="Skill")
 class Skill:
     """
     Attributes:
+        archived_at (datetime.datetime | None):
         created_at (datetime.datetime):
-        created_by (PrincipalRef):
-        default_revision_id (str):
-        deleted_at (datetime.datetime | None):
+        created_by_id (str):
+        default_revision (None | SkillRevisionSummary):
+        default_revision_id (None | str):
+        description (str):
         id (str):
         key (str):
+        labels (SkillLabels):
         name (str):
         organization_id (str):
         updated_at (datetime.datetime):
-        updated_by (PrincipalRef):
+        updated_by_id (str):
         version (int):
         workspace_id (str):
-        labels (SkillLabels | Unset):
     """
 
+    archived_at: datetime.datetime | None
     created_at: datetime.datetime
-    created_by: PrincipalRef
-    default_revision_id: str
-    deleted_at: datetime.datetime | None
+    created_by_id: str
+    default_revision: SkillRevisionSummary | None
+    default_revision_id: str | None
+    description: str
     id: str
     key: str
+    labels: SkillLabels
     name: str
     organization_id: str
     updated_at: datetime.datetime
-    updated_by: PrincipalRef
+    updated_by_id: str
     version: int
     workspace_id: str
-    labels: SkillLabels | Unset = UNSET
+    additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.skill_revision_summary import SkillRevisionSummary
+
+        archived_at: str | None
+        if isinstance(self.archived_at, datetime.datetime):
+            archived_at = self.archived_at.isoformat()
+        else:
+            archived_at = self.archived_at
+
         created_at = self.created_at.isoformat()
 
-        created_by = self.created_by.to_dict()
+        created_by_id = self.created_by_id
 
+        default_revision: dict[str, Any] | None
+        if isinstance(self.default_revision, SkillRevisionSummary):
+            default_revision = self.default_revision.to_dict()
+        else:
+            default_revision = self.default_revision
+
+        default_revision_id: str | None
         default_revision_id = self.default_revision_id
 
-        deleted_at: str | None
-        if isinstance(self.deleted_at, datetime.datetime):
-            deleted_at = self.deleted_at.isoformat()
-        else:
-            deleted_at = self.deleted_at
+        description = self.description
 
         id = self.id
 
         key = self.key
+
+        labels = self.labels.to_dict()
 
         name = self.name
 
@@ -72,69 +89,91 @@ class Skill:
 
         updated_at = self.updated_at.isoformat()
 
-        updated_by = self.updated_by.to_dict()
+        updated_by_id = self.updated_by_id
 
         version = self.version
 
         workspace_id = self.workspace_id
 
-        labels: dict[str, Any] | Unset = UNSET
-        if not isinstance(self.labels, Unset):
-            labels = self.labels.to_dict()
-
         field_dict: dict[str, Any] = {}
-
+        field_dict.update(self.additional_properties)
         field_dict.update(
             {
+                "archived_at": archived_at,
                 "created_at": created_at,
-                "created_by": created_by,
+                "created_by_id": created_by_id,
+                "default_revision": default_revision,
                 "default_revision_id": default_revision_id,
-                "deleted_at": deleted_at,
+                "description": description,
                 "id": id,
                 "key": key,
+                "labels": labels,
                 "name": name,
                 "organization_id": organization_id,
                 "updated_at": updated_at,
-                "updated_by": updated_by,
+                "updated_by_id": updated_by_id,
                 "version": version,
                 "workspace_id": workspace_id,
             }
         )
-        if labels is not UNSET:
-            field_dict["labels"] = labels
 
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.principal_ref import PrincipalRef
         from ..models.skill_labels import SkillLabels
+        from ..models.skill_revision_summary import SkillRevisionSummary
 
         d = dict(src_dict)
-        created_at = datetime.datetime.fromisoformat(d.pop("created_at"))
 
-        created_by = PrincipalRef.from_dict(d.pop("created_by"))
-
-        default_revision_id = d.pop("default_revision_id")
-
-        def _parse_deleted_at(data: object) -> datetime.datetime | None:
+        def _parse_archived_at(data: object) -> datetime.datetime | None:
             if data is None:
                 return data
             try:
                 if not isinstance(data, str):
                     raise TypeError()
-                deleted_at_type_0 = datetime.datetime.fromisoformat(data)
+                archived_at_type_0 = datetime.datetime.fromisoformat(data)
 
-                return deleted_at_type_0
+                return archived_at_type_0
             except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             return cast(datetime.datetime | None, data)
 
-        deleted_at = _parse_deleted_at(d.pop("deleted_at"))
+        archived_at = _parse_archived_at(d.pop("archived_at"))
+
+        created_at = datetime.datetime.fromisoformat(d.pop("created_at"))
+
+        created_by_id = d.pop("created_by_id")
+
+        def _parse_default_revision(data: object) -> SkillRevisionSummary | None:
+            if data is None:
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                default_revision_type_0 = SkillRevisionSummary.from_dict(data)
+
+                return default_revision_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(SkillRevisionSummary | None, data)
+
+        default_revision = _parse_default_revision(d.pop("default_revision"))
+
+        def _parse_default_revision_id(data: object) -> str | None:
+            if data is None:
+                return data
+            return cast(str | None, data)
+
+        default_revision_id = _parse_default_revision_id(d.pop("default_revision_id"))
+
+        description = d.pop("description")
 
         id = d.pop("id")
 
         key = d.pop("key")
+
+        labels = SkillLabels.from_dict(d.pop("labels"))
 
         name = d.pop("name")
 
@@ -142,33 +181,45 @@ class Skill:
 
         updated_at = datetime.datetime.fromisoformat(d.pop("updated_at"))
 
-        updated_by = PrincipalRef.from_dict(d.pop("updated_by"))
+        updated_by_id = d.pop("updated_by_id")
 
         version = d.pop("version")
 
         workspace_id = d.pop("workspace_id")
 
-        _labels = d.pop("labels", UNSET)
-        labels: SkillLabels | Unset
-        if isinstance(_labels, Unset):
-            labels = UNSET
-        else:
-            labels = SkillLabels.from_dict(_labels)
-
         skill = cls(
+            archived_at=archived_at,
             created_at=created_at,
-            created_by=created_by,
+            created_by_id=created_by_id,
+            default_revision=default_revision,
             default_revision_id=default_revision_id,
-            deleted_at=deleted_at,
+            description=description,
             id=id,
             key=key,
+            labels=labels,
             name=name,
             organization_id=organization_id,
             updated_at=updated_at,
-            updated_by=updated_by,
+            updated_by_id=updated_by_id,
             version=version,
             workspace_id=workspace_id,
-            labels=labels,
         )
 
+        skill.additional_properties = d
         return skill
+
+    @property
+    def additional_keys(self) -> list[str]:
+        return list(self.additional_properties.keys())
+
+    def __getitem__(self, key: str) -> Any:
+        return self.additional_properties[key]
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        self.additional_properties[key] = value
+
+    def __delitem__(self, key: str) -> None:
+        del self.additional_properties[key]
+
+    def __contains__(self, key: str) -> bool:
+        return key in self.additional_properties

@@ -23,17 +23,18 @@ class SubagentSelectionInput:
         agent_id (str):
         context (DelegationContextPolicy | Unset):
         description (None | str | Unset):
-        environment (ChildEnvironmentPolicy | Unset):
+        environment (ChildEnvironmentPolicy | Unset): What a child run mounts: no environment, the parent's, or a new
+            one from `template_id`.
+        revision_id (None | str | Unset):
         usage_limits (None | Unset | UsageLimitsInput):
-        version (int | None | Unset):
     """
 
     agent_id: str
     context: DelegationContextPolicy | Unset = UNSET
     description: str | Unset | None = UNSET
     environment: ChildEnvironmentPolicy | Unset = UNSET
+    revision_id: str | Unset | None = UNSET
     usage_limits: Unset | UsageLimitsInput | None = UNSET
-    version: int | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
         from ..models.usage_limits_input import UsageLimitsInput
@@ -54,6 +55,12 @@ class SubagentSelectionInput:
         if not isinstance(self.environment, Unset):
             environment = self.environment.to_dict()
 
+        revision_id: str | Unset | None
+        if isinstance(self.revision_id, Unset):
+            revision_id = UNSET
+        else:
+            revision_id = self.revision_id
+
         usage_limits: dict[str, Any] | Unset | None
         if isinstance(self.usage_limits, Unset):
             usage_limits = UNSET
@@ -61,12 +68,6 @@ class SubagentSelectionInput:
             usage_limits = self.usage_limits.to_dict()
         else:
             usage_limits = self.usage_limits
-
-        version: int | Unset | None
-        if isinstance(self.version, Unset):
-            version = UNSET
-        else:
-            version = self.version
 
         field_dict: dict[str, Any] = {}
 
@@ -81,10 +82,10 @@ class SubagentSelectionInput:
             field_dict["description"] = description
         if environment is not UNSET:
             field_dict["environment"] = environment
+        if revision_id is not UNSET:
+            field_dict["revision_id"] = revision_id
         if usage_limits is not UNSET:
             field_dict["usage_limits"] = usage_limits
-        if version is not UNSET:
-            field_dict["version"] = version
 
         return field_dict
 
@@ -120,6 +121,15 @@ class SubagentSelectionInput:
         else:
             environment = ChildEnvironmentPolicy.from_dict(_environment)
 
+        def _parse_revision_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        revision_id = _parse_revision_id(d.pop("revision_id", UNSET))
+
         def _parse_usage_limits(data: object) -> Unset | UsageLimitsInput | None:
             if data is None:
                 return data
@@ -137,22 +147,13 @@ class SubagentSelectionInput:
 
         usage_limits = _parse_usage_limits(d.pop("usage_limits", UNSET))
 
-        def _parse_version(data: object) -> int | Unset | None:
-            if data is None:
-                return data
-            if isinstance(data, Unset):
-                return data
-            return cast(int | Unset | None, data)
-
-        version = _parse_version(d.pop("version", UNSET))
-
         subagent_selection_input = cls(
             agent_id=agent_id,
             context=context,
             description=description,
             environment=environment,
+            revision_id=revision_id,
             usage_limits=usage_limits,
-            version=version,
         )
 
         return subagent_selection_input

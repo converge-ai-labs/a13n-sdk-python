@@ -14,17 +14,18 @@ SPEC.loader.exec_module(service_acceptance)
 
 
 def test_acceptance_identity_mismatch_is_runtime_error() -> None:
-    accepted = SimpleNamespace(
+    submitted = SimpleNamespace(
         receipt=SimpleNamespace(
-            value=SimpleNamespace(run_id="run_wrong", thread_id="thread_1", session_id="session_1")
+            value=SimpleNamespace(
+                thread=SimpleNamespace(id="thr_wrong"), entry=SimpleNamespace(id="ent_1", thread_id="thr_1"), run=None
+            )
         ),
-        run=SimpleNamespace(id="run_1"),
-        thread=SimpleNamespace(id="thread_1"),
-        session=SimpleNamespace(id="session_1"),
+        thread=SimpleNamespace(id="thr_1"),
+        entry=SimpleNamespace(id="ent_1"),
+        run=None,
     )
-
     with pytest.raises(RuntimeError, match="receipt identities"):
-        service_acceptance._accepted_evidence(accepted)
+        service_acceptance._submission_evidence(submitted)
 
 
 class Chunks(httpx2.AsyncByteStream):
@@ -43,8 +44,8 @@ class Chunks(httpx2.AsyncByteStream):
 def test_disconnect_transport_fails_after_one_complete_data_event() -> None:
     body = Chunks(
         [
-            b": heartbeat\r\n\r\nid: 1-0\r\nevent: run.accepted\r\n",
-            b"data: {}\r\n\r\nid: 2-0\r\nevent: run.completed\r\ndata: {}\r\n\r\n",
+            b": heartbeat\r\n\r\nid: 1-0\r\nevent: boundary\r\n",
+            b'data: {"run_id":"run_1"}\r\n\r\nid: 2-0\r\nevent: delta\r\ndata: {}\r\n\r\n',
         ]
     )
 
@@ -53,13 +54,13 @@ def test_disconnect_transport_fails_after_one_complete_data_event() -> None:
 
     async def scenario() -> None:
         transport = service_acceptance.DisconnectAfterEventTransport(httpx2.MockTransport(handler))
-        request = httpx2.Request("GET", "https://service.example/api/v1/runs/run_1/stream")
+        request = httpx2.Request("GET", "https://service.example/api/v1/workspaces/ws_1/threads/thr_1/stream")
         response = await transport.handle_async_request(request)
         iterator = response.stream.__aiter__()
         assert await anext(iterator) == b": heartbeat\r\n\r\n"
         first = await anext(iterator)
-        assert first.endswith(b"data: {}\r\n\r\n")
-        with pytest.raises(httpx2.ReadError, match="Injected Run SSE disconnect"):
+        assert first.endswith(b'data: {"run_id":"run_1"}\r\n\r\n')
+        with pytest.raises(httpx2.ReadError, match="Injected Thread SSE disconnect"):
             await anext(iterator)
         assert transport.disconnects == 1
         assert transport.last_event_ids == [None]

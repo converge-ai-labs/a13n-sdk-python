@@ -10,7 +10,7 @@ T = TypeVar("T", bound="CatalogRef")
 
 @_attrs_define(repr=False)
 class CatalogRef:
-    """A models.dev provider-qualified identity, independent of the outbound ID.
+    """A models.dev channel and the model ID it lists there.
 
     Attributes:
         model (str):

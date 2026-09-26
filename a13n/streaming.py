@@ -1,48 +1,99 @@
-"""Resumable exact-Run SSE observation with bounded read-only recovery."""
+"""One thread's provisional Native SSE tail; readback is always explicit."""
 
 from __future__ import annotations
 
 import asyncio
 import json
 import random
+import re
 from collections.abc import AsyncGenerator, AsyncIterator, Mapping
 from contextlib import AbstractAsyncContextManager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Any, Literal, ReadOnly, Self, TypedDict, cast
 
 import httpx2
+from pydantic import JsonValue
 
-from .client import ApiError, ProtocolError, TransportError
-from .generated.api.protocol_gateway import get_runs_run_id_stream
-from .generated.models import ErrorResponse, RunStreamEvent
-from .generated.types import UNSET, Unset
+from .errors import ApiError, ProtocolError, TransportError
+from .generated.api.runs import thread_stream_api_v1_workspaces_workspace_id_threads_thread_id_stream_get
+from .generated.models import ErrorEnvelope
+from .generated.types import UNSET
 
 if TYPE_CHECKING:
     from types import TracebackType
 
-    from ._resources import Result
-    from .generated import models as wire
-    from .generated.resources import Run
+    from .generated.resources import Thread
 
 _RETRYABLE_STATUS = frozenset({429, 502, 503, 504})
-_TERMINAL_EVENTS = frozenset(
-    {
-        "run.completed",
-        "run.failed",
-        "run.cancelled",
-        "run.waiting",
-    }
-)
-_SEALED_STATUSES = frozenset({"completed", "failed", "cancelled", "waiting"})
+_CURSOR = re.compile(r"[0-9]{1,20}-[0-9]{1,20}\Z")
+_TYPES = frozenset({"delta", "boundary", "changed", "reset", "gap"})
+
+
+class BoundaryData(TypedDict):
+    run_id: ReadOnly[str]
+    attempt: ReadOnly[int]
+    sequence: ReadOnly[int]
+
+
+class ItemRef(TypedDict):
+    id: ReadOnly[str]
+    kind: ReadOnly[Literal["text_message", "reasoning_message", "tool_call", "observation"]]
+    state: ReadOnly[Literal["in_progress", "completed", "interrupted", "failed"]]
+
+
+class DeltaData(BoundaryData):
+    # The envelope is validated; AG-UI event semantics remain application-owned.
+    event: ReadOnly[Mapping[str, JsonValue]]
+    item: ReadOnly[ItemRef | None]
+
+
+class ChangedData(TypedDict):
+    version: ReadOnly[int]
+
+
+class RunSignalData(TypedDict):
+    run_id: ReadOnly[str]
 
 
 @dataclass(frozen=True, repr=False)
-class StreamObservation:
+class DeltaFrame:
+    data: DeltaData
     cursor: str
-    event: RunStreamEvent
+    event_type: Literal["delta"] = field(default="delta", init=False)
+
+
+@dataclass(frozen=True, repr=False)
+class BoundaryFrame:
+    data: BoundaryData
+    cursor: str
+    event_type: Literal["boundary"] = field(default="boundary", init=False)
+
+
+@dataclass(frozen=True, repr=False)
+class ChangedFrame:
+    data: ChangedData
+    cursor: None = field(default=None, init=False)
+    event_type: Literal["changed"] = field(default="changed", init=False)
+
+
+@dataclass(frozen=True, repr=False)
+class ResetFrame:
+    data: RunSignalData
+    cursor: None = field(default=None, init=False)
+    event_type: Literal["reset"] = field(default="reset", init=False)
+
+
+@dataclass(frozen=True, repr=False)
+class GapFrame:
+    data: RunSignalData
+    cursor: None = field(default=None, init=False)
+    event_type: Literal["gap"] = field(default="gap", init=False)
+
+
+ThreadFrame = DeltaFrame | BoundaryFrame | ChangedFrame | ResetFrame | GapFrame
 
 
 @dataclass(frozen=True, repr=False)
@@ -50,28 +101,6 @@ class StreamResponse:
     status_code: int
     headers: Mapping[str, str]
     request_id: str | None
-
-
-class ReplayGap(ProtocolError):
-    """Exact Run history no longer covers the requested cursor."""
-
-    def __init__(
-        self,
-        run_id: str,
-        *,
-        requested_cursor: str | None = None,
-        available_floor: str | None = None,
-        high_watermark: str | None = None,
-        status_code: int | None = None,
-        request_id: str | None = None,
-    ) -> None:
-        super().__init__("Run stream replay gap; reconcile retained state explicitly")
-        self.run_id = run_id
-        self.requested_cursor = requested_cursor
-        self.available_floor = available_floor
-        self.high_watermark = high_watermark
-        self.status_code = status_code
-        self.request_id = request_id
 
 
 async def _lines(response: httpx2.Response, limit: int) -> AsyncIterator[bytes]:
@@ -89,19 +118,64 @@ async def _lines(response: httpx2.Response, limit: int) -> AsyncIterator[bytes]:
                 continue
             pending.extend(chunk[start:index])
             if len(pending) > limit:
-                raise ProtocolError("SSE line exceeds the configured event bound")
+                raise ProtocolError("SSE line exceeds the configured bound")
             yield bytes(pending)
             pending.clear()
             start = index + 1
             skip_lf = byte == 13
         pending.extend(chunk[start:])
         if len(pending) > limit:
-            raise ProtocolError("SSE line exceeds the configured event bound")
+            raise ProtocolError("SSE line exceeds the configured bound")
     if pending:
-        raise ProtocolError("Run stream ended with a truncated SSE line")
+        raise ProtocolError("Thread stream ended with a truncated SSE line")
 
 
-async def _observations(response: httpx2.Response, run_id: str, limit: int) -> AsyncGenerator[StreamObservation]:
+def _frame(event_type: str, data: list[str], cursor: str | None) -> ThreadFrame:
+    try:
+        value = json.loads("\n".join(data))
+        if not isinstance(value, dict) or event_type not in _TYPES:
+            raise ValueError
+        if event_type in {"delta", "boundary"}:
+            if cursor is None or not _CURSOR.fullmatch(cursor):
+                raise ValueError
+            if not isinstance(value.get("run_id"), str) or not value["run_id"]:
+                raise ValueError
+            if any(
+                not isinstance(value.get(key), int) or isinstance(value[key], bool) for key in ("attempt", "sequence")
+            ):
+                raise ValueError
+            if event_type == "boundary":
+                return BoundaryFrame(cast("BoundaryData", MappingProxyType(value)), cursor)
+            if not isinstance(value.get("event"), dict) or "item" not in value:
+                raise ValueError
+            item = value["item"]
+            if item is not None:
+                if (
+                    not isinstance(item, dict)
+                    or not isinstance(item.get("id"), str)
+                    or item.get("kind") not in ("text_message", "reasoning_message", "tool_call", "observation")
+                    or item.get("state") not in ("in_progress", "completed", "interrupted", "failed")
+                ):
+                    raise ValueError
+                value["item"] = MappingProxyType(item)
+            value["event"] = MappingProxyType(value["event"])
+            return DeltaFrame(cast("DeltaData", MappingProxyType(value)), cursor)
+        else:
+            if cursor is not None:
+                raise ValueError
+            if event_type == "changed":
+                if not isinstance(value.get("version"), int) or isinstance(value["version"], bool):
+                    raise ValueError
+                return ChangedFrame(cast("ChangedData", MappingProxyType(value)))
+            if not isinstance(value.get("run_id"), str) or not value["run_id"]:
+                raise ValueError
+            signal = cast("RunSignalData", MappingProxyType(value))
+            return ResetFrame(signal) if event_type == "reset" else GapFrame(signal)
+    except (ValueError, TypeError):
+        raise ProtocolError("Malformed Thread stream frame") from None
+
+
+async def _frames(response: httpx2.Response, limit: int) -> AsyncGenerator[ThreadFrame]:
     data: list[str] = []
     event_type = ""
     cursor: str | None = None
@@ -111,43 +185,16 @@ async def _observations(response: httpx2.Response, run_id: str, limit: int) -> A
         try:
             line = raw.decode("utf-8")
         except UnicodeError:
-            raise ProtocolError("Invalid UTF-8 in Run stream") from None
+            raise ProtocolError("Invalid UTF-8 in Thread stream") from None
         if first:
             line = line.removeprefix("\ufeff")
             first = False
         size += len(raw) + 1
         if size > limit:
-            raise ProtocolError("SSE event exceeds the configured event bound")
+            raise ProtocolError("SSE frame exceeds the configured bound")
         if not line:
             if data:
-                try:
-                    value = json.loads("\n".join(data))
-                    if not isinstance(value, dict):
-                        raise ValueError
-                    if event_type == "a13n.service.replay_gap":
-                        if cursor is not None or value.get("run_id", run_id) != run_id:
-                            raise ValueError
-                        raise ReplayGap(
-                            run_id,
-                            requested_cursor=_optional_string(value, "requested_cursor"),
-                            available_floor=_optional_string(value, "retained_floor"),
-                            high_watermark=_optional_string(value, "high_watermark"),
-                        )
-                    if not cursor or "\x00" in cursor or value.get("schema_version", "1") != "1":
-                        raise ValueError
-                    event = RunStreamEvent.from_dict(value)
-                    if event.run_id != run_id or event.event_type != event_type:
-                        raise ValueError
-                    if not all(
-                        isinstance(field, str) and field
-                        for field in (event.event_id, event.thread_id, event.event_type)
-                    ):
-                        raise ValueError
-                except ReplayGap:
-                    raise
-                except (ValueError, TypeError, KeyError, AttributeError):
-                    raise ProtocolError("Malformed or incompatible Run stream event") from None
-                yield StreamObservation(cursor, event)
+                yield _frame(event_type, data, cursor)
             data, event_type, cursor, size = [], "", None, 0
             continue
         if line.startswith(":"):
@@ -162,12 +209,7 @@ async def _observations(response: httpx2.Response, run_id: str, limit: int) -> A
         elif field == "id":
             cursor = value
     if data or event_type or cursor is not None:
-        raise ProtocolError("Run stream ended with a truncated SSE event")
-
-
-def _optional_string(value: Mapping[str, Any], key: str) -> str | None:
-    field = value.get(key)
-    return field if isinstance(field, str) else None
+        raise ProtocolError("Thread stream ended with a truncated SSE frame")
 
 
 async def _error(response: httpx2.Response, limit: int) -> ApiError:
@@ -177,7 +219,7 @@ async def _error(response: httpx2.Response, limit: int) -> ApiError:
         if len(payload) > limit:
             raise ProtocolError("Oversized stream error response")
     try:
-        parsed = ErrorResponse.from_dict(json.loads(payload))
+        parsed = ErrorEnvelope.from_dict(json.loads(payload))
     except (ValueError, TypeError, KeyError, AttributeError):
         raise ProtocolError("Malformed stream error response") from None
     error = parsed.error
@@ -185,7 +227,7 @@ async def _error(response: httpx2.Response, limit: int) -> ApiError:
         response.status_code,
         error.code,
         error.message,
-        {} if isinstance(error.details, Unset) or error.details is None else error.details.to_dict(),
+        error.details.to_dict(),
         response.headers.get("x-request-id") or error.request_id,
         response.headers.get("retry-after"),
     )
@@ -209,25 +251,25 @@ def _retry_after(value: str | None) -> float | None:
     return min(seconds, 30.0)
 
 
-class RunStream:
-    """Single-use async context and iterator for one exact Run."""
+class ThreadStream:
+    """Single-use async context; attach/reconnect never mutates Service state."""
 
     def __init__(
         self,
-        run: Run,
+        thread: Thread,
         *,
         after: str | None,
         reconnect: bool,
         max_reconnects: int,
         max_event_bytes: int,
     ) -> None:
-        if after is not None and (not after or any(char in after for char in "\r\n\x00")):
-            raise ValueError("after must be a nonblank SSE cursor without control delimiters")
+        if after is not None and not _CURSOR.fullmatch(after):
+            raise ValueError("after must be a Native thread-stream entry ID")
         if not isinstance(max_reconnects, int) or isinstance(max_reconnects, bool) or max_reconnects < 0:
             raise ValueError("max_reconnects must be a non-negative integer")
         if not isinstance(max_event_bytes, int) or isinstance(max_event_bytes, bool) or max_event_bytes <= 0:
             raise ValueError("max_event_bytes must be a positive integer")
-        self._run = run
+        self._thread = thread
         self._acknowledged_cursor = after
         self._pending_ack: str | None = None
         self._last_received_cursor: str | None = None
@@ -238,18 +280,17 @@ class RunStream:
         self._entered = False
         self._closed = False
         self._reading = False
-        self._terminal_received = False
         self._response: StreamResponse | None = None
         self._context: AbstractAsyncContextManager[httpx2.Response] | None = None
-        self._iterator: AsyncIterator[StreamObservation] | None = None
+        self._iterator: AsyncIterator[ThreadFrame] | None = None
         self._active_task: asyncio.Task[Any] | None = None
         self._close_event = asyncio.Event()
         self._active_done = asyncio.Event()
         self._active_done.set()
 
     @property
-    def run(self) -> Run:
-        return self._run
+    def thread(self) -> Thread:
+        return self._thread
 
     @property
     def response(self) -> StreamResponse | None:
@@ -265,28 +306,28 @@ class RunStream:
 
     async def __aenter__(self) -> Self:
         if self._entered:
-            raise RuntimeError("RunStream is single-use")
+            raise RuntimeError("ThreadStream is single-use")
         self._entered = True
         self._active_task = asyncio.current_task()
         self._active_done.clear()
         owner = None
         try:
-            owner = self._run._client._enter_io()
+            owner = self._thread._client._enter_io()
             await self._attach_with_recovery()
         except asyncio.CancelledError:
             if self._close_event.is_set():
-                raise RuntimeError("RunStream was closed during entry") from None
+                raise RuntimeError("ThreadStream was closed during entry") from None
             await self._finish()
             raise
         except BaseException:
             await self._finish()
             raise
         finally:
-            self._run._client._leave_io(owner)
+            self._thread._client._leave_io(owner)
             self._active_task = None
             self._active_done.set()
         if self._closed:
-            raise RuntimeError("RunStream was closed during entry")
+            raise RuntimeError("ThreadStream was closed during entry")
         return self
 
     async def __aexit__(
@@ -300,52 +341,48 @@ class RunStream:
     def __aiter__(self) -> Self:
         return self
 
-    async def __anext__(self) -> StreamObservation:
+    async def __anext__(self) -> ThreadFrame:
         if not self._entered:
-            raise RuntimeError("RunStream must be entered before iteration")
+            raise RuntimeError("ThreadStream must be entered before iteration")
         if self._closed:
             raise StopAsyncIteration
         if self._reading:
-            raise RuntimeError("RunStream supports one active reader")
+            raise RuntimeError("ThreadStream supports one active reader")
         self._reading = True
         self._active_task = asyncio.current_task()
         self._active_done.clear()
-        owner = None
         if self._pending_ack is not None:
             if self._pending_ack != self._acknowledged_cursor:
                 self._retries = 0
             self._acknowledged_cursor = self._pending_ack
             self._pending_ack = None
+        owner = None
         try:
-            owner = self._run._client._enter_io()
+            owner = self._thread._client._enter_io()
             while not self._closed:
                 assert self._iterator is not None
                 try:
-                    observation = await anext(self._iterator)
+                    frame = await anext(self._iterator)
                 except StopAsyncIteration:
                     await self._close_attachment()
-                    if not self._reconnect or self._terminal_received or await self._confirmed_terminal_projection():
+                    if not self._reconnect:
                         await self._finish()
                         raise
-                    await self._recover(TransportError("Run stream ended without confirmed completion"))
+                    await self._recover(TransportError("Thread stream ended; re-read state if needed"))
                     await self._attach_with_recovery()
                     continue
-                except ReplayGap:
-                    await self._finish()
-                    raise
                 except ProtocolError:
                     await self._finish()
                     raise
                 except httpx2.HTTPError:
                     await self._close_attachment()
-                    await self._recover(TransportError("Run stream transport failed; Run outcome is unchanged"))
+                    await self._recover(TransportError("Thread stream transport failed"))
                     await self._attach_with_recovery()
                     continue
-                self._last_received_cursor = observation.cursor
-                self._pending_ack = observation.cursor
-                if observation.event.event_type in _TERMINAL_EVENTS:
-                    self._terminal_received = True
-                return observation
+                if frame.cursor is not None:
+                    self._last_received_cursor = frame.cursor
+                    self._pending_ack = frame.cursor
+                return frame
             raise StopAsyncIteration
         except asyncio.CancelledError:
             if self._close_event.is_set():
@@ -356,7 +393,7 @@ class RunStream:
             await self._finish()
             raise
         finally:
-            self._run._client._leave_io(owner)
+            self._thread._client._leave_io(owner)
             self._active_task = None
             self._reading = False
             self._active_done.set()
@@ -373,39 +410,30 @@ class RunStream:
             except TransportError as error:
                 await self._recover(error)
             except httpx2.HTTPError:
-                await self._recover(TransportError("Run stream transport failed; Run outcome is unchanged"))
+                await self._recover(TransportError("Thread stream transport failed"))
 
     async def _attach(self) -> None:
-        request = get_runs_run_id_stream.build_request(
-            run_id=self._run.id,
-            accept="text/event-stream",
+        request = thread_stream_api_v1_workspaces_workspace_id_threads_thread_id_stream_get.build_request(
+            workspace_id=self._thread.selectors["workspace_id"],
+            thread_id=self._thread.id,
             last_event_id=self._acknowledged_cursor if self._acknowledged_cursor is not None else UNSET,
         )
-        context = self._run._client.stream(request)
+        context = self._thread._client.stream(request)
         try:
             response = await context.__aenter__()
         except httpx2.HTTPError:
-            raise TransportError("Run stream transport failed; Run outcome is unchanged") from None
+            raise TransportError("Thread stream transport failed") from None
         self._context = context
         if not 200 <= response.status_code < 300:
             error = await _error(response, self._max_event_bytes)
             await self._close_attachment()
-            if error.status == 409 and error.code == "run_stream_replay_gap":
-                raise ReplayGap(
-                    self._run.id,
-                    requested_cursor=_optional_string(error.details, "requested_cursor") or self._acknowledged_cursor,
-                    available_floor=_optional_string(error.details, "retained_floor"),
-                    high_watermark=_optional_string(error.details, "high_watermark"),
-                    status_code=error.status,
-                    request_id=error.request_id,
-                )
             raise error
         if response.headers.get("content-type", "").split(";", 1)[0].strip().lower() != "text/event-stream":
             await self._close_attachment()
-            raise ProtocolError("Run stream response is not text/event-stream")
+            raise ProtocolError("Thread stream response is not text/event-stream")
         headers = MappingProxyType(httpx2.Headers(response.headers))
         self._response = StreamResponse(response.status_code, headers, headers.get("x-request-id"))
-        self._iterator = _observations(response, self._run.id, self._max_event_bytes)
+        self._iterator = _frames(response, self._max_event_bytes)
 
     async def _recover(self, error: ApiError | TransportError) -> None:
         await self._close_attachment()
@@ -423,17 +451,6 @@ class RunStream:
             pass
         if self._closed:
             raise StopAsyncIteration
-
-    async def _confirmed_terminal_projection(self) -> bool:
-        run = await self._run.get()
-        if run.value.status not in _SEALED_STATUSES:
-            return False
-        items = await self._run.items.list()
-        return (
-            items.value.complete
-            and items.value.finalized
-            and items.value.projection_cursor == self._acknowledged_cursor
-        )
 
     async def _close_attachment(self) -> None:
         iterator, self._iterator = self._iterator, None
@@ -460,22 +477,3 @@ class RunStream:
             active.cancel()
             await self._active_done.wait()
         await self._close_attachment()
-
-    async def steer(self, input: str | wire.AgentInput, *, idempotency_key: str) -> Result[wire.SteerReceipt]:
-        return await self._run.steer(input, idempotency_key=idempotency_key)
-
-    async def cancel(
-        self,
-        *,
-        expected_run_version: int,
-        expected_thread_version: int,
-        idempotency_key: str,
-    ) -> Result[wire.InterruptReceipt]:
-        return await self._run.cancel(
-            expected_run_version=expected_run_version,
-            expected_thread_version=expected_thread_version,
-            idempotency_key=idempotency_key,
-        )
-
-    async def wait(self, *, timeout: float, poll_interval: float) -> Result[wire.RunResource]:
-        return await self._run.wait(timeout=timeout, poll_interval=poll_interval)

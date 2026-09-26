@@ -5,21 +5,22 @@ from typing import Any, Literal, TypeVar, cast
 
 from attrs import define as _attrs_define
 
-from ..models.tool_resource_selector_operation import ToolResourceSelectorOperation
+from ..models.web_operation import WebOperation
 
 T = TypeVar("T", bound="ToolResourceSelector")
 
 
 @_attrs_define(repr=False)
 class ToolResourceSelector:
-    """
+    """The resource a tool needs before it can be enabled.
+
     Attributes:
         kind (Literal['web_provider']):
-        operation (ToolResourceSelectorOperation):
+        operation (WebOperation):
     """
 
     kind: Literal["web_provider"]
-    operation: ToolResourceSelectorOperation
+    operation: WebOperation
 
     def to_dict(self) -> dict[str, Any]:
         kind = self.kind
@@ -44,7 +45,7 @@ class ToolResourceSelector:
         if kind != "web_provider":
             raise ValueError(f"kind must match const 'web_provider', got '{kind}'")
 
-        operation = ToolResourceSelectorOperation(d.pop("operation"))
+        operation = WebOperation(d.pop("operation"))
 
         tool_resource_selector = cls(
             kind=kind,

@@ -20,7 +20,7 @@ T = TypeVar("T", bound="AgentReviewer")
 
 @_attrs_define(repr=False)
 class AgentReviewer:
-    """Reviewer selected by immutable managed Model ID, never a provider route.
+    """The model reviewing calls whose permission is `review`, selected by model ID.
 
     Attributes:
         model (str):

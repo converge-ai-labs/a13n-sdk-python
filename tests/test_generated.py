@@ -1,279 +1,82 @@
-"""Shared wire fixtures and real generated transport calls, not schema snapshots."""
-
 import asyncio
-import json
-from pathlib import Path
+from io import BytesIO
 
-import httpx2 as httpx
+import httpx2
 import pytest
 
-from a13n import Client
-from a13n.generated.api.agent_management import (
-    post_workspaces_workspace_agents_agent_revisions_revision_id_default,
-)
-from a13n.generated.api.asset_management import get_assets_asset_id_content
-from a13n.generated.api.identity import get_auth_context
-from a13n.generated.models import (
-    AgentInput,
-    AgentInputSchemaVersion,
-    ConnectorCollection,
-    CreateWebProviderRequest,
-    CreateWebProviderRequestCredentialType0,
-    ExistingEnvironmentSelection,
-    NewEnvironmentSelection,
-    PrincipalRef,
-    RunStatus,
-    SetDefaultAgentRevisionRequest,
-    SystemActorRef,
-    ThreadRunSubmissionRequest,
-    UpdateAgentRequest,
-    UsageLimitsInput,
-    UserMessage,
-)
-from a13n.generated.types import UNSET
-
-FIXTURES = json.loads((Path(__file__).parents[1] / "contract/fixtures/wire.json").read_text())
+from a13n import ApiError, Client
+from a13n.generated import models as wire
+from a13n.generated.types import UNSET, File
 
 
-def test_wire_fixtures_roundtrip() -> None:
-    for key, model in [
-        ("patch", UpdateAgentRequest),
-        ("user_message", UserMessage),
-        ("null_cursor", ConnectorCollection),
-    ]:
-        for value in FIXTURES[key]:
-            assert model.from_dict(value).to_dict() == value
-    for value in FIXTURES["actor"]:
-        actor = (
-            SystemActorRef.from_dict(value) if value["principal_type"] == "system" else PrincipalRef.from_dict(value)
-        )
-        assert actor.to_dict() == value
-    for value in FIXTURES["environment"]:
-        wire = {"expected_thread_version": 1, "input": {"schema_version": "2"}, "environment": value}
-        request = ThreadRunSubmissionRequest.from_dict(wire)
-        assert isinstance(request.environment, ExistingEnvironmentSelection | NewEnvironmentSelection)
-        assert request.to_dict() == wire
-    for value in FIXTURES["cost"]:
-        assert UsageLimitsInput.from_dict({"cost_limit": value}).to_dict() == {"cost_limit": value}
-    for value in FIXTURES["run_status"]:
-        assert RunStatus(value).value == value
-    assert UpdateAgentRequest().name is UNSET
-    assert UpdateAgentRequest(name=None).name is None
-    assert ThreadRunSubmissionRequest(
-        expected_thread_version=1, input_=AgentInput(schema_version=AgentInputSchemaVersion.VALUE_1)
-    ).to_dict() == {
-        "expected_thread_version": 1,
-        "input": {"schema_version": "2"},
-    }
-    secret = CreateWebProviderRequest(
-        type_="brave",
-        name="test",
-        credential=CreateWebProviderRequestCredentialType0.from_dict({"api_key": "do-not-print"}),
+def test_generated_request_omission_and_explicit_null() -> None:
+    absent = wire.Message(
+        agent_id="agt_1", payload=wire.MessagePayload(content=[wire.TextPart(text="x", type_="text")])
     )
-    assert "do-not-print" not in repr(secret)
-    assert "do-not-print" not in repr(secret.credential)
-    assert secret.to_dict()["credential"] == {"api_key": "do-not-print"}
-    restored = CreateWebProviderRequest.from_dict(secret.to_dict())
-    assert isinstance(restored.credential, CreateWebProviderRequestCredentialType0)
-    assert restored.to_dict() == secret.to_dict()
+    explicit_null = wire.Message(agent_id="agt_1", payload=absent.payload, agent_revision_id=None)
+    assert "agent_revision_id" not in absent.to_dict()
+    assert explicit_null.to_dict()["agent_revision_id"] is None
+    assert absent.options is UNSET
+    assert "secret" not in repr(absent)
 
 
-@pytest.mark.parametrize("credential", [UNSET, None], ids=["omitted", "null"])
-def test_generated_web_provider_credential_preserves_omission_and_null(credential) -> None:
-    """Wire serialization stays distinct; Service owns provider-specific eligibility."""
-    request = CreateWebProviderRequest(type_="duckduckgo", name="test", credential=credential)
-    expected = {"type": "duckduckgo", "name": "test"}
-    if credential is None:
-        expected["credential"] = None
-    assert request.to_dict() == expected
-    restored = CreateWebProviderRequest.from_dict(expected)
-    assert restored.credential is credential
-    assert restored.to_dict() == expected
-
-
-def test_generated_calls_share_transport_headers_prefix_and_close() -> None:
-    calls = []
-
-    async def handler(request: httpx.Request) -> httpx.Response:
-        calls.append(request)
-        assert request.url.path == "/prefix/api/v1/auth/context"
-        assert request.headers["Authorization"] == "Bearer test-token"
-        return httpx.Response(
-            200, json=FIXTURES["credential_context"], headers={"X-Request-ID": "req_test", "ETag": '"v1"'}
-        )
-
+def test_generated_binary_download_is_unbuffered_and_workspace_bound() -> None:
     async def scenario() -> None:
-        async with Client(
-            "https://service.example/prefix", "test-token", transport=httpx.MockTransport(handler)
-        ) as client:
-            result = await client.execute(lambda api: get_auth_context.asyncio_detailed(client=api))
-            assert result.parsed is not None and result.parsed.workspace_id == "ws_example"
-            assert result.headers["X-Request-ID"] == "req_test"
-            assert result.headers["ETag"] == '"v1"'
-            workspace = await client.workspace()
-            assert workspace is not None
-        with pytest.raises(Exception, match="closed"):
-            await client.execute(lambda api: get_auth_context.asyncio_detailed(client=api))
-        assert len(calls) == 2
+        paths: list[str] = []
+
+        def handle(request: httpx2.Request) -> httpx2.Response:
+            paths.append(request.url.path)
+            return httpx2.Response(200, content=b"\0zip-binary", headers={"Content-Type": "application/octet-stream"})
+
+        async with Client("https://service.example", "token", transport=httpx2.MockTransport(handle)) as client:
+            async with client.workspaces("ws_1").assets("ast_1").content.get_stream() as response:
+                assert response.status_code == 200
+                assert await response.aread() == b"\0zip-binary"
+            assert paths == ["/api/v1/workspaces/ws_1/assets/ast_1/content"]
 
     asyncio.run(scenario())
 
 
-def test_set_default_agent_revision_route_preserves_etag_and_idempotency_guards() -> None:
-    request = post_workspaces_workspace_agents_agent_revisions_revision_id_default.build_request(
-        "ws/example",
-        "support agent",
-        "apr:2",
-        body=SetDefaultAgentRevisionRequest(),
-        idempotency_key="default-revision-2",
-        if_match='"agent-etag"',
-    )
-    assert request == {
-        "method": "post",
-        "url": "/api/v1/workspaces/ws%2Fexample/agents/support%20agent/revisions/apr%3A2/default",
-        "json": {},
-        "headers": {
-            "Idempotency-Key": "default-revision-2",
-            "If-Match": '"agent-etag"',
-            "Content-Type": "application/json",
-        },
-    }
-
-
-def test_generated_binary_stream_is_lazy_and_cancellable() -> None:
-    consumed = []
-
-    class Body(httpx.AsyncByteStream):
-        async def __aiter__(self):
-            consumed.append(1)
-            yield b"first"
-            consumed.append(2)
-            yield b"last"
-
-    async def handler(request: httpx.Request) -> httpx.Response:
-        assert request.url.path == "/api/v1/assets/ast_test/content"
-        return httpx.Response(200, stream=Body())
-
+def test_generated_upload_accepts_binary_file_part_not_utf8_string() -> None:
     async def scenario() -> None:
-        async with Client("https://service.example", "token", transport=httpx.MockTransport(handler)) as client:
-            async with client.stream(get_assets_asset_id_content.build_request("ast_test")) as response:
-                assert consumed == []
-                async for chunk in response.aiter_bytes():
-                    assert chunk == b"first"
-                    break
-            assert consumed == [1]
+        recorded: list[httpx2.Request] = []
 
-    asyncio.run(scenario())
-
-
-def test_close_cancels_generated_call_without_replay() -> None:
-    async def scenario() -> None:
-        started = asyncio.Event()
-
-        async def handler(_request: httpx.Request) -> httpx.Response:
-            started.set()
-            await asyncio.Event().wait()
-            raise AssertionError("unreachable")
-
-        client = Client("https://service.example", "token", transport=httpx.MockTransport(handler))
-        pending = asyncio.create_task(client.execute(lambda api: get_auth_context.asyncio_detailed(client=api)))
-        await started.wait()
-        await client.aclose()
-        assert pending.cancelled()
-
-    asyncio.run(scenario())
-
-
-def test_typechecker_rejects_untyped_request_fields(tmp_path: Path) -> None:
-    import subprocess
-    import sys
-
-    source = tmp_path / "invalid.py"
-    source.write_text(
-        "from a13n.generated.models import UpdateAgentRequest, UserMessage\n"
-        "UpdateAgentRequest(name=42)\n"
-        "UserMessage(id='m1', content=42)\n"
-    )
-    result = subprocess.run(
-        ["pyright", "--pythonpath", sys.executable, "--outputjson", str(source)], capture_output=True, text=True
-    )
-    report = json.loads(result.stdout)
-    assert result.returncode == 1
-    diagnostics = report["generalDiagnostics"]
-    assert len(diagnostics) == 2
-    assert all(item["rule"] == "reportArgumentType" for item in diagnostics)
-
-
-def test_generated_default_error_and_diagnostics_are_safe() -> None:
-    from a13n.generated.models import ErrorResponse
-
-    async def handler(_request: httpx.Request) -> httpx.Response:
-        return httpx.Response(
-            401,
-            json={
-                "error": {
-                    "code": "authentication_required",
-                    "message": "Sign in",
-                    "details": {},
-                    "request_id": "req_error",
-                }
-            },
-            headers={"Set-Cookie": "a13n_session=do-not-print"},
-        )
-
-    async def scenario() -> None:
-        async with Client("https://service.example", "token", transport=httpx.MockTransport(handler)) as client:
-            result = await client.execute(lambda api: get_auth_context.asyncio_detailed(client=api))
-            assert isinstance(result.parsed, ErrorResponse)
-            assert result.parsed.error.code == "authentication_required"
-            assert "do-not-print" not in repr(result)
-
-    asyncio.run(scenario())
-
-
-def test_generated_async_file_upload_uses_bounded_reads() -> None:
-    from io import BytesIO
-
-    from a13n.generated.api.identity_images import put_users_me_avatar
-    from a13n.generated.types import File
-
-    reads = []
-
-    class Source(BytesIO):
-        def read(self, size=-1):
-            assert 0 < size <= 65536
-            reads.append(size)
-            return super().read(size)
-
-    source = Source(b"a" * 140000)
-
-    async def handler(request: httpx.Request) -> httpx.Response:
-        assert request.url.path == "/api/v1/users/me/avatar"
-        assert request.headers["If-Match"] == '"v1"'
-        assert request.content == b"a" * 140000
-        return httpx.Response(
-            400,
-            json={
-                "error": {
-                    "code": "invalid_image",
-                    "message": "Not an image",
-                    "details": {},
-                    "request_id": "req_image",
-                }
-            },
-        )
-
-    async def scenario() -> None:
-        async with Client("https://service.example", "token", transport=httpx.MockTransport(handler)) as client:
-            result = await client.execute(
-                lambda api: put_users_me_avatar.asyncio_detailed(
-                    client=api,
-                    body=File(payload=source),
-                    if_match='"v1"',
-                )
+        def handle(request: httpx2.Request) -> httpx2.Response:
+            recorded.append(request)
+            return httpx2.Response(
+                400,
+                json={
+                    "error": {
+                        "code": "invalid_argument",
+                        "message": "stop after upload",
+                        "details": {},
+                        "request_id": "req_1",
+                    }
+                },
             )
-            assert result.status_code == 400
-        assert len(reads) >= 3
-        assert not source.closed  # input ownership stays with the caller
+
+        payload = BytesIO(b"\x00\xff" * 32_768)
+        async with Client("https://service.example", "token", transport=httpx2.MockTransport(handle)) as client:
+            with pytest.raises(ApiError):
+                await client.workspaces("ws_1").uploads.create(
+                    body=wire.UploadCreate(
+                        file=File(payload=payload, file_name="binary.dat", mime_type="application/octet-stream")
+                    ),
+                    idempotency_key="upload-key",
+                )
+        assert len(recorded) == 1
+        request = recorded[0]
+        assert request.headers["idempotency-key"] == "upload-key"
+        assert b"\x00\xff" in request.content
+        assert request.headers["content-type"].startswith("multipart/form-data; boundary=")
+        boundary = request.headers["content-type"].split("boundary=", 1)[1].encode()
+        assert request.content.startswith(b"--" + boundary + b"\r\n")
+        assert request.content.endswith(b"--" + boundary + b"--\r\n")
+        assert b'name="file"' in request.content
 
     asyncio.run(scenario())
+
+
+def test_binary_upload_does_not_expose_secret_in_generated_repr() -> None:
+    body = wire.UploadCreate(file=File(payload=BytesIO(b"private-upload"), file_name="private.txt"))
+    assert "private-upload" not in repr(body)

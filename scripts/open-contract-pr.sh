@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Run only in a clean, ephemeral SDK checkout with complete Service Git history.
 set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/contract-inputs.sh"
 
 fail() { echo "Contract PR: $*" >&2; exit 1; }
 remote_git() { git -c credential.helper= -c 'credential.helper=!gh auth git-credential' "$@"; }
@@ -68,6 +69,12 @@ main() {
   fi
   git -C "$upstream" merge-base --is-ancestor "$current" "$commit" || fail 'source diverges from the pending pin'
   if [[ "$commit" != "$current" ]]; then
+    # A newer source revision alone must not churn a reviewed proposal or SDK CI.
+    # Compare upstream inputs, not reviewer edits or source.json provenance.
+    if ! contract_inputs_changed "$upstream" "$current" "$commit"; then
+      echo "Contract inputs unchanged; keeping source pin $current"
+      return
+    fi
     # Incorporate accepted SDK fixes and retain the proposal's handwritten work.
     # Conflicts or generation failures stop before any remote branch mutation.
     bot_git merge --no-edit origin/main
@@ -110,10 +117,10 @@ Pinned Service source: https://github.com/converge-ai-labs/agent-foundation/comm
 
 Changes since the accepted SDK pin: https://github.com/converge-ai-labs/agent-foundation/compare/$previous...$commit
 
-This rolling draft imports committed HTTP/wire definitions, shared fixtures, API conventions,
-Native streaming semantics and queued-submission semantics, with source paths,
+This rolling draft imports committed OpenAPI and thread-stream definitions, API conventions,
+and the Runs, Facts and Delivery, and API semantics, with source paths,
 and includes SDK-local HTTP generation. Full SDK CI runs while this PR is still a draft.
-The compare includes implementation changes even when exported schemas are unchanged.
+Only changed contract inputs trigger this update; the source compare also provides implementation context.
 It does not execute Service code or imply that this SDK already supports the new contract.
 $end
 EOF
@@ -137,7 +144,7 @@ $managed
 Review compatibility and non-HTTP behavior against the owning specifications, adapt handwritten
 code/templates and protocol tests as needed, regenerate and run \`make check-all\`.
 Resolve CI failures and review the latest source SHA before marking ready and merging.
-New source updates return this PR to draft; keep review notes outside the marked source block.
+Changed contract inputs return this PR to draft; keep review notes outside the marked source block.
 
 A failed generation or incompatible change requires adaptation, not a silent contract downgrade.
 No release, tag, auto-merge or package version change is requested by this automation.

@@ -14,14 +14,11 @@ if TYPE_CHECKING:
     from ..models.agent_model import AgentModel
     from ..models.agent_reviewer import AgentReviewer
     from ..models.client_tool_definition import ClientToolDefinition
-    from ..models.connection_tool_selection import ConnectionToolSelection
-    from ..models.input_adapter_config import InputAdapterConfig
+    from ..models.connection_selection import ConnectionSelection
     from ..models.media_understanding_selection import MediaUnderstandingSelection
-    from ..models.memory_entries import MemoryEntries
-    from ..models.memory_selection import MemorySelection
+    from ..models.memory_mount import MemoryMount
     from ..models.output_spec import OutputSpec
     from ..models.plugin_selection import PluginSelection
-    from ..models.protocol_config import ProtocolConfig
     from ..models.retry_config import RetryConfig
     from ..models.secret_requirement import SecretRequirement
     from ..models.skill_selection import SkillSelection
@@ -34,16 +31,14 @@ T = TypeVar("T", bound="AgentConfigInput")
 class AgentConfigInput:
     """
     Attributes:
-        input_adapter (InputAdapterConfig):
         model (AgentModel):
-        protocol (ProtocolConfig):
         client_tools (list[ClientToolDefinition] | Unset):
-        connection_tools (list[ConnectionToolSelection] | Unset):
+        connection_tools (list[ConnectionSelection] | Unset):
         default_environment_template_id (None | str | Unset):
         instructions (str | Unset):
-        media_understanding (MediaUnderstandingSelection | Unset): Per-kind auxiliary Model choice shared by Workspace,
-            Agent, and Run levels.
-        memory (MemoryEntries | MemorySelection | None | Unset):
+        media_understanding (MediaUnderstandingSelection | Unset): The model describing each media kind a model cannot
+            read; a kind without one is unavailable.
+        memory_mounts (list[MemoryMount] | Unset):
         output_spec (None | OutputSpec | Unset):
         plugins (list[PluginSelection] | Unset):
         retries (None | RetryConfig | Unset):
@@ -53,17 +48,16 @@ class AgentConfigInput:
         subagent_mode (AgentConfigInputSubagentMode | Unset):
         subagents (AgentConfigInputSubagents | Unset):
         toolsets (AgentConfigInputToolsets | Unset):
+        user_questions (bool | Unset):
     """
 
-    input_adapter: InputAdapterConfig
     model: AgentModel
-    protocol: ProtocolConfig
     client_tools: list[ClientToolDefinition] | Unset = UNSET
-    connection_tools: list[ConnectionToolSelection] | Unset = UNSET
+    connection_tools: list[ConnectionSelection] | Unset = UNSET
     default_environment_template_id: str | Unset | None = UNSET
     instructions: str | Unset = UNSET
     media_understanding: MediaUnderstandingSelection | Unset = UNSET
-    memory: MemoryEntries | MemorySelection | Unset | None = UNSET
+    memory_mounts: list[MemoryMount] | Unset = UNSET
     output_spec: OutputSpec | Unset | None = UNSET
     plugins: list[PluginSelection] | Unset = UNSET
     retries: RetryConfig | Unset | None = UNSET
@@ -73,19 +67,14 @@ class AgentConfigInput:
     subagent_mode: AgentConfigInputSubagentMode | Unset = UNSET
     subagents: AgentConfigInputSubagents | Unset = UNSET
     toolsets: AgentConfigInputToolsets | Unset = UNSET
+    user_questions: bool | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
         from ..models.agent_reviewer import AgentReviewer
-        from ..models.memory_entries import MemoryEntries
-        from ..models.memory_selection import MemorySelection
         from ..models.output_spec import OutputSpec
         from ..models.retry_config import RetryConfig
 
-        input_adapter = self.input_adapter.to_dict()
-
         model = self.model.to_dict()
-
-        protocol = self.protocol.to_dict()
 
         client_tools: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.client_tools, Unset):
@@ -113,15 +102,12 @@ class AgentConfigInput:
         if not isinstance(self.media_understanding, Unset):
             media_understanding = self.media_understanding.to_dict()
 
-        memory: dict[str, Any] | Unset | None
-        if isinstance(self.memory, Unset):
-            memory = UNSET
-        elif isinstance(self.memory, MemorySelection):
-            memory = self.memory.to_dict()
-        elif isinstance(self.memory, MemoryEntries):
-            memory = self.memory.to_dict()
-        else:
-            memory = self.memory
+        memory_mounts: list[dict[str, Any]] | Unset = UNSET
+        if not isinstance(self.memory_mounts, Unset):
+            memory_mounts = []
+            for memory_mounts_item_data in self.memory_mounts:
+                memory_mounts_item = memory_mounts_item_data.to_dict()
+                memory_mounts.append(memory_mounts_item)
 
         output_spec: dict[str, Any] | Unset | None
         if isinstance(self.output_spec, Unset):
@@ -180,13 +166,13 @@ class AgentConfigInput:
         if not isinstance(self.toolsets, Unset):
             toolsets = self.toolsets.to_dict()
 
+        user_questions = self.user_questions
+
         field_dict: dict[str, Any] = {}
 
         field_dict.update(
             {
-                "input_adapter": input_adapter,
                 "model": model,
-                "protocol": protocol,
             }
         )
         if client_tools is not UNSET:
@@ -199,8 +185,8 @@ class AgentConfigInput:
             field_dict["instructions"] = instructions
         if media_understanding is not UNSET:
             field_dict["media_understanding"] = media_understanding
-        if memory is not UNSET:
-            field_dict["memory"] = memory
+        if memory_mounts is not UNSET:
+            field_dict["memory_mounts"] = memory_mounts
         if output_spec is not UNSET:
             field_dict["output_spec"] = output_spec
         if plugins is not UNSET:
@@ -219,6 +205,8 @@ class AgentConfigInput:
             field_dict["subagents"] = subagents
         if toolsets is not UNSET:
             field_dict["toolsets"] = toolsets
+        if user_questions is not UNSET:
+            field_dict["user_questions"] = user_questions
 
         return field_dict
 
@@ -229,24 +217,17 @@ class AgentConfigInput:
         from ..models.agent_model import AgentModel
         from ..models.agent_reviewer import AgentReviewer
         from ..models.client_tool_definition import ClientToolDefinition
-        from ..models.connection_tool_selection import ConnectionToolSelection
-        from ..models.input_adapter_config import InputAdapterConfig
+        from ..models.connection_selection import ConnectionSelection
         from ..models.media_understanding_selection import MediaUnderstandingSelection
-        from ..models.memory_entries import MemoryEntries
-        from ..models.memory_selection import MemorySelection
+        from ..models.memory_mount import MemoryMount
         from ..models.output_spec import OutputSpec
         from ..models.plugin_selection import PluginSelection
-        from ..models.protocol_config import ProtocolConfig
         from ..models.retry_config import RetryConfig
         from ..models.secret_requirement import SecretRequirement
         from ..models.skill_selection import SkillSelection
 
         d = dict(src_dict)
-        input_adapter = InputAdapterConfig.from_dict(d.pop("input_adapter"))
-
         model = AgentModel.from_dict(d.pop("model"))
-
-        protocol = ProtocolConfig.from_dict(d.pop("protocol"))
 
         _client_tools = d.pop("client_tools", UNSET)
         client_tools: list[ClientToolDefinition] | Unset = UNSET
@@ -258,11 +239,11 @@ class AgentConfigInput:
                 client_tools.append(client_tools_item)
 
         _connection_tools = d.pop("connection_tools", UNSET)
-        connection_tools: list[ConnectionToolSelection] | Unset = UNSET
+        connection_tools: list[ConnectionSelection] | Unset = UNSET
         if _connection_tools is not UNSET:
             connection_tools = []
             for connection_tools_item_data in _connection_tools:
-                connection_tools_item = ConnectionToolSelection.from_dict(connection_tools_item_data)
+                connection_tools_item = ConnectionSelection.from_dict(connection_tools_item_data)
 
                 connection_tools.append(connection_tools_item)
 
@@ -286,30 +267,14 @@ class AgentConfigInput:
         else:
             media_understanding = MediaUnderstandingSelection.from_dict(_media_understanding)
 
-        def _parse_memory(data: object) -> MemoryEntries | MemorySelection | Unset | None:
-            if data is None:
-                return data
-            if isinstance(data, Unset):
-                return data
-            try:
-                if not isinstance(data, dict):
-                    raise TypeError()
-                componentsschemas_memory_configuration_type_0 = MemorySelection.from_dict(data)
+        _memory_mounts = d.pop("memory_mounts", UNSET)
+        memory_mounts: list[MemoryMount] | Unset = UNSET
+        if _memory_mounts is not UNSET:
+            memory_mounts = []
+            for memory_mounts_item_data in _memory_mounts:
+                memory_mounts_item = MemoryMount.from_dict(memory_mounts_item_data)
 
-                return componentsschemas_memory_configuration_type_0
-            except (TypeError, ValueError, AttributeError, KeyError):
-                pass
-            try:
-                if not isinstance(data, dict):
-                    raise TypeError()
-                componentsschemas_memory_configuration_type_1 = MemoryEntries.from_dict(data)
-
-                return componentsschemas_memory_configuration_type_1
-            except (TypeError, ValueError, AttributeError, KeyError):
-                pass
-            return cast(MemoryEntries | MemorySelection | Unset | None, data)
-
-        memory = _parse_memory(d.pop("memory", UNSET))
+                memory_mounts.append(memory_mounts_item)
 
         def _parse_output_spec(data: object) -> OutputSpec | Unset | None:
             if data is None:
@@ -410,16 +375,16 @@ class AgentConfigInput:
         else:
             toolsets = AgentConfigInputToolsets.from_dict(_toolsets)
 
+        user_questions = d.pop("user_questions", UNSET)
+
         agent_config_input = cls(
-            input_adapter=input_adapter,
             model=model,
-            protocol=protocol,
             client_tools=client_tools,
             connection_tools=connection_tools,
             default_environment_template_id=default_environment_template_id,
             instructions=instructions,
             media_understanding=media_understanding,
-            memory=memory,
+            memory_mounts=memory_mounts,
             output_spec=output_spec,
             plugins=plugins,
             retries=retries,
@@ -429,6 +394,7 @@ class AgentConfigInput:
             subagent_mode=subagent_mode,
             subagents=subagents,
             toolsets=toolsets,
+            user_questions=user_questions,
         )
 
         return agent_config_input

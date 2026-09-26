@@ -2,17 +2,13 @@ from __future__ import annotations
 
 import datetime
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, Literal, TypeVar, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
-
-from ..models.agent_source import AgentSource
-from ..types import UNSET, Unset
+from attrs import field as _attrs_field
 
 if TYPE_CHECKING:
     from ..models.agent_labels import AgentLabels
-    from ..models.principal_ref import PrincipalRef
-    from ..models.system_actor_ref import SystemActorRef
 
 
 T = TypeVar("T", bound="Agent")
@@ -24,48 +20,41 @@ class Agent:
     Attributes:
         archived_at (datetime.datetime | None):
         created_at (datetime.datetime):
-        created_by (PrincipalRef | SystemActorRef):
+        created_by_id (str):
         default_revision_id (None | str):
-        description (None | str):
-        duplicated_from_agent_id (None | str):
-        duplicated_from_revision_id (None | str):
-        enabled (bool):
+        description (str):
         id (str):
+        image_url (None | str):
         key (str):
+        labels (AgentLabels):
         name (str):
         organization_id (str):
-        source (AgentSource):
+        source (str):
         updated_at (datetime.datetime):
-        updated_by (PrincipalRef | SystemActorRef):
+        updated_by_id (str):
+        version (int):
         workspace_id (str):
-        image_url (None | str | Unset):
-        labels (AgentLabels | Unset):
-        system_purpose (Literal['configuration_assistant'] | None | Unset):
     """
 
     archived_at: datetime.datetime | None
     created_at: datetime.datetime
-    created_by: PrincipalRef | SystemActorRef
+    created_by_id: str
     default_revision_id: str | None
-    description: str | None
-    duplicated_from_agent_id: str | None
-    duplicated_from_revision_id: str | None
-    enabled: bool
+    description: str
     id: str
+    image_url: str | None
     key: str
+    labels: AgentLabels
     name: str
     organization_id: str
-    source: AgentSource
+    source: str
     updated_at: datetime.datetime
-    updated_by: PrincipalRef | SystemActorRef
+    updated_by_id: str
+    version: int
     workspace_id: str
-    image_url: str | Unset | None = UNSET
-    labels: AgentLabels | Unset = UNSET
-    system_purpose: Literal["configuration_assistant"] | Unset | None = UNSET
+    additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.principal_ref import PrincipalRef
-
         archived_at: str | None
         if isinstance(self.archived_at, datetime.datetime):
             archived_at = self.archived_at.isoformat()
@@ -74,98 +63,64 @@ class Agent:
 
         created_at = self.created_at.isoformat()
 
-        created_by: dict[str, Any]
-        if isinstance(self.created_by, PrincipalRef):
-            created_by = self.created_by.to_dict()
-        else:
-            created_by = self.created_by.to_dict()
+        created_by_id = self.created_by_id
 
         default_revision_id: str | None
         default_revision_id = self.default_revision_id
 
-        description: str | None
         description = self.description
-
-        duplicated_from_agent_id: str | None
-        duplicated_from_agent_id = self.duplicated_from_agent_id
-
-        duplicated_from_revision_id: str | None
-        duplicated_from_revision_id = self.duplicated_from_revision_id
-
-        enabled = self.enabled
 
         id = self.id
 
+        image_url: str | None
+        image_url = self.image_url
+
         key = self.key
+
+        labels = self.labels.to_dict()
 
         name = self.name
 
         organization_id = self.organization_id
 
-        source = self.source.value
+        source = self.source
 
         updated_at = self.updated_at.isoformat()
 
-        updated_by: dict[str, Any]
-        if isinstance(self.updated_by, PrincipalRef):
-            updated_by = self.updated_by.to_dict()
-        else:
-            updated_by = self.updated_by.to_dict()
+        updated_by_id = self.updated_by_id
+
+        version = self.version
 
         workspace_id = self.workspace_id
 
-        image_url: str | Unset | None
-        if isinstance(self.image_url, Unset):
-            image_url = UNSET
-        else:
-            image_url = self.image_url
-
-        labels: dict[str, Any] | Unset = UNSET
-        if not isinstance(self.labels, Unset):
-            labels = self.labels.to_dict()
-
-        system_purpose: Literal["configuration_assistant"] | Unset | None
-        if isinstance(self.system_purpose, Unset):
-            system_purpose = UNSET
-        else:
-            system_purpose = self.system_purpose
-
         field_dict: dict[str, Any] = {}
-
+        field_dict.update(self.additional_properties)
         field_dict.update(
             {
                 "archived_at": archived_at,
                 "created_at": created_at,
-                "created_by": created_by,
+                "created_by_id": created_by_id,
                 "default_revision_id": default_revision_id,
                 "description": description,
-                "duplicated_from_agent_id": duplicated_from_agent_id,
-                "duplicated_from_revision_id": duplicated_from_revision_id,
-                "enabled": enabled,
                 "id": id,
+                "image_url": image_url,
                 "key": key,
+                "labels": labels,
                 "name": name,
                 "organization_id": organization_id,
                 "source": source,
                 "updated_at": updated_at,
-                "updated_by": updated_by,
+                "updated_by_id": updated_by_id,
+                "version": version,
                 "workspace_id": workspace_id,
             }
         )
-        if image_url is not UNSET:
-            field_dict["image_url"] = image_url
-        if labels is not UNSET:
-            field_dict["labels"] = labels
-        if system_purpose is not UNSET:
-            field_dict["system_purpose"] = system_purpose
 
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.agent_labels import AgentLabels
-        from ..models.principal_ref import PrincipalRef
-        from ..models.system_actor_ref import SystemActorRef
 
         d = dict(src_dict)
 
@@ -186,22 +141,7 @@ class Agent:
 
         created_at = datetime.datetime.fromisoformat(d.pop("created_at"))
 
-        def _parse_created_by(data: object) -> PrincipalRef | SystemActorRef:
-            try:
-                if not isinstance(data, dict):
-                    raise TypeError()
-                componentsschemas_actor_ref_type_0 = PrincipalRef.from_dict(data)
-
-                return componentsschemas_actor_ref_type_0
-            except (TypeError, ValueError, AttributeError, KeyError):
-                pass
-            if not isinstance(data, dict):
-                raise TypeError()
-            componentsschemas_actor_ref_type_1 = SystemActorRef.from_dict(data)
-
-            return componentsschemas_actor_ref_type_1
-
-        created_by = _parse_created_by(d.pop("created_by"))
+        created_by_id = d.pop("created_by_id")
 
         def _parse_default_revision_id(data: object) -> str | None:
             if data is None:
@@ -210,111 +150,69 @@ class Agent:
 
         default_revision_id = _parse_default_revision_id(d.pop("default_revision_id"))
 
-        def _parse_description(data: object) -> str | None:
-            if data is None:
-                return data
-            return cast(str | None, data)
-
-        description = _parse_description(d.pop("description"))
-
-        def _parse_duplicated_from_agent_id(data: object) -> str | None:
-            if data is None:
-                return data
-            return cast(str | None, data)
-
-        duplicated_from_agent_id = _parse_duplicated_from_agent_id(d.pop("duplicated_from_agent_id"))
-
-        def _parse_duplicated_from_revision_id(data: object) -> str | None:
-            if data is None:
-                return data
-            return cast(str | None, data)
-
-        duplicated_from_revision_id = _parse_duplicated_from_revision_id(d.pop("duplicated_from_revision_id"))
-
-        enabled = d.pop("enabled")
+        description = d.pop("description")
 
         id = d.pop("id")
 
+        def _parse_image_url(data: object) -> str | None:
+            if data is None:
+                return data
+            return cast(str | None, data)
+
+        image_url = _parse_image_url(d.pop("image_url"))
+
         key = d.pop("key")
+
+        labels = AgentLabels.from_dict(d.pop("labels"))
 
         name = d.pop("name")
 
         organization_id = d.pop("organization_id")
 
-        source = AgentSource(d.pop("source"))
+        source = d.pop("source")
 
         updated_at = datetime.datetime.fromisoformat(d.pop("updated_at"))
 
-        def _parse_updated_by(data: object) -> PrincipalRef | SystemActorRef:
-            try:
-                if not isinstance(data, dict):
-                    raise TypeError()
-                componentsschemas_actor_ref_type_0 = PrincipalRef.from_dict(data)
+        updated_by_id = d.pop("updated_by_id")
 
-                return componentsschemas_actor_ref_type_0
-            except (TypeError, ValueError, AttributeError, KeyError):
-                pass
-            if not isinstance(data, dict):
-                raise TypeError()
-            componentsschemas_actor_ref_type_1 = SystemActorRef.from_dict(data)
-
-            return componentsschemas_actor_ref_type_1
-
-        updated_by = _parse_updated_by(d.pop("updated_by"))
+        version = d.pop("version")
 
         workspace_id = d.pop("workspace_id")
-
-        def _parse_image_url(data: object) -> str | Unset | None:
-            if data is None:
-                return data
-            if isinstance(data, Unset):
-                return data
-            return cast(str | Unset | None, data)
-
-        image_url = _parse_image_url(d.pop("image_url", UNSET))
-
-        _labels = d.pop("labels", UNSET)
-        labels: AgentLabels | Unset
-        if isinstance(_labels, Unset):
-            labels = UNSET
-        else:
-            labels = AgentLabels.from_dict(_labels)
-
-        def _parse_system_purpose(data: object) -> Literal["configuration_assistant"] | Unset | None:
-            if data is None:
-                return data
-            if isinstance(data, Unset):
-                return data
-            system_purpose_type_0 = cast(Literal["configuration_assistant"], data)
-            if system_purpose_type_0 != "configuration_assistant":
-                raise ValueError(
-                    f"system_purpose_type_0 must match const 'configuration_assistant', got '{system_purpose_type_0}'"
-                )
-            return system_purpose_type_0
-            return cast(Literal["configuration_assistant"] | Unset | None, data)
-
-        system_purpose = _parse_system_purpose(d.pop("system_purpose", UNSET))
 
         agent = cls(
             archived_at=archived_at,
             created_at=created_at,
-            created_by=created_by,
+            created_by_id=created_by_id,
             default_revision_id=default_revision_id,
             description=description,
-            duplicated_from_agent_id=duplicated_from_agent_id,
-            duplicated_from_revision_id=duplicated_from_revision_id,
-            enabled=enabled,
             id=id,
+            image_url=image_url,
             key=key,
+            labels=labels,
             name=name,
             organization_id=organization_id,
             source=source,
             updated_at=updated_at,
-            updated_by=updated_by,
+            updated_by_id=updated_by_id,
+            version=version,
             workspace_id=workspace_id,
-            image_url=image_url,
-            labels=labels,
-            system_purpose=system_purpose,
         )
 
+        agent.additional_properties = d
         return agent
+
+    @property
+    def additional_keys(self) -> list[str]:
+        return list(self.additional_properties.keys())
+
+    def __getitem__(self, key: str) -> Any:
+        return self.additional_properties[key]
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        self.additional_properties[key] = value
+
+    def __delitem__(self, key: str) -> None:
+        del self.additional_properties[key]
+
+    def __contains__(self, key: str) -> bool:
+        return key in self.additional_properties
