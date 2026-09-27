@@ -24,7 +24,7 @@ from .api.agents import (
     list_agents_api_v1_workspaces_workspace_id_agents_get,
     list_revisions_api_v1_workspaces_workspace_id_agents_agent_id_revisions_get,
     list_toolsets_api_v1_workspaces_workspace_id_toolsets_get,
-    prepare_assistant_api_v1_workspaces_workspace_id_configuration_assistant_post,
+    prepare_composer_api_v1_workspaces_workspace_id_agent_composer_post,
     put_avatar_api_v1_workspaces_workspace_id_agents_agent_id_avatar_put,
     set_default_api_v1_workspaces_workspace_id_agents_agent_id_revisions_revision_id_set_default_post,
     unarchive_agent_api_v1_workspaces_workspace_id_agents_agent_id_unarchive_post,
@@ -1797,6 +1797,14 @@ class _WorkspaceResource(Resource):
             )
         )
 
+    async def agent_composer(self) -> Result[wire.Agent]:
+        """Prepare Composer. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: prepare_composer_api_v1_workspaces_workspace_id_agent_composer_post.asyncio_detailed(
+                client=client, workspace_id=self._bindings["workspace_id"]
+            )
+        )
+
     @property
     def agents(self) -> WorkspacesWorkspaceIdAgents:
         return WorkspacesWorkspaceIdAgents(self._client, self._bindings)
@@ -1816,16 +1824,6 @@ class _WorkspaceResource(Resource):
     @property
     def audit_events(self) -> WorkspacesWorkspaceIdAuditEvents:
         return WorkspacesWorkspaceIdAuditEvents(self._client, self._bindings)
-
-    async def configuration_assistant(self) -> Result[wire.Agent]:
-        """Prepare Assistant. One HTTP request; no automatic replay."""
-        return await self._call(
-            lambda client: (
-                prepare_assistant_api_v1_workspaces_workspace_id_configuration_assistant_post.asyncio_detailed(
-                    client=client, workspace_id=self._bindings["workspace_id"]
-                )
-            )
-        )
 
     @property
     def connections(self) -> WorkspacesWorkspaceIdConnections:

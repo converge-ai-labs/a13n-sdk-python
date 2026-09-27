@@ -16,7 +16,7 @@ def build_request(
 
     _kwargs: dict[str, Any] = {
         "method": "post",
-        "url": "/api/v1/workspaces/{workspace_id}/configuration-assistant".format(
+        "url": "/api/v1/workspaces/{workspace_id}/agent-composer".format(
             workspace_id=quote(str(workspace_id), safe=""),
         ),
     }
@@ -61,10 +61,9 @@ def sync_detailed(
     *,
     client: AuthenticatedClient,
 ) -> Response[Agent | ErrorEnvelope]:
-    """Prepare Assistant
+    """Prepare Composer
 
-     The workspace's configuration assistant, created or brought up to date with the deployment's
-    definition.
+     The workspace's Agent Composer, created or brought up to date with the deployment's definition.
 
     Refused with `model_required` while the workspace has no model the caller can use.
 
@@ -95,10 +94,9 @@ def sync(
     *,
     client: AuthenticatedClient,
 ) -> Agent | ErrorEnvelope | None:
-    """Prepare Assistant
+    """Prepare Composer
 
-     The workspace's configuration assistant, created or brought up to date with the deployment's
-    definition.
+     The workspace's Agent Composer, created or brought up to date with the deployment's definition.
 
     Refused with `model_required` while the workspace has no model the caller can use.
 
@@ -124,10 +122,9 @@ async def asyncio_detailed(
     *,
     client: AuthenticatedClient,
 ) -> Response[Agent | ErrorEnvelope]:
-    """Prepare Assistant
+    """Prepare Composer
 
-     The workspace's configuration assistant, created or brought up to date with the deployment's
-    definition.
+     The workspace's Agent Composer, created or brought up to date with the deployment's definition.
 
     Refused with `model_required` while the workspace has no model the caller can use.
 
@@ -156,10 +153,9 @@ async def asyncio(
     *,
     client: AuthenticatedClient,
 ) -> Agent | ErrorEnvelope | None:
-    """Prepare Assistant
+    """Prepare Composer
 
-     The workspace's configuration assistant, created or brought up to date with the deployment's
-    definition.
+     The workspace's Agent Composer, created or brought up to date with the deployment's definition.
 
     Refused with `model_required` while the workspace has no model the caller can use.
 
