@@ -2,6 +2,10 @@
 
 Async-first Python SDK for the a13n Native Service. Resource references bind locally; `Result[T]` retains typed values and HTTP evidence. The pinned contract lives under `contract/` with its exact Service commit in `contract/source.json`. Python 3.13 or later is required.
 
+## Documentation
+
+Start with the examples below, then use the [application guide](docs/README.md) for API discovery, authentication, queue/recovery handling, Memory semantics and troubleshooting. The guide and examples are Markdown maintained with this SDK; use the same tag or commit as your dependency. See [Contributing](CONTRIBUTING.md) for development and release operations.
+
 ## Installation
 
 ```bash
