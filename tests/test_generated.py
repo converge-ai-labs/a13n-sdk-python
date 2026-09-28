@@ -48,10 +48,10 @@ def test_generated_binary_download_is_unbuffered_and_workspace_bound() -> None:
             return httpx2.Response(200, content=b"\0zip-binary", headers={"Content-Type": "application/octet-stream"})
 
         async with Client("https://service.example", "token", transport=httpx2.MockTransport(handle)) as client:
-            async with client.workspaces("ws_1").assets("ast_1").content.get_stream() as response:
+            async with client.resources.assets("ast_1").content.get_stream() as response:
                 assert response.status_code == 200
                 assert await response.aread() == b"\0zip-binary"
-            assert paths == ["/api/v1/workspaces/ws_1/assets/ast_1/content"]
+            assert paths == ["/api/v1/assets/ast_1/content"]
 
     asyncio.run(scenario())
 
@@ -77,7 +77,7 @@ def test_generated_upload_accepts_binary_file_part_not_utf8_string() -> None:
         payload = BytesIO(b"\x00\xff" * 32_768)
         async with Client("https://service.example", "token", transport=httpx2.MockTransport(handle)) as client:
             with pytest.raises(ApiError):
-                await client.workspaces("ws_1").uploads.create(
+                await client.resources.uploads.create(
                     body=wire.UploadCreate(
                         file=File(payload=payload, file_name="binary.dat", mime_type="application/octet-stream")
                     ),
@@ -99,3 +99,34 @@ def test_generated_upload_accepts_binary_file_part_not_utf8_string() -> None:
 def test_binary_upload_does_not_expose_secret_in_generated_repr() -> None:
     body = wire.UploadCreate(file=File(payload=BytesIO(b"private-upload"), file_name="private.txt"))
     assert "private-upload" not in repr(body)
+
+
+def test_generated_thread_sse_exposes_unbuffered_raw_response() -> None:
+    class OpenStream(httpx2.AsyncByteStream):
+        def __init__(self) -> None:
+            self.closed = False
+
+        async def __aiter__(self):
+            yield b'event: changed\ndata: {"version": 1}\n\n'
+            await asyncio.Event().wait()  # The server does not close after a frame.
+
+        async def aclose(self) -> None:
+            self.closed = True
+
+    async def scenario() -> None:
+        stream = OpenStream()
+        paths: list[str] = []
+
+        def handle(request: httpx2.Request) -> httpx2.Response:
+            paths.append(request.url.path)
+            return httpx2.Response(200, stream=stream, headers={"Content-Type": "text/event-stream"})
+
+        async with Client("https://service.example", "token", transport=httpx2.MockTransport(handle)) as client:
+            async with asyncio.timeout(0.5):
+                async with client.resources.threads("thr_1").stream.get_stream() as response:
+                    assert response.status_code == 200
+                    assert await anext(response.aiter_bytes()) == b'event: changed\ndata: {"version": 1}\n\n'
+            assert stream.closed
+        assert paths == ["/api/v1/threads/thr_1/stream"]
+
+    asyncio.run(scenario())

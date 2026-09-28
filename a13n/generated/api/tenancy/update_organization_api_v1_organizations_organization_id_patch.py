@@ -79,7 +79,8 @@ def sync_detailed(
 
     Args:
         organization_id (str):
-        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current view
+        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current
+            view, `"{key}:{version}"` for a model
         body (OrganizationUpdate):
 
     Raises:
@@ -114,7 +115,8 @@ def sync(
 
     Args:
         organization_id (str):
-        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current view
+        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current
+            view, `"{key}:{version}"` for a model
         body (OrganizationUpdate):
 
     Raises:
@@ -144,7 +146,8 @@ async def asyncio_detailed(
 
     Args:
         organization_id (str):
-        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current view
+        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current
+            view, `"{key}:{version}"` for a model
         body (OrganizationUpdate):
 
     Raises:
@@ -177,7 +180,8 @@ async def asyncio(
 
     Args:
         organization_id (str):
-        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current view
+        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current
+            view, `"{key}:{version}"` for a model
         body (OrganizationUpdate):
 
     Raises:

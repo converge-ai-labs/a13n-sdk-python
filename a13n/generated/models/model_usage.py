@@ -17,7 +17,7 @@ class ModelUsage:
         cache_write_tokens (int):
         cost (None | str):
         input_tokens (int):
-        model_id (None | str):
+        model (None | str):
         output_tokens (int):
         requests (int):
     """
@@ -26,7 +26,7 @@ class ModelUsage:
     cache_write_tokens: int
     cost: str | None
     input_tokens: int
-    model_id: str | None
+    model: str | None
     output_tokens: int
     requests: int
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
@@ -41,8 +41,8 @@ class ModelUsage:
 
         input_tokens = self.input_tokens
 
-        model_id: str | None
-        model_id = self.model_id
+        model: str | None
+        model = self.model
 
         output_tokens = self.output_tokens
 
@@ -56,7 +56,7 @@ class ModelUsage:
                 "cache_write_tokens": cache_write_tokens,
                 "cost": cost,
                 "input_tokens": input_tokens,
-                "model_id": model_id,
+                "model": model,
                 "output_tokens": output_tokens,
                 "requests": requests,
             }
@@ -80,12 +80,12 @@ class ModelUsage:
 
         input_tokens = d.pop("input_tokens")
 
-        def _parse_model_id(data: object) -> str | None:
+        def _parse_model(data: object) -> str | None:
             if data is None:
                 return data
             return cast(str | None, data)
 
-        model_id = _parse_model_id(d.pop("model_id"))
+        model = _parse_model(d.pop("model"))
 
         output_tokens = d.pop("output_tokens")
 
@@ -96,7 +96,7 @@ class ModelUsage:
             cache_write_tokens=cache_write_tokens,
             cost=cost,
             input_tokens=input_tokens,
-            model_id=model_id,
+            model=model,
             output_tokens=output_tokens,
             requests=requests,
         )

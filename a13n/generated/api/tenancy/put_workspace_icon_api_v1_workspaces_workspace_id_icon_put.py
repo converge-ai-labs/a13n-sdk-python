@@ -80,7 +80,8 @@ def sync_detailed(
 
     Args:
         workspace_id (str):
-        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current view
+        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current
+            view, `"{key}:{version}"` for a model
         body (File):
 
     Raises:
@@ -115,7 +116,8 @@ def sync(
 
     Args:
         workspace_id (str):
-        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current view
+        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current
+            view, `"{key}:{version}"` for a model
         body (File):
 
     Raises:
@@ -145,7 +147,8 @@ async def asyncio_detailed(
 
     Args:
         workspace_id (str):
-        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current view
+        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current
+            view, `"{key}:{version}"` for a model
         body (File):
 
     Raises:
@@ -180,7 +183,8 @@ async def asyncio(
 
     Args:
         workspace_id (str):
-        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current view
+        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current
+            view, `"{key}:{version}"` for a model
         body (File):
 
     Raises:

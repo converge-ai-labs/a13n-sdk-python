@@ -21,24 +21,22 @@ class ModelCreate:
     """
     Attributes:
         config (ModelConfigInput):
-        key (str):
         name (str):
         provider_id (str):
-        workspace_id (None | str):
         catalog_ref (CatalogRef | None | Unset):
         description (str | Unset):
         enabled (bool | Unset):
+        key (None | str | Unset):
         pricing (ModelPricingEntryInput | None | Unset):
     """
 
     config: ModelConfigInput
-    key: str
     name: str
     provider_id: str
-    workspace_id: str | None
     catalog_ref: CatalogRef | Unset | None = UNSET
     description: str | Unset = UNSET
     enabled: bool | Unset = UNSET
+    key: str | Unset | None = UNSET
     pricing: ModelPricingEntryInput | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
@@ -47,14 +45,9 @@ class ModelCreate:
 
         config = self.config.to_dict()
 
-        key = self.key
-
         name = self.name
 
         provider_id = self.provider_id
-
-        workspace_id: str | None
-        workspace_id = self.workspace_id
 
         catalog_ref: dict[str, Any] | Unset | None
         if isinstance(self.catalog_ref, Unset):
@@ -67,6 +60,12 @@ class ModelCreate:
         description = self.description
 
         enabled = self.enabled
+
+        key: str | Unset | None
+        if isinstance(self.key, Unset):
+            key = UNSET
+        else:
+            key = self.key
 
         pricing: dict[str, Any] | Unset | None
         if isinstance(self.pricing, Unset):
@@ -81,10 +80,8 @@ class ModelCreate:
         field_dict.update(
             {
                 "config": config,
-                "key": key,
                 "name": name,
                 "provider_id": provider_id,
-                "workspace_id": workspace_id,
             }
         )
         if catalog_ref is not UNSET:
@@ -93,6 +90,8 @@ class ModelCreate:
             field_dict["description"] = description
         if enabled is not UNSET:
             field_dict["enabled"] = enabled
+        if key is not UNSET:
+            field_dict["key"] = key
         if pricing is not UNSET:
             field_dict["pricing"] = pricing
 
@@ -107,18 +106,9 @@ class ModelCreate:
         d = dict(src_dict)
         config = ModelConfigInput.from_dict(d.pop("config"))
 
-        key = d.pop("key")
-
         name = d.pop("name")
 
         provider_id = d.pop("provider_id")
-
-        def _parse_workspace_id(data: object) -> str | None:
-            if data is None:
-                return data
-            return cast(str | None, data)
-
-        workspace_id = _parse_workspace_id(d.pop("workspace_id"))
 
         def _parse_catalog_ref(data: object) -> CatalogRef | Unset | None:
             if data is None:
@@ -141,6 +131,15 @@ class ModelCreate:
 
         enabled = d.pop("enabled", UNSET)
 
+        def _parse_key(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        key = _parse_key(d.pop("key", UNSET))
+
         def _parse_pricing(data: object) -> ModelPricingEntryInput | Unset | None:
             if data is None:
                 return data
@@ -160,13 +159,12 @@ class ModelCreate:
 
         model_create = cls(
             config=config,
-            key=key,
             name=name,
             provider_id=provider_id,
-            workspace_id=workspace_id,
             catalog_ref=catalog_ref,
             description=description,
             enabled=enabled,
+            key=key,
             pricing=pricing,
         )
 

@@ -1,8 +1,8 @@
 """Generate static resource navigation from the existing typed HTTP bindings.
 
 No runtime attribute synthesis or second serializer: signatures and calls come
-from the pinned generator output. The route tree binds identity; small explicit
-names select handwritten interaction behavior.
+from the pinned generator output. The route tree maps only the wire protocol;
+handwritten Agent interactions are implemented outside generated resources.
 """
 
 import ast
@@ -15,17 +15,11 @@ CORE = {
     (): "ServiceResources",
     ("workspaces", "{}"): "Workspace",
     ("organizations", "{}"): "Organization",
-    ("workspaces", "{}", "agents", "{}"): "Agent",
-    ("workspaces", "{}", "sessions", "{}"): "Session",
-    ("workspaces", "{}", "threads", "{}"): "Thread",
-    ("workspaces", "{}", "runs", "{}"): "Run",
-    ("workspaces", "{}", "threads", "{}", "inbox", "{}"): "InboxEntry",
-}
-MIXINS = {
-    "Workspace": "WorkspaceMethods",
-    "Thread": "ThreadMethods",
-    "Run": "RunMethods",
-    "InboxEntry": "InboxEntryMethods",
+    ("agents", "{}"): "Agent",
+    ("sessions", "{}"): "Session",
+    ("threads", "{}"): "Thread",
+    ("runs", "{}"): "Run",
+    ("threads", "{}", "inbox", "{}"): "InboxEntry",
 }
 VERBS = {
     "post": "create",
@@ -139,7 +133,7 @@ def generate_resources(document: dict, output: Path) -> None:
             if successful and all(not response.get("content") for response in successful)
             else success_type(fn.returns)
         )
-        result = "Submitted" if raw_result == "Submitted" else f"Result[{typed(raw_result)}]"
+        result = f"Result[{typed(raw_result)}]"
         bound = {
             segment[1:-1]: node.bindings[i]
             for i, segment in enumerate(segments)
@@ -165,8 +159,6 @@ def generate_resources(document: dict, output: Path) -> None:
         call_args += [f"{arg.arg}={arg.arg}" for arg, _ in exposed]
         call = ", ".join(["client=client", *call_args])
         request = f"await self._call(lambda client: {alias}.asyncio_detailed({call}))"
-        if raw_result == "Submitted":
-            request = f"_submitted(self._client, {request}, thread_id=self._bindings.get('thread_id'))"
         lines = [
             f"    async def {name}({signature}) -> {result}:",
             f'        """{op.get("summary", alias)}. One HTTP request; no automatic replay."""',
@@ -228,7 +220,7 @@ def generate_resources(document: dict, output: Path) -> None:
             if code.startswith("2")
             for media in response.get("content", {})
         }
-        if media and not media <= {"application/json", "text/event-stream"}:
+        if media and not media <= {"application/json"}:
             stream_args = ", ".join(call_args)
             lines += [
                 f"    def {name}_stream({signature}) -> AbstractAsyncContextManager[httpx2.Response]:",
@@ -249,7 +241,7 @@ def generate_resources(document: dict, output: Path) -> None:
     for node in nodes.values():
         if node is not root and flattened(node) and node.key[-1] != "{}":
             continue
-        name = "_" + node.name + "Resource" if node.name in MIXINS else node.name
+        name = node.name
         lines = [
             f"class {name}(Resource):",
             f'    """Bound Native resource: /{" / ".join(node.segments) or "api/v1"}."""',
@@ -288,11 +280,7 @@ def generate_resources(document: dict, output: Path) -> None:
                 ]
                 continue
             member = snake(key)
-            if node.name == "Run" and member == "resume":
-                member = "_resume"
-            elif node.name == "Thread" and member == "stream":
-                member = "stream_response"
-            elif node.name == "Thread" and member == "inbox":
+            if node.name == "Thread" and member == "inbox":
                 member = "inbox_entries"
             if member in members:
                 raise ValueError(f"Resource member collision: {node.name}.{member}")
@@ -308,11 +296,6 @@ def generate_resources(document: dict, output: Path) -> None:
                 ]
         classes.append("\n".join(lines))
 
-    for name, mixin in MIXINS.items():
-        if name in {node.name for node in nodes.values()}:
-            classes.append(
-                f'class {name}({mixin}, _{name}Resource):\n    """Managed {name} reference with bounded interaction helpers."""\n'
-            )
     prelude = '''"""Generated typed Native resource navigation. Do not edit; run make generate."""
 from __future__ import annotations
 from collections.abc import AsyncIterator
@@ -321,7 +304,6 @@ from typing import Any, Literal
 import httpx2
 from . import models as wire
 from .._resources import Resource, Result, pages
-from .._interaction import WorkspaceMethods, ThreadMethods, RunMethods, InboxEntryMethods, Submitted, _submitted
 '''
     source = prelude + "\n".join(sorted(imports | endpoints)) + "\n\n" + "\n\n".join(classes)
     (output / "resources.py").write_text(source)

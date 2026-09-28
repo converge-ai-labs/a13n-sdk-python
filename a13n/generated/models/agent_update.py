@@ -19,13 +19,11 @@ class AgentUpdate:
     """
     Attributes:
         description (None | str | Unset):
-        key (None | str | Unset):
         labels (AgentUpdateLabelsType0 | None | Unset):
         name (None | str | Unset):
     """
 
     description: str | Unset | None = UNSET
-    key: str | Unset | None = UNSET
     labels: AgentUpdateLabelsType0 | Unset | None = UNSET
     name: str | Unset | None = UNSET
 
@@ -37,12 +35,6 @@ class AgentUpdate:
             description = UNSET
         else:
             description = self.description
-
-        key: str | Unset | None
-        if isinstance(self.key, Unset):
-            key = UNSET
-        else:
-            key = self.key
 
         labels: dict[str, Any] | Unset | None
         if isinstance(self.labels, Unset):
@@ -63,8 +55,6 @@ class AgentUpdate:
         field_dict.update({})
         if description is not UNSET:
             field_dict["description"] = description
-        if key is not UNSET:
-            field_dict["key"] = key
         if labels is not UNSET:
             field_dict["labels"] = labels
         if name is not UNSET:
@@ -86,15 +76,6 @@ class AgentUpdate:
             return cast(str | Unset | None, data)
 
         description = _parse_description(d.pop("description", UNSET))
-
-        def _parse_key(data: object) -> str | Unset | None:
-            if data is None:
-                return data
-            if isinstance(data, Unset):
-                return data
-            return cast(str | Unset | None, data)
-
-        key = _parse_key(d.pop("key", UNSET))
 
         def _parse_labels(data: object) -> AgentUpdateLabelsType0 | Unset | None:
             if data is None:
@@ -124,7 +105,6 @@ class AgentUpdate:
 
         agent_update = cls(
             description=description,
-            key=key,
             labels=labels,
             name=name,
         )

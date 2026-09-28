@@ -30,7 +30,6 @@ class Memory:
         history_bytes (int | None):
         id (str):
         inherited_guide (str):
-        key (str):
         kind (MemoryKind):
         labels (MemoryLabels):
         name (str):
@@ -54,7 +53,6 @@ class Memory:
     history_bytes: int | None
     id: str
     inherited_guide: str
-    key: str
     kind: MemoryKind
     labels: MemoryLabels
     name: str
@@ -94,8 +92,6 @@ class Memory:
 
         inherited_guide = self.inherited_guide
 
-        key = self.key
-
         kind = self.kind.value
 
         labels = self.labels.to_dict()
@@ -134,7 +130,6 @@ class Memory:
                 "history_bytes": history_bytes,
                 "id": id,
                 "inherited_guide": inherited_guide,
-                "key": key,
                 "kind": kind,
                 "labels": labels,
                 "name": name,
@@ -201,8 +196,6 @@ class Memory:
 
         inherited_guide = d.pop("inherited_guide")
 
-        key = d.pop("key")
-
         kind = MemoryKind(d.pop("kind"))
 
         labels = MemoryLabels.from_dict(d.pop("labels"))
@@ -246,7 +239,6 @@ class Memory:
             history_bytes=history_bytes,
             id=id,
             inherited_guide=inherited_guide,
-            key=key,
             kind=kind,
             labels=labels,
             name=name,

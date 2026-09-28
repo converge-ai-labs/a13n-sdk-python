@@ -1,145 +1,111 @@
-# a13n
+# a13n Python SDK
 
-Async-first Python SDK for the a13n Native Service. Resource references bind locally; `Result[T]` retains typed values and HTTP evidence. The pinned contract lives under `contract/` with its exact Service commit in `contract/source.json`. Python 3.13 or later is required.
-
-## Documentation
-
-Start with the examples below, then use the [application guide](docs/README.md) for API discovery, authentication, queue/recovery handling, Memory semantics and troubleshooting. The guide and examples are Markdown maintained with this SDK; use the same tag or commit as your dependency. See [Contributing](CONTRIBUTING.md) for development and release operations.
-
-## Installation
+Async-first Python 3.13+ client for the a13n Native Service. The primary interface is one finite Agent interaction: it accepts text or a structured payload, optionally yields provisional frames for **that interaction's incorporating Run**, and returns its authoritative sealed outcome. The complete pinned OpenAPI is also available through generated typed resources and operations.
 
 ```bash
 uv add a13n
 ```
 
-This SDK targets the rewritten Native Service and intentionally does not retain the older global Run/queue/Run-stream API. See [the SDK specification](spec/README.md) for boundaries and [Contributing](CONTRIBUTING.md) for generation and validation.
-
-## Authentication and lifetime
-
-```python
-from a13n import Client
-
-async with Client("https://service.example", "api-token", ca_bundle="/path/to/ca.pem") as client:
-    workspace = client.workspaces("ws_example")
-```
-
-A token selects Bearer authentication; omitting it creates a public, cookieless Client. For cookie sessions, use `Client.session(base_url, origin=..., cookies=..., csrf_token=...)`; mutating requests send `X-CSRF-Token` only when explicitly configured. `ca_bundle` adds a trusted CA without disabling TLS verification. The Client owns its transport and live responses, and `aclose()` or context exit releases them. Local closure does not interrupt remote execution.
-
-## Submit and observe
+## Start, observe, continue
 
 ```python
 from a13n import Client
 from a13n.generated import models as wire
 
 
-async def review(base_url: str, token: str, workspace_id: str, agent_id: str) -> None:
-    async with Client(base_url, token) as client:
-        workspace = client.workspaces(workspace_id)
-        submitted = await workspace.start("Review this change", agent_id=agent_id, idempotency_key="review-42")
-        if submitted.run is not None:
-            result = await submitted.run.wait(timeout=60, poll_interval=0.25)
-            if result.value.status == wire.RunStatus.COMPLETED:
-                items = await submitted.run.items.get()
-                print(len(items.value.items))
+async def example(base_url: str, api_key: str, agent_id: str) -> None:
+    async with Client(base_url, api_key) as client:
+        agent = client.agents(agent_id)  # Local binding; Agent IDs, not keys.
+        interaction = await agent.start("Summarize this change", idempotency_key="review-001")
+        async with interaction:
+            async for frame in interaction:
+                if frame.event_type == "gap" or frame.event_type == "reset":
+                    # Read committed Items for the indicated Run; provisional deltas can be missing.
+                    await client.runs(frame.data["run_id"]).items.get()
+                elif frame.event_type == "delta":
+                    print(frame.data["event"])
+            outcome = await interaction.result()
+        if outcome.status == wire.RunStatus.COMPLETED:
+            print(outcome.output)
+        elif outcome.status == wire.RunStatus.WAITING:
+            print(outcome.pending)  # Explicit human/client-tool decision required.
         else:
-            entry = await submitted.entry.wait(timeout=60, poll_interval=0.25)
-            if entry.value.assigned_run_id is not None:
-                run = workspace.runs(entry.value.assigned_run_id)
-                result = await run.wait(timeout=60, poll_interval=0.25)
+            print(outcome.status, outcome.failure)
+        follow_up = await agent.send(interaction.thread.id, "Explain the risks", idempotency_key="review-002")
+        next_outcome = await follow_up.result()  # No SSE connection needed.
+        print(next_outcome.status)
 ```
 
-`Submitted` always contains exact `thread` and inbox `entry` references, plus an optional `run`. A missing Run means retained intent, not failed acceptance or an invented Run. `Thread.submit(text_or_MessagePayload, agent_id=..., idempotency_key=...)` has the same result shape for an existing Thread. The full typed `Submitted` wire receipt remains at `.receipt.value`. Text is converted into an ordinary text part; structured inputs use generated `wire.MessagePayload`.
+`Agent.start(input, *, idempotency_key, agent_revision_id=..., session_id=..., delivery=..., options=..., environments=..., memories=..., mcp_headers=...)` creates a Thread; `Agent.send(thread_id, input, *, idempotency_key, agent_revision_id=..., delivery=..., options=...)` continues an existing Thread as the selected Agent. Input is text or `wire.MessagePayload`. Use `text_input(text)` to construct a text payload for a generated request. A Thread does not have a permanent Agent. The optional Service interaction Session only groups Threads; it is not a hidden current conversation.
 
-For a fully configured Thread, use the same bound receipt with the complete generated body:
+`Interaction.thread`, `.entry`, `.run` (immediate receipt Run or `None`), and `.receipt` expose original identities and HTTP evidence. `result(timeout=300, poll_interval=0.5)` resolves its Entry until **consumed**, then waits for the exact incorporating Run to seal, with one deadline for both phases. A failed or withdrawn Entry raises `SubmissionError` carrying its snapshot. Waiting, failed, and cancelled Runs return `RunOutcome` with `.status`, `.output`, `.pending`, `.failure`, `.run`, and `.snapshot`. Run status is not business success; `Run.items.get()` is committed display readback. Repeated results reuse a completed outcome. Local timeout, cancellation, context exit, and Client close never interrupt a remote Run or replay a mutation. Closing observation before settlement cancels its local observer; a later `.result()` does **not** silently restart it—use the exact Run handle/readback explicitly.
 
-```python
-from a13n import text_input
+The context is single-use, with one frame reader and one Run observer. It binds the Run after Entry consumption before exposing Run-scoped frames; foreign Run frames and Thread-only change notices are omitted. It ends on exact Run seal even when the SSE socket is idle. The underlying retained Thread stream is provisional and subject to retention, current-Run filtering, reset and gaps; finite iteration is **not** a lossless transcript. `result()` is authoritative and works without entering a context or opening SSE. A context manager is needed for prompt stream cleanup after breaking iteration.
 
-submitted = await workspace.threads.create(
-    body=wire.NewThread(
-        agent_id=agent_id,
-        payload=text_input("Review this change"),
-        memories=[wire.MemoryMount(name="notes", memory_id="mem_example", access=wire.MemoryAccess.READ)],
-        environments=[],
-        session_id=None,
-    ),
-    idempotency_key="review-with-memory-42",
-)
-# submitted.thread.stream(), submitted.entry.wait(), and submitted.run.wait()
-# are available just as with workspace.start(). No manual reference reconstruction.
-```
+## Authentication
 
-### Provisional Thread stream
+An API key implicitly selects its workspace. There is no workspace selector or discovery call for ordinary Agent, Thread, Model, Skill, Asset, or Memory operations. `Client(base_url, token=None, *, timeout=30, ca_bundle=None, transport=None)` uses Bearer credentials when a token is supplied and a public cookieless transport otherwise. `Client.session(base_url, *, origin, cookies=None, csrf_token=None, workspace_id=None, ...)` supports existing cookie login sessions; set `workspace_id` explicitly when accessing workspace business routes. The session client adds `X-Workspace-ID` only on declared workspace routes, never to public, organization or administration routes; an explicit operation header takes precedence. `set_csrf_token` updates a session's mutation proof. No implicit login, credential refresh, cookie-mode switch, TLS verification bypass, or cross-workspace privilege is provided. Close the Client with `async with` or `aclose()`; it owns its HTTP transport and SSE connections.
+
+## Create an Agent and configure a Run
 
 ```python
-async with submitted.thread.stream(after=None, max_reconnects=3) as stream:
-    async for frame in stream:
-        if frame.event_type in {"delta", "boundary"}:
-            await apply_and_checkpoint(frame.data, frame.cursor)
-        elif frame.event_type == "changed":
-            await submitted.thread.get()
-        else:  # reset or gap
-            affected_run = workspace.runs(frame.data["run_id"])
-            await affected_run.items.get()
-```
-
-`ThreadFrame` is a typed union: checking `event_type` narrows the data fields and cursor. `delta` and `boundary` have a resumable Redis entry ID at `frame.cursor`; `changed`, `reset`, and `gap` do not. The latter require explicit Thread or Run Item readback. Reconnection is bounded and does not turn EOF into Run completion or persist your application checkpoint. Keep the `async with` scope to release the attachment; early `async for` exit alone does not close it.
-
-`Run.interrupt()` targets one exact Run. `Run.resume(wire.ResumeRequest(...), idempotency_key=...)` returns a new Run reference when eligible; `Run.fork(body=wire.Fork(...), idempotency_key=...)` returns a new `Submitted` Thread/Entry/optional Run. No helper runs client tools, approves actions automatically, or retries uncertain mutations.
-
-## Resources and binary content
-
-`client.resources` exposes all generated Service, Organization, and Workspace paths. Ordinary resource methods return `Result[T]`; submissions return bound `Submitted` with that evidence at `.receipt`. Both preserve status, headers, ETag, request ID, and content; `a13n.generated.models` and `a13n.generated.api` retain full wire access. Collection `list()` fetches one page; `pages()` and `iter()` traverse lazily. `Client.execute()` preserves the generated low-level HTTP response, and `Client.stream()` exposes a raw response context independently from `Thread.stream()`.
-
-```python
-from io import BytesIO
 from a13n.generated import models as wire
-from a13n.generated.types import File
 
-with BytesIO(b"binary data") as source:
-    upload = await workspace.uploads.create(
-        body=wire.UploadCreate(file=File(source, file_name="example.bin", mime_type="application/octet-stream")),
-        idempotency_key="upload-42",
+created = await client.resources.agents.create(
+    body=wire.AgentCreate(
+        name="Reviewer",
+        config=wire.AgentConfigInput(model="review-model", instructions="Review carefully"),
     )
-asset = await workspace.assets.create(body=wire.AssetCreate(name="example.bin", upload_id=upload.value.upload_id))
-async with workspace.assets(asset.value.id).content.get_stream() as response:
-    if response.status_code != 200:
-        raise RuntimeError(f"download failed: {response.status_code}")
-    async for chunk in response.aiter_bytes():
-        consume(chunk)
+)
+agent = client.agents(created.value.id)
+interaction = await agent.start(
+    "Review this document",
+    memories=[wire.MemoryMount(name="notes", memory_id="mem_1", access=wire.MemoryAccess.READ)],
+    options=wire.RunOptionsInput(
+        overrides=wire.AgentOverrideInput(
+            model_settings=wire.AgentOverrideInputModelSettingsType0.from_dict(
+                {"extra_body": {"thinking": {"type": "enabled"}}}
+            )
+        )
+    ),
+    idempotency_key="review-doc-001",
+)
+outcome = await interaction.result()
 ```
 
-Image uploads use the same `File` input and require `mime_type="image/png"`, `"image/jpeg"`, or `"image/webp"`, for example `await workspace.icon.replace(body=File(source, mime_type="image/png"), if_match=etag)`. Missing/unsupported image media fails before dispatch rather than silently sending WebP. The SDK does not close caller-owned upload streams. Staging an upload, publishing an Asset, and accepting a Run are separate Service outcomes.
+Only **Models** accept stable keys; Agents and Skills are selected by IDs (`wire.SkillSelection(skill_id=...)`). Model `extra_body` / `extra_headers` are generated mappings. Service merges Model defaults with Agent settings and Run overrides; a supplied extra object **replaces** its inherited object and `{}` clears it. The SDK preserves the full typed mappings and does not independently infer provider policy. Consult the generated models for declared properties and valid values.
 
-## Memory
+For structured input, supply `wire.MessagePayload(content=[...])`. Upload binary files through `client.resources.uploads.create(body=wire.UploadCreate(file=File(source, file_name=..., mime_type=...)), idempotency_key=...)`; publish with `client.resources.assets.create(...)` separately. The SDK leaves caller-owned upload streams open. `get_stream()` on generated binary content resources supports unbuffered downloads; check response status before consuming it.
+
+## Explicit control and advanced API
 
 ```python
-created = await workspace.memories.create(body=wire.MemoryCreate(key="notes", name="Notes"))
-memory = workspace.memories(created.value.id)
-file = await memory.files.create(body=wire.MemoryFileCreate(path="project/notes.md", content="First note"))
-await memory.files("project/notes.md").replace(
-    body=wire.MemoryFileReplace(content="Updated note"),
-    if_match=file.etag,
-)
-revisions = await memory.revisions.list(path="project/notes.md")
-revision = await memory.revisions(revisions.value.items[0].seq).get()
+if outcome.status == wire.RunStatus.WAITING:
+    successor = await outcome.run.resume(
+        [
+            wire.Complete(
+                action="complete", tool_call_id=outcome.pending.items[0].tool_call_id, result={"decision": "approved"}
+            )
+        ],
+        idempotency_key="review-approval-001",
+    )
+    resumed = await successor.run.wait()  # Exact successor; old Run never follows it.
 ```
 
-File writes use file ETags; Memory metadata uses Memory ETags. History includes integer-sequence readback, restore and path-scoped purge. Provider-backed `memory.records` supports list/create/replace/delete and `search(body=wire.MemoryRecordSearch(query=...))`, but no item GET or conditional version. Uncertain provider writes are never replayed. Thread mounts are available at `thread.memories`; mutations require the **Thread** ETag. `wire.NewThread` and `wire.Fork` accept `memories`; `RunView.memory_mounts` reports the accepted snapshot. Organization `memory_providers` exposes list/create/get/update/test.
+`Run.interrupt()` is the explicit remote interrupt. `Run.fork(body=wire.Fork(...), idempotency_key=...)` creates another Thread. No SDK helper auto-approves a pending action or performs client-tool side effects.
 
-This snapshot covers **230 HTTP operations across 154 paths**, including all 29 memory/provider operations and public auth bootstrap. Every operation has a generated resource method and low-level binding; this is structural coverage, not a claim that every endpoint has been exercised against every deployment. There are 47 lazy paginated resource collections and seven binary download stream methods; file memory itself is JSON text.
+`client.resources` is the complete generated resource tree. Authored `client.agents`, `.threads`, and `.runs` bind primary workflow handles; `.organizations` and `.workspaces` expose administration retaining explicit owner selectors. Generated `client.resources.threads.create(body=wire.NewThread(...), idempotency_key=...)` and `client.resources.threads(thread_id).inbox_entries.create(body=wire.Message(...), idempotency_key=...)` return pure `Result[wire.Submitted]`, retaining all raw identities and HTTP evidence without high-level lifecycle helpers. The generated Thread `stream` child exposes its declared HTTP operation; advanced callers who need typed protocol parsing explicitly construct `ThreadStream(client.resources.threads(thread_id))`. This Thread-wide parser is not a second ordinary high-level interaction mode or a guarantee of a complete history. `Client.execute()` returns raw generated typed HTTP responses, `Client.stream()` a raw response context. `Result[T]` exposes `.value`, `.status_code`, `.headers`, `.etag`, `.request_id`, and `.content`; `.pages()` and `.iter()` traverse supported collections lazily. `UNSET` omits a field and `None` sends explicit null where allowed. ETags, version preconditions and caller-supplied idempotency keys are preserved without hidden retries.
 
-## Development and acceptance
+Workspace memories are at `client.resources.memories`: file replacement uses a **file** ETag, metadata uses a **Memory** ETag, Thread mount edits use the **Thread** ETag. Provider-backed records are a separate API. `wire.NewThread` / Agent.start accept mounts; an accepted Run freezes its mount snapshot. Provider configuration is under its declared owner (`client.resources.memory_providers`). For complete recipes and recovery semantics see [the application guide](docs/README.md), [SDK specification](spec/README.md), and [pinned contract provenance](contract/source.json).
+
+## Validation and optional live acceptance
 
 ```bash
 make install
 make generate
 make check-all
-make hooks-check
 ```
 
-`make generate` reads only the pinned local contract. `scripts/service-smoke.py` and `scripts/service_acceptance.py` are opt-in installed-SDK checks against an **existing disposable HTTPS** Service. Supply `A13N_SERVICE_URL`, `A13N_API_TOKEN`, `A13N_WORKSPACE`, `A13N_AGENT`, and `A13N_CA_BUNDLE`; acceptance also needs `A13N_CLIENT_TOOL_AGENT` configured for a client-tool wait. Run a built wheel in a clean virtual environment and invoke the script outside the source tree. Smoke checks a completed Run and multipart upload/streaming download. Acceptance checks Thread SSE reconnect, inbox consumption, interrupt, fork, and pending-action resume. `scripts/memory_acceptance.py` additionally requires `A13N_ORGANIZATION` and `A13N_MEMORY_PROVIDER` (an accessible `mem0_oss` provider) and checks file CAS/history/restore, frozen Run mounts, record CRUD/search, provider testing and health probes. These scripts do not provision credentials, reset Service data, or claim external cloud-provider validation. Success is not publication.
-
-## License
+Generation reads only the pinned contract, not a live Service. Mock tests and package builds do not prove deployed provider behavior. Installed-SDK scripts `scripts/service-smoke.py` and `scripts/service_acceptance.py` need an **existing disposable HTTPS** Service and `A13N_SERVICE_URL`, `A13N_API_TOKEN`, `A13N_AGENT`, `A13N_CA_BUNDLE`; acceptance also needs `A13N_CLIENT_TOOL_AGENT`. `scripts/memory_acceptance.py` additionally needs an accessible `A13N_MEMORY_PROVIDER` (`mem0_oss`). These checks do not provision credentials or reset Service data; they must not run against production. No publication follows from a successful local test.
 
 Licensed under Apache-2.0.

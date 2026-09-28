@@ -1,8 +1,13 @@
 """Public failure categories shared by transport, protocol, and resources."""
 
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 from pydantic import JsonValue
+
+if TYPE_CHECKING:
+    from ._resources import Result
+    from .generated.models import EntryView
 
 
 class ProtocolError(Exception):
@@ -11,6 +16,18 @@ class ProtocolError(Exception):
 
 class TransportError(RuntimeError):
     """Transport failed; a mutation's outcome can be unknown."""
+
+
+@dataclass(repr=False)
+class SubmissionError(Exception):
+    """An exact inbox entry settled without incorporation into a Run."""
+
+    thread_id: str
+    entry_id: str
+    entry: "Result[EntryView]"
+
+    def __str__(self) -> str:
+        return f"Submission {self.entry_id} ended as {self.entry.value.status}"
 
 
 @dataclass(repr=False)

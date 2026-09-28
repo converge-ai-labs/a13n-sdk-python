@@ -12,11 +12,13 @@ from urllib.parse import urlsplit
 
 import httpx2
 
+from ._interaction import Agents, Runs, Threads
 from .errors import TransportError
 from .generated.client import AuthenticatedClient
 from .generated.models import ErrorEnvelope
 from .generated.resources import Organizations, ServiceResources, Workspaces
 from .generated.types import Response
+from .generated.workspace_routes import WORKSPACE_PATHS
 
 
 class _RejectCookies(DefaultCookiePolicy):
@@ -33,6 +35,8 @@ class _ManagedAuth(httpx2.Auth):
     token: str | None = field(default=None, repr=False)
     origin: str | None = None
     csrf_token: str | None = field(default=None, repr=False)
+    workspace_id: str | None = None
+    path_prefix: str = ""
 
     def auth_flow(self, request: httpx2.Request):
         if self.mode != "session":
@@ -43,6 +47,11 @@ class _ManagedAuth(httpx2.Auth):
         elif self.mode == "session":
             assert self.origin is not None
             request.headers["Origin"] = self.origin
+            path = request.url.path
+            if self.path_prefix:
+                path = path[len(self.path_prefix) :] if path.startswith(self.path_prefix + "/") else ""
+            if self.workspace_id is not None and any(pattern.fullmatch(path) for pattern in WORKSPACE_PATHS):
+                request.headers.setdefault("X-Workspace-ID", self.workspace_id)
             if request.method not in {"GET", "HEAD", "OPTIONS"} and self.csrf_token is not None:
                 request.headers["X-CSRF-Token"] = self.csrf_token
         yield request
@@ -77,12 +86,15 @@ class Client:
         origin: str,
         cookies: httpx2.Cookies | None = None,
         csrf_token: str | None = None,
+        workspace_id: str | None = None,
         timeout: float = 30,
         ca_bundle: str | None = None,
         transport: httpx2.AsyncBaseTransport | None = None,
     ) -> "Client":
         if not origin:
             raise ValueError("origin must be nonblank")
+        if workspace_id is not None and (not workspace_id or workspace_id in {".", ".."}):
+            raise ValueError("workspace_id must be a nonblank resource ID")
         client = cls.__new__(cls)
         managed_cookies = httpx2.Cookies()
         if cookies is not None:
@@ -90,7 +102,7 @@ class Client:
                 managed_cookies.jar.set_cookie(copy.copy(cookie))
         client._initialize(
             base_url,
-            _ManagedAuth("session", origin=origin, csrf_token=csrf_token),
+            _ManagedAuth("session", origin=origin, csrf_token=csrf_token, workspace_id=workspace_id),
             cookies=managed_cookies,
             timeout=timeout,
             ca_bundle=ca_bundle,
@@ -121,6 +133,7 @@ class Client:
         if timeout <= 0:
             raise ValueError("timeout must be positive")
         self._timeout = timeout
+        auth.path_prefix = url.path.rstrip("/")
         self._auth = auth
         self._tasks: dict[asyncio.Task[Any], int] = {}
         self._io_changed = asyncio.Event()
@@ -158,6 +171,21 @@ class Client:
     @property
     def organizations(self) -> Organizations:
         return self.resources.organizations
+
+    @property
+    def agents(self) -> Agents:
+        """Agent handles scoped by the credential (or session workspace context)."""
+        return Agents(self)
+
+    @property
+    def threads(self) -> Threads:
+        """Continuing Thread handles, independent of Agent selection."""
+        return Threads(self)
+
+    @property
+    def runs(self) -> Runs:
+        """Exact Run handles for observation and explicit control."""
+        return Runs(self)
 
     def _enter_io(self) -> asyncio.Task[Any] | None:
         if self._closed:

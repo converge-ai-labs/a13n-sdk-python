@@ -26,7 +26,6 @@ class Model:
         created_by_id (str):
         description (str):
         enabled (bool):
-        id (str):
         key (str):
         name (str):
         organization_id (str):
@@ -35,7 +34,7 @@ class Model:
         updated_at (datetime.datetime):
         updated_by_id (str):
         version (int):
-        workspace_id (None | str):
+        workspace_id (str):
     """
 
     catalog_ref: CatalogRef | None
@@ -44,7 +43,6 @@ class Model:
     created_by_id: str
     description: str
     enabled: bool
-    id: str
     key: str
     name: str
     organization_id: str
@@ -53,7 +51,7 @@ class Model:
     updated_at: datetime.datetime
     updated_by_id: str
     version: int
-    workspace_id: str | None
+    workspace_id: str
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -76,8 +74,6 @@ class Model:
 
         enabled = self.enabled
 
-        id = self.id
-
         key = self.key
 
         name = self.name
@@ -98,7 +94,6 @@ class Model:
 
         version = self.version
 
-        workspace_id: str | None
         workspace_id = self.workspace_id
 
         field_dict: dict[str, Any] = {}
@@ -111,7 +106,6 @@ class Model:
                 "created_by_id": created_by_id,
                 "description": description,
                 "enabled": enabled,
-                "id": id,
                 "key": key,
                 "name": name,
                 "organization_id": organization_id,
@@ -159,8 +153,6 @@ class Model:
 
         enabled = d.pop("enabled")
 
-        id = d.pop("id")
-
         key = d.pop("key")
 
         name = d.pop("name")
@@ -190,12 +182,7 @@ class Model:
 
         version = d.pop("version")
 
-        def _parse_workspace_id(data: object) -> str | None:
-            if data is None:
-                return data
-            return cast(str | None, data)
-
-        workspace_id = _parse_workspace_id(d.pop("workspace_id"))
+        workspace_id = d.pop("workspace_id")
 
         model = cls(
             catalog_ref=catalog_ref,
@@ -204,7 +191,6 @@ class Model:
             created_by_id=created_by_id,
             description=description,
             enabled=enabled,
-            id=id,
             key=key,
             name=name,
             organization_id=organization_id,

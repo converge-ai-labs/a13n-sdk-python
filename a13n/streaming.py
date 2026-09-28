@@ -17,15 +17,15 @@ from typing import TYPE_CHECKING, Any, Literal, ReadOnly, Self, TypedDict, cast
 import httpx2
 from pydantic import JsonValue
 
+from ._resources import Resource
 from .errors import ApiError, ProtocolError, TransportError
-from .generated.api.runs import thread_stream_api_v1_workspaces_workspace_id_threads_thread_id_stream_get
+from .generated.api.runs import thread_stream_api_v1_threads_thread_id_stream_get
 from .generated.models import ErrorEnvelope
 from .generated.types import UNSET
 
 if TYPE_CHECKING:
     from types import TracebackType
 
-    from .generated.resources import Thread
 
 _RETRYABLE_STATUS = frozenset({429, 502, 503, 504})
 _CURSOR = re.compile(r"[0-9]{1,20}-[0-9]{1,20}\Z")
@@ -256,12 +256,12 @@ class ThreadStream:
 
     def __init__(
         self,
-        thread: Thread,
+        thread: Resource,
         *,
-        after: str | None,
-        reconnect: bool,
-        max_reconnects: int,
-        max_event_bytes: int,
+        after: str | None = None,
+        reconnect: bool = True,
+        max_reconnects: int = 5,
+        max_event_bytes: int = 1_048_576,
     ) -> None:
         if after is not None and not _CURSOR.fullmatch(after):
             raise ValueError("after must be a Native thread-stream entry ID")
@@ -289,7 +289,7 @@ class ThreadStream:
         self._active_done.set()
 
     @property
-    def thread(self) -> Thread:
+    def thread(self) -> Resource:
         return self._thread
 
     @property
@@ -413,8 +413,7 @@ class ThreadStream:
                 await self._recover(TransportError("Thread stream transport failed"))
 
     async def _attach(self) -> None:
-        request = thread_stream_api_v1_workspaces_workspace_id_threads_thread_id_stream_get.build_request(
-            workspace_id=self._thread.selectors["workspace_id"],
+        request = thread_stream_api_v1_threads_thread_id_stream_get.build_request(
             thread_id=self._thread.id,
             last_event_id=self._acknowledged_cursor if self._acknowledged_cursor is not None else UNSET,
         )

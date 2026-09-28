@@ -7,11 +7,11 @@ try:
 except PackageNotFoundError:  # pragma: no cover - source-tree imports without installation
     __version__ = "0.0.0"
 
-from ._interaction import Resumed, Submitted, text_input
+from ._interaction import Agent, InboxEntry, Interaction, Resumed, Run, RunOutcome, Submitted, Thread, text_input
 from ._resources import Result
 from .client import Client
-from .errors import ApiError, ProtocolError, TransportError
-from .generated.resources import Agent, InboxEntry, Organization, Run, Session, Thread, Workspace
+from .errors import ApiError, ProtocolError, SubmissionError, TransportError
+from .generated.resources import Organization, Session, Workspace
 from .streaming import (
     BoundaryFrame,
     ChangedFrame,
@@ -32,14 +32,17 @@ __all__ = [
     "DeltaFrame",
     "GapFrame",
     "InboxEntry",
+    "Interaction",
     "Organization",
     "ProtocolError",
     "ResetFrame",
     "Result",
     "Resumed",
     "Run",
+    "RunOutcome",
     "Session",
     "StreamResponse",
+    "SubmissionError",
     "Submitted",
     "Thread",
     "ThreadFrame",

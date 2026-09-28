@@ -19,22 +19,18 @@ class AgentDuplicate:
     """A new head whose first revision copies `revision_id`, by default the source's default revision.
 
     Attributes:
-        key (str):
         name (str):
         description (str | Unset):
         labels (AgentDuplicateLabels | Unset):
         revision_id (None | str | Unset):
     """
 
-    key: str
     name: str
     description: str | Unset = UNSET
     labels: AgentDuplicateLabels | Unset = UNSET
     revision_id: str | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
-        key = self.key
-
         name = self.name
 
         description = self.description
@@ -53,7 +49,6 @@ class AgentDuplicate:
 
         field_dict.update(
             {
-                "key": key,
                 "name": name,
             }
         )
@@ -71,8 +66,6 @@ class AgentDuplicate:
         from ..models.agent_duplicate_labels import AgentDuplicateLabels
 
         d = dict(src_dict)
-        key = d.pop("key")
-
         name = d.pop("name")
 
         description = d.pop("description", UNSET)
@@ -94,7 +87,6 @@ class AgentDuplicate:
         revision_id = _parse_revision_id(d.pop("revision_id", UNSET))
 
         agent_duplicate = cls(
-            key=key,
             name=name,
             description=description,
             labels=labels,

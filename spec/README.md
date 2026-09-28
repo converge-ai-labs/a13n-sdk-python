@@ -2,7 +2,7 @@
 
 ## Design Position
 
-The `a13n` Python SDK is a typed client for managed Agents and the public Native Service resources around them. Resource objects are the primary application interface; complete low-level protocol access remains available.
+The `a13n` Python SDK is a typed client for managed Agents and the public Native Service resources around them. One finite Agent interaction is the primary application interface; complete generated typed resource and operation access remains available for advanced use.
 
 - Python operations and iteration are async-first, with explicit local resource lifetime.
 - Service owns durable resources, authorization, acceptance, execution, and protocol semantics.
@@ -29,8 +29,8 @@ The SDK consumes public Service protocols. It does not import Service startup, s
 | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | [00 Overview](00-overview.md)                                           | Architecture, dependency direction, end-to-end flow, and completion boundaries                              |
 | [01 Resources and Client Lifetime](01-resources-and-client-lifetime.md) | Python reference/snapshot roles, `Result[T]`, authentication modes, local bindings, and transport ownership |
-| [02 Interaction and Control](02-interaction-and-control.md)             | Workspace start, Thread inbox submission, Run/Entry waiting, interrupt, resume, and fork                    |
-| [03 Observation and Data Access](03-observation-and-data-access.md)     | Five-frame `ThreadStream`, cursor acknowledgement, bounded reconnection, explicit readback, and pagination  |
+| [02 Interaction and Control](02-interaction-and-control.md)             | Agent start/send, finite Interaction, exact Run and Entry waiting, interrupt, resume and fork               |
+| [03 Observation and Data Access](03-observation-and-data-access.md)     | Finite observation, advanced five-frame `ThreadStream`, cursor recovery, readback and pagination            |
 | [04 Resource Management](04-resource-management.md)                     | Management-family coverage, owning scopes, configuration provenance, and independent resource lifecycles    |
 | [05 Protocol and Compatibility](05-protocol-and-compatibility.md)       | Wire fidelity, errors, concurrency, idempotency, diagnostics, contract generation, and compatibility axes   |
 

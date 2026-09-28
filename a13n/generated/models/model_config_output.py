@@ -9,6 +9,8 @@ from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.harness_model_characteristics_output import HarnessModelCharacteristicsOutput
+    from ..models.model_config_output_extra_body import ModelConfigOutputExtraBody
+    from ..models.model_config_output_extra_headers import ModelConfigOutputExtraHeaders
 
 
 T = TypeVar("T", bound="ModelConfigOutput")
@@ -22,6 +24,8 @@ class ModelConfigOutput:
         model_name (str):
         characteristics (HarnessModelCharacteristicsOutput | Unset): Resolved Harness characteristics of the active
             Agent model.
+        extra_body (ModelConfigOutputExtraBody | Unset):
+        extra_headers (ModelConfigOutputExtraHeaders | Unset):
         max_tokens (int | None | Unset):
         temperature (float | None | Unset):
         top_p (float | None | Unset):
@@ -30,6 +34,8 @@ class ModelConfigOutput:
     model_api: str
     model_name: str
     characteristics: HarnessModelCharacteristicsOutput | Unset = UNSET
+    extra_body: ModelConfigOutputExtraBody | Unset = UNSET
+    extra_headers: ModelConfigOutputExtraHeaders | Unset = UNSET
     max_tokens: int | Unset | None = UNSET
     temperature: float | Unset | None = UNSET
     top_p: float | Unset | None = UNSET
@@ -42,6 +48,14 @@ class ModelConfigOutput:
         characteristics: dict[str, Any] | Unset = UNSET
         if not isinstance(self.characteristics, Unset):
             characteristics = self.characteristics.to_dict()
+
+        extra_body: dict[str, Any] | Unset = UNSET
+        if not isinstance(self.extra_body, Unset):
+            extra_body = self.extra_body.to_dict()
+
+        extra_headers: dict[str, Any] | Unset = UNSET
+        if not isinstance(self.extra_headers, Unset):
+            extra_headers = self.extra_headers.to_dict()
 
         max_tokens: int | Unset | None
         if isinstance(self.max_tokens, Unset):
@@ -71,6 +85,10 @@ class ModelConfigOutput:
         )
         if characteristics is not UNSET:
             field_dict["characteristics"] = characteristics
+        if extra_body is not UNSET:
+            field_dict["extra_body"] = extra_body
+        if extra_headers is not UNSET:
+            field_dict["extra_headers"] = extra_headers
         if max_tokens is not UNSET:
             field_dict["max_tokens"] = max_tokens
         if temperature is not UNSET:
@@ -83,6 +101,8 @@ class ModelConfigOutput:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.harness_model_characteristics_output import HarnessModelCharacteristicsOutput
+        from ..models.model_config_output_extra_body import ModelConfigOutputExtraBody
+        from ..models.model_config_output_extra_headers import ModelConfigOutputExtraHeaders
 
         d = dict(src_dict)
         model_api = d.pop("model_api")
@@ -95,6 +115,20 @@ class ModelConfigOutput:
             characteristics = UNSET
         else:
             characteristics = HarnessModelCharacteristicsOutput.from_dict(_characteristics)
+
+        _extra_body = d.pop("extra_body", UNSET)
+        extra_body: ModelConfigOutputExtraBody | Unset
+        if isinstance(_extra_body, Unset):
+            extra_body = UNSET
+        else:
+            extra_body = ModelConfigOutputExtraBody.from_dict(_extra_body)
+
+        _extra_headers = d.pop("extra_headers", UNSET)
+        extra_headers: ModelConfigOutputExtraHeaders | Unset
+        if isinstance(_extra_headers, Unset):
+            extra_headers = UNSET
+        else:
+            extra_headers = ModelConfigOutputExtraHeaders.from_dict(_extra_headers)
 
         def _parse_max_tokens(data: object) -> int | Unset | None:
             if data is None:
@@ -127,6 +161,8 @@ class ModelConfigOutput:
             model_api=model_api,
             model_name=model_name,
             characteristics=characteristics,
+            extra_body=extra_body,
+            extra_headers=extra_headers,
             max_tokens=max_tokens,
             temperature=temperature,
             top_p=top_p,

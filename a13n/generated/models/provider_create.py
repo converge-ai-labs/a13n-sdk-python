@@ -22,7 +22,6 @@ class ProviderCreate:
     Attributes:
         name (str):
         type_ (str):
-        workspace_id (None | str):
         config (ProviderCreateConfig | Unset):
         credential (None | ProviderCreateCredentialType0 | Unset):
         enabled (bool | Unset):
@@ -31,7 +30,6 @@ class ProviderCreate:
 
     name: str
     type_: str
-    workspace_id: str | None
     config: ProviderCreateConfig | Unset = UNSET
     credential: ProviderCreateCredentialType0 | Unset | None = UNSET
     enabled: bool | Unset = UNSET
@@ -43,9 +41,6 @@ class ProviderCreate:
         name = self.name
 
         type_ = self.type_
-
-        workspace_id: str | None
-        workspace_id = self.workspace_id
 
         config: dict[str, Any] | Unset = UNSET
         if not isinstance(self.config, Unset):
@@ -71,7 +66,6 @@ class ProviderCreate:
             {
                 "name": name,
                 "type": type_,
-                "workspace_id": workspace_id,
             }
         )
         if config is not UNSET:
@@ -95,13 +89,6 @@ class ProviderCreate:
         name = d.pop("name")
 
         type_ = d.pop("type")
-
-        def _parse_workspace_id(data: object) -> str | None:
-            if data is None:
-                return data
-            return cast(str | None, data)
-
-        workspace_id = _parse_workspace_id(d.pop("workspace_id"))
 
         _config = d.pop("config", UNSET)
         config: ProviderCreateConfig | Unset
@@ -139,7 +126,6 @@ class ProviderCreate:
         provider_create = cls(
             name=name,
             type_=type_,
-            workspace_id=workspace_id,
             config=config,
             credential=credential,
             enabled=enabled,

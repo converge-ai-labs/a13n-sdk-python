@@ -9,9 +9,10 @@ from ..models.agent_config_input_subagent_mode import AgentConfigInputSubagentMo
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
+    from ..models.agent_config_input_model_settings import AgentConfigInputModelSettings
     from ..models.agent_config_input_subagents import AgentConfigInputSubagents
     from ..models.agent_config_input_toolsets import AgentConfigInputToolsets
-    from ..models.agent_model import AgentModel
+    from ..models.agent_model_characteristics import AgentModelCharacteristics
     from ..models.agent_reviewer import AgentReviewer
     from ..models.client_tool_definition import ClientToolDefinition
     from ..models.connection_selection import ConnectionSelection
@@ -20,7 +21,6 @@ if TYPE_CHECKING:
     from ..models.output_spec import OutputSpec
     from ..models.plugin_selection import PluginSelection
     from ..models.retry_config import RetryConfig
-    from ..models.secret_requirement import SecretRequirement
     from ..models.skill_selection import SkillSelection
 
 
@@ -31,19 +31,21 @@ T = TypeVar("T", bound="AgentConfigInput")
 class AgentConfigInput:
     """
     Attributes:
-        model (AgentModel):
+        model (str):
         client_tools (list[ClientToolDefinition] | Unset):
         connection_tools (list[ConnectionSelection] | Unset):
         default_environment_template_id (None | str | Unset):
         instructions (str | Unset):
-        media_understanding (MediaUnderstandingSelection | Unset): The model describing each media kind a model cannot
-            read; a kind without one is unavailable.
+        media_understanding (MediaUnderstandingSelection | Unset): The model, by key, describing each media kind a model
+            cannot read; a kind without one is unavailable.
         memory_mounts (list[MemoryMount] | Unset):
+        model_characteristics (AgentModelCharacteristics | Unset): The agent's context policy, layered over what the
+            model declares.
+        model_settings (AgentConfigInputModelSettings | Unset):
         output_spec (None | OutputSpec | Unset):
         plugins (list[PluginSelection] | Unset):
         retries (None | RetryConfig | Unset):
         reviewer (AgentReviewer | None | Unset):
-        secret_requirements (list[SecretRequirement] | Unset):
         skills (list[SkillSelection] | Unset):
         subagent_mode (AgentConfigInputSubagentMode | Unset):
         subagents (AgentConfigInputSubagents | Unset):
@@ -51,18 +53,19 @@ class AgentConfigInput:
         user_questions (bool | Unset):
     """
 
-    model: AgentModel
+    model: str
     client_tools: list[ClientToolDefinition] | Unset = UNSET
     connection_tools: list[ConnectionSelection] | Unset = UNSET
     default_environment_template_id: str | Unset | None = UNSET
     instructions: str | Unset = UNSET
     media_understanding: MediaUnderstandingSelection | Unset = UNSET
     memory_mounts: list[MemoryMount] | Unset = UNSET
+    model_characteristics: AgentModelCharacteristics | Unset = UNSET
+    model_settings: AgentConfigInputModelSettings | Unset = UNSET
     output_spec: OutputSpec | Unset | None = UNSET
     plugins: list[PluginSelection] | Unset = UNSET
     retries: RetryConfig | Unset | None = UNSET
     reviewer: AgentReviewer | Unset | None = UNSET
-    secret_requirements: list[SecretRequirement] | Unset = UNSET
     skills: list[SkillSelection] | Unset = UNSET
     subagent_mode: AgentConfigInputSubagentMode | Unset = UNSET
     subagents: AgentConfigInputSubagents | Unset = UNSET
@@ -74,7 +77,7 @@ class AgentConfigInput:
         from ..models.output_spec import OutputSpec
         from ..models.retry_config import RetryConfig
 
-        model = self.model.to_dict()
+        model = self.model
 
         client_tools: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.client_tools, Unset):
@@ -109,6 +112,14 @@ class AgentConfigInput:
                 memory_mounts_item = memory_mounts_item_data.to_dict()
                 memory_mounts.append(memory_mounts_item)
 
+        model_characteristics: dict[str, Any] | Unset = UNSET
+        if not isinstance(self.model_characteristics, Unset):
+            model_characteristics = self.model_characteristics.to_dict()
+
+        model_settings: dict[str, Any] | Unset = UNSET
+        if not isinstance(self.model_settings, Unset):
+            model_settings = self.model_settings.to_dict()
+
         output_spec: dict[str, Any] | Unset | None
         if isinstance(self.output_spec, Unset):
             output_spec = UNSET
@@ -139,13 +150,6 @@ class AgentConfigInput:
             reviewer = self.reviewer.to_dict()
         else:
             reviewer = self.reviewer
-
-        secret_requirements: list[dict[str, Any]] | Unset = UNSET
-        if not isinstance(self.secret_requirements, Unset):
-            secret_requirements = []
-            for secret_requirements_item_data in self.secret_requirements:
-                secret_requirements_item = secret_requirements_item_data.to_dict()
-                secret_requirements.append(secret_requirements_item)
 
         skills: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.skills, Unset):
@@ -187,6 +191,10 @@ class AgentConfigInput:
             field_dict["media_understanding"] = media_understanding
         if memory_mounts is not UNSET:
             field_dict["memory_mounts"] = memory_mounts
+        if model_characteristics is not UNSET:
+            field_dict["model_characteristics"] = model_characteristics
+        if model_settings is not UNSET:
+            field_dict["model_settings"] = model_settings
         if output_spec is not UNSET:
             field_dict["output_spec"] = output_spec
         if plugins is not UNSET:
@@ -195,8 +203,6 @@ class AgentConfigInput:
             field_dict["retries"] = retries
         if reviewer is not UNSET:
             field_dict["reviewer"] = reviewer
-        if secret_requirements is not UNSET:
-            field_dict["secret_requirements"] = secret_requirements
         if skills is not UNSET:
             field_dict["skills"] = skills
         if subagent_mode is not UNSET:
@@ -212,9 +218,10 @@ class AgentConfigInput:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.agent_config_input_model_settings import AgentConfigInputModelSettings
         from ..models.agent_config_input_subagents import AgentConfigInputSubagents
         from ..models.agent_config_input_toolsets import AgentConfigInputToolsets
-        from ..models.agent_model import AgentModel
+        from ..models.agent_model_characteristics import AgentModelCharacteristics
         from ..models.agent_reviewer import AgentReviewer
         from ..models.client_tool_definition import ClientToolDefinition
         from ..models.connection_selection import ConnectionSelection
@@ -223,11 +230,10 @@ class AgentConfigInput:
         from ..models.output_spec import OutputSpec
         from ..models.plugin_selection import PluginSelection
         from ..models.retry_config import RetryConfig
-        from ..models.secret_requirement import SecretRequirement
         from ..models.skill_selection import SkillSelection
 
         d = dict(src_dict)
-        model = AgentModel.from_dict(d.pop("model"))
+        model = d.pop("model")
 
         _client_tools = d.pop("client_tools", UNSET)
         client_tools: list[ClientToolDefinition] | Unset = UNSET
@@ -275,6 +281,20 @@ class AgentConfigInput:
                 memory_mounts_item = MemoryMount.from_dict(memory_mounts_item_data)
 
                 memory_mounts.append(memory_mounts_item)
+
+        _model_characteristics = d.pop("model_characteristics", UNSET)
+        model_characteristics: AgentModelCharacteristics | Unset
+        if isinstance(_model_characteristics, Unset):
+            model_characteristics = UNSET
+        else:
+            model_characteristics = AgentModelCharacteristics.from_dict(_model_characteristics)
+
+        _model_settings = d.pop("model_settings", UNSET)
+        model_settings: AgentConfigInputModelSettings | Unset
+        if isinstance(_model_settings, Unset):
+            model_settings = UNSET
+        else:
+            model_settings = AgentConfigInputModelSettings.from_dict(_model_settings)
 
         def _parse_output_spec(data: object) -> OutputSpec | Unset | None:
             if data is None:
@@ -336,15 +356,6 @@ class AgentConfigInput:
 
         reviewer = _parse_reviewer(d.pop("reviewer", UNSET))
 
-        _secret_requirements = d.pop("secret_requirements", UNSET)
-        secret_requirements: list[SecretRequirement] | Unset = UNSET
-        if _secret_requirements is not UNSET:
-            secret_requirements = []
-            for secret_requirements_item_data in _secret_requirements:
-                secret_requirements_item = SecretRequirement.from_dict(secret_requirements_item_data)
-
-                secret_requirements.append(secret_requirements_item)
-
         _skills = d.pop("skills", UNSET)
         skills: list[SkillSelection] | Unset = UNSET
         if _skills is not UNSET:
@@ -385,11 +396,12 @@ class AgentConfigInput:
             instructions=instructions,
             media_understanding=media_understanding,
             memory_mounts=memory_mounts,
+            model_characteristics=model_characteristics,
+            model_settings=model_settings,
             output_spec=output_spec,
             plugins=plugins,
             retries=retries,
             reviewer=reviewer,
-            secret_requirements=secret_requirements,
             skills=skills,
             subagent_mode=subagent_mode,
             subagents=subagents,

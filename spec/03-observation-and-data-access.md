@@ -1,8 +1,8 @@
 # Observation and Data Access
 
-## Thread SSE
+## Finite Interaction and Advanced Thread SSE
 
-The pinned [Thread stream contract](../contract/semantics/facts-and-delivery.md#the-thread-stream) owns server semantics. The SDK's `thread.stream(after=None, reconnect=True, max_reconnects=5, max_event_bytes=1048576)` is a synchronous, I/O-free factory for one single-use `ThreadStream`. Enter with `async with`, then use `async for frame in stream`; exit or `aclose()` releases the HTTP attachment. Breaking iteration alone does not close the context. One stream supports one active reader. Client close or caller cancellation ends local I/O but not the remote Run.
+The [finite Interaction](02-interaction-and-control.md#finite-observation) is the primary observation API: it binds the exact incorporating Run first, filters foreign Run and unscoped signals, and ends when that Run seals. The pinned [Thread stream contract](../contract/semantics/facts-and-delivery.md#the-thread-stream) owns the advanced persistent transport semantics. The generated `client.resources.threads(thread_id).stream` child retains the original SSE HTTP operation. An advanced caller may explicitly construct `ThreadStream(client.resources.threads(thread_id), after=None, reconnect=True, max_reconnects=5, max_event_bytes=1048576)` as a single-use, Thread-wide parser. Neither the generated resource nor the ordinary authored Thread injects a persistent high-level `events()` workflow. Enter with `async with`, then use `async for frame in stream`; exit or `aclose()` releases the HTTP attachment. Breaking iteration alone does not close the context. One stream supports one active reader. Client close or caller cancellation ends local I/O but not the remote Run.
 
 `ThreadFrame` is a discriminated union of `DeltaFrame`, `BoundaryFrame`, `ChangedFrame`, `ResetFrame`, and `GapFrame`. Each has a literal `event_type` and read-only typed `data`. Testing `event_type` or the concrete class narrows both payload fields and cursor: `str` for delta/boundary, `None` for the other three. The parser validates these envelope fields (including ItemRef), but the nested AG-UI event is an open JSON object, not a claimed validated AG-UI event union. Read-only payload mappings are shallow; nested arbitrary JSON retains normal JSON values. Its five event names have distinct roles:
 
@@ -14,7 +14,7 @@ The pinned [Thread stream contract](../contract/semantics/facts-and-delivery.md#
 | `reset`    | `None`         | Discard affected Run output and re-read its items      |
 | `gap`      | `None`         | Re-read affected Run items to reconcile skipped deltas |
 
-No Run-level SSE, terminal Run event, notification WebSocket, or implicit projection cache is exposed. A Thread SSE EOF never proves Run completion. An absent cursor on `changed`/`reset`/`gap` is intentional: these frames cannot be used as `Last-Event-ID`. A gap can be followed by connection EOF, so the application must perform explicit readback even if reconnection is enabled.
+No Run-level SSE, terminal Run event, notification WebSocket, or implicit projection cache is exposed. The finite Interaction uses exact Run readback to terminate, not a special SSE frame. A Thread SSE EOF never proves Run completion. An absent cursor on `changed`/`reset`/`gap` is intentional: these frames cannot be used as `Last-Event-ID`. A gap can be followed by connection EOF, so the application must perform explicit readback even if reconnection is enabled.
 
 The read-only `stream.response` describes the latest successful HTTP handshake (status, headers, request ID); `is_closed` and `last_received_cursor` describe local lifecycle and last yielded cursor-bearing frame. Headers do not expose the response body. Framing and decoded payloads have a configured byte bound; malformed or truncated frames raise `ProtocolError`. Heartbeats are ignored.
 
@@ -35,4 +35,4 @@ A delivered cursor is not a durable application checkpoint. Background-processin
 - `collection.list(...)` makes one request; `pages(...)` lazily yields `Result[Page]` with original filters, opaque next cursor, and HTTP evidence. `iter(...)` flattens ordinary page items. Empty pages with next cursors do not end traversal; non-advancing cursors fail explicitly. Pagination does not promise snapshot isolation.
 - Binary downloads use generated `get_stream()` response contexts where exported; the caller checks status and consumes chunks before exit. Buffered generated `get()` remains available. Multipart uploads use a caller-owned binary source and leave it open; transport cancellation does not imply rollback of a staged upload or published Asset.
 
-Observation, waiting, and local stream cleanup send no mutation. Explicit Run commands remain separate from the stream and retain their normal Service preconditions and unknown-outcome rules.
+Finite observation, exact waiting, and local stream cleanup send no mutation. Explicit Run commands remain separate from the stream and retain their normal Service preconditions and unknown-outcome rules.

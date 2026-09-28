@@ -19,7 +19,6 @@ class Organization:
         created_at (datetime.datetime):
         id (str):
         image_url (None | str):
-        key (str):
         name (str):
         permissions (list[Verb]):
         updated_at (datetime.datetime):
@@ -29,7 +28,6 @@ class Organization:
     created_at: datetime.datetime
     id: str
     image_url: str | None
-    key: str
     name: str
     permissions: list[Verb]
     updated_at: datetime.datetime
@@ -43,8 +41,6 @@ class Organization:
 
         image_url: str | None
         image_url = self.image_url
-
-        key = self.key
 
         name = self.name
 
@@ -64,7 +60,6 @@ class Organization:
                 "created_at": created_at,
                 "id": id,
                 "image_url": image_url,
-                "key": key,
                 "name": name,
                 "permissions": permissions,
                 "updated_at": updated_at,
@@ -88,8 +83,6 @@ class Organization:
 
         image_url = _parse_image_url(d.pop("image_url"))
 
-        key = d.pop("key")
-
         name = d.pop("name")
 
         permissions = []
@@ -107,7 +100,6 @@ class Organization:
             created_at=created_at,
             id=id,
             image_url=image_url,
-            key=key,
             name=name,
             permissions=permissions,
             updated_at=updated_at,

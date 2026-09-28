@@ -4,11 +4,12 @@
 
 The Service produces three kinds of output, with different owners:
 
-| Output                   | What it is                                                                              | Authority                             |
-| ------------------------ | --------------------------------------------------------------------------------------- | ------------------------------------- |
-| Immutable facts          | Usage records, audit events, revisions, sealed runs, finished attempts, settled entries | PostgreSQL rows that triggers freeze  |
-| Resumable run state      | Checkpoint state and display objects                                                    | Object bytes selected by run pointers |
-| Observations and notices | The thread stream, lifecycle webhooks, identity mail, trace queries                     | Derived; never decides execution      |
+| Output                   | What it is                                                                                               | Authority                                          |
+| ------------------------ | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| Immutable facts          | Usage attribution and receipts, audit events, revisions, sealed runs, finished attempts, settled entries | PostgreSQL rows that triggers freeze               |
+| Current accounting       | Latest Context usage snapshots and their current contribution projections                                | PostgreSQL, independently of execution checkpoints |
+| Resumable run state      | Checkpoint state and display objects                                                                     | Object bytes selected by run pointers              |
+| Observations and notices | The thread stream, lifecycle webhooks, identity mail, trace queries                                      | Derived; never decides execution                   |
 
 PostgreSQL owns lifecycle, execution authority, inbox disposition and the pointers that select each run's committed state and display. Objects hold immutable bytes. Redis carries provisional live output and worker wakeups; it never advances execution history or decides that a run is finished. The outbox delivers what a transaction committed, at least once.
 
@@ -16,7 +17,8 @@ PostgreSQL owns lifecycle, execution authority, inbox disposition and the pointe
 
 Database triggers refuse changes to facts:
 
-- `usage_records`, `audit_events`, `agent_revisions` and `skill_revisions` refuse every update and delete; `grants` refuse updates ([03](03-tenancy.md)).
+- `audit_events`, `agent_revisions` and `skill_revisions` refuse every update and delete; `grants` refuse updates ([03](03-tenancy.md)).
+- `usage_records` refuse deletion and attribution changes. Legacy facts and provider receipts remain immutable; Context snapshots and their model observations follow the accounting replacement rules below.
 - Sealed runs, finished attempts and settled entries follow the guards in [05](05-runs.md#tables); a sealed run's labels are its only editable property.
 
 There is no lifecycle event log and no workspace-ordered lifecycle cursor. Run and attempt rows record each transition's result (timestamps, status, yield reason, failure), and a run's attempts are its execution history. Outbound notice uses [lifecycle webhooks](#lifecycle-webhooks); live observation uses [the thread stream](#the-thread-stream).
@@ -27,16 +29,20 @@ There is no lifecycle event log and no workspace-ordered lifecycle cursor. Run a
 usage_records
   id  organization_id  workspace_id  run_id  run_attempt_id  harness_run_id  call_id NULL
   digest  record  model_id NULL  price_snapshot NULL  ingested_at
-  PRIMARY KEY (id)          -- the stable Harness usage record ID
+  PRIMARY KEY (id)          -- the stable Harness scope or contribution ID
 ```
 
-A record is one Harness usage record of a run's attempt: a model request or a provider operation. Records of an inline subagent are stored under the parent run with the child's `harness_run_id`. A model record carries the `model_id` of the model its call selected, which the call check kept under the record's `call_id`, and that model's `price_snapshot` at dispatch; a record without a `call_id`, or with one the check never saw, is stored unattributed with an unknown price. Changing a model's pricing never rewrites history.
+Each attempt owns independent single-writer [Context usage snapshots](../a13n-harness/12-events-observability-and-usage.md#context-usage-snapshot). One row retains each scope's latest JSON snapshot, including its sequence; model and provider rows project that snapshot's current contributions for indexed queries. There are no per-record revision columns or revision history. Inline subagents retain independent scopes under the parent Service run and their own `harness_run_id`. A model contribution carries the `model_id` and `price_snapshot` selected at dispatch under its `call_id`; unknown dispatch correlation remains unattributed. Replacement preserves this attribution and the contribution's first `ingested_at`, and never reprices historical consumption.
 
-**Ingestion** happens in the checkpoint commit ([05](05-runs.md#assignment-and-incorporation)), and when an attempt ends with records not yet committed. Late ingestion is not fenced by the worker lease, because it records a past charge; it is scoped to the run's own attempt. Each record is inserted once; the digest covers the record, run, attempt, model and price snapshot. A duplicate ID with an equal digest is a no-op. A record over 65536 bytes, or an existing ID with a different digest, is logged as an integrity error and skipped: the stored fact is never overwritten and the carrying commit does not fail.
+**Snapshot ingestion** uses a short transaction independent of execution checkpoint publication. It serializes with the owning run and attempt, validates scope ownership and sequence through Harness, and atomically replaces the latest scope and its query projection. Equal delivery is idempotent; an older valid snapshot cannot roll back current accounting; changed identity or conflicting same-sequence facts fail. A failed write retains pending delivery for bounded attempt cleanup retry. Display chunks are not a second ingestion path.
+
+Late ingestion is not lease-fenced: an expired or sealed attempt can still report consumption, but cannot move an execution checkpoint or change a sealed outcome. A takeover starts a fresh usage scope rather than letting old and new writers overwrite one scope. Their distinct contributions both remain counted. Stable provider receipts retain their first owner across scopes in the workspace; conflicting receipt facts are rejected. A native provider-suspended generation cannot continue across fresh scopes; Harness rejects that unsupported continuation before dispatch rather than recounting cumulative usage.
+
+Legacy record delivery remains append-only for compatibility: checkpoint and terminal reconciliation insert each fact once, compare its digest, and log and skip oversized (over 65536 bytes) or conflicting records without overwriting the first fact. The forward schema migration only replaces the usage guard; it does not rewrite released payloads, add revision history, or change query attribution.
 
 `runs.usage_at_seal` is the total visible to the sealing transaction (`requests`, `input_tokens`, `output_tokens` of model records); it is not corrected by later arrivals. `max_usage.requests` counts model records ([05](05-runs.md#execute)).
 
-`GET /workspaces/{ws}/usage` (`read`) sums model records per `model_id`, including late arrivals: `requests`, input, output, cache-read and cache-write tokens, and `cost`, the sum of each record's own priced cost (null when no record of that model was priced). It filters by `run_id`, `thread_id`, `session_id`, `ingested_after` and `ingested_before`. `model_id` is null for unattributed records. A crash before a provider report reaches the Service can leave an unknown charge; ingestion preserves received facts, not discovery of every billable operation.
+`GET /usage` (`read`) sums model records per model, including late arrivals, and names each by its key in `model`: `requests`, input, output, cache-read and cache-write tokens, and `cost`, the sum of each record's own priced cost (null when no record of that model was priced). It filters by `run_id`, `thread_id`, `session_id`, `ingested_after` and `ingested_before`. `model` is null for unattributed records. A crash before a provider report reaches the Service can leave an unknown charge; ingestion preserves received facts, not discovery of every billable operation.
 
 ## Objects
 
@@ -101,7 +107,7 @@ Model output arrives a token or a few at a time, so consecutive **fragments** ar
 
 After appending a boundary the writer removes the entries before it (`XTRIM MINID`) that were appended more than `worker.stream_trim_seconds` earlier, measured by the boundary's own entry ID; with 0 it removes every entry before the boundary. The boundary itself stays. The stream therefore retains the entries after its latest boundary and those within the retention window before it; earlier entries may be removed at any time. As a backstop, `XADD` caps the stream at about `worker.stream_length` entries (coalesced output appends about ten entries a second), and the stream expires `worker.stream_ttl` seconds after its last append.
 
-`GET /workspaces/{ws}/threads/{thread}/stream` serves one thread as Server-Sent Events (`Cache-Control: no-store`, `X-Accel-Buffering: no`). Opening it authorizes `read` before the response starts, so refusals are ordinary HTTP errors. Without `Last-Event-ID` the connection replays every retained entry; with one it continues after that entry, and an entry ID no longer retained starts with a `gap`. It then follows live entries. `Last-Event-ID` must be a stream entry ID, `{ms}-{seq}` with at most 20 digits in each part; any other value is `invalid_argument`. A comment line keeps the connection alive every 15 seconds. The connection holds no database session while idle.
+`GET /threads/{thread}/stream` serves one thread as Server-Sent Events (`Cache-Control: no-store`, `X-Accel-Buffering: no`). Opening it authorizes `read` before the response starts, so refusals are ordinary HTTP errors. Without `Last-Event-ID` the connection replays every retained entry; with one it continues after that entry, and an entry ID no longer retained starts with a `gap`. It then follows live entries. `Last-Event-ID` must be a stream entry ID, `{ms}-{seq}` with at most 20 digits in each part; any other value is `invalid_argument`. A comment line keeps the connection alive every 15 seconds. The connection holds no database session while idle.
 
 | Frame (`event:`) | `data`                                                                | Client action                                                                    |
 | ---------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
