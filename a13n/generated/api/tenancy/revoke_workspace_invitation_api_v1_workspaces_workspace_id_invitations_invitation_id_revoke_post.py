@@ -76,7 +76,8 @@ def sync_detailed(
     Args:
         workspace_id (str):
         invitation_id (str):
-        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current view
+        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current
+            view, `"{key}:{version}"` for a model
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -111,7 +112,8 @@ def sync(
     Args:
         workspace_id (str):
         invitation_id (str):
-        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current view
+        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current
+            view, `"{key}:{version}"` for a model
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -141,7 +143,8 @@ async def asyncio_detailed(
     Args:
         workspace_id (str):
         invitation_id (str):
-        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current view
+        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current
+            view, `"{key}:{version}"` for a model
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -174,7 +177,8 @@ async def asyncio(
     Args:
         workspace_id (str):
         invitation_id (str):
-        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current view
+        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current
+            view, `"{key}:{version}"` for a model
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

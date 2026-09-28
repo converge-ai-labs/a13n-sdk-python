@@ -14,20 +14,12 @@ T = TypeVar("T", bound="WorkspaceUpdate")
 class WorkspaceUpdate:
     """
     Attributes:
-        key (None | str | Unset):
         name (None | str | Unset):
     """
 
-    key: str | Unset | None = UNSET
     name: str | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
-        key: str | Unset | None
-        if isinstance(self.key, Unset):
-            key = UNSET
-        else:
-            key = self.key
-
         name: str | Unset | None
         if isinstance(self.name, Unset):
             name = UNSET
@@ -37,8 +29,6 @@ class WorkspaceUpdate:
         field_dict: dict[str, Any] = {}
 
         field_dict.update({})
-        if key is not UNSET:
-            field_dict["key"] = key
         if name is not UNSET:
             field_dict["name"] = name
 
@@ -47,15 +37,6 @@ class WorkspaceUpdate:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-
-        def _parse_key(data: object) -> str | Unset | None:
-            if data is None:
-                return data
-            if isinstance(data, Unset):
-                return data
-            return cast(str | Unset | None, data)
-
-        key = _parse_key(d.pop("key", UNSET))
 
         def _parse_name(data: object) -> str | Unset | None:
             if data is None:
@@ -67,7 +48,6 @@ class WorkspaceUpdate:
         name = _parse_name(d.pop("name", UNSET))
 
         workspace_update = cls(
-            key=key,
             name=name,
         )
 

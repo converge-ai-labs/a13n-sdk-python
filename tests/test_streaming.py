@@ -4,7 +4,7 @@ import json
 import httpx2
 import pytest
 
-from a13n import Client, ProtocolError, ThreadFrame, TransportError
+from a13n import Client, ProtocolError, ThreadFrame, ThreadStream, TransportError
 
 
 def sse(event: str, data: dict, cursor: str | None = None) -> bytes:
@@ -43,8 +43,8 @@ def test_thread_stream_parses_all_five_frames_and_requires_readback() -> None:
             )
 
         async with Client("https://service.example", "secret", transport=httpx2.MockTransport(handle)) as client:
-            thread = client.workspaces("ws_1").threads("thr_1")
-            stream = thread.stream(reconnect=False)
+            thread = client.threads("thr_1")
+            stream = ThreadStream(thread, reconnect=False)
             assert not requests
             async with stream:
                 frames = [frame async for frame in stream]
@@ -53,7 +53,7 @@ def test_thread_stream_parses_all_five_frames_and_requires_readback() -> None:
                 assert stream.response and stream.response.request_id == "req_1"
             assert [frame.event_type for frame in frames] == ["delta", "boundary", "changed", "reset", "gap"]
             assert [frame.cursor for frame in frames] == ["100-0", "101-0", None, None, None]
-            assert requests[0].url.path == "/api/v1/workspaces/ws_1/threads/thr_1/stream"
+            assert requests[0].url.path == "/api/v1/threads/thr_1/stream"
             with pytest.raises(RuntimeError, match="single-use"):
                 async with stream:
                     pass
@@ -76,7 +76,7 @@ def test_thread_stream_reconnects_only_after_applied_frame_cursor(monkeypatch: p
 
         monkeypatch.setattr("a13n.streaming.random.uniform", lambda _low, _high: 0)
         async with Client("https://service.example", "token", transport=httpx2.MockTransport(handle)) as client:
-            async with client.workspaces("ws_1").threads("thr_1").stream(max_reconnects=1) as stream:
+            async with ThreadStream(client.threads("thr_1"), max_reconnects=1) as stream:
                 first = await anext(stream)
                 second = await anext(stream)
                 assert (first.cursor, second.cursor) == ("100-0", "101-0")
@@ -90,7 +90,7 @@ def test_thread_stream_rejects_bad_cursors_before_io(cursor: str) -> None:
     async def scenario() -> None:
         async with Client("https://service.example", "token") as client:
             with pytest.raises(ValueError):
-                client.workspaces("ws_1").threads("thr_1").stream(after=cursor)
+                ThreadStream(client.threads("thr_1"), after=cursor)
 
     asyncio.run(scenario())
 
@@ -109,7 +109,7 @@ def test_malformed_frame_is_not_silent_recovery(data: bytes) -> None:
             lambda _request: httpx2.Response(200, content=data, headers={"Content-Type": "text/event-stream"})
         )
         async with Client("https://service.example", "token", transport=transport) as client:
-            async with client.workspaces("ws_1").threads("thr_1").stream(reconnect=False) as stream:
+            async with ThreadStream(client.threads("thr_1"), reconnect=False) as stream:
                 with pytest.raises(ProtocolError):
                     await anext(stream)
 
@@ -129,7 +129,7 @@ def test_gap_only_attachments_do_not_reset_retry_budget(monkeypatch: pytest.Monk
 
         monkeypatch.setattr("a13n.streaming.random.uniform", lambda _low, _high: 0)
         async with Client("https://service.example", "token", transport=httpx2.MockTransport(handle)) as client:
-            async with client.workspaces("ws_1").threads("thr_1").stream(max_reconnects=2) as stream:
+            async with ThreadStream(client.threads("thr_1"), max_reconnects=2) as stream:
                 for _ in range(3):
                     assert (await anext(stream)).event_type == "gap"
                 with pytest.raises(TransportError):
@@ -150,7 +150,7 @@ def test_bounded_eof_recovery_does_not_claim_run_completion(monkeypatch: pytest.
 
         monkeypatch.setattr("a13n.streaming.random.uniform", lambda _low, _high: 0)
         async with Client("https://service.example", "token", transport=httpx2.MockTransport(handle)) as client:
-            async with client.workspaces("ws_1").threads("thr_1").stream(max_reconnects=1) as stream:
+            async with ThreadStream(client.threads("thr_1"), max_reconnects=1) as stream:
                 with pytest.raises(TransportError):
                     await anext(stream)
             assert count == 2

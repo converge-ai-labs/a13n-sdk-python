@@ -19,7 +19,6 @@ T = TypeVar("T", bound="TemplateCreate")
 class TemplateCreate:
     """
     Attributes:
-        key (str):
         name (str):
         provider_id (str):
         config (TemplateConfig | Unset):
@@ -27,7 +26,6 @@ class TemplateCreate:
         labels (TemplateCreateLabels | Unset):
     """
 
-    key: str
     name: str
     provider_id: str
     config: TemplateConfig | Unset = UNSET
@@ -35,8 +33,6 @@ class TemplateCreate:
     labels: TemplateCreateLabels | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
-        key = self.key
-
         name = self.name
 
         provider_id = self.provider_id
@@ -59,7 +55,6 @@ class TemplateCreate:
 
         field_dict.update(
             {
-                "key": key,
                 "name": name,
                 "provider_id": provider_id,
             }
@@ -79,8 +74,6 @@ class TemplateCreate:
         from ..models.template_create_labels import TemplateCreateLabels
 
         d = dict(src_dict)
-        key = d.pop("key")
-
         name = d.pop("name")
 
         provider_id = d.pop("provider_id")
@@ -109,7 +102,6 @@ class TemplateCreate:
             labels = TemplateCreateLabels.from_dict(_labels)
 
         template_create = cls(
-            key=key,
             name=name,
             provider_id=provider_id,
             config=config,

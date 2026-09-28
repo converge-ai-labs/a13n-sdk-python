@@ -26,7 +26,6 @@ class Skill:
         default_revision_id (None | str):
         description (str):
         id (str):
-        key (str):
         labels (SkillLabels):
         name (str):
         organization_id (str):
@@ -43,7 +42,6 @@ class Skill:
     default_revision_id: str | None
     description: str
     id: str
-    key: str
     labels: SkillLabels
     name: str
     organization_id: str
@@ -79,8 +77,6 @@ class Skill:
 
         id = self.id
 
-        key = self.key
-
         labels = self.labels.to_dict()
 
         name = self.name
@@ -106,7 +102,6 @@ class Skill:
                 "default_revision_id": default_revision_id,
                 "description": description,
                 "id": id,
-                "key": key,
                 "labels": labels,
                 "name": name,
                 "organization_id": organization_id,
@@ -171,8 +166,6 @@ class Skill:
 
         id = d.pop("id")
 
-        key = d.pop("key")
-
         labels = SkillLabels.from_dict(d.pop("labels"))
 
         name = d.pop("name")
@@ -195,7 +188,6 @@ class Skill:
             default_revision_id=default_revision_id,
             description=description,
             id=id,
-            key=key,
             labels=labels,
             name=name,
             organization_id=organization_id,

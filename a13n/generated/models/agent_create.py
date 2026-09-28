@@ -20,22 +20,18 @@ class AgentCreate:
     """
     Attributes:
         config (AgentConfigInput):
-        key (str):
         name (str):
         description (str | Unset):
         labels (AgentCreateLabels | Unset):
     """
 
     config: AgentConfigInput
-    key: str
     name: str
     description: str | Unset = UNSET
     labels: AgentCreateLabels | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
         config = self.config.to_dict()
-
-        key = self.key
 
         name = self.name
 
@@ -50,7 +46,6 @@ class AgentCreate:
         field_dict.update(
             {
                 "config": config,
-                "key": key,
                 "name": name,
             }
         )
@@ -69,8 +64,6 @@ class AgentCreate:
         d = dict(src_dict)
         config = AgentConfigInput.from_dict(d.pop("config"))
 
-        key = d.pop("key")
-
         name = d.pop("name")
 
         description = d.pop("description", UNSET)
@@ -84,7 +77,6 @@ class AgentCreate:
 
         agent_create = cls(
             config=config,
-            key=key,
             name=name,
             description=description,
             labels=labels,

@@ -1,4 +1,4 @@
-"""The generated organization provider resource is the only Web provider owner."""
+"""Workspace-scoped Web providers use the complete generated resource API."""
 
 import asyncio
 
@@ -11,7 +11,7 @@ from a13n.generated.types import UNSET
 
 
 def test_provider_credential_omission_and_null_are_distinct() -> None:
-    base = {"name": "web", "type_": "search", "workspace_id": "ws_1"}
+    base = {"name": "web", "type_": "search"}
     omitted = wire.ProviderCreate(**base)
     cleared = wire.ProviderCreate(**base, credential=None)
     assert omitted.credential is UNSET
@@ -20,7 +20,7 @@ def test_provider_credential_omission_and_null_are_distinct() -> None:
     assert "private" not in repr(cleared)
 
 
-def test_web_provider_navigation_is_org_scoped_and_preserves_pagination() -> None:
+def test_web_provider_navigation_is_workspace_scoped_and_preserves_pagination() -> None:
     async def scenario() -> None:
         visited: list[str] = []
 
@@ -29,12 +29,12 @@ def test_web_provider_navigation_is_org_scoped_and_preserves_pagination() -> Non
             return httpx2.Response(200, json={"items": [], "next_cursor": None})
 
         async with Client("https://service.example", "token", transport=httpx2.MockTransport(handle)) as client:
-            providers = client.organizations("org_1").web_providers
+            providers = client.resources.web_providers
             assert not visited
-            result = await providers.list(workspace_id="ws_1")
+            result = await providers.list()
             assert result.value.items == []
-            assert "/api/v1/organizations/org_1/web-providers" in visited[0]
-            assert "workspace_id=ws_1" in visited[0]
+            assert "/api/v1/web-providers" in visited[0]
+            assert "workspace_id=" not in visited[0]
 
     asyncio.run(scenario())
 
@@ -59,11 +59,7 @@ def test_provider_mutations_never_automatically_replay() -> None:
 
         async with Client("https://service.example", "token", transport=httpx2.MockTransport(handle)) as client:
             with pytest.raises(ApiError) as error:
-                await (
-                    client.organizations("org_1")
-                    .web_providers("prv_1")
-                    .update(body=wire.ProviderUpdate(), if_match='"prv_1:1"')
-                )
+                await client.resources.web_providers("prv_1").update(body=wire.ProviderUpdate(), if_match='"prv_1:1"')
             assert error.value.details["current_etag"] == "new"
             assert len(requests) == 1
             assert requests[0].headers["if-match"] == '"prv_1:1"'

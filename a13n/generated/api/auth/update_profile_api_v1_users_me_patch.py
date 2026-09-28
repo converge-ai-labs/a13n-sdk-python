@@ -73,7 +73,8 @@ def sync_detailed(
     """Update Profile
 
     Args:
-        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current view
+        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current
+            view, `"{key}:{version}"` for a model
         body (ProfileUpdate):
 
     Raises:
@@ -105,7 +106,8 @@ def sync(
     """Update Profile
 
     Args:
-        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current view
+        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current
+            view, `"{key}:{version}"` for a model
         body (ProfileUpdate):
 
     Raises:
@@ -132,7 +134,8 @@ async def asyncio_detailed(
     """Update Profile
 
     Args:
-        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current view
+        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current
+            view, `"{key}:{version}"` for a model
         body (ProfileUpdate):
 
     Raises:
@@ -162,7 +165,8 @@ async def asyncio(
     """Update Profile
 
     Args:
-        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current view
+        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current
+            view, `"{key}:{version}"` for a model
         body (ProfileUpdate):
 
     Raises:

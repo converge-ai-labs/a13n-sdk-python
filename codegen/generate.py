@@ -5,6 +5,7 @@ Generation does not import, check out, or execute the Service.
 
 import ast
 import json
+import re
 import shutil
 import subprocess
 import tempfile
@@ -176,6 +177,21 @@ def generate(document: dict, work: Path) -> Path:
             )
         path.write_text(text)
     generate_resources(document, output)
+    scoped_paths = sorted(
+        path
+        for path, operations in document["paths"].items()
+        if any(
+            any(parameter.get("name") == "X-Workspace-ID" for parameter in operation.get("parameters", []))
+            for operation in operations.values()
+            if isinstance(operation, dict)
+        )
+    )
+    patterns = [re.sub(r"\\\{[^{}]+\\\}", r"[^/]+", re.escape(path)) + r"\Z" for path in scoped_paths]
+    (output / "workspace_routes.py").write_text(
+        '"""Generated workspace-scoped routes for session credential headers."""\n'
+        "import re\n\n"
+        "WORKSPACE_PATHS = (\n" + "".join(f"    re.compile({pattern!r}),\n" for pattern in patterns) + ")\n"
+    )
     run(
         "uv",
         "tool",

@@ -23,7 +23,7 @@ OPERATIONS = [
 
 def resource(client: Client, path: str):
     if "/agents/" in path:
-        return client.workspaces("ws_1").agents("agt_1").avatar
+        return client.resources.agents("agt_1").avatar
     if "/organizations/" in path:
         return client.organizations("org_1").icon
     if "/workspaces/" in path:

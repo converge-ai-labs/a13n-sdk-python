@@ -13,7 +13,7 @@ def test_adapter_preserves_pinned_contract_and_normalizes_generator_only_shapes(
     assert json.dumps(document) == original
     assert adapted["components"]["schemas"]["AgentConfig-Output"].get("title") is None
     assert document["components"]["schemas"]["AgentConfig-Output"]["title"] == "AgentConfig"
-    asset = "/api/v1/workspaces/{workspace_id}/assets/{asset_id}/content"
+    asset = "/api/v1/assets/{asset_id}/content"
     assert "*/*" in document["paths"][asset]["get"]["responses"]["200"]["content"]
     assert "application/octet-stream" in adapted["paths"][asset]["get"]["responses"]["200"]["content"]
     assert "*/*" not in adapted["paths"][asset]["get"]["responses"]["200"]["content"]

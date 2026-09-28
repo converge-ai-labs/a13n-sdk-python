@@ -1,6 +1,6 @@
 """Installed-SDK acceptance against an existing, disposable Native Service.
 
-Requires A13N_SERVICE_URL, A13N_API_TOKEN, A13N_WORKSPACE, A13N_AGENT,
+Requires A13N_SERVICE_URL, A13N_API_TOKEN, A13N_AGENT,
 A13N_CLIENT_TOOL_AGENT and A13N_CA_BUNDLE. All HTTP requests use verified TLS;
 this script neither provisions credentials nor resets Service state. Its output
 contains protocol identities and status, never credentials or model text.
@@ -17,7 +17,7 @@ from uuid import uuid4
 
 import httpx2 as httpx
 
-from a13n import Client, Submitted
+from a13n import Client, Interaction, Submitted, ThreadStream
 from a13n.generated import models as wire
 
 
@@ -101,7 +101,7 @@ def _required(name: str) -> str:
     return value
 
 
-def _submission_evidence(submitted: Submitted) -> dict[str, str | None]:
+def _submission_evidence(submitted: Submitted | Interaction) -> dict[str, str | None]:
     value = submitted.receipt.value
     if (
         value.thread.id != submitted.thread.id
@@ -118,7 +118,7 @@ def _submission_evidence(submitted: Submitted) -> dict[str, str | None]:
     }
 
 
-def _accepted_run(submitted: Submitted) -> Any:
+def _accepted_run(submitted: Submitted | Interaction) -> Any:
     if submitted.run is None:
         raise RuntimeError("Idle Thread submission unexpectedly has no Run")
     return submitted.run
@@ -126,35 +126,33 @@ def _accepted_run(submitted: Submitted) -> Any:
 
 async def _wait_run(run: Any, expected: wire.RunStatus) -> dict[str, Any]:
     result = await run.wait(timeout=120.0, poll_interval=0.1)
-    if result.value.status != expected or result.value.sealed_at is None:
-        raise RuntimeError(f"Run {run.id} sealed as {result.value.status}; expected {expected}")
+    if result.status != expected or result.snapshot.value.sealed_at is None:
+        raise RuntimeError(f"Run {run.id} sealed as {result.status}; expected {expected}")
     items = (await run.items.get()).value
     if items.run.id != run.id or not items.complete:
         raise RuntimeError("Run items readback is incomplete or belongs to another Run")
     return {
         "run_id": run.id,
-        "status": str(result.value.status),
+        "status": str(result.status),
         "item_count": len(items.items),
         "position": items.position,
     }
 
 
-async def _disconnect_acceptance(
-    base_url: str, token: str, ca_bundle: str, workspace_id: str, agent: str
-) -> dict[str, Any]:
+async def _disconnect_acceptance(base_url: str, token: str, ca_bundle: str, agent: str) -> dict[str, Any]:
     import ssl
 
     transport = DisconnectAfterEventTransport(
         httpx.AsyncHTTPTransport(verify=ssl.create_default_context(cafile=ca_bundle), trust_env=False)
     )
     async with Client(base_url, token, transport=transport, ca_bundle=ca_bundle, timeout=60.0) as client:
-        submitted = await client.workspaces(workspace_id).start(
-            "[slow] [long] Exercise Native Thread SSE cursor recovery.", agent_id=agent, idempotency_key=_key("stream")
+        submitted = await client.agents(agent).start(
+            "[slow] [long] Exercise Native Thread SSE cursor recovery.", idempotency_key=_key("stream")
         )
         cursors: list[str] = []
         frames: list[str] = []
         async with asyncio.timeout(120.0):
-            async with submitted.thread.stream(max_reconnects=3) as stream:
+            async with ThreadStream(submitted.thread, max_reconnects=3) as stream:
                 async for frame in stream:
                     frames.append(frame.event_type)
                     if frame.cursor is not None:
@@ -177,27 +175,30 @@ async def _disconnect_acceptance(
     }
 
 
-async def _inbox_and_control(client: Client, workspace_id: str, agent: str) -> dict[str, Any]:
-    workspace = client.workspaces(workspace_id)
-    source = await workspace.start(
+async def _inbox_and_control(client: Client, agent: str) -> dict[str, Any]:
+    source = await client.agents(agent).start(
         "[interruptible] Hold the run long enough for an inbox message.",
-        agent_id=agent,
         idempotency_key=_key("inbox-source"),
     )
     run = _accepted_run(source)
-    queued = await source.thread.submit(
-        "Follow-up Native inbox message.", agent_id=agent, idempotency_key=_key("inbox-next")
+    queued = await client.agents(agent).send(
+        source.thread.id, "Follow-up Native inbox message.", idempotency_key=_key("inbox-next")
     )
     if queued.run is not None:
         raise RuntimeError("Submission to a running Thread did not remain queued")
     first = await _wait_run(run, wire.RunStatus.COMPLETED)
-    settled = (await queued.entry.wait(timeout=120.0, poll_interval=0.1)).value
-    if settled.status != wire.EntryStatus.CONSUMED or not settled.assigned_run_id:
-        raise RuntimeError(f"Inbox entry ended as {settled.status}, without an assigned Run")
-    second = await _wait_run(workspace.runs(settled.assigned_run_id), wire.RunStatus.COMPLETED)
+    incorporated = await queued.result(timeout=120.0, poll_interval=0.1)
+    settled = (await queued.entry.get()).value
+    if (
+        settled.status != wire.EntryStatus.CONSUMED
+        or settled.assigned_run_id != incorporated.run.id
+        or incorporated.status != wire.RunStatus.COMPLETED
+    ):
+        raise RuntimeError("Queued Agent.send did not incorporate into its exact completed Run")
+    second = await _wait_run(incorporated.run, wire.RunStatus.COMPLETED)
 
-    interrupt_source = await workspace.start(
-        "[interruptible] Hold until an interrupt request.", agent_id=agent, idempotency_key=_key("interrupt-start")
+    interrupt_source = await client.agents(agent).start(
+        "[interruptible] Hold until an interrupt request.", idempotency_key=_key("interrupt-start")
     )
     interrupt_run = _accepted_run(interrupt_source)
     interrupted = await interrupt_run.interrupt()
@@ -211,9 +212,8 @@ async def _inbox_and_control(client: Client, workspace_id: str, agent: str) -> d
     }
 
 
-async def _resume_and_fork(client: Client, workspace_id: str, agent: str, client_tool_agent: str) -> dict[str, Any]:
-    workspace = client.workspaces(workspace_id)
-    completed = await workspace.start("Short Native response.", agent_id=agent, idempotency_key=_key("fork-source"))
+async def _resume_and_fork(client: Client, agent: str, client_tool_agent: str) -> dict[str, Any]:
+    completed = await client.agents(agent).start("Short Native response.", idempotency_key=_key("fork-source"))
     original = _accepted_run(completed)
     first = await _wait_run(original, wire.RunStatus.COMPLETED)
     forked = await original.fork(
@@ -226,22 +226,25 @@ async def _resume_and_fork(client: Client, workspace_id: str, agent: str, client
         raise RuntimeError("Fork did not create a distinct Thread")
     fork_final = await _wait_run(_accepted_run(forked), wire.RunStatus.COMPLETED)
 
-    waiting = await workspace.start(
-        "[client] Review a local SDK scenario.", agent_id=client_tool_agent, idempotency_key=_key("waiting")
+    waiting = await client.agents(client_tool_agent).start(
+        "[client] Review a local SDK scenario.", idempotency_key=_key("waiting")
     )
-    waiting_run = _accepted_run(waiting)
-    waiting_final = await _wait_run(waiting_run, wire.RunStatus.WAITING)
-    pending = (await waiting_run.get()).value.pending
-    if pending is None or len(pending.items) != 1:
-        raise RuntimeError("Waiting Run did not expose exactly one pending action")
+    waiting_outcome = await waiting.result(timeout=120.0, poll_interval=0.1)
+    waiting_run = waiting_outcome.run
+    pending = waiting_outcome.pending
+    if waiting_outcome.status != wire.RunStatus.WAITING or pending is None or len(pending.items) != 1:
+        raise RuntimeError("Finite Interaction did not expose exactly one pending action")
+    waiting_items = (await waiting_run.items.get()).value
+    if waiting_items.run.id != waiting_run.id or not waiting_items.complete:
+        raise RuntimeError("Waiting Run items readback is incomplete or belongs to another Run")
+    waiting_final = {
+        "run_id": waiting_run.id,
+        "status": str(waiting_outcome.status),
+        "item_count": len(waiting_items.items),
+        "position": waiting_items.position,
+    }
     resumed = await waiting_run.resume(
-        wire.ResumeRequest(
-            answers=[
-                wire.Complete(
-                    action="complete", tool_call_id=pending.items[0].tool_call_id, result={"decision": "approved"}
-                )
-            ]
-        ),
+        [wire.Complete(action="complete", tool_call_id=pending.items[0].tool_call_id, result={"decision": "approved"})],
         idempotency_key=_key("resume"),
     )
     if resumed.run.id == waiting_run.id:
@@ -259,14 +262,13 @@ async def _resume_and_fork(client: Client, workspace_id: str, agent: str, client
 async def main() -> None:
     base_url = _required("A13N_SERVICE_URL")
     token = _required("A13N_API_TOKEN")
-    workspace_id = _required("A13N_WORKSPACE")
     agent = _required("A13N_AGENT")
     client_tool_agent = _required("A13N_CLIENT_TOOL_AGENT")
     ca_bundle = _required("A13N_CA_BUNDLE")
-    disconnect = await _disconnect_acceptance(base_url, token, ca_bundle, workspace_id, agent)
+    disconnect = await _disconnect_acceptance(base_url, token, ca_bundle, agent)
     async with Client(base_url, token, ca_bundle=ca_bundle, timeout=60.0) as client:
-        inbox_control = await _inbox_and_control(client, workspace_id, agent)
-        successors = await _resume_and_fork(client, workspace_id, agent, client_tool_agent)
+        inbox_control = await _inbox_and_control(client, agent)
+        successors = await _resume_and_fork(client, agent, client_tool_agent)
     print(
         json.dumps(
             {

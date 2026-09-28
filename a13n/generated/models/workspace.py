@@ -24,7 +24,6 @@ class Workspace:
         created_at (datetime.datetime):
         id (str):
         image_url (None | str):
-        key (str):
         name (str):
         organization_id (str):
         permissions (list[Verb]):
@@ -37,7 +36,6 @@ class Workspace:
     created_at: datetime.datetime
     id: str
     image_url: str | None
-    key: str
     name: str
     organization_id: str
     permissions: list[Verb]
@@ -59,8 +57,6 @@ class Workspace:
 
         image_url: str | None
         image_url = self.image_url
-
-        key = self.key
 
         name = self.name
 
@@ -85,7 +81,6 @@ class Workspace:
                 "created_at": created_at,
                 "id": id,
                 "image_url": image_url,
-                "key": key,
                 "name": name,
                 "organization_id": organization_id,
                 "permissions": permissions,
@@ -129,8 +124,6 @@ class Workspace:
 
         image_url = _parse_image_url(d.pop("image_url"))
 
-        key = d.pop("key")
-
         name = d.pop("name")
 
         organization_id = d.pop("organization_id")
@@ -153,7 +146,6 @@ class Workspace:
             created_at=created_at,
             id=id,
             image_url=image_url,
-            key=key,
             name=name,
             organization_id=organization_id,
             permissions=permissions,

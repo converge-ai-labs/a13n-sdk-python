@@ -15,23 +15,23 @@ def run_pyright(path: Path) -> dict:
     return report
 
 
-def test_public_typing_accepts_workspace_scoped_submission(tmp_path: Path) -> None:
+def test_public_typing_accepts_agent_submission(tmp_path: Path) -> None:
     source = tmp_path / "valid.py"
     source.write_text(
         "from a13n import Client\n"
         "\n"
         "async def use(client: Client) -> None:\n"
-        "    submission = await client.workspaces('ws').start('hello', agent_id='agent', idempotency_key='key')\n"
+        "    submission = await client.agents('agent').start('hello', idempotency_key='key')\n"
         "    entry_id: str = submission.entry.id\n"
-        "    memory = client.workspaces('ws').memories('mem')\n"
+        "    memory = client.resources.memories('mem')\n"
         "    revision = await memory.revisions(5).get()\n"
         "    sequence: int = revision.value.seq\n"
         "    print(sequence)\n"
         "    if submission.run is not None:\n"
         "        status = await submission.run.wait(timeout=5, poll_interval=0.1)\n"
-        "        print(status.value.status)\n"
-        "    async with submission.thread.stream() as stream:\n"
-        "        async for frame in stream:\n"
+        "        print(status.status)\n"
+        "    async with submission:\n"
+        "        async for frame in submission:\n"
         "            if frame.cursor is not None:\n"
         "                cursor: str = frame.cursor\n"
         "                print(cursor, entry_id)\n"
@@ -40,16 +40,16 @@ def test_public_typing_accepts_workspace_scoped_submission(tmp_path: Path) -> No
     assert report["returncode"] == 0, report["generalDiagnostics"]
 
 
-def test_public_typing_rejects_global_paths_and_wrong_payload(tmp_path: Path) -> None:
+def test_public_typing_rejects_invalid_paths_and_wrong_payload(tmp_path: Path) -> None:
     source = tmp_path / "invalid.py"
     source.write_text(
         "from a13n import Client\n"
         "\n"
         "async def misuse(client: Client) -> None:\n"
-        "    client.runs('run')\n"
-        "    await client.workspaces('ws').runs('run').wait(timeout='forever', poll_interval=0.1)\n"
-        "    await client.workspaces('ws').threads('thread').submit('hello', idempotency_key='key')\n"
-        "    await client.workspaces('ws').threads('thread').stream()\n"
+        "    client.workspaces('ws').runs('run')\n"
+        "    await client.runs('run').wait(timeout='forever', poll_interval=0.1)\n"
+        "    await client.agents('agent').send('thread', 123, idempotency_key='key')\n"
+        "    await client.threads('thread').stream()\n"
     )
     report = run_pyright(source)
     assert report["returncode"] == 1
@@ -59,7 +59,7 @@ def test_public_typing_rejects_global_paths_and_wrong_payload(tmp_path: Path) ->
 def test_frame_discriminants_narrow_data_and_cursor(tmp_path: Path) -> None:
     source = tmp_path / "frames.py"
     source.write_text(
-        "from a13n import ThreadFrame, Client, Submitted, text_input\n"
+        "from a13n import ThreadFrame, Client, text_input\n"
         "from a13n.generated import models as wire\n"
         "def consume(frame: ThreadFrame) -> None:\n"
         "    if frame.event_type == 'delta':\n"
@@ -77,7 +77,7 @@ def test_frame_discriminants_narrow_data_and_cursor(tmp_path: Path) -> None:
         "        no_cursor: None = frame.cursor\n"
         "        run_id: str = frame.data['run_id']\n"
         "async def full(client: Client) -> None:\n"
-        "    result: Submitted = await client.workspaces('ws').threads.create(\n"
+        "    result = await client.resources.threads.create(\n"
         "        body=wire.NewThread(agent_id='agent', payload=text_input('hello'), memories=[]), idempotency_key='key')\n"
     )
     report = run_pyright(source)

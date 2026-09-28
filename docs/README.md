@@ -1,98 +1,49 @@
 # Python SDK application guide
 
-Use this SDK to call an existing a13n Service, not to execute an agent inside your Python process. Start with the [README examples](../README.md#submit-and-observe); this guide explains how to integrate those calls into an application. Documentation is maintained as Markdown in this repository, alongside the API it describes.
+Use this SDK to call an existing a13n Service, not to execute an Agent inside your Python process. Start with the [Agent interaction example](../README.md#start-observe-continue). The pinned [OpenAPI](../contract/openapi.json) and [SDK specification](../spec/README.md) are the references for complete advanced operations.
 
-## Reading map
+## Prerequisites and authentication
 
-| Task                                                | Read                                                                                                 |
-| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Install, authenticate and submit your first message | [Quick start](../README.md#installation)                                                             |
-| Send structured input and observe a Thread          | [Submission and streaming examples](../README.md#submit-and-observe)                                 |
-| Upload or download content                          | [Binary examples](../README.md#resources-and-binary-content)                                         |
-| Read and update Memory files                        | [Memory example](../README.md#memory) and [Memory semantics below](#memory-files-records-and-mounts) |
-| Find a resource or exact request type               | [API discovery below](#find-an-operation)                                                            |
-| Diagnose errors and decide whether to retry         | [Failure handling below](#handle-failures-without-replaying-writes)                                  |
-| Change the SDK or run acceptance tests              | [Contributing](../CONTRIBUTING.md)                                                                   |
-| Understand design guarantees and the pinned Service | [SDK specification](../spec/README.md) and [contract provenance](../contract/README.md)              |
+You need the Service base URL, an API key authorized for the intended workspace, and an existing **Agent ID** whose configuration selects a usable **Model key**. Agents and Skills use IDs; only Models support keys. API-key identity implicitly determines workspace: do not prefix ordinary business operations with workspace IDs or attempt an invented discovery flow. The resource reference itself never grants permission. Get credentials and Agent IDs from your administrator or Console.
 
-## Before your first request
-
-You need a Service base URL, an explicit workspace ID or key, and credentials authorized for that workspace. Submission also needs an existing Agent ID with a usable model. Obtain these through your deployment's Console or administrator; constructing a resource reference neither discovers resources nor grants access.
-
-For a released SDK, install `a13n` using your package manager and choose the version appropriate to your deployment. To try this source checkout without depending on registry availability, use `uv add /absolute/path/to/a13n-sdk-python` from your application's directory. Source version `0.0.0` is not a published compatibility guarantee. Python 3.13+ is required.
-
-Pass the Service origin as `base_url`, not a complete operation URL. Load secrets from your application's secret storage rather than copying them into source. `Client(base_url, token)` uses Bearer authentication; omitting the token is public, cookieless access. A workspace key cannot authorize organization administration or session-only account operations. A `403` is not a reason to try an unrelated credential automatically.
-
-For session authentication, explicitly construct `Client.session(...)` with the expected origin, cookies and current CSRF token. `set_csrf_token(...)` updates the proof for later mutations; the SDK does not implement an interactive login manager. Trust private certificate authorities through `ca_bundle`, not by disabling verification.
-
-Reuse a Client within its async lifetime and close it with `async with` or `await client.aclose()`. Keep download and Thread stream context managers open while consuming data. Upload file objects remain yours to close.
+Load tokens from secret storage and close `Client(base_url, token)` with `async with`. An omitted token uses public cookieless mode. Cookie-based accounts use `Client.session(base_url, origin=..., cookies=..., csrf_token=..., workspace_id=...)`: explicit `workspace_id` is sent as `X-Workspace-ID` only on declared workspace business paths, not on organization/admin/public paths; the caller may supply an explicit operation header. `set_csrf_token` updates later mutation proof. The SDK never logs in, discovers workspaces, or refreshes credentials. `ca_bundle` trusts a private CA without disabling TLS verification.
 
 ## Find an operation
 
-The complete resource tree starts at `client.resources`. `client.workspaces` and `client.organizations` are shortcuts into that tree. Calling a collection with a selector binds locally, for example `client.workspaces(workspace_id).memories(memory_id)`.
+`client.agents(id)`, `client.threads(id)` and `client.runs(id)` bind authored interaction handles with no request. `client.resources` exposes the **complete pure schema** tree: `.agents`, `.threads`, `.runs`, `.models(key)`, `.skills(id)`, `.memories(id)`, `.assets(id)`, `.uploads`, `.auth`, `.organizations(id)`, `.workspaces(id)` and all other declared routes. A generated submission returns `Result[wire.Submitted]`, not an Interaction. Administration retaining organization/workspace IDs is not an alternative binding for workspace-scoped business APIs. For exact properties and request models use [generated resources](../a13n/generated/resources.py) and [generated models](../a13n/generated/models); both layers use the same transport.
 
-| Scope        | Examples                                                                     |
-| ------------ | ---------------------------------------------------------------------------- |
-| Service      | `client.resources.healthz`, `client.resources.auth`                          |
-| Organization | `client.organizations(organization_id).models`, `.memory_providers`          |
-| Workspace    | `client.workspaces(workspace_id).agents`, `.threads`, `.memories`, `.assets` |
-| Thread       | `workspace.threads(thread_id).inbox_entries`, `.memories`, `.environments`   |
-| Run          | `workspace.runs(run_id).items`, `.interrupt()`, `.resume(...)`, `.fork(...)` |
+Ordinary requests return `Result[T]` with `.value`, `.status_code`, `.headers`, `.etag`, `.request_id`, and `.content`. `list()` fetches one page; `pages()` and `iter()` paginate lazily where supported. `Client.execute()` exposes a generated HTTP response, including typed error union; `Client.stream()` is the raw HTTP streaming context. For binary downloads use the declared resource's `get_stream()` and check its status before reading. Keep the response context open while consuming; caller-owned upload streams remain yours to close.
 
-Use IDE completion or the generated [resource definitions](../a13n/generated/resources.py). Request/response models live in [generated models](../a13n/generated/models); exact HTTP operations and schemas are in [the pinned OpenAPI](../contract/openapi.json). These files describe the SDK's snapshot, not whatever a different Service deployment happens to expose.
+## Structured input, file content, and configured Runs
 
-Ordinary requests return `Result[T]`: read `.value`, `.status`, `.headers`, `.etag` and `.request_id`. Submission helpers return `Submitted`; its original response is `.receipt`. Low-level `Client.execute()` and `Client.stream()` are advanced escape hatches, not necessary fallbacks for missing resource operations.
+`Agent.start` and `Agent.send` accept a plain string or a generated `wire.MessagePayload`. Use generated content-part models for structured inputs and asset references rather than undocumented dictionaries. Create an upload with `wire.UploadCreate(file=File(source, file_name=..., mime_type=...))` and an Asset separately; publishing an Asset and accepting a Run are independent Service outcomes.
 
-`list()` reads one page. `pages()` retains page responses; `iter()` yields items. Do not assume every collection is paginated: Run Items is a committed snapshot read through `run.items.get()`.
+`Agent.start(..., agent_revision_id=..., session_id=..., delivery=..., options=..., environments=..., memories=..., mcp_headers=..., idempotency_key=...)` exposes the full initial Thread configuration. `Agent.send(thread_id, ..., agent_revision_id=..., delivery=..., options=..., idempotency_key=...)` exposes every Message field. Use `wire.MemoryMount(name="notes", memory_id=..., access=wire.MemoryAccess.READ)` for a Thread's named memory mount. `wire.RunOptionsInput(overrides=wire.AgentOverrideInput(...))` specifies per-Run changes; the Agent's `model` field selects a Model **key**, and `wire.SkillSelection(skill_id=...)` uses a Skill **ID**. Model `extra_body`/`extra_headers` mappings are carried intact. Service replacement rules apply: a Run extra object replaces the inherited Agent object, which replaces the Model default, and `{}` clears it; do not merge these mappings in the client.
 
-## Preserve request meaning
+Generated optional fields use `UNSET` for omission, `None` for explicit null when allowed, and a concrete value for an explicit setting. Null is not universally a delete instruction. Read the resource before a conditional mutation and use its ETag as `if_match`: Memory file content uses a file ETag, Memory metadata uses a Memory ETag, Thread inbox/mount changes use the Thread ETag. On `412`, inspect and reconcile the new state instead of blindly fetching a new ETag and overwriting someone else's change.
 
-Use generated models rather than arbitrary dictionaries. `UNSET` from `a13n.generated.types` omits an optional field, `None` sends JSON null when allowed, and a concrete value sends that value. Null is **not** a universal delete instruction: Service defines each field's meaning. For example, Agent metadata updates keep the existing description when sent null; an empty description is an explicit value.
+## Finite observation and recovery
 
-Read the resource you will edit and pass its ETag through `if_match`. Memory file content uses the file ETag; Thread inbox or mount changes use the Thread ETag. On `412`, inspect the new state and decide how to reconcile your intended change; do not blindly fetch a new ETag and overwrite someone else's update.
+`await agent.start(...)` and `await agent.send(thread_id, ...)` return one `Interaction`, which owns an original receipt, Thread, Entry and optional immediately accepted Run reference. `await interaction.result()` requires no streaming or context entry: it polls the Entry until **consumed**, then the exact assigned Run until sealed. Pending/assigned is not incorporation. Failed/withdrawn Entry raises `SubmissionError` with its Entry snapshot. Waiting/failed/cancelled Runs are reported as statuses in a `RunOutcome`; no auto-approval or implicit success.
 
-Keep one idempotency key per logical submission, fork, resume or upload. Retain the key with your request and receipt before retrying a lost response. A different key is a different operation, not recovery of the first one. SDK mutations are not automatically replayed.
+For provisional events use `async with interaction: async for frame in interaction: ...` and then `await interaction.result()` inside the context. It binds the exact Run after incorporation before yielding frames and filters foreign Runs and unscoped Thread notices. A Run can seal while its SSE socket is idle: iteration ends via independent bounded Run readback, not by waiting for EOF or a terminal frame. Current-Run filtering, retention and gaps mean this is not a lossless transcript. On `gap` or `reset`, read the indicated Run's committed `items.get()`; the SDK does not create a UI reducer or pretend provisional deltas are committed. Application display checkpoints and external effects are yours to own.
 
-## Acceptance, queue and completion
+A result-only call or a naturally completed context caches its outcome. Closing a context early cancels local observer/reader work; `.result()` will **not** secretly restart after such a close. Use saved IDs, `client.runs(run_id).get()/wait()` or `client.threads(id).inbox_entries(entry_id).get()` for explicit recovery. There is no remote interrupt on close. The generated `client.resources.threads(id).stream` preserves the declared Thread SSE HTTP route. Protocol-level consumers can explicitly construct `ThreadStream(client.resources.threads(id))` for a typed persistent **Thread-wide** parser with applied-cursor acknowledgement and bounded reconnect; this is not another ordinary high-level interaction mode.
 
-1. Save the response's Thread and Entry identities. `Submitted.run is None` means retained input, not rejected input.
-2. Observe `submitted.entry.wait(timeout=..., poll_interval=...)` when queued. Check `status`: failed or withdrawn is not execution. Consumption and `assigned_run_id` let you decide which Run to observe.
-3. Observe that exact Run with `run.wait(...)`, then inspect its status. Waiting, failed and cancelled are valid wait results, not successful completion.
-4. Read `run.items.get()` for committed display content and the Run view for durable state.
-5. To resume a waiting Run, supply explicit answers. `await run.resume(...)` returns `Resumed`, whose `.run` is the successor and whose `.receipt` retains its HTTP response. Waiting again on the old Run never follows the successor.
+To answer a waiting Run, inspect `outcome.pending`, perform any external client-tool work yourself and call `outcome.run.resume([wire.Complete(...)], idempotency_key=...)`; the returned `Resumed.run` is a distinct successor. `run.wait()` always observes its exact ID. `run.interrupt()` is an explicit remote command, not a compensating action automatically issued by timeouts. Fork creates a separate Thread through the declared `wire.Fork` body.
 
-Each wait has a local timeout. If a queue-plus-Run workflow needs one total budget, also wrap the workflow in `asyncio.timeout(...)`. Local timeout, cancellation and Client closure do not stop a remote Run or prove that a write rolled back. Use the explicit interrupt operation when remote interruption is intended.
+Retain an idempotency key per logical submission, fork, resume, or upload. A different key represents a different operation. HTTP transport failure, timeout or cancellation can leave mutation outcome unknown; never replay writes automatically. Save the identities and key, read back explicitly and reconcile. Re-using a single Client within its async lifetime is cheaper than making a Client per request.
 
-Thread SSE is provisional observation. Apply a `delta` or `boundary` before advancing iteration and persisting its cursor. `changed` requires Thread readback; `reset` and `gap` require the indicated Run's Items. Neither EOF nor reconnection proves completion. Your application owns durable checkpoints and applying readback results. See the [typed stream example](../README.md#provisional-thread-stream).
+## Memory families and errors
 
-## Memory files, records and mounts
+`client.resources.memories` exposes metadata, JSON-text files, integer-sequence revisions and provider-backed records. Paths can contain slashes and Unicode; pass the logical path directly to a resource selector, which encodes it once. File-history restore undoes the recorded change (restoring creation can remove a file). Provider records have their own CRUD/search interface, not file-style ETags. `client.resources.memory_providers` configures provider accounts independently. `RunView.memory_mounts` is the accepted snapshot, not a live view of subsequent Thread edits.
 
-These are separate surfaces; do not infer one from another:
+| Failure                                                | Application response                                                        |
+| ------------------------------------------------------ | --------------------------------------------------------------------------- |
+| `ApiError` (`status`, `code`, `details`, `request_id`) | Branch on structured Service rejection; retain request ID for diagnostics.  |
+| `SubmissionError` (`entry_id`, `thread_id`, `entry`)   | The exact Entry failed/was withdrawn, with no successful incorporating Run. |
+| `ProtocolError`                                        | Investigate SDK/Service compatibility or malformed required response.       |
+| `TransportError`                                       | Read back; mutation outcome may be unknown.                                 |
+| `TimeoutError` or task cancellation                    | Local observation ended; remote execution has not been interrupted.         |
 
-- `memory.files` stores JSON text addressed by a logical path. Pass the path directly to the resource selector; do not URL-encode it yourself. Replace, move and delete use explicit preconditions.
-- `memory.revisions` selects revisions by integer `seq`, not a UUID. Restore undoes that revision's change, rather than blindly copying its post-change content. Undoing creation may return `file: null`. Use the current file's ETag when it exists; omission is only for an absent restore target. Purging history is distinct from deleting file content.
-- `memory.records` accesses a configured record provider. List/create/replace/delete/search exist, but item GET and file-style ETags do not. A failed provider write can have an unknown outcome.
-- `thread.memories` mounts memories by name with the Thread's ETag. Submission and fork bodies can carry mounts. `RunView.memory_mounts` is the accepted snapshot, not a live view of later Thread edits.
-- Organization `memory_providers` configures/tests provider accounts; it is not the file-content API.
-
-## Handle failures without replaying writes
-
-Catch public exceptions from `a13n`, keeping local cancellation separate:
-
-| Evidence                                              | What to do                                                                                        |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `ApiError.status`, `.code`, `.details`, `.request_id` | Branch on structured fields; retain request IDs for server diagnosis.                             |
-| `401` / `403`                                         | Check authentication mode, workspace scope, grants and session CSRF.                              |
-| `409`                                                 | Inspect the conflict reason, including reused idempotency keys or resource state.                 |
-| `412` / `428`                                         | Reconcile stale state or supply the correct resource ETag.                                        |
-| `TransportError`                                      | Treat a mutation outcome as unknown until reconciled.                                             |
-| `ProtocolError`                                       | Inspect deployment/SDK compatibility and response boundaries; do not retry a write automatically. |
-| `TimeoutError` / task cancellation                    | Stop local observation; recover using saved identities and keys.                                  |
-
-Do not log tokens, cookies or complete request/response payloads merely to diagnose a failure. Local generated types do not replace Service authorization or complete request validation.
-
-## Version and validation boundaries
-
-This source snapshot generates every operation in its pinned contract. That does not promise compatibility with every Service version or live-test every endpoint/provider. Use the [contract source record](../contract/source.json) when comparing a deployment, and browse documentation at the tag or commit you actually consume rather than assuming `main` matches an installed release.
-
-The [development and acceptance section](../README.md#development-and-acceptance) separates ordinary local tests from opt-in disposable-Service tests. Neither test success nor a documentation update publishes a package.
+Do not log credentials, cookies, complete payloads, or sensitive model output merely to diagnose failure. Tests and generated type coverage do not establish compatibility with arbitrary Service deployments. Compare [pinned source provenance](../contract/source.json) to the deployment, and use [Contributing](../CONTRIBUTING.md) for generation, checks, and opt-in installed-artifact acceptance.

@@ -12,7 +12,7 @@ T = TypeVar("T", bound="MediaUnderstandingSelection")
 
 @_attrs_define(repr=False)
 class MediaUnderstandingSelection:
-    """The model describing each media kind a model cannot read; a kind without one is unavailable.
+    """The model, by key, describing each media kind a model cannot read; a kind without one is unavailable.
 
     Attributes:
         audio (None | str | Unset):
