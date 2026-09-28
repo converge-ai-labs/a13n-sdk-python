@@ -2892,7 +2892,7 @@ class Run(Resource):
         return RunsRunIdLineage(self._client, self._bindings)
 
     async def resume(
-        self, *, body: wire.ResumeRequest, idempotency_key: str, x_workspace_id: str | Unset | None = UNSET
+        self, *, body: wire.Resume, idempotency_key: str, x_workspace_id: str | Unset | None = UNSET
     ) -> Result[wire.RunView]:
         """Resume Run. One HTTP request; no automatic replay."""
         return await self._call(

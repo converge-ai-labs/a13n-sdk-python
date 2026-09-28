@@ -13,23 +13,18 @@ class Approve:
     """
     Attributes:
         action (Literal['approve']):
-        tool_call_id (str):
     """
 
     action: Literal["approve"]
-    tool_call_id: str
 
     def to_dict(self) -> dict[str, Any]:
         action = self.action
-
-        tool_call_id = self.tool_call_id
 
         field_dict: dict[str, Any] = {}
 
         field_dict.update(
             {
                 "action": action,
-                "tool_call_id": tool_call_id,
             }
         )
 
@@ -42,11 +37,8 @@ class Approve:
         if action != "approve":
             raise ValueError(f"action must match const 'approve', got '{action}'")
 
-        tool_call_id = d.pop("tool_call_id")
-
         approve = cls(
             action=action,
-            tool_call_id=tool_call_id,
         )
 
         return approve

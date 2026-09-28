@@ -74,7 +74,6 @@ from .client_tool_definition import ClientToolDefinition
 from .client_tool_definition_metadata import ClientToolDefinitionMetadata
 from .client_tool_definition_parameters_json_schema import ClientToolDefinitionParametersJsonSchema
 from .client_tool_definition_permission import ClientToolDefinitionPermission
-from .complete import Complete
 from .connection import Connection
 from .connection_auth import ConnectionAuth
 from .connection_create import ConnectionCreate
@@ -103,6 +102,7 @@ from .delegation_context_policy_history import DelegationContextPolicyHistory
 from .delegation_context_policy_task_state import DelegationContextPolicyTaskState
 from .delivery import Delivery
 from .delivery_page import DeliveryPage
+from .deny import Deny
 from .email_change_confirm import EmailChangeConfirm
 from .entry_page import EntryPage
 from .entry_status import EntryStatus
@@ -120,6 +120,7 @@ from .error_body_details import ErrorBodyDetails
 from .error_code import ErrorCode
 from .error_envelope import ErrorEnvelope
 from .external_target_create import ExternalTargetCreate
+from .failed import Failed
 from .failure import Failure
 from .fork import Fork
 from .git_hub_source import GitHubSource
@@ -223,7 +224,6 @@ from .mount_create import MountCreate
 from .mount_page import MountPage
 from .mount_view import MountView
 from .new_thread import NewThread
-from .no_response import NoResponse
 from .o_auth_grant import OAuthGrant
 from .o_auth_redirect import OAuthRedirect
 from .o_auth_settings import OAuthSettings
@@ -241,10 +241,9 @@ from .password_change import PasswordChange
 from .password_reset import PasswordReset
 from .password_reset_confirm import PasswordResetConfirm
 from .pending import Pending
-from .pending_item import PendingItem
-from .pending_item_arguments import PendingItemArguments
-from .pending_item_presentation_type_0 import PendingItemPresentationType0
-from .pending_kind import PendingKind
+from .pending_call import PendingCall
+from .pending_call_arguments import PendingCallArguments
+from .pending_call_presentation_type_0 import PendingCallPresentationType0
 from .plugin_selection import PluginSelection
 from .plugin_selection_config import PluginSelectionConfig
 from .price_component_input import PriceComponentInput
@@ -279,11 +278,12 @@ from .provider_update import ProviderUpdate
 from .provider_update_config_type_0 import ProviderUpdateConfigType0
 from .provider_update_credential_type_0 import ProviderUpdateCredentialType0
 from .provider_update_extra_headers import ProviderUpdateExtraHeaders
-from .reject import Reject
 from .resume import Resume
-from .resume_request import ResumeRequest
+from .resume_approvals import ResumeApprovals
+from .resume_calls import ResumeCalls
 from .retry_config import RetryConfig
 from .retry_override import RetryOverride
+from .returned import Returned
 from .revoked_connection import RevokedConnection
 from .revoked_connection_remote_revocation import RevokedConnectionRemoteRevocation
 from .run_items import RunItems
@@ -491,7 +491,6 @@ __all__ = (
     "ClientToolDefinitionMetadata",
     "ClientToolDefinitionParametersJsonSchema",
     "ClientToolDefinitionPermission",
-    "Complete",
     "Connection",
     "ConnectionAuth",
     "ConnectionCreate",
@@ -520,6 +519,7 @@ __all__ = (
     "DelegationContextPolicyTaskState",
     "Delivery",
     "DeliveryPage",
+    "Deny",
     "EmailChangeConfirm",
     "EntryPage",
     "EntryStatus",
@@ -537,6 +537,7 @@ __all__ = (
     "ErrorCode",
     "ErrorEnvelope",
     "ExternalTargetCreate",
+    "Failed",
     "Failure",
     "Fork",
     "GitHubSource",
@@ -638,7 +639,6 @@ __all__ = (
     "MountPage",
     "MountView",
     "NewThread",
-    "NoResponse",
     "OAuthGrant",
     "OAuthRedirect",
     "OAuthSettings",
@@ -656,10 +656,9 @@ __all__ = (
     "PasswordReset",
     "PasswordResetConfirm",
     "Pending",
-    "PendingItem",
-    "PendingItemArguments",
-    "PendingItemPresentationType0",
-    "PendingKind",
+    "PendingCall",
+    "PendingCallArguments",
+    "PendingCallPresentationType0",
     "PluginSelection",
     "PluginSelectionConfig",
     "PriceComponentInput",
@@ -692,11 +691,12 @@ __all__ = (
     "ProviderUpdateConfigType0",
     "ProviderUpdateCredentialType0",
     "ProviderUpdateExtraHeaders",
-    "Reject",
     "Resume",
-    "ResumeRequest",
+    "ResumeApprovals",
+    "ResumeCalls",
     "RetryConfig",
     "RetryOverride",
+    "Returned",
     "RevokedConnection",
     "RevokedConnectionRemoteRevocation",
     "RunItems",

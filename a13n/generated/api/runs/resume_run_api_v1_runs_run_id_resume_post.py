@@ -6,7 +6,7 @@ import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
 from ...models.error_envelope import ErrorEnvelope
-from ...models.resume_request import ResumeRequest
+from ...models.resume import Resume
 from ...models.run_view import RunView
 from ...types import UNSET, Response, Unset
 
@@ -14,7 +14,7 @@ from ...types import UNSET, Response, Unset
 def build_request(
     run_id: str,
     *,
-    body: ResumeRequest,
+    body: Resume,
     idempotency_key: str,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> dict[str, Any]:
@@ -80,13 +80,14 @@ def sync_detailed(
     run_id: str,
     *,
     client: AuthenticatedClient,
-    body: ResumeRequest,
+    body: Resume,
     idempotency_key: str,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> Response[ErrorEnvelope | RunView]:
     """Resume Run
 
-     Answer the waiting run's approvals and client tools; the successor run continues from them.
+     Answer the exact waiting run's approvals, client tools and user questions; the successor continues
+    from them.
 
     Args:
         run_id (str):
@@ -94,7 +95,8 @@ def sync_detailed(
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
-        body (ResumeRequest):
+        body (Resume): The complete result batch, submitted and stored on the successor without
+            omission defaults.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -122,13 +124,14 @@ def sync(
     run_id: str,
     *,
     client: AuthenticatedClient,
-    body: ResumeRequest,
+    body: Resume,
     idempotency_key: str,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> ErrorEnvelope | RunView | None:
     """Resume Run
 
-     Answer the waiting run's approvals and client tools; the successor run continues from them.
+     Answer the exact waiting run's approvals, client tools and user questions; the successor continues
+    from them.
 
     Args:
         run_id (str):
@@ -136,7 +139,8 @@ def sync(
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
-        body (ResumeRequest):
+        body (Resume): The complete result batch, submitted and stored on the successor without
+            omission defaults.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -159,13 +163,14 @@ async def asyncio_detailed(
     run_id: str,
     *,
     client: AuthenticatedClient,
-    body: ResumeRequest,
+    body: Resume,
     idempotency_key: str,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> Response[ErrorEnvelope | RunView]:
     """Resume Run
 
-     Answer the waiting run's approvals and client tools; the successor run continues from them.
+     Answer the exact waiting run's approvals, client tools and user questions; the successor continues
+    from them.
 
     Args:
         run_id (str):
@@ -173,7 +178,8 @@ async def asyncio_detailed(
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
-        body (ResumeRequest):
+        body (Resume): The complete result batch, submitted and stored on the successor without
+            omission defaults.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -199,13 +205,14 @@ async def asyncio(
     run_id: str,
     *,
     client: AuthenticatedClient,
-    body: ResumeRequest,
+    body: Resume,
     idempotency_key: str,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> ErrorEnvelope | RunView | None:
     """Resume Run
 
-     Answer the waiting run's approvals and client tools; the successor run continues from them.
+     Answer the exact waiting run's approvals, client tools and user questions; the successor continues
+    from them.
 
     Args:
         run_id (str):
@@ -213,7 +220,8 @@ async def asyncio(
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
-        body (ResumeRequest):
+        body (Resume): The complete result batch, submitted and stored on the successor without
+            omission defaults.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

@@ -6,10 +6,8 @@ from typing import TYPE_CHECKING, Any, TypeVar
 from attrs import define as _attrs_define
 
 if TYPE_CHECKING:
-    from ..models.approve import Approve
-    from ..models.complete import Complete
-    from ..models.no_response import NoResponse
-    from ..models.reject import Reject
+    from ..models.resume_approvals import ResumeApprovals
+    from ..models.resume_calls import ResumeCalls
 
 
 T = TypeVar("T", bound="Resume")
@@ -17,38 +15,27 @@ T = TypeVar("T", bound="Resume")
 
 @_attrs_define(repr=False)
 class Resume:
-    """The normalized batch stored on the successor: one answer per pending call of the exact wait.
+    """The complete result batch, submitted and stored on the successor without omission defaults.
 
     Attributes:
-        answers (list[Approve | Complete | NoResponse | Reject]):
+        approvals (ResumeApprovals):
+        calls (ResumeCalls):
     """
 
-    answers: list[Approve | Complete | NoResponse | Reject]
+    approvals: ResumeApprovals
+    calls: ResumeCalls
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.approve import Approve
-        from ..models.complete import Complete
-        from ..models.reject import Reject
+        approvals = self.approvals.to_dict()
 
-        answers = []
-        for answers_item_data in self.answers:
-            answers_item: dict[str, Any]
-            if isinstance(answers_item_data, Approve):
-                answers_item = answers_item_data.to_dict()
-            elif isinstance(answers_item_data, Reject):
-                answers_item = answers_item_data.to_dict()
-            elif isinstance(answers_item_data, Complete):
-                answers_item = answers_item_data.to_dict()
-            else:
-                answers_item = answers_item_data.to_dict()
-
-            answers.append(answers_item)
+        calls = self.calls.to_dict()
 
         field_dict: dict[str, Any] = {}
 
         field_dict.update(
             {
-                "answers": answers,
+                "approvals": approvals,
+                "calls": calls,
             }
         )
 
@@ -56,53 +43,17 @@ class Resume:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.approve import Approve
-        from ..models.complete import Complete
-        from ..models.no_response import NoResponse
-        from ..models.reject import Reject
+        from ..models.resume_approvals import ResumeApprovals
+        from ..models.resume_calls import ResumeCalls
 
         d = dict(src_dict)
-        answers = []
-        _answers = d.pop("answers")
-        for answers_item_data in _answers:
+        approvals = ResumeApprovals.from_dict(d.pop("approvals"))
 
-            def _parse_answers_item(data: object) -> Approve | Complete | NoResponse | Reject:
-                try:
-                    if not isinstance(data, dict):
-                        raise TypeError()
-                    componentsschemas_normalized_answer_type_0 = Approve.from_dict(data)
-
-                    return componentsschemas_normalized_answer_type_0
-                except (TypeError, ValueError, AttributeError, KeyError):
-                    pass
-                try:
-                    if not isinstance(data, dict):
-                        raise TypeError()
-                    componentsschemas_normalized_answer_type_1 = Reject.from_dict(data)
-
-                    return componentsschemas_normalized_answer_type_1
-                except (TypeError, ValueError, AttributeError, KeyError):
-                    pass
-                try:
-                    if not isinstance(data, dict):
-                        raise TypeError()
-                    componentsschemas_normalized_answer_type_2 = Complete.from_dict(data)
-
-                    return componentsschemas_normalized_answer_type_2
-                except (TypeError, ValueError, AttributeError, KeyError):
-                    pass
-                if not isinstance(data, dict):
-                    raise TypeError()
-                componentsschemas_normalized_answer_type_3 = NoResponse.from_dict(data)
-
-                return componentsschemas_normalized_answer_type_3
-
-            answers_item = _parse_answers_item(answers_item_data)
-
-            answers.append(answers_item)
+        calls = ResumeCalls.from_dict(d.pop("calls"))
 
         resume = cls(
-            answers=answers,
+            approvals=approvals,
+            calls=calls,
         )
 
         return resume
