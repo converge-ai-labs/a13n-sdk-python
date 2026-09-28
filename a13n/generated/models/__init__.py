@@ -200,7 +200,11 @@ from .model_capability import ModelCapability
 from .model_catalog import ModelCatalog
 from .model_catalog_status import ModelCatalogStatus
 from .model_config_input import ModelConfigInput
+from .model_config_input_extra_body import ModelConfigInputExtraBody
+from .model_config_input_extra_headers import ModelConfigInputExtraHeaders
 from .model_config_output import ModelConfigOutput
+from .model_config_output_extra_body import ModelConfigOutputExtraBody
+from .model_config_output_extra_headers import ModelConfigOutputExtraHeaders
 from .model_create import ModelCreate
 from .model_page import ModelPage
 from .model_price_rule_input import ModelPriceRuleInput
@@ -603,7 +607,11 @@ __all__ = (
     "ModelCatalog",
     "ModelCatalogStatus",
     "ModelConfigInput",
+    "ModelConfigInputExtraBody",
+    "ModelConfigInputExtraHeaders",
     "ModelConfigOutput",
+    "ModelConfigOutputExtraBody",
+    "ModelConfigOutputExtraHeaders",
     "ModelCreate",
     "ModelPage",
     "ModelPriceRuleInput",
