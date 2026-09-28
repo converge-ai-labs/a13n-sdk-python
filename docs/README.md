@@ -135,7 +135,9 @@ with open("report.txt", "rb") as source:
         body=wire.UploadCreate(file=File(payload=source, file_name="report.txt", mime_type="text/plain")),
         idempotency_key=uuid4().hex,
     )
-asset = await client.resources.assets.create(body=wire.AssetCreate(name="report.txt", upload_id=uploaded.value.upload_id))
+asset = await client.resources.assets.create(
+    body=wire.AssetCreate(name="report.txt", upload_id=uploaded.value.upload_id)
+)
 print(asset.value.id)
 ```
 
