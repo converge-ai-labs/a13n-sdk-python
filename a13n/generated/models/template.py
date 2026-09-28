@@ -21,7 +21,7 @@ class Template:
     Attributes:
         config (TemplateConfig):
         created_at (datetime.datetime):
-        created_by_id (str):
+        created_by_id (None | str):
         description (None | str):
         enabled (bool):
         id (str):
@@ -30,14 +30,14 @@ class Template:
         organization_id (str):
         provider_id (str):
         updated_at (datetime.datetime):
-        updated_by_id (str):
+        updated_by_id (None | str):
         version (int):
         workspace_id (str):
     """
 
     config: TemplateConfig
     created_at: datetime.datetime
-    created_by_id: str
+    created_by_id: str | None
     description: str | None
     enabled: bool
     id: str
@@ -46,7 +46,7 @@ class Template:
     organization_id: str
     provider_id: str
     updated_at: datetime.datetime
-    updated_by_id: str
+    updated_by_id: str | None
     version: int
     workspace_id: str
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
@@ -56,6 +56,7 @@ class Template:
 
         created_at = self.created_at.isoformat()
 
+        created_by_id: str | None
         created_by_id = self.created_by_id
 
         description: str | None
@@ -75,6 +76,7 @@ class Template:
 
         updated_at = self.updated_at.isoformat()
 
+        updated_by_id: str | None
         updated_by_id = self.updated_by_id
 
         version = self.version
@@ -114,7 +116,12 @@ class Template:
 
         created_at = datetime.datetime.fromisoformat(d.pop("created_at"))
 
-        created_by_id = d.pop("created_by_id")
+        def _parse_created_by_id(data: object) -> str | None:
+            if data is None:
+                return data
+            return cast(str | None, data)
+
+        created_by_id = _parse_created_by_id(d.pop("created_by_id"))
 
         def _parse_description(data: object) -> str | None:
             if data is None:
@@ -137,7 +144,12 @@ class Template:
 
         updated_at = datetime.datetime.fromisoformat(d.pop("updated_at"))
 
-        updated_by_id = d.pop("updated_by_id")
+        def _parse_updated_by_id(data: object) -> str | None:
+            if data is None:
+                return data
+            return cast(str | None, data)
+
+        updated_by_id = _parse_updated_by_id(d.pop("updated_by_id"))
 
         version = d.pop("version")
 
