@@ -76,7 +76,7 @@ Run it with the environment you created above:
 
 For an ordinary reply, you should see `Status: completed`, a Thread ID, and the Agent's response. A Thread is a conversation; a Run is one execution within it. `start()` returns an **Interaction**, which lets you wait for the result or stream progress.
 
-An Agent can also pause for input (`waiting`), fail (`failed`), or be cancelled (`cancelled`). See [handle the result](docs/README.md#handle-the-result) for those cases. The example uses a fresh idempotency key for each new message; in an application, save that key if you may need to retry the same submission.
+An Agent can also pause for input (`waiting`), fail (`failed`), or be cancelled (`cancelled`). See [read and handle results](docs/streaming-and-results.md#read-a-finished-response) for those cases. The example uses a fresh idempotency key for each new message; in an application, save that key if you may need to retry the same submission.
 
 ## Continue the conversation
 
@@ -109,17 +109,19 @@ print("Status:", outcome.status)
 
 The loop ends when this execution finishes or pauses for input, even if the connection stays open. The context manager cleans up the connection if you break out early. Closing it stops local observation, **not** the remote Agent.
 
-These frames are progress events, not just text tokens. For the saved response, use `outcome.run.items.get()` as in the quick start. A stream can have gaps; [streaming and recovery](docs/README.md#streaming-and-recovery) explains how to handle them.
+These frames are progress events, not just text tokens. For the saved response, use `outcome.run.items.get()` as in the quick start. A stream can have gaps; [streaming and results](docs/streaming-and-results.md) explains how to handle them.
 
 ## Next steps
 
-- [Handle results, errors, and timeouts](docs/README.md#handle-the-result)
-- [Create an Agent or change its Run settings](docs/README.md#create-an-agent)
-- [Send files and structured input](docs/README.md#send-files-and-structured-input)
-- [Respond to a client-tool request](docs/README.md#respond-to-a-client-tool-request)
-- [Work with Memory](docs/README.md#work-with-memory)
-- [Use cookie sessions or a private CA](docs/README.md#connection-options)
-- [Use the complete resource API](docs/README.md#use-the-resource-api)
+The [Python SDK guide](docs/README.md) takes you from your first conversation to an application that can recover after interruptions:
+
+- [Create Agents and continue conversations](docs/agents-and-conversations.md)
+- [Stream progress and read results](docs/streaming-and-results.md)
+- [Handle approvals and client tools](docs/waiting-and-tools.md)
+- [Attach files and work with Memory](docs/files-and-memory.md)
+- [Configure authentication and connections](docs/connections.md)
+- [Use the complete resource API](docs/resources.md)
+- [Handle errors and recover work](docs/errors-and-recovery.md)
 
 For development and testing, see [Contributing](CONTRIBUTING.md). The [SDK specification](spec/README.md) and [pinned Service source](contract/source.json) describe compatibility and implementation contracts.
 
