@@ -20,7 +20,6 @@ class MemoryCreate:
     provider's backend, under a new namespace or the existing one `namespace` adopts.
 
         Attributes:
-            key (str):
             name (str):
             always_load (list[str] | Unset):
             description (None | str | Unset):
@@ -31,7 +30,6 @@ class MemoryCreate:
             type_ (str | Unset):
     """
 
-    key: str
     name: str
     always_load: list[str] | Unset = UNSET
     description: str | Unset | None = UNSET
@@ -42,8 +40,6 @@ class MemoryCreate:
     type_: str | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
-        key = self.key
-
         name = self.name
 
         always_load: list[str] | Unset = UNSET
@@ -84,7 +80,6 @@ class MemoryCreate:
 
         field_dict.update(
             {
-                "key": key,
                 "name": name,
             }
         )
@@ -110,8 +105,6 @@ class MemoryCreate:
         from ..models.memory_create_labels import MemoryCreateLabels
 
         d = dict(src_dict)
-        key = d.pop("key")
-
         name = d.pop("name")
 
         always_load = cast(list[str], d.pop("always_load", UNSET))
@@ -162,7 +155,6 @@ class MemoryCreate:
         type_ = d.pop("type", UNSET)
 
         memory_create = cls(
-            key=key,
             name=name,
             always_load=always_load,
             description=description,

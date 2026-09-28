@@ -31,7 +31,7 @@ class Provider:
         updated_at (datetime.datetime):
         updated_by_id (str):
         version (int):
-        workspace_id (None | str):
+        workspace_id (str):
     """
 
     config: ProviderConfig
@@ -47,7 +47,7 @@ class Provider:
     updated_at: datetime.datetime
     updated_by_id: str
     version: int
-    workspace_id: str | None
+    workspace_id: str
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -77,7 +77,6 @@ class Provider:
 
         version = self.version
 
-        workspace_id: str | None
         workspace_id = self.workspace_id
 
         field_dict: dict[str, Any] = {}
@@ -134,12 +133,7 @@ class Provider:
 
         version = d.pop("version")
 
-        def _parse_workspace_id(data: object) -> str | None:
-            if data is None:
-                return data
-            return cast(str | None, data)
-
-        workspace_id = _parse_workspace_id(d.pop("workspace_id"))
+        workspace_id = d.pop("workspace_id")
 
         provider = cls(
             config=config,

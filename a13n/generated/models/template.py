@@ -25,7 +25,6 @@ class Template:
         description (None | str):
         enabled (bool):
         id (str):
-        key (str):
         labels (TemplateLabels):
         name (str):
         organization_id (str):
@@ -42,7 +41,6 @@ class Template:
     description: str | None
     enabled: bool
     id: str
-    key: str
     labels: TemplateLabels
     name: str
     organization_id: str
@@ -66,8 +64,6 @@ class Template:
         enabled = self.enabled
 
         id = self.id
-
-        key = self.key
 
         labels = self.labels.to_dict()
 
@@ -95,7 +91,6 @@ class Template:
                 "description": description,
                 "enabled": enabled,
                 "id": id,
-                "key": key,
                 "labels": labels,
                 "name": name,
                 "organization_id": organization_id,
@@ -132,8 +127,6 @@ class Template:
 
         id = d.pop("id")
 
-        key = d.pop("key")
-
         labels = TemplateLabels.from_dict(d.pop("labels"))
 
         name = d.pop("name")
@@ -157,7 +150,6 @@ class Template:
             description=description,
             enabled=enabled,
             id=id,
-            key=key,
             labels=labels,
             name=name,
             organization_id=organization_id,

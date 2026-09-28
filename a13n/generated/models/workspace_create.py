@@ -12,23 +12,18 @@ T = TypeVar("T", bound="WorkspaceCreate")
 class WorkspaceCreate:
     """
     Attributes:
-        key (str):
         name (str):
     """
 
-    key: str
     name: str
 
     def to_dict(self) -> dict[str, Any]:
-        key = self.key
-
         name = self.name
 
         field_dict: dict[str, Any] = {}
 
         field_dict.update(
             {
-                "key": key,
                 "name": name,
             }
         )
@@ -38,12 +33,9 @@ class WorkspaceCreate:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        key = d.pop("key")
-
         name = d.pop("name")
 
         workspace_create = cls(
-            key=key,
             name=name,
         )
 

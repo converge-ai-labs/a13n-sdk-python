@@ -66,7 +66,8 @@ def sync_detailed(
     """Delete Avatar
 
     Args:
-        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current view
+        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current
+            view, `"{key}:{version}"` for a model
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -95,7 +96,8 @@ def sync(
     """Delete Avatar
 
     Args:
-        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current view
+        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current
+            view, `"{key}:{version}"` for a model
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -119,7 +121,8 @@ async def asyncio_detailed(
     """Delete Avatar
 
     Args:
-        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current view
+        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current
+            view, `"{key}:{version}"` for a model
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -146,7 +149,8 @@ async def asyncio(
     """Delete Avatar
 
     Args:
-        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current view
+        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current
+            view, `"{key}:{version}"` for a model
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

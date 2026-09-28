@@ -18,19 +18,17 @@ T = TypeVar("T", bound="SkillCreate")
 
 @_attrs_define(repr=False)
 class SkillCreate:
-    """`key`, `name` and `description` default to what the package's SKILL.md declares.
+    """`name` and `description` default to what the package's SKILL.md declares.
 
     Attributes:
         source (GitHubSource | UploadSource):
         description (None | str | Unset):
-        key (None | str | Unset):
         labels (SkillCreateLabels | Unset):
         name (None | str | Unset):
     """
 
     source: GitHubSource | UploadSource
     description: str | Unset | None = UNSET
-    key: str | Unset | None = UNSET
     labels: SkillCreateLabels | Unset = UNSET
     name: str | Unset | None = UNSET
 
@@ -48,12 +46,6 @@ class SkillCreate:
             description = UNSET
         else:
             description = self.description
-
-        key: str | Unset | None
-        if isinstance(self.key, Unset):
-            key = UNSET
-        else:
-            key = self.key
 
         labels: dict[str, Any] | Unset = UNSET
         if not isinstance(self.labels, Unset):
@@ -74,8 +66,6 @@ class SkillCreate:
         )
         if description is not UNSET:
             field_dict["description"] = description
-        if key is not UNSET:
-            field_dict["key"] = key
         if labels is not UNSET:
             field_dict["labels"] = labels
         if name is not UNSET:
@@ -117,15 +107,6 @@ class SkillCreate:
 
         description = _parse_description(d.pop("description", UNSET))
 
-        def _parse_key(data: object) -> str | Unset | None:
-            if data is None:
-                return data
-            if isinstance(data, Unset):
-                return data
-            return cast(str | Unset | None, data)
-
-        key = _parse_key(d.pop("key", UNSET))
-
         _labels = d.pop("labels", UNSET)
         labels: SkillCreateLabels | Unset
         if isinstance(_labels, Unset):
@@ -145,7 +126,6 @@ class SkillCreate:
         skill_create = cls(
             source=source,
             description=description,
-            key=key,
             labels=labels,
             name=name,
         )

@@ -8,13 +8,14 @@ from attrs import define as _attrs_define
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
+    from ..models.agent_model_characteristics import AgentModelCharacteristics
+    from ..models.agent_override_input_model_settings_type_0 import AgentOverrideInputModelSettingsType0
     from ..models.agent_override_input_subagents_type_0 import AgentOverrideInputSubagentsType0
     from ..models.agent_override_input_toolsets_type_0 import AgentOverrideInputToolsetsType0
     from ..models.agent_reviewer import AgentReviewer
     from ..models.client_tool_definition import ClientToolDefinition
     from ..models.connection_selection import ConnectionSelection
     from ..models.media_understanding_selection import MediaUnderstandingSelection
-    from ..models.model_override import ModelOverride
     from ..models.output_spec import OutputSpec
     from ..models.plugin_selection import PluginSelection
     from ..models.retry_override import RetryOverride
@@ -28,15 +29,17 @@ T = TypeVar("T", bound="AgentOverrideInput")
 class AgentOverrideInput:
     """What one run changes of its revision's configuration; an omitted or null field keeps the revision's.
 
-    `toolsets` replaces whole toolsets; `model`, `retries` and each subagent edge replace the fields they set,
-    and a null edge removes it; every other field replaces the revision's value.
+    `toolsets` replaces whole toolsets; `retries` and each subagent edge replace the fields they set, and a null
+    edge removes it; every other field replaces the revision's value.
 
         Attributes:
             client_tools (list[ClientToolDefinition] | None | Unset):
             connection_tools (list[ConnectionSelection] | None | Unset):
             instructions (None | str | Unset):
             media_understanding (MediaUnderstandingSelection | None | Unset):
-            model (ModelOverride | None | Unset):
+            model (None | str | Unset):
+            model_characteristics (AgentModelCharacteristics | None | Unset):
+            model_settings (AgentOverrideInputModelSettingsType0 | None | Unset):
             output_spec (None | OutputSpec | Unset):
             plugins (list[PluginSelection] | None | Unset):
             retries (None | RetryOverride | Unset):
@@ -50,7 +53,9 @@ class AgentOverrideInput:
     connection_tools: list[ConnectionSelection] | Unset | None = UNSET
     instructions: str | Unset | None = UNSET
     media_understanding: MediaUnderstandingSelection | Unset | None = UNSET
-    model: ModelOverride | Unset | None = UNSET
+    model: str | Unset | None = UNSET
+    model_characteristics: AgentModelCharacteristics | Unset | None = UNSET
+    model_settings: AgentOverrideInputModelSettingsType0 | Unset | None = UNSET
     output_spec: OutputSpec | Unset | None = UNSET
     plugins: list[PluginSelection] | Unset | None = UNSET
     retries: RetryOverride | Unset | None = UNSET
@@ -60,11 +65,14 @@ class AgentOverrideInput:
     toolsets: AgentOverrideInputToolsetsType0 | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.agent_model_characteristics import AgentModelCharacteristics
+        from ..models.agent_override_input_model_settings_type_0 import (
+            AgentOverrideInputModelSettingsType0,
+        )
         from ..models.agent_override_input_subagents_type_0 import AgentOverrideInputSubagentsType0
         from ..models.agent_override_input_toolsets_type_0 import AgentOverrideInputToolsetsType0
         from ..models.agent_reviewer import AgentReviewer
         from ..models.media_understanding_selection import MediaUnderstandingSelection
-        from ..models.model_override import ModelOverride
         from ..models.output_spec import OutputSpec
         from ..models.retry_override import RetryOverride
 
@@ -106,13 +114,27 @@ class AgentOverrideInput:
         else:
             media_understanding = self.media_understanding
 
-        model: dict[str, Any] | Unset | None
+        model: str | Unset | None
         if isinstance(self.model, Unset):
             model = UNSET
-        elif isinstance(self.model, ModelOverride):
-            model = self.model.to_dict()
         else:
             model = self.model
+
+        model_characteristics: dict[str, Any] | Unset | None
+        if isinstance(self.model_characteristics, Unset):
+            model_characteristics = UNSET
+        elif isinstance(self.model_characteristics, AgentModelCharacteristics):
+            model_characteristics = self.model_characteristics.to_dict()
+        else:
+            model_characteristics = self.model_characteristics
+
+        model_settings: dict[str, Any] | Unset | None
+        if isinstance(self.model_settings, Unset):
+            model_settings = UNSET
+        elif isinstance(self.model_settings, AgentOverrideInputModelSettingsType0):
+            model_settings = self.model_settings.to_dict()
+        else:
+            model_settings = self.model_settings
 
         output_spec: dict[str, Any] | Unset | None
         if isinstance(self.output_spec, Unset):
@@ -191,6 +213,10 @@ class AgentOverrideInput:
             field_dict["media_understanding"] = media_understanding
         if model is not UNSET:
             field_dict["model"] = model
+        if model_characteristics is not UNSET:
+            field_dict["model_characteristics"] = model_characteristics
+        if model_settings is not UNSET:
+            field_dict["model_settings"] = model_settings
         if output_spec is not UNSET:
             field_dict["output_spec"] = output_spec
         if plugins is not UNSET:
@@ -210,13 +236,16 @@ class AgentOverrideInput:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.agent_model_characteristics import AgentModelCharacteristics
+        from ..models.agent_override_input_model_settings_type_0 import (
+            AgentOverrideInputModelSettingsType0,
+        )
         from ..models.agent_override_input_subagents_type_0 import AgentOverrideInputSubagentsType0
         from ..models.agent_override_input_toolsets_type_0 import AgentOverrideInputToolsetsType0
         from ..models.agent_reviewer import AgentReviewer
         from ..models.client_tool_definition import ClientToolDefinition
         from ..models.connection_selection import ConnectionSelection
         from ..models.media_understanding_selection import MediaUnderstandingSelection
-        from ..models.model_override import ModelOverride
         from ..models.output_spec import OutputSpec
         from ..models.plugin_selection import PluginSelection
         from ..models.retry_override import RetryOverride
@@ -294,7 +323,16 @@ class AgentOverrideInput:
 
         media_understanding = _parse_media_understanding(d.pop("media_understanding", UNSET))
 
-        def _parse_model(data: object) -> ModelOverride | Unset | None:
+        def _parse_model(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        model = _parse_model(d.pop("model", UNSET))
+
+        def _parse_model_characteristics(data: object) -> AgentModelCharacteristics | Unset | None:
             if data is None:
                 return data
             if isinstance(data, Unset):
@@ -302,14 +340,31 @@ class AgentOverrideInput:
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
-                model_type_0 = ModelOverride.from_dict(data)
+                model_characteristics_type_0 = AgentModelCharacteristics.from_dict(data)
 
-                return model_type_0
+                return model_characteristics_type_0
             except (TypeError, ValueError, AttributeError, KeyError):
                 pass
-            return cast(ModelOverride | Unset | None, data)
+            return cast(AgentModelCharacteristics | Unset | None, data)
 
-        model = _parse_model(d.pop("model", UNSET))
+        model_characteristics = _parse_model_characteristics(d.pop("model_characteristics", UNSET))
+
+        def _parse_model_settings(data: object) -> AgentOverrideInputModelSettingsType0 | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                model_settings_type_0 = AgentOverrideInputModelSettingsType0.from_dict(data)
+
+                return model_settings_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(AgentOverrideInputModelSettingsType0 | Unset | None, data)
+
+        model_settings = _parse_model_settings(d.pop("model_settings", UNSET))
 
         def _parse_output_spec(data: object) -> OutputSpec | Unset | None:
             if data is None:
@@ -446,6 +501,8 @@ class AgentOverrideInput:
             instructions=instructions,
             media_understanding=media_understanding,
             model=model,
+            model_characteristics=model_characteristics,
+            model_settings=model_settings,
             output_spec=output_spec,
             plugins=plugins,
             retries=retries,

@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
+from ..models.agent_source import AgentSource
+
 if TYPE_CHECKING:
     from ..models.agent_labels import AgentLabels
 
@@ -25,11 +27,10 @@ class Agent:
         description (str):
         id (str):
         image_url (None | str):
-        key (str):
         labels (AgentLabels):
         name (str):
         organization_id (str):
-        source (str):
+        source (AgentSource):
         updated_at (datetime.datetime):
         updated_by_id (str):
         version (int):
@@ -43,11 +44,10 @@ class Agent:
     description: str
     id: str
     image_url: str | None
-    key: str
     labels: AgentLabels
     name: str
     organization_id: str
-    source: str
+    source: AgentSource
     updated_at: datetime.datetime
     updated_by_id: str
     version: int
@@ -75,15 +75,13 @@ class Agent:
         image_url: str | None
         image_url = self.image_url
 
-        key = self.key
-
         labels = self.labels.to_dict()
 
         name = self.name
 
         organization_id = self.organization_id
 
-        source = self.source
+        source = self.source.value
 
         updated_at = self.updated_at.isoformat()
 
@@ -104,7 +102,6 @@ class Agent:
                 "description": description,
                 "id": id,
                 "image_url": image_url,
-                "key": key,
                 "labels": labels,
                 "name": name,
                 "organization_id": organization_id,
@@ -161,15 +158,13 @@ class Agent:
 
         image_url = _parse_image_url(d.pop("image_url"))
 
-        key = d.pop("key")
-
         labels = AgentLabels.from_dict(d.pop("labels"))
 
         name = d.pop("name")
 
         organization_id = d.pop("organization_id")
 
-        source = d.pop("source")
+        source = AgentSource(d.pop("source"))
 
         updated_at = datetime.datetime.fromisoformat(d.pop("updated_at"))
 
@@ -187,7 +182,6 @@ class Agent:
             description=description,
             id=id,
             image_url=image_url,
-            key=key,
             labels=labels,
             name=name,
             organization_id=organization_id,

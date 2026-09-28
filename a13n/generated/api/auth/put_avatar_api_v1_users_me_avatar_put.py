@@ -74,7 +74,8 @@ def sync_detailed(
     """Put Avatar
 
     Args:
-        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current view
+        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current
+            view, `"{key}:{version}"` for a model
         body (File):
 
     Raises:
@@ -106,7 +107,8 @@ def sync(
     """Put Avatar
 
     Args:
-        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current view
+        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current
+            view, `"{key}:{version}"` for a model
         body (File):
 
     Raises:
@@ -133,7 +135,8 @@ async def asyncio_detailed(
     """Put Avatar
 
     Args:
-        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current view
+        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current
+            view, `"{key}:{version}"` for a model
         body (File):
 
     Raises:
@@ -165,7 +168,8 @@ async def asyncio(
     """Put Avatar
 
     Args:
-        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current view
+        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current
+            view, `"{key}:{version}"` for a model
         body (File):
 
     Raises:

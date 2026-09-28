@@ -20,7 +20,7 @@ T = TypeVar("T", bound="AgentReviewer")
 
 @_attrs_define(repr=False)
 class AgentReviewer:
-    """The model reviewing calls whose permission is `review`, selected by model ID.
+    """The model reviewing calls whose permission is `review`, selected by model key.
 
     Attributes:
         model (str):

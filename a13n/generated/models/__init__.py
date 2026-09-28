@@ -3,10 +3,12 @@
 from .account_disable import AccountDisable
 from .agent import Agent
 from .agent_config_input import AgentConfigInput
+from .agent_config_input_model_settings import AgentConfigInputModelSettings
 from .agent_config_input_subagent_mode import AgentConfigInputSubagentMode
 from .agent_config_input_subagents import AgentConfigInputSubagents
 from .agent_config_input_toolsets import AgentConfigInputToolsets
 from .agent_config_output import AgentConfigOutput
+from .agent_config_output_model_settings import AgentConfigOutputModelSettings
 from .agent_config_output_subagent_mode import AgentConfigOutputSubagentMode
 from .agent_config_output_subagents import AgentConfigOutputSubagents
 from .agent_config_output_toolsets import AgentConfigOutputToolsets
@@ -15,13 +17,13 @@ from .agent_create_labels import AgentCreateLabels
 from .agent_duplicate import AgentDuplicate
 from .agent_duplicate_labels import AgentDuplicateLabels
 from .agent_labels import AgentLabels
-from .agent_model import AgentModel
 from .agent_model_characteristics import AgentModelCharacteristics
-from .agent_model_settings import AgentModelSettings
 from .agent_override_input import AgentOverrideInput
+from .agent_override_input_model_settings_type_0 import AgentOverrideInputModelSettingsType0
 from .agent_override_input_subagents_type_0 import AgentOverrideInputSubagentsType0
 from .agent_override_input_toolsets_type_0 import AgentOverrideInputToolsetsType0
 from .agent_override_output import AgentOverrideOutput
+from .agent_override_output_model_settings_type_0 import AgentOverrideOutputModelSettingsType0
 from .agent_override_output_subagents_type_0 import AgentOverrideOutputSubagentsType0
 from .agent_override_output_toolsets_type_0 import AgentOverrideOutputToolsetsType0
 from .agent_page import AgentPage
@@ -33,6 +35,7 @@ from .agent_reviewer_rules import AgentReviewerRules
 from .agent_revision import AgentRevision
 from .agent_revision_create import AgentRevisionCreate
 from .agent_revision_page import AgentRevisionPage
+from .agent_source import AgentSource
 from .agent_update import AgentUpdate
 from .agent_update_labels_type_0 import AgentUpdateLabelsType0
 from .agent_validate import AgentValidate
@@ -148,9 +151,7 @@ from .list_members_api_v1_organizations_organization_id_members_get_kind_type_0 
     ListMembersApiV1OrganizationsOrganizationIdMembersGetKindType0,
 )
 from .list_provider_types_api_v1_provider_types_kind_get_kind import ListProviderTypesApiV1ProviderTypesKindGetKind
-from .list_skills_api_v1_workspaces_workspace_id_skills_get_source_type_0 import (
-    ListSkillsApiV1WorkspacesWorkspaceIdSkillsGetSourceType0,
-)
+from .list_skills_api_v1_skills_get_source_type_0 import ListSkillsApiV1SkillsGetSourceType0
 from .login_input import LoginInput
 from .login_output import LoginOutput
 from .login_session import LoginSession
@@ -201,8 +202,6 @@ from .model_catalog_status import ModelCatalogStatus
 from .model_config_input import ModelConfigInput
 from .model_config_output import ModelConfigOutput
 from .model_create import ModelCreate
-from .model_override import ModelOverride
-from .model_override_settings_type_0 import ModelOverrideSettingsType0
 from .model_page import ModelPage
 from .model_price_rule_input import ModelPriceRuleInput
 from .model_price_rule_output import ModelPriceRuleOutput
@@ -291,12 +290,6 @@ from .run_view_input_type_0 import RunViewInputType0
 from .run_view_labels import RunViewLabels
 from .run_view_revision_selection import RunViewRevisionSelection
 from .run_view_usage_at_seal_type_0 import RunViewUsageAtSealType0
-from .secret import Secret
-from .secret_create import SecretCreate
-from .secret_page import SecretPage
-from .secret_requirement import SecretRequirement
-from .secret_scope import SecretScope
-from .secret_update import SecretUpdate
 from .service_account import ServiceAccount
 from .service_account_create import ServiceAccountCreate
 from .service_account_page import ServiceAccountPage
@@ -415,10 +408,12 @@ __all__ = (
     "AccountDisable",
     "Agent",
     "AgentConfigInput",
+    "AgentConfigInputModelSettings",
     "AgentConfigInputSubagentMode",
     "AgentConfigInputSubagents",
     "AgentConfigInputToolsets",
     "AgentConfigOutput",
+    "AgentConfigOutputModelSettings",
     "AgentConfigOutputSubagentMode",
     "AgentConfigOutputSubagents",
     "AgentConfigOutputToolsets",
@@ -427,13 +422,13 @@ __all__ = (
     "AgentDuplicate",
     "AgentDuplicateLabels",
     "AgentLabels",
-    "AgentModel",
     "AgentModelCharacteristics",
-    "AgentModelSettings",
     "AgentOverrideInput",
+    "AgentOverrideInputModelSettingsType0",
     "AgentOverrideInputSubagentsType0",
     "AgentOverrideInputToolsetsType0",
     "AgentOverrideOutput",
+    "AgentOverrideOutputModelSettingsType0",
     "AgentOverrideOutputSubagentsType0",
     "AgentOverrideOutputToolsetsType0",
     "AgentPage",
@@ -445,6 +440,7 @@ __all__ = (
     "AgentRevision",
     "AgentRevisionCreate",
     "AgentRevisionPage",
+    "AgentSource",
     "AgentUpdate",
     "AgentUpdateLabelsType0",
     "AgentValidate",
@@ -558,7 +554,7 @@ __all__ = (
     "Lineage",
     "ListMembersApiV1OrganizationsOrganizationIdMembersGetKindType0",
     "ListProviderTypesApiV1ProviderTypesKindGetKind",
-    "ListSkillsApiV1WorkspacesWorkspaceIdSkillsGetSourceType0",
+    "ListSkillsApiV1SkillsGetSourceType0",
     "LoginInput",
     "LoginOutput",
     "LoginSession",
@@ -609,8 +605,6 @@ __all__ = (
     "ModelConfigInput",
     "ModelConfigOutput",
     "ModelCreate",
-    "ModelOverride",
-    "ModelOverrideSettingsType0",
     "ModelPage",
     "ModelPriceRuleInput",
     "ModelPriceRuleOutput",
@@ -697,12 +691,6 @@ __all__ = (
     "RunViewLabels",
     "RunViewRevisionSelection",
     "RunViewUsageAtSealType0",
-    "Secret",
-    "SecretCreate",
-    "SecretPage",
-    "SecretRequirement",
-    "SecretScope",
-    "SecretUpdate",
     "ServiceAccount",
     "ServiceAccountCreate",
     "ServiceAccountPage",
