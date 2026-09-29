@@ -59,7 +59,7 @@ def test_every_pinned_operation_has_a_generated_resource_method() -> None:
         and isinstance(node.func.value, ast.Name)
     }
     assert called == expected
-    assert len(expected) == 225
+    assert len(expected) == 228
 
 
 def test_memory_files_revisions_and_mounts_preserve_paths_and_etags() -> None:

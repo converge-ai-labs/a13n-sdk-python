@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import asyncio
 import math
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Mapping
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Self, cast
+from typing import TYPE_CHECKING, Any, Self, cast
 
 from ._resources import Resource, Result
 from .generated import models as wire
@@ -307,8 +307,12 @@ class AgentMethods(Resource):
         environments: list[wire.MountCreate] | Unset = UNSET,
         memories: list[wire.MemoryMount] | Unset = UNSET,
         mcp_headers: wire.McpHeaders | Unset = UNSET,
+        message_history: list[dict[str, Any]] | Unset = UNSET,
     ) -> Interaction:
-        """Create a finite interaction with this Agent; no hidden operation retry."""
+        """Create a finite interaction with this Agent; import native model history only here."""
+        history: list[wire.MessageHistoryItem] | Unset = UNSET
+        if not isinstance(message_history, Unset):
+            history = [wire.MessageHistoryItem.from_dict(item) for item in message_history]
         body = wire.NewThread(
             agent_id=self.id,
             payload=_payload(input),
@@ -319,6 +323,7 @@ class AgentMethods(Resource):
             environments=environments,
             memories=memories,
             mcp_headers=mcp_headers,
+            message_history=history,
         )
         client = cast("Agent", self).client
         receipt = await client.resources.threads.create(body=body, idempotency_key=idempotency_key)
@@ -364,13 +369,22 @@ class RunMethods(Resource):
                 await asyncio.sleep(poll_interval)
 
     async def resume(
-        self, answers: list[wire.Approve | wire.Complete | wire.Reject], *, idempotency_key: str
+        self,
+        *,
+        approvals: Mapping[str, wire.Approve | wire.Deny],
+        calls: Mapping[str, wire.Returned | wire.Failed],
+        idempotency_key: str,
+        input: str | wire.MessagePayload | Unset = UNSET,
     ) -> Resumed:
+        """Submit a complete wait-result batch and optional input as one immutable intent."""
         from .errors import ProtocolError
 
-        receipt = await self._client.resources.runs(self.id).resume(
-            body=wire.ResumeRequest(answers=answers), idempotency_key=idempotency_key
-        )
+        body = wire.Resume(approvals=wire.ResumeApprovals(), calls=wire.ResumeCalls())
+        body.approvals.additional_properties = dict(approvals)
+        body.calls.additional_properties = dict(calls)
+        if not isinstance(input, Unset):
+            body.input_ = _payload(input)
+        receipt = await self._client.resources.runs(self.id).resume(body=body, idempotency_key=idempotency_key)
         value = receipt.value
         if not value.id or value.id == self.id or not value.workspace_id:
             raise ProtocolError("Resume did not return a new run with a workspace identity")
