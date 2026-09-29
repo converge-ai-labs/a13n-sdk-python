@@ -12,6 +12,8 @@ from ...types import UNSET, Response, Unset
 def build_request(
     thread_id: str,
     *,
+    run: str | Unset | None = UNSET,
+    position: str | Unset | None = UNSET,
     last_event_id: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> dict[str, Any]:
@@ -22,11 +24,30 @@ def build_request(
     if not isinstance(x_workspace_id, Unset):
         headers["X-Workspace-ID"] = x_workspace_id
 
+    params: dict[str, Any] = {}
+
+    json_run: str | Unset | None
+    if isinstance(run, Unset):
+        json_run = UNSET
+    else:
+        json_run = run
+    params["run"] = json_run
+
+    json_position: str | Unset | None
+    if isinstance(position, Unset):
+        json_position = UNSET
+    else:
+        json_position = position
+    params["position"] = json_position
+
+    params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
+
     _kwargs: dict[str, Any] = {
         "method": "get",
         "url": "/api/v1/threads/{thread_id}/stream".format(
             thread_id=quote(str(thread_id), safe=""),
         ),
+        "params": params,
     }
 
     _kwargs["headers"] = headers
@@ -66,6 +87,8 @@ def sync_detailed(
     thread_id: str,
     *,
     client: AuthenticatedClient,
+    run: str | Unset | None = UNSET,
+    position: str | Unset | None = UNSET,
     last_event_id: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> Response[Any | ErrorEnvelope]:
@@ -76,6 +99,8 @@ def sync_detailed(
 
     Args:
         thread_id (str):
+        run (None | str | Unset):
+        position (None | str | Unset):
         last_event_id (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
@@ -91,6 +116,8 @@ def sync_detailed(
 
     kwargs = build_request(
         thread_id=thread_id,
+        run=run,
+        position=position,
         last_event_id=last_event_id,
         x_workspace_id=x_workspace_id,
     )
@@ -106,6 +133,8 @@ def sync(
     thread_id: str,
     *,
     client: AuthenticatedClient,
+    run: str | Unset | None = UNSET,
+    position: str | Unset | None = UNSET,
     last_event_id: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> Any | ErrorEnvelope | None:
@@ -116,6 +145,8 @@ def sync(
 
     Args:
         thread_id (str):
+        run (None | str | Unset):
+        position (None | str | Unset):
         last_event_id (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
@@ -132,6 +163,8 @@ def sync(
     return sync_detailed(
         thread_id=thread_id,
         client=client,
+        run=run,
+        position=position,
         last_event_id=last_event_id,
         x_workspace_id=x_workspace_id,
     ).parsed
@@ -141,6 +174,8 @@ async def asyncio_detailed(
     thread_id: str,
     *,
     client: AuthenticatedClient,
+    run: str | Unset | None = UNSET,
+    position: str | Unset | None = UNSET,
     last_event_id: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> Response[Any | ErrorEnvelope]:
@@ -151,6 +186,8 @@ async def asyncio_detailed(
 
     Args:
         thread_id (str):
+        run (None | str | Unset):
+        position (None | str | Unset):
         last_event_id (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
@@ -166,6 +203,8 @@ async def asyncio_detailed(
 
     kwargs = build_request(
         thread_id=thread_id,
+        run=run,
+        position=position,
         last_event_id=last_event_id,
         x_workspace_id=x_workspace_id,
     )
@@ -179,6 +218,8 @@ async def asyncio(
     thread_id: str,
     *,
     client: AuthenticatedClient,
+    run: str | Unset | None = UNSET,
+    position: str | Unset | None = UNSET,
     last_event_id: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> Any | ErrorEnvelope | None:
@@ -189,6 +230,8 @@ async def asyncio(
 
     Args:
         thread_id (str):
+        run (None | str | Unset):
+        position (None | str | Unset):
         last_event_id (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
@@ -206,6 +249,8 @@ async def asyncio(
         await asyncio_detailed(
             thread_id=thread_id,
             client=client,
+            run=run,
+            position=position,
             last_event_id=last_event_id,
             x_workspace_id=x_workspace_id,
         )

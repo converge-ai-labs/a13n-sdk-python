@@ -4125,25 +4125,41 @@ class ThreadsThreadIdStream(Resource):
     """Bound Native resource: /threads / {thread_id} / stream."""
 
     async def get(
-        self, *, last_event_id: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
+        self,
+        *,
+        run: str | Unset | None = UNSET,
+        position: str | Unset | None = UNSET,
+        last_event_id: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
     ) -> Result[Any]:
         """Thread Stream. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: thread_stream_api_v1_threads_thread_id_stream_get.asyncio_detailed(
                 client=client,
                 thread_id=self._bindings["thread_id"],
+                run=run,
+                position=position,
                 last_event_id=last_event_id,
                 x_workspace_id=x_workspace_id,
             )
         )
 
     def get_stream(
-        self, *, last_event_id: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
+        self,
+        *,
+        run: str | Unset | None = UNSET,
+        position: str | Unset | None = UNSET,
+        last_event_id: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
     ) -> AbstractAsyncContextManager[httpx2.Response]:
         """Unbuffered response; caller checks status and consumes within the context."""
         return self._stream(
             thread_stream_api_v1_threads_thread_id_stream_get.build_request(
-                thread_id=self._bindings["thread_id"], last_event_id=last_event_id, x_workspace_id=x_workspace_id
+                thread_id=self._bindings["thread_id"],
+                run=run,
+                position=position,
+                last_event_id=last_event_id,
+                x_workspace_id=x_workspace_id,
             )
         )
 

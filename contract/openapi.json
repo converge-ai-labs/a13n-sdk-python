@@ -9116,6 +9116,17 @@
             ],
             "title": "Position"
           },
+          "resume_after": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resume After"
+          },
           "run": {
             "$ref": "#/components/schemas/RunView"
           }
@@ -26777,6 +26788,39 @@
             "schema": {
               "title": "Thread Id",
               "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "run",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Run"
+            }
+          },
+          {
+            "in": "query",
+            "name": "position",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^(0|[1-9][0-9]{0,19})-(0|[1-9][0-9]{0,19})$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Position"
             }
           },
           {
