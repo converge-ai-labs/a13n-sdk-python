@@ -6,11 +6,11 @@ from typing import Any, TypeVar
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
-T = TypeVar("T", bound="PendingItemPresentationType0")
+T = TypeVar("T", bound="MessageHistoryItem")
 
 
 @_attrs_define(repr=False)
-class PendingItemPresentationType0:
+class MessageHistoryItem:
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -23,10 +23,10 @@ class PendingItemPresentationType0:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        pending_item_presentation_type_0 = cls()
+        message_history_item = cls()
 
-        pending_item_presentation_type_0.additional_properties = d
-        return pending_item_presentation_type_0
+        message_history_item.additional_properties = d
+        return message_history_item
 
     @property
     def additional_keys(self) -> list[str]:

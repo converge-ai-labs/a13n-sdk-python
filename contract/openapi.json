@@ -1274,6 +1274,60 @@
         "title": "AgentUpdate",
         "type": "object"
       },
+      "AgentUsage": {
+        "properties": {
+          "agent_id": {
+            "title": "Agent Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "runs": {
+            "$ref": "#/components/schemas/RunMetrics"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/ModelMetrics"
+          }
+        },
+        "required": [
+          "agent_id",
+          "name",
+          "usage",
+          "runs"
+        ],
+        "title": "AgentUsage",
+        "type": "object"
+      },
+      "AgentUsagePage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AgentUsage"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "AgentUsagePage",
+        "type": "object"
+      },
       "AgentValidate": {
         "additionalProperties": false,
         "description": "A configuration to check as creating a revision would, storing nothing.\n\n`agent_id` names the agent it would become a revision of, whose inline subagents may not lead back to it;\nomit it for a new agent.",
@@ -1300,27 +1354,6 @@
         ],
         "title": "AgentValidate",
         "type": "object"
-      },
-      "Answer": {
-        "discriminator": {
-          "mapping": {
-            "approve": "#/components/schemas/Approve",
-            "complete": "#/components/schemas/Complete",
-            "reject": "#/components/schemas/Reject"
-          },
-          "propertyName": "action"
-        },
-        "oneOf": [
-          {
-            "$ref": "#/components/schemas/Approve"
-          },
-          {
-            "$ref": "#/components/schemas/Reject"
-          },
-          {
-            "$ref": "#/components/schemas/Complete"
-          }
-        ]
       },
       "ApiKey": {
         "properties": {
@@ -1437,6 +1470,23 @@
         "title": "ApiKeyPage",
         "type": "object"
       },
+      "ApprovalDecision": {
+        "discriminator": {
+          "mapping": {
+            "approve": "#/components/schemas/Approve",
+            "deny": "#/components/schemas/Deny"
+          },
+          "propertyName": "action"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/Approve"
+          },
+          {
+            "$ref": "#/components/schemas/Deny"
+          }
+        ]
+      },
       "Approve": {
         "additionalProperties": false,
         "properties": {
@@ -1444,16 +1494,9 @@
             "const": "approve",
             "title": "Action",
             "type": "string"
-          },
-          "tool_call_id": {
-            "maxLength": 1024,
-            "minLength": 1,
-            "title": "Tool Call Id",
-            "type": "string"
           }
         },
         "required": [
-          "tool_call_id",
           "action"
         ],
         "title": "Approve",
@@ -2057,6 +2100,23 @@
         "title": "BootstrapInput",
         "type": "object"
       },
+      "CallResult": {
+        "discriminator": {
+          "mapping": {
+            "failed": "#/components/schemas/Failed",
+            "returned": "#/components/schemas/Returned"
+          },
+          "propertyName": "status"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/Returned"
+          },
+          {
+            "$ref": "#/components/schemas/Failed"
+          }
+        ]
+      },
       "CallbackOutcome": {
         "properties": {
           "connection_id": {
@@ -2278,32 +2338,6 @@
           "parameters_json_schema"
         ],
         "title": "ClientToolDefinition",
-        "type": "object"
-      },
-      "Complete": {
-        "additionalProperties": false,
-        "properties": {
-          "action": {
-            "const": "complete",
-            "title": "Action",
-            "type": "string"
-          },
-          "result": {
-            "$ref": "#/components/schemas/JsonValue"
-          },
-          "tool_call_id": {
-            "maxLength": 1024,
-            "minLength": 1,
-            "title": "Tool Call Id",
-            "type": "string"
-          }
-        },
-        "required": [
-          "tool_call_id",
-          "action",
-          "result"
-        ],
-        "title": "Complete",
         "type": "object"
       },
       "Connection": {
@@ -3073,6 +3107,24 @@
         "title": "CredentialMode",
         "type": "string"
       },
+      "DailyUsage": {
+        "properties": {
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/ModelMetrics"
+          }
+        },
+        "required": [
+          "date",
+          "usage"
+        ],
+        "title": "DailyUsage",
+        "type": "object"
+      },
       "DelegationContextPolicy": {
         "additionalProperties": false,
         "properties": {
@@ -3137,6 +3189,33 @@
           "next_cursor"
         ],
         "title": "DeliveryPage",
+        "type": "object"
+      },
+      "Deny": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "const": "deny",
+            "title": "Action",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "maxLength": 4096,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "required": [
+          "action"
+        ],
+        "title": "Deny",
         "type": "object"
       },
       "EmailChangeConfirm": {
@@ -3838,6 +3917,30 @@
           "token"
         ],
         "title": "ExternalTargetCreate",
+        "type": "object"
+      },
+      "Failed": {
+        "additionalProperties": false,
+        "description": "An explicit external tool failure, including an intentional unanswered question.",
+        "properties": {
+          "message": {
+            "maxLength": 4096,
+            "minLength": 1,
+            "pattern": "\\S",
+            "title": "Message",
+            "type": "string"
+          },
+          "status": {
+            "const": "failed",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "message"
+        ],
+        "title": "Failed",
         "type": "object"
       },
       "Failure": {
@@ -6251,6 +6354,17 @@
         "title": "Message",
         "type": "object"
       },
+      "MessageHistory": {
+        "description": "Pydantic AI ModelMessage JSON objects, validated by the Service. Imports completed user text, model text and closed tool-call/JSON-result exchanges; no instructions, media or suspended execution. At most 256 messages and 256 KiB of normalized JSON.",
+        "items": {
+          "additionalProperties": {
+            "$ref": "#/components/schemas/JsonValue"
+          },
+          "type": "object"
+        },
+        "maxItems": 256,
+        "type": "array"
+      },
       "MessagePayload": {
         "additionalProperties": false,
         "properties": {
@@ -6640,6 +6754,64 @@
           "config"
         ],
         "title": "ModelCreate",
+        "type": "object"
+      },
+      "ModelMetrics": {
+        "properties": {
+          "cache_hit_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cache Hit Rate"
+          },
+          "cache_read_tokens": {
+            "title": "Cache Read Tokens",
+            "type": "integer"
+          },
+          "cost": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost"
+          },
+          "input_tokens": {
+            "title": "Input Tokens",
+            "type": "integer"
+          },
+          "output_tokens": {
+            "title": "Output Tokens",
+            "type": "integer"
+          },
+          "requests": {
+            "title": "Requests",
+            "type": "integer"
+          },
+          "unpriced_requests": {
+            "title": "Unpriced Requests",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "requests",
+          "input_tokens",
+          "output_tokens",
+          "cache_read_tokens",
+          "cache_hit_rate",
+          "cost",
+          "unpriced_requests"
+        ],
+        "title": "ModelMetrics",
         "type": "object"
       },
       "ModelPage": {
@@ -7061,6 +7233,70 @@
         "title": "ModelUsage",
         "type": "object"
       },
+      "ModelUsageGroup": {
+        "properties": {
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/ModelMetrics"
+          }
+        },
+        "required": [
+          "model",
+          "name",
+          "usage"
+        ],
+        "title": "ModelUsageGroup",
+        "type": "object"
+      },
+      "ModelUsagePage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ModelUsageGroup"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "ModelUsagePage",
+        "type": "object"
+      },
       "MountCreate": {
         "additionalProperties": false,
         "properties": {
@@ -7199,6 +7435,9 @@
             "title": "Memories",
             "type": "array"
           },
+          "message_history": {
+            "$ref": "#/components/schemas/MessageHistory"
+          },
           "options": {
             "$ref": "#/components/schemas/RunOptions-Input"
           },
@@ -7225,53 +7464,6 @@
         ],
         "title": "NewThread",
         "type": "object"
-      },
-      "NoResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "action": {
-            "const": "no_response",
-            "default": "no_response",
-            "title": "Action",
-            "type": "string"
-          },
-          "tool_call_id": {
-            "maxLength": 1024,
-            "minLength": 1,
-            "title": "Tool Call Id",
-            "type": "string"
-          }
-        },
-        "required": [
-          "tool_call_id"
-        ],
-        "title": "NoResponse",
-        "type": "object"
-      },
-      "NormalizedAnswer": {
-        "discriminator": {
-          "mapping": {
-            "approve": "#/components/schemas/Approve",
-            "complete": "#/components/schemas/Complete",
-            "no_response": "#/components/schemas/NoResponse",
-            "reject": "#/components/schemas/Reject"
-          },
-          "propertyName": "action"
-        },
-        "oneOf": [
-          {
-            "$ref": "#/components/schemas/Approve"
-          },
-          {
-            "$ref": "#/components/schemas/Reject"
-          },
-          {
-            "$ref": "#/components/schemas/Complete"
-          },
-          {
-            "$ref": "#/components/schemas/NoResponse"
-          }
-        ]
       },
       "OAuthGrant": {
         "enum": [
@@ -7660,25 +7852,31 @@
       },
       "Pending": {
         "additionalProperties": false,
-        "description": "Public projection of the exact sealed pending set; the native requests live in the state object.",
+        "description": "Public projection; complete native requests and private metadata stay in the checkpoint.",
         "properties": {
-          "items": {
+          "approvals": {
             "items": {
-              "$ref": "#/components/schemas/PendingItem"
+              "$ref": "#/components/schemas/PendingCall"
             },
-            "maxItems": 128,
-            "minItems": 1,
-            "title": "Items",
+            "title": "Approvals",
+            "type": "array"
+          },
+          "calls": {
+            "items": {
+              "$ref": "#/components/schemas/PendingCall"
+            },
+            "title": "Calls",
             "type": "array"
           }
         },
         "required": [
-          "items"
+          "approvals",
+          "calls"
         ],
         "title": "Pending",
         "type": "object"
       },
-      "PendingItem": {
+      "PendingCall": {
         "additionalProperties": false,
         "properties": {
           "arguments": {
@@ -7687,9 +7885,6 @@
             },
             "title": "Arguments",
             "type": "object"
-          },
-          "kind": {
-            "$ref": "#/components/schemas/PendingKind"
           },
           "presentation": {
             "anyOf": [
@@ -7706,8 +7901,7 @@
             "title": "Presentation"
           },
           "tool_call_id": {
-            "title": "Tool Call Id",
-            "type": "string"
+            "$ref": "#/components/schemas/ToolCallId"
           },
           "tool_name": {
             "title": "Tool Name",
@@ -7716,20 +7910,11 @@
         },
         "required": [
           "tool_call_id",
-          "kind",
           "tool_name",
           "arguments"
         ],
-        "title": "PendingItem",
+        "title": "PendingCall",
         "type": "object"
-      },
-      "PendingKind": {
-        "enum": [
-          "approval",
-          "client_tool",
-          "user_input"
-        ],
-        "type": "string"
       },
       "PluginSelection": {
         "additionalProperties": false,
@@ -8132,8 +8317,15 @@
             "type": "string"
           },
           "created_by_id": {
-            "title": "Created By Id",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By Id"
           },
           "credential_configured": {
             "title": "Credential Configured",
@@ -8172,8 +8364,15 @@
             "type": "string"
           },
           "updated_by_id": {
-            "title": "Updated By Id",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated By Id"
           },
           "version": {
             "title": "Version",
@@ -8636,73 +8835,46 @@
         "title": "ProviderUpdate",
         "type": "object"
       },
-      "Reject": {
+      "Resume": {
         "additionalProperties": false,
+        "description": "The complete result batch, submitted and stored on the successor without omission defaults.",
         "properties": {
-          "action": {
-            "const": "reject",
-            "title": "Action",
-            "type": "string"
+          "approvals": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ApprovalDecision"
+            },
+            "propertyNames": {
+              "$ref": "#/components/schemas/ToolCallId"
+            },
+            "title": "Approvals",
+            "type": "object"
           },
-          "reason": {
+          "calls": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/CallResult"
+            },
+            "propertyNames": {
+              "$ref": "#/components/schemas/ToolCallId"
+            },
+            "title": "Calls",
+            "type": "object"
+          },
+          "input": {
             "anyOf": [
               {
-                "maxLength": 4096,
-                "type": "string"
+                "$ref": "#/components/schemas/MessagePayload"
               },
               {
                 "type": "null"
               }
-            ],
-            "title": "Reason"
-          },
-          "tool_call_id": {
-            "maxLength": 1024,
-            "minLength": 1,
-            "title": "Tool Call Id",
-            "type": "string"
+            ]
           }
         },
         "required": [
-          "tool_call_id",
-          "action"
-        ],
-        "title": "Reject",
-        "type": "object"
-      },
-      "Resume": {
-        "additionalProperties": false,
-        "description": "The normalized batch stored on the successor: one answer per pending call of the exact wait.",
-        "properties": {
-          "answers": {
-            "items": {
-              "$ref": "#/components/schemas/NormalizedAnswer"
-            },
-            "maxItems": 128,
-            "title": "Answers",
-            "type": "array"
-          }
-        },
-        "required": [
-          "answers"
+          "approvals",
+          "calls"
         ],
         "title": "Resume",
-        "type": "object"
-      },
-      "ResumeRequest": {
-        "additionalProperties": false,
-        "properties": {
-          "answers": {
-            "default": [],
-            "items": {
-              "$ref": "#/components/schemas/Answer"
-            },
-            "maxItems": 128,
-            "title": "Answers",
-            "type": "array"
-          }
-        },
-        "title": "ResumeRequest",
         "type": "object"
       },
       "RetryConfig": {
@@ -8757,6 +8929,26 @@
           }
         },
         "title": "RetryOverride",
+        "type": "object"
+      },
+      "Returned": {
+        "additionalProperties": false,
+        "description": "A JSON tool result. Built-in question values are validated by the Harness.",
+        "properties": {
+          "status": {
+            "const": "returned",
+            "title": "Status",
+            "type": "string"
+          },
+          "value": {
+            "$ref": "#/components/schemas/JsonValue"
+          }
+        },
+        "required": [
+          "status",
+          "value"
+        ],
+        "title": "Returned",
         "type": "object"
       },
       "RevokedConnection": {
@@ -8959,6 +9151,31 @@
           "labels"
         ],
         "title": "RunLabels",
+        "type": "object"
+      },
+      "RunMetrics": {
+        "properties": {
+          "average_duration_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average Duration Seconds"
+          },
+          "runs": {
+            "title": "Runs",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "runs",
+          "average_duration_seconds"
+        ],
+        "title": "RunMetrics",
         "type": "object"
       },
       "RunOptions-Input": {
@@ -11220,8 +11437,15 @@
             "type": "string"
           },
           "created_by_id": {
-            "title": "Created By Id",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By Id"
           },
           "description": {
             "anyOf": [
@@ -11267,8 +11491,15 @@
             "type": "string"
           },
           "updated_by_id": {
-            "title": "Updated By Id",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated By Id"
           },
           "version": {
             "title": "Version",
@@ -11665,6 +11896,9 @@
             "title": "Mcp Headers",
             "type": "object"
           },
+          "message_history": {
+            "$ref": "#/components/schemas/MessageHistory"
+          },
           "origin": {
             "enum": [
               "new",
@@ -11737,6 +11971,7 @@
           }
         },
         "required": [
+          "message_history",
           "id",
           "workspace_id",
           "session_id",
@@ -11757,6 +11992,12 @@
         ],
         "title": "ThreadView",
         "type": "object"
+      },
+      "ToolCallId": {
+        "maxLength": 1024,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
       },
       "ToolDefinition": {
         "additionalProperties": false,
@@ -12471,6 +12712,30 @@
         "title": "UsageLimits",
         "type": "object"
       },
+      "UsageOverview": {
+        "properties": {
+          "daily": {
+            "items": {
+              "$ref": "#/components/schemas/DailyUsage"
+            },
+            "title": "Daily",
+            "type": "array"
+          },
+          "runs": {
+            "$ref": "#/components/schemas/RunMetrics"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/ModelMetrics"
+          }
+        },
+        "required": [
+          "usage",
+          "runs",
+          "daily"
+        ],
+        "title": "UsageOverview",
+        "type": "object"
+      },
       "UsageSummary": {
         "properties": {
           "models": {
@@ -12534,8 +12799,7 @@
       "WaitReason": {
         "enum": [
           "approval",
-          "client_tool",
-          "user_input",
+          "call",
           "multiple"
         ],
         "type": "string"
@@ -22541,7 +22805,7 @@
     },
     "/api/v1/runs/{run_id}/resume": {
       "post": {
-        "description": "Answer the waiting run's approvals and client tools; the successor run continues from them.",
+        "description": "Answer the exact waiting run's approvals, client tools and user questions; the successor continues from them.",
         "operationId": "resume_run_api_v1_runs__run_id__resume_post",
         "parameters": [
           {
@@ -22590,7 +22854,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ResumeRequest"
+                "$ref": "#/components/schemas/Resume"
               }
             }
           },
@@ -27277,7 +27541,307 @@
         ],
         "summary": "Summarize Usage",
         "tags": [
-          "runs"
+          "usage"
+        ]
+      }
+    },
+    "/api/v1/usage/agents": {
+      "get": {
+        "operationId": "usage_agents_api_v1_usage_agents_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "start",
+            "required": true,
+            "schema": {
+              "format": "date-time",
+              "title": "Start",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end",
+            "required": true,
+            "schema": {
+              "format": "date-time",
+              "title": "End",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 2048,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentUsagePage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "loginSession": []
+          }
+        ],
+        "summary": "Usage Agents",
+        "tags": [
+          "usage"
+        ]
+      }
+    },
+    "/api/v1/usage/models": {
+      "get": {
+        "operationId": "usage_models_api_v1_usage_models_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "start",
+            "required": true,
+            "schema": {
+              "format": "date-time",
+              "title": "Start",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end",
+            "required": true,
+            "schema": {
+              "format": "date-time",
+              "title": "End",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 2048,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelUsagePage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "loginSession": []
+          }
+        ],
+        "summary": "Usage Models",
+        "tags": [
+          "usage"
+        ]
+      }
+    },
+    "/api/v1/usage/overview": {
+      "get": {
+        "operationId": "usage_overview_api_v1_usage_overview_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "start",
+            "required": true,
+            "schema": {
+              "format": "date-time",
+              "title": "Start",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end",
+            "required": true,
+            "schema": {
+              "format": "date-time",
+              "title": "End",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "timezone",
+            "required": false,
+            "schema": {
+              "default": "UTC",
+              "maxLength": 128,
+              "title": "Timezone",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageOverview"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "loginSession": []
+          }
+        ],
+        "summary": "Usage Overview",
+        "tags": [
+          "usage"
         ]
       }
     },

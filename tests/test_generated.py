@@ -9,6 +9,31 @@ from a13n.generated import models as wire
 from a13n.generated.types import UNSET, File
 
 
+def test_generated_history_and_resume_wire_roundtrip() -> None:
+    native_history = [
+        {"kind": "request", "parts": [{"part_kind": "user-prompt", "content": "Prior"}], "metadata": {"origin": "app"}},
+        {"kind": "response", "parts": [{"part_kind": "text", "content": "Seen"}], "model_name": "prior-model"},
+    ]
+    create = wire.NewThread.from_dict(
+        {
+            "agent_id": "agt_1",
+            "payload": {"content": [{"type": "text", "text": "Now"}]},
+            "message_history": native_history,
+        }
+    )
+    assert create.to_dict()["message_history"] == native_history
+    assert "message_history" not in wire.NewThread(agent_id="agt_1", payload=create.payload).to_dict()
+
+    batch = {
+        "approvals": {"approval_1": {"action": "approve"}},
+        "calls": {"call_1": {"status": "returned", "value": {"answers": {"Choose": "A"}}}},
+        "input": {"content": [{"type": "asset", "asset_id": "ast_1"}]},
+    }
+    assert wire.Resume.from_dict(batch).to_dict() == batch
+    assert wire.Resume.from_dict({"approvals": {}, "calls": {}}).to_dict() == {"approvals": {}, "calls": {}}
+    assert wire.Resume.from_dict({"approvals": {}, "calls": {}, "input": None}).to_dict()["input"] is None
+
+
 def test_generated_request_omission_and_explicit_null() -> None:
     absent = wire.Message(
         agent_id="agt_1", payload=wire.MessagePayload(content=[wire.TextPart(text="x", type_="text")])

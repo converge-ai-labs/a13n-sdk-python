@@ -212,6 +212,37 @@ async def _inbox_and_control(client: Client, agent: str) -> dict[str, Any]:
     }
 
 
+async def _import_history(client: Client, agent: str) -> dict[str, Any]:
+    history = [
+        {
+            "kind": "request",
+            "parts": [{"part_kind": "user-prompt", "content": "Earlier context"}],
+            "metadata": {"source": "sdk-acceptance"},
+        },
+        {"kind": "response", "parts": [{"part_kind": "text", "content": "Earlier answer"}]},
+    ]
+    initial = await client.agents(agent).start(
+        "Short Native response using imported context.", message_history=history, idempotency_key=_key("import")
+    )
+    first = await _wait_run(_accepted_run(initial), wire.RunStatus.COMPLETED)
+    thread = (await initial.thread.get()).value
+    if [message.to_dict() for message in thread.message_history] != history:
+        raise RuntimeError("Imported model history readback lost submitted JSON or metadata")
+    next_message = await client.agents(agent).send(
+        initial.thread.id, "Short follow-up response.", idempotency_key=_key("import-followup")
+    )
+    subsequent = await next_message.result(timeout=120.0, poll_interval=0.1)
+    if subsequent.status != wire.RunStatus.COMPLETED:
+        raise RuntimeError("Follow-up on imported Thread did not complete")
+    if [message.to_dict() for message in (await initial.thread.get()).value.message_history] != history:
+        raise RuntimeError("Follow-up changed initial imported model history")
+    return {
+        "source": {**_submission_evidence(initial), **first},
+        "followup_run_id": subsequent.run.id,
+        "history_count": len(history),
+    }
+
+
 async def _resume_and_fork(client: Client, agent: str, client_tool_agent: str) -> dict[str, Any]:
     completed = await client.agents(agent).start("Short Native response.", idempotency_key=_key("fork-source"))
     original = _accepted_run(completed)
@@ -232,8 +263,13 @@ async def _resume_and_fork(client: Client, agent: str, client_tool_agent: str) -
     waiting_outcome = await waiting.result(timeout=120.0, poll_interval=0.1)
     waiting_run = waiting_outcome.run
     pending = waiting_outcome.pending
-    if waiting_outcome.status != wire.RunStatus.WAITING or pending is None or len(pending.items) != 1:
-        raise RuntimeError("Finite Interaction did not expose exactly one pending action")
+    if (
+        waiting_outcome.status != wire.RunStatus.WAITING
+        or pending is None
+        or pending.approvals
+        or len(pending.calls) != 1
+    ):
+        raise RuntimeError("Finite Interaction did not expose exactly one pending client call")
     waiting_items = (await waiting_run.items.get()).value
     if waiting_items.run.id != waiting_run.id or not waiting_items.complete:
         raise RuntimeError("Waiting Run items readback is incomplete or belongs to another Run")
@@ -243,12 +279,20 @@ async def _resume_and_fork(client: Client, agent: str, client_tool_agent: str) -
         "item_count": len(waiting_items.items),
         "position": waiting_items.position,
     }
+    extra_input = "Additional context submitted atomically with the client tool result."
     resumed = await waiting_run.resume(
-        [wire.Complete(action="complete", tool_call_id=pending.items[0].tool_call_id, result={"decision": "approved"})],
+        approvals={},
+        calls={pending.calls[0].tool_call_id: wire.Returned(status="returned", value={"decision": "approved"})},
+        input=extra_input,
         idempotency_key=_key("resume"),
     )
     if resumed.run.id == waiting_run.id:
         raise RuntimeError("Resume did not create a new Run")
+    resume = resumed.receipt.value.resume
+    if resume is None or not isinstance(resume.input_, wire.MessagePayload):
+        raise RuntimeError("Successor receipt did not retain atomic resume input")
+    if resume.input_.to_dict() != {"content": [{"type": "text", "text": extra_input}]}:
+        raise RuntimeError("Successor receipt changed atomic resume input")
     resumed_final = await _wait_run(resumed.run, wire.RunStatus.COMPLETED)
     return {
         "fork": {
@@ -268,6 +312,7 @@ async def main() -> None:
     disconnect = await _disconnect_acceptance(base_url, token, ca_bundle, agent)
     async with Client(base_url, token, ca_bundle=ca_bundle, timeout=60.0) as client:
         inbox_control = await _inbox_and_control(client, agent)
+        imported_history = await _import_history(client, agent)
         successors = await _resume_and_fork(client, agent, client_tool_agent)
     print(
         json.dumps(
@@ -275,6 +320,7 @@ async def main() -> None:
                 "evidence": "real-https-installed-sdk-native",
                 "disconnect": disconnect,
                 "inbox_control": inbox_control,
+                "imported_history": imported_history,
                 "successors": successors,
             },
             sort_keys=True,

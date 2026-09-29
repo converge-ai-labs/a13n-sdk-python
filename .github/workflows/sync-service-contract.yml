@@ -20,7 +20,7 @@ concurrency:
 jobs:
   propose:
     if: github.ref == 'refs/heads/main' && vars.SERVICE_CONTRACT_APP_CLIENT_ID != ''
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Validate immutable source identity
         id: source

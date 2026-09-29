@@ -183,7 +183,6 @@ from .api.runs import (
     run_items_api_v1_runs_run_id_items_get,
     run_lineage_api_v1_runs_run_id_lineage_get,
     submit_message_api_v1_threads_thread_id_inbox_post,
-    summarize_usage_api_v1_usage_get,
     thread_stream_api_v1_threads_thread_id_stream_get,
     update_run_api_v1_runs_run_id_patch,
     update_session_api_v1_sessions_session_id_patch,
@@ -258,6 +257,12 @@ from .api.tenancy import (
     update_organization_api_v1_organizations_organization_id_patch,
     update_service_account_api_v1_workspaces_workspace_id_service_accounts_account_id_patch,
     update_workspace_api_v1_workspaces_workspace_id_patch,
+)
+from .api.usage import (
+    summarize_usage_api_v1_usage_get,
+    usage_agents_api_v1_usage_agents_get,
+    usage_models_api_v1_usage_models_get,
+    usage_overview_api_v1_usage_overview_get,
 )
 from .types import UNSET, File, Unset
 
@@ -2887,7 +2892,7 @@ class Run(Resource):
         return RunsRunIdLineage(self._client, self._bindings)
 
     async def resume(
-        self, *, body: wire.ResumeRequest, idempotency_key: str, x_workspace_id: str | Unset | None = UNSET
+        self, *, body: wire.Resume, idempotency_key: str, x_workspace_id: str | Unset | None = UNSET
     ) -> Result[wire.RunView]:
         """Resume Run. One HTTP request; no automatic replay."""
         return await self._call(
@@ -4367,6 +4372,149 @@ class Usage(Resource):
                 ingested_after=ingested_after,
                 ingested_before=ingested_before,
                 x_workspace_id=x_workspace_id,
+            )
+        )
+
+    @property
+    def agents(self) -> UsageAgents:
+        return UsageAgents(self._client, self._bindings)
+
+    @property
+    def models(self) -> UsageModels:
+        return UsageModels(self._client, self._bindings)
+
+    @property
+    def overview(self) -> UsageOverview:
+        return UsageOverview(self._client, self._bindings)
+
+
+class UsageAgents(Resource):
+    """Bound Native resource: /usage / agents."""
+
+    async def list(
+        self,
+        *,
+        start: datetime.datetime,
+        end: datetime.datetime,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.AgentUsagePage]:
+        """Usage Agents. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: usage_agents_api_v1_usage_agents_get.asyncio_detailed(
+                client=client, start=start, end=end, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
+            )
+        )
+
+    def pages(
+        self,
+        *,
+        start: datetime.datetime,
+        end: datetime.datetime,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[Result[wire.AgentUsagePage]]:
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        return pages(
+            lambda next_cursor: self.list(
+                start=start, end=end, limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor
+            ),
+            lambda value: value.next_cursor,
+            cursor,
+        )
+
+    def iter(
+        self,
+        *,
+        start: datetime.datetime,
+        end: datetime.datetime,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[wire.AgentUsage]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(
+                start=start, end=end, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
+            )
+            for item in page.value.items
+        )
+
+
+class UsageModels(Resource):
+    """Bound Native resource: /usage / models."""
+
+    async def list(
+        self,
+        *,
+        start: datetime.datetime,
+        end: datetime.datetime,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.ModelUsagePage]:
+        """Usage Models. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: usage_models_api_v1_usage_models_get.asyncio_detailed(
+                client=client, start=start, end=end, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
+            )
+        )
+
+    def pages(
+        self,
+        *,
+        start: datetime.datetime,
+        end: datetime.datetime,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[Result[wire.ModelUsagePage]]:
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        return pages(
+            lambda next_cursor: self.list(
+                start=start, end=end, limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor
+            ),
+            lambda value: value.next_cursor,
+            cursor,
+        )
+
+    def iter(
+        self,
+        *,
+        start: datetime.datetime,
+        end: datetime.datetime,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[wire.ModelUsageGroup]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(
+                start=start, end=end, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
+            )
+            for item in page.value.items
+        )
+
+
+class UsageOverview(Resource):
+    """Bound Native resource: /usage / overview."""
+
+    async def get(
+        self,
+        *,
+        start: datetime.datetime,
+        end: datetime.datetime,
+        timezone: str | Unset = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.UsageOverview]:
+        """Usage Overview. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: usage_overview_api_v1_usage_overview_get.asyncio_detailed(
+                client=client, start=start, end=end, timezone=timezone, x_workspace_id=x_workspace_id
             )
         )
 

@@ -20,7 +20,7 @@ concurrency:
 jobs:
   build:
     name: Build a13n for Python
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
@@ -67,7 +67,7 @@ jobs:
   publish:
     name: Publish a13n for Python to PyPI
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment: sdk-python-pypi
     steps:
       - name: Download distributions
@@ -89,7 +89,7 @@ jobs:
   create-release:
     name: Create GitHub Release
     needs: [build, publish]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
       pull-requests: read

@@ -11,6 +11,7 @@ from ..types import UNSET, Unset
 if TYPE_CHECKING:
     from ..models.mcp_headers import McpHeaders
     from ..models.memory_mount import MemoryMount
+    from ..models.message_history_item import MessageHistoryItem
     from ..models.message_payload import MessagePayload
     from ..models.mount_create import MountCreate
     from ..models.run_options_input import RunOptionsInput
@@ -31,6 +32,9 @@ class NewThread:
         kind (Literal['message'] | Unset):
         mcp_headers (McpHeaders | Unset):
         memories (list[MemoryMount] | Unset):
+        message_history (list[MessageHistoryItem] | Unset): Pydantic AI ModelMessage JSON objects, validated by the
+            Service. Imports completed user text, model text and closed tool-call/JSON-result exchanges; no instructions,
+            media or suspended execution. At most 256 messages and 256 KiB of normalized JSON.
         options (RunOptionsInput | Unset): What a message may choose for the run it starts. A steer joins a run with the
             defaults or equal options.
         session_id (None | str | Unset):
@@ -44,6 +48,7 @@ class NewThread:
     kind: Literal["message"] | Unset = UNSET
     mcp_headers: McpHeaders | Unset = UNSET
     memories: list[MemoryMount] | Unset = UNSET
+    message_history: list[MessageHistoryItem] | Unset = UNSET
     options: RunOptionsInput | Unset = UNSET
     session_id: str | Unset | None = UNSET
 
@@ -82,6 +87,13 @@ class NewThread:
                 memories_item = memories_item_data.to_dict()
                 memories.append(memories_item)
 
+        message_history: list[dict[str, Any]] | Unset = UNSET
+        if not isinstance(self.message_history, Unset):
+            message_history = []
+            for componentsschemas_message_history_item_data in self.message_history:
+                componentsschemas_message_history_item = componentsschemas_message_history_item_data.to_dict()
+                message_history.append(componentsschemas_message_history_item)
+
         options: dict[str, Any] | Unset = UNSET
         if not isinstance(self.options, Unset):
             options = self.options.to_dict()
@@ -112,6 +124,8 @@ class NewThread:
             field_dict["mcp_headers"] = mcp_headers
         if memories is not UNSET:
             field_dict["memories"] = memories
+        if message_history is not UNSET:
+            field_dict["message_history"] = message_history
         if options is not UNSET:
             field_dict["options"] = options
         if session_id is not UNSET:
@@ -123,6 +137,7 @@ class NewThread:
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.mcp_headers import McpHeaders
         from ..models.memory_mount import MemoryMount
+        from ..models.message_history_item import MessageHistoryItem
         from ..models.message_payload import MessagePayload
         from ..models.mount_create import MountCreate
         from ..models.run_options_input import RunOptionsInput
@@ -179,6 +194,17 @@ class NewThread:
 
                 memories.append(memories_item)
 
+        _message_history = d.pop("message_history", UNSET)
+        message_history: list[MessageHistoryItem] | Unset = UNSET
+        if _message_history is not UNSET:
+            message_history = []
+            for componentsschemas_message_history_item_data in _message_history:
+                componentsschemas_message_history_item = MessageHistoryItem.from_dict(
+                    componentsschemas_message_history_item_data
+                )
+
+                message_history.append(componentsschemas_message_history_item)
+
         _options = d.pop("options", UNSET)
         options: RunOptionsInput | Unset
         if isinstance(_options, Unset):
@@ -204,6 +230,7 @@ class NewThread:
             kind=kind,
             mcp_headers=mcp_headers,
             memories=memories,
+            message_history=message_history,
             options=options,
             session_id=session_id,
         )

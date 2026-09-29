@@ -1,4 +1,5 @@
 import asyncio
+import json
 
 import httpx2
 import pytest
@@ -21,6 +22,7 @@ def thread_view(thread_id: str = "thr_1", workspace_id: str = "ws_1") -> dict:
         "labels": {},
         "last_run_id": None,
         "mcp_headers": {},
+        "message_history": [],
         "origin": "new",
         "origin_run_id": None,
         "origin_thread_id": None,
@@ -125,6 +127,177 @@ def test_new_thread_submission_and_replay_preserve_queue_disposition() -> None:
     asyncio.run(scenario())
 
 
+def test_imported_history_is_only_seeded_on_creation_and_preserved_on_readback() -> None:
+    history = [
+        {"kind": "request", "parts": [{"part_kind": "user-prompt", "content": "Earlier"}], "metadata": {"id": 1}},
+        {
+            "kind": "response",
+            "parts": [{"part_kind": "tool-call", "tool_name": "lookup", "tool_call_id": "call_1", "args": {"x": 1}}],
+            "provider_details": {"source": "external"},
+        },
+        {
+            "kind": "request",
+            "parts": [
+                {
+                    "part_kind": "tool-return",
+                    "tool_name": "lookup",
+                    "tool_call_id": "call_1",
+                    "content": {"found": True},
+                }
+            ],
+        },
+    ]
+
+    async def scenario() -> None:
+        paths: list[str] = []
+
+        def handle(request: httpx2.Request) -> httpx2.Response:
+            paths.append(request.url.path)
+            if request.method == "GET":
+                view = thread_view()
+                view["message_history"] = history
+                return httpx2.Response(200, json=view)
+            body = json.loads(request.content)
+            if request.url.path == "/api/v1/threads":
+                assert body["message_history"] == history
+            else:
+                assert "message_history" not in body
+            return httpx2.Response(201, json=submitted())
+
+        async with Client("https://service.example", transport=httpx2.MockTransport(handle)) as client:
+            agent = client.agents("agt_1")
+            created = await agent.start("New", message_history=history, idempotency_key="create")
+            readback = await created.thread.get()
+            assert [item.to_dict() for item in readback.value.message_history] == history
+            await agent.send(created.thread.id, "Next", idempotency_key="follow-up")
+            assert created.run is not None
+            await created.run.fork(
+                body=wire.Fork(agent_id="agt_1", payload=text_input("Branch")), idempotency_key="fork"
+            )
+        assert paths == [
+            "/api/v1/threads",
+            "/api/v1/threads/thr_1",
+            "/api/v1/threads/thr_1/inbox",
+            "/api/v1/runs/run_1/fork",
+        ]
+
+    asyncio.run(scenario())
+
+
+def test_explicit_empty_history_and_omission_are_distinct() -> None:
+    async def scenario() -> None:
+        bodies: list[dict] = []
+
+        def handle(request: httpx2.Request) -> httpx2.Response:
+            bodies.append(json.loads(request.content))
+            return httpx2.Response(201, json=submitted())
+
+        async with Client("https://service.example", transport=httpx2.MockTransport(handle)) as client:
+            agent = client.agents("agt_1")
+            await agent.start("No history", idempotency_key="a")
+            await agent.start("Empty history", message_history=[], idempotency_key="b")
+        assert "message_history" not in bodies[0]
+        assert bodies[1]["message_history"] == []
+
+    asyncio.run(scenario())
+
+
+def test_resume_sends_full_mixed_batch_and_attachment_in_one_request() -> None:
+    async def scenario() -> None:
+        requests: list[httpx2.Request] = []
+
+        def handle(request: httpx2.Request) -> httpx2.Response:
+            requests.append(request)
+            assert request.url.path == "/api/v1/runs/run_1/resume"
+            return httpx2.Response(201, json=run_view("run_2"))
+
+        payload = wire.MessagePayload(
+            content=[
+                wire.TextPart(type_="text", text="Alongside the result"),
+                wire.AssetPart(type_="asset", asset_id="ast_1"),
+            ]
+        )
+        async with Client("https://service.example", transport=httpx2.MockTransport(handle)) as client:
+            result = await client.runs("run_1").resume(
+                approvals={"approval_1": wire.Deny(action="deny", reason="Declined")},
+                calls={
+                    "call_1": wire.Returned(status="returned", value={"answer": [1, {"ok": True}]}),
+                    "call_2": wire.Failed(status="failed", message="Unavailable"),
+                },
+                input=payload,
+                idempotency_key="batch",
+            )
+            assert result.run.id == "run_2"
+        assert len(requests) == 1
+        assert requests[0].headers["idempotency-key"] == "batch"
+        assert json.loads(requests[0].content) == {
+            "approvals": {"approval_1": {"action": "deny", "reason": "Declined"}},
+            "calls": {
+                "call_1": {"status": "returned", "value": {"answer": [1, {"ok": True}]}},
+                "call_2": {"status": "failed", "message": "Unavailable"},
+            },
+            "input": payload.to_dict(),
+        }
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("input,expected", [(None, None), ("", {"content": [{"type": "text", "text": ""}]})])
+def test_resume_optional_input_distinguishes_absent_and_empty(input: str | None, expected: dict | None) -> None:
+    async def scenario() -> None:
+        bodies: list[dict] = []
+
+        def handle(request: httpx2.Request) -> httpx2.Response:
+            bodies.append(json.loads(request.content))
+            return httpx2.Response(201, json=run_view("run_2"))
+
+        async with Client("https://service.example", transport=httpx2.MockTransport(handle)) as client:
+            run = client.runs("run_1")
+            if input is None:
+                await run.resume(
+                    approvals={},
+                    calls={"question_1": wire.Returned(status="returned", value={"answers": {"Choose": "A"}})},
+                    idempotency_key="no-input",
+                )
+            else:
+                await run.resume(approvals={}, calls={}, input=input, idempotency_key="empty-input")
+        assert len(bodies) == 1
+        assert bodies[0]["approvals"] == {}
+        if input is None:
+            assert bodies[0]["calls"] == {"question_1": {"status": "returned", "value": {"answers": {"Choose": "A"}}}}
+            assert "input" not in bodies[0]
+        else:
+            assert bodies[0] == {"approvals": {}, "calls": {}, "input": expected}
+
+    asyncio.run(scenario())
+
+
+def test_low_level_resume_posts_exact_generated_body_once() -> None:
+    async def scenario() -> None:
+        requests: list[httpx2.Request] = []
+
+        def handle(request: httpx2.Request) -> httpx2.Response:
+            requests.append(request)
+            return httpx2.Response(201, json=run_view("run_2"))
+
+        body = wire.Resume.from_dict(
+            {
+                "approvals": {"approval_1": {"action": "approve"}},
+                "calls": {"question_1": {"status": "returned", "value": {"answers": {"Choice?": "A"}}}},
+                "input": {"content": [{"type": "asset", "asset_id": "ast_1"}]},
+            }
+        )
+        async with Client("https://service.example", transport=httpx2.MockTransport(handle)) as client:
+            result = await client.resources.runs("run_1").resume(body=body, idempotency_key="low-level")
+            assert isinstance(result, Result) and result.value.id == "run_2"
+        assert len(requests) == 1
+        assert requests[0].url.path == "/api/v1/runs/run_1/resume"
+        assert requests[0].headers["idempotency-key"] == "low-level"
+        assert json.loads(requests[0].content) == body.to_dict()
+
+    asyncio.run(scenario())
+
+
 def test_inbox_submit_explicit_delivery_and_result_identities() -> None:
     async def scenario() -> None:
         def handle(request: httpx2.Request) -> httpx2.Response:
@@ -173,7 +346,7 @@ def test_wait_resume_fork_and_interrupt_are_exact_run_operations() -> None:
             run = client.runs("run_1")
             wait = await run.wait(timeout=1, poll_interval=0.01)
             assert wait.status == wire.RunStatus.WAITING
-            result = await run.resume([], idempotency_key="resume")
+            result = await run.resume(approvals={}, calls={}, idempotency_key="resume")
             assert isinstance(result, Resumed) and result.run.id == "run_2" and run.id == "run_1"
             fork = await run.fork(body=wire.Fork(agent_id="agt_1", payload=text_input("Fork")), idempotency_key="fork")
             assert isinstance(fork, Submitted)
@@ -281,7 +454,7 @@ def test_workspace_key_submissions_bind_canonical_receipt_ids() -> None:
             assert created.run is not None and created.run.selectors == {"run_id": "run_1"}
             posted = await client.agents("agt_1").send("thr_1", "Hello", idempotency_key="post")
             assert posted.thread.selectors == {"thread_id": "thr_1"}
-            resumed = await client.runs("run_1").resume([], idempotency_key="resume")
+            resumed = await client.runs("run_1").resume(approvals={}, calls={}, idempotency_key="resume")
             assert resumed.run.selectors == {"run_id": "run_2"}
             assert paths == [
                 "/api/v1/threads",

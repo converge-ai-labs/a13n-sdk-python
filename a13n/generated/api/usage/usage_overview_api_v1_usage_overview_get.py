@@ -1,54 +1,53 @@
+import datetime
 from http import HTTPStatus
 from typing import Any
-from urllib.parse import quote
 
 import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
 from ...models.error_envelope import ErrorEnvelope
-from ...models.resume import Resume
-from ...models.run_view import RunView
+from ...models.usage_overview import UsageOverview
 from ...types import UNSET, Response, Unset
 
 
 def build_request(
-    run_id: str,
     *,
-    body: Resume,
-    idempotency_key: str,
+    start: datetime.datetime,
+    end: datetime.datetime,
+    timezone: str | Unset = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> dict[str, Any]:
     headers: dict[str, Any] = {}
-    headers["Idempotency-Key"] = idempotency_key
-
     if not isinstance(x_workspace_id, Unset):
         headers["X-Workspace-ID"] = x_workspace_id
 
+    params: dict[str, Any] = {}
+
+    json_start = start.isoformat()
+    params["start"] = json_start
+
+    json_end = end.isoformat()
+    params["end"] = json_end
+
+    params["timezone"] = timezone
+
+    params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
+
     _kwargs: dict[str, Any] = {
-        "method": "post",
-        "url": "/api/v1/runs/{run_id}/resume".format(
-            run_id=quote(str(run_id), safe=""),
-        ),
+        "method": "get",
+        "url": "/api/v1/usage/overview",
+        "params": params,
     }
-
-    _kwargs["json"] = body.to_dict()
-
-    headers["Content-Type"] = "application/json"
 
     _kwargs["headers"] = headers
     return _kwargs
 
 
-def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> ErrorEnvelope | RunView:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> ErrorEnvelope | UsageOverview:
     if response.status_code == 200:
-        response_200 = RunView.from_dict(response.json())
+        response_200 = UsageOverview.from_dict(response.json())
 
         return response_200
-
-    if response.status_code == 201:
-        response_201 = RunView.from_dict(response.json())
-
-        return response_201
 
     if response.status_code == 400:
         response_400 = ErrorEnvelope.from_dict(response.json())
@@ -62,7 +61,7 @@ def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Res
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[ErrorEnvelope | RunView]:
+) -> Response[ErrorEnvelope | UsageOverview]:
     from ....errors import ProtocolError
 
     try:
@@ -77,39 +76,35 @@ def _build_response(
 
 
 def sync_detailed(
-    run_id: str,
     *,
     client: AuthenticatedClient,
-    body: Resume,
-    idempotency_key: str,
+    start: datetime.datetime,
+    end: datetime.datetime,
+    timezone: str | Unset = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
-) -> Response[ErrorEnvelope | RunView]:
-    """Resume Run
-
-     Answer the exact waiting run's approvals, client tools and user questions; the successor continues
-    from them.
+) -> Response[ErrorEnvelope | UsageOverview]:
+    """Usage Overview
 
     Args:
-        run_id (str):
-        idempotency_key (str):
+        start (datetime.datetime):
+        end (datetime.datetime):
+        timezone (str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
-        body (Resume): The complete result batch, submitted and stored on the successor without
-            omission defaults.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorEnvelope | RunView]
+        Response[ErrorEnvelope | UsageOverview]
     """
 
     kwargs = build_request(
-        run_id=run_id,
-        body=body,
-        idempotency_key=idempotency_key,
+        start=start,
+        end=end,
+        timezone=timezone,
         x_workspace_id=x_workspace_id,
     )
 
@@ -121,78 +116,70 @@ def sync_detailed(
 
 
 def sync(
-    run_id: str,
     *,
     client: AuthenticatedClient,
-    body: Resume,
-    idempotency_key: str,
+    start: datetime.datetime,
+    end: datetime.datetime,
+    timezone: str | Unset = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
-) -> ErrorEnvelope | RunView | None:
-    """Resume Run
-
-     Answer the exact waiting run's approvals, client tools and user questions; the successor continues
-    from them.
+) -> ErrorEnvelope | UsageOverview | None:
+    """Usage Overview
 
     Args:
-        run_id (str):
-        idempotency_key (str):
+        start (datetime.datetime):
+        end (datetime.datetime):
+        timezone (str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
-        body (Resume): The complete result batch, submitted and stored on the successor without
-            omission defaults.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorEnvelope | RunView
+        ErrorEnvelope | UsageOverview
     """
 
     return sync_detailed(
-        run_id=run_id,
         client=client,
-        body=body,
-        idempotency_key=idempotency_key,
+        start=start,
+        end=end,
+        timezone=timezone,
         x_workspace_id=x_workspace_id,
     ).parsed
 
 
 async def asyncio_detailed(
-    run_id: str,
     *,
     client: AuthenticatedClient,
-    body: Resume,
-    idempotency_key: str,
+    start: datetime.datetime,
+    end: datetime.datetime,
+    timezone: str | Unset = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
-) -> Response[ErrorEnvelope | RunView]:
-    """Resume Run
-
-     Answer the exact waiting run's approvals, client tools and user questions; the successor continues
-    from them.
+) -> Response[ErrorEnvelope | UsageOverview]:
+    """Usage Overview
 
     Args:
-        run_id (str):
-        idempotency_key (str):
+        start (datetime.datetime):
+        end (datetime.datetime):
+        timezone (str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
-        body (Resume): The complete result batch, submitted and stored on the successor without
-            omission defaults.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorEnvelope | RunView]
+        Response[ErrorEnvelope | UsageOverview]
     """
 
     kwargs = build_request(
-        run_id=run_id,
-        body=body,
-        idempotency_key=idempotency_key,
+        start=start,
+        end=end,
+        timezone=timezone,
         x_workspace_id=x_workspace_id,
     )
 
@@ -202,41 +189,37 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    run_id: str,
     *,
     client: AuthenticatedClient,
-    body: Resume,
-    idempotency_key: str,
+    start: datetime.datetime,
+    end: datetime.datetime,
+    timezone: str | Unset = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
-) -> ErrorEnvelope | RunView | None:
-    """Resume Run
-
-     Answer the exact waiting run's approvals, client tools and user questions; the successor continues
-    from them.
+) -> ErrorEnvelope | UsageOverview | None:
+    """Usage Overview
 
     Args:
-        run_id (str):
-        idempotency_key (str):
+        start (datetime.datetime):
+        end (datetime.datetime):
+        timezone (str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
-        body (Resume): The complete result batch, submitted and stored on the successor without
-            omission defaults.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorEnvelope | RunView
+        ErrorEnvelope | UsageOverview
     """
 
     return (
         await asyncio_detailed(
-            run_id=run_id,
             client=client,
-            body=body,
-            idempotency_key=idempotency_key,
+            start=start,
+            end=end,
+            timezone=timezone,
             x_workspace_id=x_workspace_id,
         )
     ).parsed

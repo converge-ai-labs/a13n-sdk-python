@@ -1,15 +1,16 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 
+from ..types import UNSET, Unset
+
 if TYPE_CHECKING:
-    from ..models.approve import Approve
-    from ..models.complete import Complete
-    from ..models.no_response import NoResponse
-    from ..models.reject import Reject
+    from ..models.message_payload import MessagePayload
+    from ..models.resume_approvals import ResumeApprovals
+    from ..models.resume_calls import ResumeCalls
 
 
 T = TypeVar("T", bound="Resume")
@@ -17,92 +18,78 @@ T = TypeVar("T", bound="Resume")
 
 @_attrs_define(repr=False)
 class Resume:
-    """The normalized batch stored on the successor: one answer per pending call of the exact wait.
+    """The complete result batch, submitted and stored on the successor without omission defaults.
 
     Attributes:
-        answers (list[Approve | Complete | NoResponse | Reject]):
+        approvals (ResumeApprovals):
+        calls (ResumeCalls):
+        input_ (MessagePayload | None | Unset):
     """
 
-    answers: list[Approve | Complete | NoResponse | Reject]
+    approvals: ResumeApprovals
+    calls: ResumeCalls
+    input_: MessagePayload | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.approve import Approve
-        from ..models.complete import Complete
-        from ..models.reject import Reject
+        from ..models.message_payload import MessagePayload
 
-        answers = []
-        for answers_item_data in self.answers:
-            answers_item: dict[str, Any]
-            if isinstance(answers_item_data, Approve):
-                answers_item = answers_item_data.to_dict()
-            elif isinstance(answers_item_data, Reject):
-                answers_item = answers_item_data.to_dict()
-            elif isinstance(answers_item_data, Complete):
-                answers_item = answers_item_data.to_dict()
-            else:
-                answers_item = answers_item_data.to_dict()
+        approvals = self.approvals.to_dict()
 
-            answers.append(answers_item)
+        calls = self.calls.to_dict()
+
+        input_: dict[str, Any] | Unset | None
+        if isinstance(self.input_, Unset):
+            input_ = UNSET
+        elif isinstance(self.input_, MessagePayload):
+            input_ = self.input_.to_dict()
+        else:
+            input_ = self.input_
 
         field_dict: dict[str, Any] = {}
 
         field_dict.update(
             {
-                "answers": answers,
+                "approvals": approvals,
+                "calls": calls,
             }
         )
+        if input_ is not UNSET:
+            field_dict["input"] = input_
 
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.approve import Approve
-        from ..models.complete import Complete
-        from ..models.no_response import NoResponse
-        from ..models.reject import Reject
+        from ..models.message_payload import MessagePayload
+        from ..models.resume_approvals import ResumeApprovals
+        from ..models.resume_calls import ResumeCalls
 
         d = dict(src_dict)
-        answers = []
-        _answers = d.pop("answers")
-        for answers_item_data in _answers:
+        approvals = ResumeApprovals.from_dict(d.pop("approvals"))
 
-            def _parse_answers_item(data: object) -> Approve | Complete | NoResponse | Reject:
-                try:
-                    if not isinstance(data, dict):
-                        raise TypeError()
-                    componentsschemas_normalized_answer_type_0 = Approve.from_dict(data)
+        calls = ResumeCalls.from_dict(d.pop("calls"))
 
-                    return componentsschemas_normalized_answer_type_0
-                except (TypeError, ValueError, AttributeError, KeyError):
-                    pass
-                try:
-                    if not isinstance(data, dict):
-                        raise TypeError()
-                    componentsschemas_normalized_answer_type_1 = Reject.from_dict(data)
-
-                    return componentsschemas_normalized_answer_type_1
-                except (TypeError, ValueError, AttributeError, KeyError):
-                    pass
-                try:
-                    if not isinstance(data, dict):
-                        raise TypeError()
-                    componentsschemas_normalized_answer_type_2 = Complete.from_dict(data)
-
-                    return componentsschemas_normalized_answer_type_2
-                except (TypeError, ValueError, AttributeError, KeyError):
-                    pass
+        def _parse_input_(data: object) -> MessagePayload | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
                 if not isinstance(data, dict):
                     raise TypeError()
-                componentsschemas_normalized_answer_type_3 = NoResponse.from_dict(data)
+                input_type_0 = MessagePayload.from_dict(data)
 
-                return componentsschemas_normalized_answer_type_3
+                return input_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(MessagePayload | Unset | None, data)
 
-            answers_item = _parse_answers_item(answers_item_data)
-
-            answers.append(answers_item)
+        input_ = _parse_input_(d.pop("input", UNSET))
 
         resume = cls(
-            answers=answers,
+            approvals=approvals,
+            calls=calls,
+            input_=input_,
         )
 
         return resume

@@ -2,7 +2,7 @@
 
 ## Inputs and Submission
 
-The primary Agent workflow is a finite `Interaction`. `Agent.start(input, *, idempotency_key, agent_revision_id=UNSET, session_id=UNSET, delivery=UNSET, options=UNSET, environments=UNSET, memories=UNSET, mcp_headers=UNSET)` creates a Thread and first Message. `Agent.send(thread_id, input, *, idempotency_key, agent_revision_id=UNSET, delivery=UNSET, options=UNSET)` continues that Thread using the selected Agent; a Thread never infers an Agent from its latest Run. The typed keyword arguments expose every relevant `NewThread`/`Message` option; `input` is plain text or generated `MessagePayload`, and `text_input()` constructs a text part. `UNSET` preserves omission while permitted `None` sends explicit null. No helper invents a current Workspace, Session, Thread or idempotency key.
+The primary Agent workflow is a finite `Interaction`. `Agent.start(input, *, idempotency_key, agent_revision_id=UNSET, session_id=UNSET, delivery=UNSET, options=UNSET, environments=UNSET, memories=UNSET, mcp_headers=UNSET, message_history=UNSET)` creates a Thread and first Message. `Agent.send(thread_id, input, *, idempotency_key, agent_revision_id=UNSET, delivery=UNSET, options=UNSET)` continues that Thread using the selected Agent; a Thread never infers an Agent from its latest Run. The typed keyword arguments expose every relevant `NewThread`/`Message` option; `input` is plain text or generated `MessagePayload`, and `text_input()` constructs a text part. `UNSET` preserves omission while permitted `None` sends explicit null. No helper invents a current Workspace, Session, Thread or idempotency key.
 
 ```python
 agent = client.agents(agent_id)
@@ -15,6 +15,8 @@ async with follow_up:
             await client.runs(frame.data["run_id"]).items.get()
     next_outcome = await follow_up.result()
 ```
+
+`message_history` accepts a list of native Pydantic AI model-message JSON objects for a new Thread only. The SDK forwards every object's fields without filtering or applying Service validation; the Service validates completed text and closed tool exchanges and enforces the 256-message/262144-byte limits. Omission differs from an explicit empty list. Thread readback retains the submitted JSON, including native metadata; subsequent `send`, resume and fork do not re-seed it. The SDK adds no Pydantic AI dependency or parallel model-message hierarchy.
 
 Advanced `client.resources.threads.create(body=wire.NewThread(...), idempotency_key=...)` and `client.resources.threads(thread_id).inbox_entries.create(body=wire.Message(...), idempotency_key=...)` expose complete generated bodies and return **pure** `Result[wire.Submitted]`. Entry edits/withdrawals and Run fork using the Service Submitted shape also remain pure generated results. Only the authored Agent workflow binds `Submitted(thread, entry, run | None, receipt: Result[wire.Submitted])`, with validated references and HTTP evidence. `Run.fork(...)` in the authored layer binds its declared successor receipt. An immediately accepted Run does not prove Entry incorporation. A queued Entry is not a Run. No SDK mutation is retried invisibly.
 
@@ -32,13 +34,13 @@ The context is single-use. Normal finite completion caches its outcome; `result(
 
 ## Control and Successors
 
-| Helper                                                                       | Request and result                            | Boundary                                       |
-| ---------------------------------------------------------------------------- | --------------------------------------------- | ---------------------------------------------- |
-| `await run.interrupt()`                                                      | `Result[RunView]` via declared interrupt      | Exact Run; no implicit stream close            |
-| `await run.resume([wire.Approve/Reject/Complete(...)], idempotency_key=key)` | `Resumed(run: Run, receipt: Result[RunView])` | Eligible waiting Run yields distinct successor |
-| `await run.fork(body=wire.Fork(...), idempotency_key=key)`                   | `Submitted`                                   | New Thread and Entry, optionally accepted Run  |
+| Helper                                                                                            | Request and result                            | Boundary                                                       |
+| ------------------------------------------------------------------------------------------------- | --------------------------------------------- | -------------------------------------------------------------- |
+| `await run.interrupt()`                                                                           | `Result[RunView]` via declared interrupt      | Exact Run; no implicit stream close                            |
+| `await run.resume(approvals={id: wire.Approve(...)}, calls={}, idempotency_key=key, input=UNSET)` | `Resumed(run: Run, receipt: Result[RunView])` | Complete wait batch, optional atomic input; distinct successor |
+| `await run.fork(body=wire.Fork(...), idempotency_key=key)`                                        | `Submitted`                                   | New Thread and Entry, optionally accepted Run                  |
 
-Generated answers specify the required tool call IDs. The SDK does not execute client tools, grant approval or reconcile external side effects automatically. Resume and fork preserve caller-supplied idempotency keys and Service authorization without read-and-retry on conflict. Interrupt acceptance is not proof that remote side effects rolled back. A fork does not implicitly create a new Session.
+`Pending.approvals` and `Pending.calls` have distinct ID sets. Both maps are mandatory even if empty, and the provided IDs must exactly cover their respective pending requests; the Service rejects missing, extra and category-mismatched results atomically. Approval values are generated `Approve`/`Deny`, call values `Returned`/`Failed`; a built-in question is a call whose returned JSON conforms to Harness `UserQuestionAnswers`. The optional `input` is plain text or a generated `MessagePayload` with ordinary parts, passed in the **same** `wire.Resume` request as the complete batch. It does not answer a question or fill missing results. The SDK does not execute client tools, grant approval or reconcile external side effects automatically. Resume and fork preserve caller-supplied idempotency keys and Service authorization without read-and-retry on conflict. Interrupt acceptance is not proof that remote side effects rolled back. A fork does not implicitly create a new Session.
 
 ## Invariants
 
