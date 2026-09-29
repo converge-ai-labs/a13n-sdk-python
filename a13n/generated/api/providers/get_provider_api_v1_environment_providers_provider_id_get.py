@@ -68,7 +68,7 @@ def sync_detailed(
     client: AuthenticatedClient,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> Response[ErrorEnvelope | Provider]:
-    """Get Provider
+    """Get environment provider
 
     Args:
         provider_id (str):
@@ -102,7 +102,7 @@ def sync(
     client: AuthenticatedClient,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> ErrorEnvelope | Provider | None:
-    """Get Provider
+    """Get environment provider
 
     Args:
         provider_id (str):
@@ -131,7 +131,7 @@ async def asyncio_detailed(
     client: AuthenticatedClient,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> Response[ErrorEnvelope | Provider]:
-    """Get Provider
+    """Get environment provider
 
     Args:
         provider_id (str):
@@ -163,7 +163,7 @@ async def asyncio(
     client: AuthenticatedClient,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> ErrorEnvelope | Provider | None:
-    """Get Provider
+    """Get environment provider
 
     Args:
         provider_id (str):

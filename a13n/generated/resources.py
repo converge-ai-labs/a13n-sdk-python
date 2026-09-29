@@ -1117,7 +1117,7 @@ class ConnectorProviders(Resource):
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> Result[wire.ProviderPage]:
-        """List Providers. One HTTP request; no automatic replay."""
+        """List connector providers. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: list_providers_api_v1_connector_providers_get.asyncio_detailed(
                 client=client, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
@@ -1155,7 +1155,7 @@ class ConnectorProviders(Resource):
     async def create(
         self, *, body: wire.ProviderCreate, x_workspace_id: str | Unset | None = UNSET
     ) -> Result[wire.Provider]:
-        """Create Provider. One HTTP request; no automatic replay."""
+        """Create connector provider. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: create_provider_api_v1_connector_providers_post.asyncio_detailed(
                 client=client, body=body, x_workspace_id=x_workspace_id
@@ -1170,7 +1170,7 @@ class ConnectorProvidersProviderId(Resource):
     """Bound Native resource: /connector-providers / {provider_id}."""
 
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Provider]:
-        """Get Provider. One HTTP request; no automatic replay."""
+        """Get connector provider. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: get_provider_api_v1_connector_providers_provider_id_get.asyncio_detailed(
                 client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
@@ -1184,7 +1184,7 @@ class ConnectorProvidersProviderId(Resource):
         if_match: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> Result[wire.Provider]:
-        """Update Provider. One HTTP request; no automatic replay."""
+        """Update connector provider. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: update_provider_api_v1_connector_providers_provider_id_patch.asyncio_detailed(
                 client=client,
@@ -1200,7 +1200,7 @@ class ConnectorProvidersProviderId(Resource):
         return ConnectorProvidersProviderIdApps(self._client, self._bindings)
 
     async def test(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ProviderTest]:
-        """Test Provider. One HTTP request; no automatic replay."""
+        """Test connector provider. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: test_provider_api_v1_connector_providers_provider_id_test_post.asyncio_detailed(
                 client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
@@ -1317,7 +1317,7 @@ class EnvironmentProviders(Resource):
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> Result[wire.ProviderPage]:
-        """List Providers. One HTTP request; no automatic replay."""
+        """List environment providers. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: list_providers_api_v1_environment_providers_get.asyncio_detailed(
                 client=client, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
@@ -1355,7 +1355,7 @@ class EnvironmentProviders(Resource):
     async def create(
         self, *, body: wire.ProviderCreate, x_workspace_id: str | Unset | None = UNSET
     ) -> Result[wire.Provider]:
-        """Create Provider. One HTTP request; no automatic replay."""
+        """Create environment provider. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: create_provider_api_v1_environment_providers_post.asyncio_detailed(
                 client=client, body=body, x_workspace_id=x_workspace_id
@@ -1370,7 +1370,7 @@ class EnvironmentProvidersProviderId(Resource):
     """Bound Native resource: /environment-providers / {provider_id}."""
 
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Provider]:
-        """Get Provider. One HTTP request; no automatic replay."""
+        """Get environment provider. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: get_provider_api_v1_environment_providers_provider_id_get.asyncio_detailed(
                 client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
@@ -1384,7 +1384,7 @@ class EnvironmentProvidersProviderId(Resource):
         if_match: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> Result[wire.Provider]:
-        """Update Provider. One HTTP request; no automatic replay."""
+        """Update environment provider. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: update_provider_api_v1_environment_providers_provider_id_patch.asyncio_detailed(
                 client=client,
@@ -1396,7 +1396,7 @@ class EnvironmentProvidersProviderId(Resource):
         )
 
     async def test(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ProviderTest]:
-        """Test Provider. One HTTP request; no automatic replay."""
+        """Test environment provider. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: test_provider_api_v1_environment_providers_provider_id_test_post.asyncio_detailed(
                 client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
@@ -2175,7 +2175,7 @@ class MemoryProviders(Resource):
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> Result[wire.ProviderPage]:
-        """List Providers. One HTTP request; no automatic replay."""
+        """List memory providers. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: list_providers_api_v1_memory_providers_get.asyncio_detailed(
                 client=client, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
@@ -2213,7 +2213,7 @@ class MemoryProviders(Resource):
     async def create(
         self, *, body: wire.ProviderCreate, x_workspace_id: str | Unset | None = UNSET
     ) -> Result[wire.Provider]:
-        """Create Provider. One HTTP request; no automatic replay."""
+        """Create memory provider. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: create_provider_api_v1_memory_providers_post.asyncio_detailed(
                 client=client, body=body, x_workspace_id=x_workspace_id
@@ -2228,7 +2228,7 @@ class MemoryProvidersProviderId(Resource):
     """Bound Native resource: /memory-providers / {provider_id}."""
 
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Provider]:
-        """Get Provider. One HTTP request; no automatic replay."""
+        """Get memory provider. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: get_provider_api_v1_memory_providers_provider_id_get.asyncio_detailed(
                 client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
@@ -2242,7 +2242,7 @@ class MemoryProvidersProviderId(Resource):
         if_match: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> Result[wire.Provider]:
-        """Update Provider. One HTTP request; no automatic replay."""
+        """Update memory provider. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: update_provider_api_v1_memory_providers_provider_id_patch.asyncio_detailed(
                 client=client,
@@ -2254,7 +2254,7 @@ class MemoryProvidersProviderId(Resource):
         )
 
     async def test(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ProviderTest]:
-        """Test Provider. One HTTP request; no automatic replay."""
+        """Test memory provider. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: test_provider_api_v1_memory_providers_provider_id_test_post.asyncio_detailed(
                 client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
@@ -2282,7 +2282,7 @@ class ModelProviders(Resource):
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> Result[wire.ProviderPage]:
-        """List Providers. One HTTP request; no automatic replay."""
+        """List model providers. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: list_providers_api_v1_model_providers_get.asyncio_detailed(
                 client=client, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
@@ -2320,7 +2320,7 @@ class ModelProviders(Resource):
     async def create(
         self, *, body: wire.ProviderCreate, x_workspace_id: str | Unset | None = UNSET
     ) -> Result[wire.Provider]:
-        """Create Provider. One HTTP request; no automatic replay."""
+        """Create model provider. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: create_provider_api_v1_model_providers_post.asyncio_detailed(
                 client=client, body=body, x_workspace_id=x_workspace_id
@@ -2335,7 +2335,7 @@ class ModelProvidersProviderId(Resource):
     """Bound Native resource: /model-providers / {provider_id}."""
 
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Provider]:
-        """Get Provider. One HTTP request; no automatic replay."""
+        """Get model provider. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: get_provider_api_v1_model_providers_provider_id_get.asyncio_detailed(
                 client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
@@ -2349,7 +2349,7 @@ class ModelProvidersProviderId(Resource):
         if_match: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> Result[wire.Provider]:
-        """Update Provider. One HTTP request; no automatic replay."""
+        """Update model provider. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: update_provider_api_v1_model_providers_provider_id_patch.asyncio_detailed(
                 client=client,
@@ -2361,7 +2361,7 @@ class ModelProvidersProviderId(Resource):
         )
 
     async def test(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ProviderTest]:
-        """Test Provider. One HTTP request; no automatic replay."""
+        """Test model provider. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: test_provider_api_v1_model_providers_provider_id_test_post.asyncio_detailed(
                 client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
@@ -4778,7 +4778,7 @@ class WebProviders(Resource):
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> Result[wire.ProviderPage]:
-        """List Providers. One HTTP request; no automatic replay."""
+        """List web providers. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: list_providers_api_v1_web_providers_get.asyncio_detailed(
                 client=client, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
@@ -4816,7 +4816,7 @@ class WebProviders(Resource):
     async def create(
         self, *, body: wire.ProviderCreate, x_workspace_id: str | Unset | None = UNSET
     ) -> Result[wire.Provider]:
-        """Create Provider. One HTTP request; no automatic replay."""
+        """Create web provider. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: create_provider_api_v1_web_providers_post.asyncio_detailed(
                 client=client, body=body, x_workspace_id=x_workspace_id
@@ -4831,7 +4831,7 @@ class WebProvidersProviderId(Resource):
     """Bound Native resource: /web-providers / {provider_id}."""
 
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Provider]:
-        """Get Provider. One HTTP request; no automatic replay."""
+        """Get web provider. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: get_provider_api_v1_web_providers_provider_id_get.asyncio_detailed(
                 client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
@@ -4845,7 +4845,7 @@ class WebProvidersProviderId(Resource):
         if_match: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> Result[wire.Provider]:
-        """Update Provider. One HTTP request; no automatic replay."""
+        """Update web provider. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: update_provider_api_v1_web_providers_provider_id_patch.asyncio_detailed(
                 client=client,
@@ -4857,7 +4857,7 @@ class WebProvidersProviderId(Resource):
         )
 
     async def test(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ProviderTest]:
-        """Test Provider. One HTTP request; no automatic replay."""
+        """Test web provider. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: test_provider_api_v1_web_providers_provider_id_test_post.asyncio_detailed(
                 client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id

@@ -70,7 +70,7 @@ def sync_detailed(
     body: ProviderCreate,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> Response[ErrorEnvelope | Provider]:
-    """Create Provider
+    """Create environment provider
 
     Args:
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
@@ -104,7 +104,7 @@ def sync(
     body: ProviderCreate,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> ErrorEnvelope | Provider | None:
-    """Create Provider
+    """Create environment provider
 
     Args:
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
@@ -133,7 +133,7 @@ async def asyncio_detailed(
     body: ProviderCreate,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> Response[ErrorEnvelope | Provider]:
-    """Create Provider
+    """Create environment provider
 
     Args:
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
@@ -165,7 +165,7 @@ async def asyncio(
     body: ProviderCreate,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> ErrorEnvelope | Provider | None:
-    """Create Provider
+    """Create environment provider
 
     Args:
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required

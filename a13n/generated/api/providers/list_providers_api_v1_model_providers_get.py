@@ -81,7 +81,7 @@ def sync_detailed(
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> Response[ErrorEnvelope | ProviderPage]:
-    """List Providers
+    """List model providers
 
     Args:
         limit (int | Unset):
@@ -118,7 +118,7 @@ def sync(
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> ErrorEnvelope | ProviderPage | None:
-    """List Providers
+    """List model providers
 
     Args:
         limit (int | Unset):
@@ -150,7 +150,7 @@ async def asyncio_detailed(
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> Response[ErrorEnvelope | ProviderPage]:
-    """List Providers
+    """List model providers
 
     Args:
         limit (int | Unset):
@@ -185,7 +185,7 @@ async def asyncio(
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> ErrorEnvelope | ProviderPage | None:
-    """List Providers
+    """List model providers
 
     Args:
         limit (int | Unset):
