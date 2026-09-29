@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from ..models.harness_model_characteristics_output import HarnessModelCharacteristicsOutput
     from ..models.model_config_output_extra_body import ModelConfigOutputExtraBody
     from ..models.model_config_output_extra_headers import ModelConfigOutputExtraHeaders
+    from ..models.model_config_output_settings import ModelConfigOutputSettings
 
 
 T = TypeVar("T", bound="ModelConfigOutput")
@@ -27,6 +28,7 @@ class ModelConfigOutput:
         extra_body (ModelConfigOutputExtraBody | Unset):
         extra_headers (ModelConfigOutputExtraHeaders | Unset):
         max_tokens (int | None | Unset):
+        settings (ModelConfigOutputSettings | Unset):
         temperature (float | None | Unset):
         top_p (float | None | Unset):
     """
@@ -37,6 +39,7 @@ class ModelConfigOutput:
     extra_body: ModelConfigOutputExtraBody | Unset = UNSET
     extra_headers: ModelConfigOutputExtraHeaders | Unset = UNSET
     max_tokens: int | Unset | None = UNSET
+    settings: ModelConfigOutputSettings | Unset = UNSET
     temperature: float | Unset | None = UNSET
     top_p: float | Unset | None = UNSET
 
@@ -62,6 +65,10 @@ class ModelConfigOutput:
             max_tokens = UNSET
         else:
             max_tokens = self.max_tokens
+
+        settings: dict[str, Any] | Unset = UNSET
+        if not isinstance(self.settings, Unset):
+            settings = self.settings.to_dict()
 
         temperature: float | Unset | None
         if isinstance(self.temperature, Unset):
@@ -91,6 +98,8 @@ class ModelConfigOutput:
             field_dict["extra_headers"] = extra_headers
         if max_tokens is not UNSET:
             field_dict["max_tokens"] = max_tokens
+        if settings is not UNSET:
+            field_dict["settings"] = settings
         if temperature is not UNSET:
             field_dict["temperature"] = temperature
         if top_p is not UNSET:
@@ -103,6 +112,7 @@ class ModelConfigOutput:
         from ..models.harness_model_characteristics_output import HarnessModelCharacteristicsOutput
         from ..models.model_config_output_extra_body import ModelConfigOutputExtraBody
         from ..models.model_config_output_extra_headers import ModelConfigOutputExtraHeaders
+        from ..models.model_config_output_settings import ModelConfigOutputSettings
 
         d = dict(src_dict)
         model_api = d.pop("model_api")
@@ -139,6 +149,13 @@ class ModelConfigOutput:
 
         max_tokens = _parse_max_tokens(d.pop("max_tokens", UNSET))
 
+        _settings = d.pop("settings", UNSET)
+        settings: ModelConfigOutputSettings | Unset
+        if isinstance(_settings, Unset):
+            settings = UNSET
+        else:
+            settings = ModelConfigOutputSettings.from_dict(_settings)
+
         def _parse_temperature(data: object) -> float | Unset | None:
             if data is None:
                 return data
@@ -164,6 +181,7 @@ class ModelConfigOutput:
             extra_body=extra_body,
             extra_headers=extra_headers,
             max_tokens=max_tokens,
+            settings=settings,
             temperature=temperature,
             top_p=top_p,
         )
