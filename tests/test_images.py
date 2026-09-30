@@ -25,9 +25,9 @@ def resource(client: Client, path: str):
     if "/agents/" in path:
         return client.resources.agents("agt_1").avatar
     if "/organizations/" in path:
-        return client.organizations("org_1").icon
+        return client.resources.organizations("org_1").icon
     if "/workspaces/" in path:
-        return client.workspaces("ws_1").icon
+        return client.resources.workspaces("ws_1").icon
     return client.resources.users.me.avatar
 
 
@@ -78,7 +78,7 @@ def test_invalid_image_input_is_local_error_not_protocol_failure(mime_type: str 
 
         async with Client("https://service.example", transport=httpx2.MockTransport(handle)) as client:
             with pytest.raises(ValueError, match=r"File\.mime_type"):
-                await client.workspaces("ws_1").icon.replace(body=File(BytesIO(b"x"), mime_type=mime_type))
+                await client.resources.workspaces("ws_1").icon.replace(body=File(BytesIO(b"x"), mime_type=mime_type))
 
     asyncio.run(scenario())
 
@@ -88,6 +88,6 @@ def test_malformed_response_is_still_a_protocol_error() -> None:
         transport = httpx2.MockTransport(lambda _: httpx2.Response(200, json={}))
         async with Client("https://service.example", transport=transport) as client:
             with pytest.raises(ProtocolError):
-                await client.workspaces("ws_1").get()
+                await client.resources.workspaces("ws_1").get()
 
     asyncio.run(scenario())

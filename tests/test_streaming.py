@@ -220,8 +220,8 @@ def test_gap_preserves_optional_recovery_position(position: str | None) -> None:
     frame = _frame("gap", [json.dumps(payload)], None)
     assert isinstance(frame, GapFrame)
     assert frame.data == payload and frame.cursor is None
-    legacy = _frame("gap", ['{"run_id": "run_1"}'], None)
-    assert isinstance(legacy, GapFrame) and "position" not in legacy.data
+    omitted_position = _frame("gap", ['{"run_id": "run_1"}'], None)
+    assert isinstance(omitted_position, GapFrame) and "position" not in omitted_position.data
 
 
 @pytest.mark.parametrize("position", ["01-1", "1-00", "-1-0", "1", "1-2\n", "100000000000000000000-0", 1, False, {}])
