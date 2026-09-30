@@ -207,9 +207,11 @@ from .model_catalog_status import ModelCatalogStatus
 from .model_config_input import ModelConfigInput
 from .model_config_input_extra_body import ModelConfigInputExtraBody
 from .model_config_input_extra_headers import ModelConfigInputExtraHeaders
+from .model_config_input_settings import ModelConfigInputSettings
 from .model_config_output import ModelConfigOutput
 from .model_config_output_extra_body import ModelConfigOutputExtraBody
 from .model_config_output_extra_headers import ModelConfigOutputExtraHeaders
+from .model_config_output_settings import ModelConfigOutputSettings
 from .model_create import ModelCreate
 from .model_metrics import ModelMetrics
 from .model_page import ModelPage
@@ -623,9 +625,11 @@ __all__ = (
     "ModelConfigInput",
     "ModelConfigInputExtraBody",
     "ModelConfigInputExtraHeaders",
+    "ModelConfigInputSettings",
     "ModelConfigOutput",
     "ModelConfigOutputExtraBody",
     "ModelConfigOutputExtraHeaders",
+    "ModelConfigOutputSettings",
     "ModelCreate",
     "ModelMetrics",
     "ModelPage",

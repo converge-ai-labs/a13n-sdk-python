@@ -209,3 +209,66 @@ def test_delta_exposes_readonly_typed_envelope_without_claiming_agui_validation(
     assert frame.data["event"]["future_event"] == {"value": True}
     with pytest.raises(TypeError):
         frame.data["sequence"] = 4  # type: ignore[reportTypedDictNotRequiredAccess, reportTypedDictReadOnlyAccess]
+
+
+@pytest.mark.parametrize("position", [None, "0-0", "1-3", "99999999999999999999-99999999999999999999"])
+def test_gap_preserves_optional_recovery_position(position: str | None) -> None:
+    from a13n import GapFrame
+    from a13n.streaming import _frame
+
+    payload = {"run_id": "run_1", "position": position}
+    frame = _frame("gap", [json.dumps(payload)], None)
+    assert isinstance(frame, GapFrame)
+    assert frame.data == payload and frame.cursor is None
+    legacy = _frame("gap", ['{"run_id": "run_1"}'], None)
+    assert isinstance(legacy, GapFrame) and "position" not in legacy.data
+
+
+@pytest.mark.parametrize("position", ["01-1", "1-00", "-1-0", "1", "1-2\n", "100000000000000000000-0", 1, False, {}])
+def test_gap_rejects_malformed_recovery_position(position: object) -> None:
+    from a13n.streaming import _frame
+
+    with pytest.raises(ProtocolError):
+        _frame("gap", [json.dumps({"run_id": "run_1", "position": position})], None)
+
+
+@pytest.mark.parametrize("run,position", [("run_1", None), (None, "1-3"), ("run_1", "01-3"), ("run_1", "1-3\n")])
+def test_thread_stream_requires_paired_canonical_coverage(run: str | None, position: str | None) -> None:
+    async def scenario() -> None:
+        async with Client("https://service.example") as client:
+            with pytest.raises(ValueError):
+                ThreadStream(client.threads("thr_1"), run=run, position=position)
+
+    asyncio.run(scenario())
+
+
+def test_reconnect_keeps_coverage_and_only_acknowledges_consumed_cursor(monkeypatch: pytest.MonkeyPatch) -> None:
+    async def scenario() -> None:
+        requests: list[httpx2.Request] = []
+
+        def handle(request: httpx2.Request) -> httpx2.Response:
+            requests.append(request)
+            content = (
+                sse("boundary", {"run_id": "run_1", "attempt": 1, "sequence": 3}, "103-0")
+                if len(requests) == 1
+                else sse("gap", {"run_id": "run_1", "position": "1-5"})
+            )
+            return httpx2.Response(200, content=content, headers={"Content-Type": "text/event-stream"})
+
+        monkeypatch.setattr("a13n.streaming.random.uniform", lambda _low, _high: 0)
+        async with Client("https://service.example", transport=httpx2.MockTransport(handle)) as client:
+            async with ThreadStream(
+                client.threads("thr_1"), run="run_1", position="1-2", after="102-0", max_reconnects=1
+            ) as stream:
+                assert (await anext(stream)).cursor == "103-0"
+                # Yielded cursor has not caused another attach; the next read acknowledges it.
+                assert len(requests) == 1
+                gap = await anext(stream)
+                assert gap.event_type == "gap" and gap.data.get("position") == "1-5"
+                with pytest.raises(TransportError):
+                    await anext(stream)
+        assert [dict(request.url.params) for request in requests] == [{"run": "run_1", "position": "1-2"}] * 2
+        assert [request.headers.get("last-event-id") for request in requests] == ["102-0", "103-0"]
+        assert all(request.method == "GET" for request in requests)
+
+    asyncio.run(scenario())

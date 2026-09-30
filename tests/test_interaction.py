@@ -836,3 +836,72 @@ def test_result_cancellation_closes_owned_observation_without_remote_mutation() 
                 await interaction.result()
 
     asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("resume_after", [None, "1700000000000-0"])
+def test_run_items_preserves_display_coverage_and_resume_hint(resume_after: str | None) -> None:
+    snapshot = {
+        "run": wire.RunView.from_dict(run_view()).to_dict(),
+        "items": [],
+        "complete": False,
+        "dropped": 2,
+        "position": "1-5",
+        "resume_after": resume_after,
+    }
+    parsed = wire.RunItems.from_dict(snapshot)
+    assert parsed.position == "1-5" and parsed.resume_after == resume_after
+    assert parsed.to_dict() == snapshot
+    del snapshot["resume_after"]
+    legacy = wire.RunItems.from_dict(snapshot)
+    assert "resume_after" not in legacy.to_dict()
+
+
+def test_gap_recovery_is_explicit_readback_then_new_covered_stream() -> None:
+    from a13n import ThreadStream
+
+    async def scenario() -> None:
+        requests: list[httpx2.Request] = []
+
+        def handle(request: httpx2.Request) -> httpx2.Response:
+            requests.append(request)
+            if request.url.path.endswith("/items"):
+                return httpx2.Response(
+                    200,
+                    json={
+                        "run": run_view(),
+                        "items": [],
+                        "complete": False,
+                        "dropped": 0,
+                        "position": "1-5",
+                        "resume_after": "500-0",
+                    },
+                )
+            assert request.url.path == "/api/v1/threads/thr_1/stream"
+            if len(requests) == 1:
+                assert not request.url.params and "last-event-id" not in request.headers
+                content = b'event: gap\ndata: {"run_id":"run_1","position":"1-5"}\n\n'
+            else:
+                assert dict(request.url.params) == {"run": "run_1", "position": "1-5"}
+                assert request.headers["last-event-id"] == "500-0"
+                content = b'id: 501-0\nevent: boundary\ndata: {"run_id":"run_1","attempt":1,"sequence":5}\n\n'
+            return httpx2.Response(200, content=content, headers={"Content-Type": "text/event-stream"})
+
+        async with Client("https://service.example", transport=httpx2.MockTransport(handle)) as client:
+            async with ThreadStream(client.threads("thr_1"), reconnect=False) as initial:
+                gap = await anext(initial)
+                assert gap.event_type == "gap" and gap.data.get("position") == "1-5"
+            assert len(requests) == 1  # Parser never read or silently merged a snapshot.
+            snapshot = (await client.runs(gap.data["run_id"]).items.get()).value
+            assert snapshot.position is not None and isinstance(snapshot.resume_after, str)
+            async with ThreadStream(
+                client.threads("thr_1"),
+                run=snapshot.run.id,
+                position=snapshot.position,
+                after=snapshot.resume_after,
+                reconnect=False,
+            ) as recovered:
+                boundary = await anext(recovered)
+                assert boundary.event_type == "boundary" and boundary.data["sequence"] == 5
+        assert [request.method for request in requests] == ["GET", "GET", "GET"]
+
+    asyncio.run(scenario())

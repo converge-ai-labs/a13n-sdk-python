@@ -62,11 +62,13 @@ class DisconnectAfterEventTransport(httpx.AsyncBaseTransport):
         self._armed = True
         self.disconnects = 0
         self.last_event_ids: list[str | None] = []
+        self.stream_queries: list[dict[str, str]] = []
 
     async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
         response = await self._inner.handle_async_request(request)
         if request.url.path.endswith("/stream"):
             self.last_event_ids.append(request.headers.get("last-event-id"))
+            self.stream_queries.append(dict(request.url.params))
             if self._armed and 200 <= response.status_code < 300:
                 if not isinstance(response.stream, httpx.AsyncByteStream):
                     raise RuntimeError("Thread SSE response did not expose an async byte stream")
@@ -159,7 +161,22 @@ async def _disconnect_acceptance(base_url: str, token: str, ca_bundle: str, agen
                         cursors.append(frame.cursor)
                     if len(transport.last_event_ids) >= 2 and len(cursors) >= 2:
                         break
-        final = await _wait_run(_accepted_run(submitted), wire.RunStatus.COMPLETED)
+        run = _accepted_run(submitted)
+        final = await _wait_run(run, wire.RunStatus.COMPLETED)
+        saved = (await run.items.get()).value
+        if saved.run.id != run.id or saved.position is None:
+            raise RuntimeError("Saved display did not expose exact Run coverage for reattachment")
+        hint = saved.resume_after if isinstance(saved.resume_after, str) else None
+        async with ThreadStream(
+            submitted.thread, run=saved.run.id, position=saved.position, after=hint, reconnect=False
+        ) as attached:
+            if attached.response is None or attached.response.status_code != 200:
+                raise RuntimeError("Covered display reattachment did not complete its SSE handshake")
+        if transport.stream_queries[-1] != {"run": run.id, "position": saved.position}:
+            raise RuntimeError("Covered reattachment did not send paired Run/position query")
+        if transport.last_event_ids[-1] != hint:
+            raise RuntimeError("Covered reattachment did not forward the saved resume hint")
+        coverage = {"run_id": run.id, "position": saved.position, "resume_after": hint}
     if transport.disconnects != 1 or len(transport.last_event_ids) < 2:
         raise RuntimeError("Isolated transport did not prove one disconnect and reconnect")
     if not cursors or transport.last_event_ids[1] != cursors[0]:
@@ -172,6 +189,7 @@ async def _disconnect_acceptance(base_url: str, token: str, ca_bundle: str, agen
         "frame_count": len(frames),
         "disconnects": transport.disconnects,
         "reconnect_last_event_id": transport.last_event_ids[1],
+        "covered_reattach": coverage,
     }
 
 

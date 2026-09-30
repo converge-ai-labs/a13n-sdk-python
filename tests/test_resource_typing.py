@@ -59,7 +59,7 @@ def test_public_typing_rejects_invalid_paths_and_wrong_payload(tmp_path: Path) -
 def test_frame_discriminants_narrow_data_and_cursor(tmp_path: Path) -> None:
     source = tmp_path / "frames.py"
     source.write_text(
-        "from a13n import ThreadFrame, Client, text_input\n"
+        "from a13n import ThreadFrame, ThreadStream, Client, text_input\n"
         "from a13n.generated import models as wire\n"
         "def consume(frame: ThreadFrame) -> None:\n"
         "    if frame.event_type == 'delta':\n"
@@ -73,10 +73,14 @@ def test_frame_discriminants_narrow_data_and_cursor(tmp_path: Path) -> None:
         "    elif frame.event_type == 'changed':\n"
         "        no_cursor: None = frame.cursor\n"
         "        version: int = frame.data['version']\n"
+        "    elif frame.event_type == 'gap':\n"
+        "        no_cursor: None = frame.cursor\n"
+        "        position: str | None = frame.data.get('position')\n"
         "    else:\n"
         "        no_cursor: None = frame.cursor\n"
         "        run_id: str = frame.data['run_id']\n"
         "async def full(client: Client) -> None:\n"
+        "    stream = ThreadStream(client.threads('thread'), run='run', position='1-3', after='1-0')\n"
         "    result = await client.resources.threads.create(\n"
         "        body=wire.NewThread(agent_id='agent', payload=text_input('hello'), memories=[]), idempotency_key='key')\n"
     )

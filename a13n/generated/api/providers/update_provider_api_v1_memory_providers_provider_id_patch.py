@@ -80,7 +80,7 @@ def sync_detailed(
     if_match: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> Response[ErrorEnvelope | Provider]:
-    """Update Provider
+    """Update memory provider
 
      A `config` change must also replace or remove a stored credential: it never follows a new endpoint.
 
@@ -123,7 +123,7 @@ def sync(
     if_match: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> ErrorEnvelope | Provider | None:
-    """Update Provider
+    """Update memory provider
 
      A `config` change must also replace or remove a stored credential: it never follows a new endpoint.
 
@@ -161,7 +161,7 @@ async def asyncio_detailed(
     if_match: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> Response[ErrorEnvelope | Provider]:
-    """Update Provider
+    """Update memory provider
 
      A `config` change must also replace or remove a stored credential: it never follows a new endpoint.
 
@@ -202,7 +202,7 @@ async def asyncio(
     if_match: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> ErrorEnvelope | Provider | None:
-    """Update Provider
+    """Update memory provider
 
      A `config` change must also replace or remove a stored credential: it never follows a new endpoint.
 
