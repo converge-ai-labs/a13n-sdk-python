@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any, TypeVar, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 
 from ..models.model_capability import ModelCapability
 from ..types import UNSET, Unset
+
+if TYPE_CHECKING:
+    from ..models.image_input_policy import ImageInputPolicy
+
 
 T = TypeVar("T", bound="HarnessModelCharacteristicsInput")
 
@@ -19,15 +23,20 @@ class HarnessModelCharacteristicsInput:
         capabilities (list[ModelCapability] | Unset):
         compact_threshold (float | Unset):
         context_window_tokens (int | None | Unset):
+        image_input (ImageInputPolicy | None | Unset): Image preparation policy; omitted uses native defaults, null
+            disables automatic preparation.
         proactive_context_management_threshold (float | None | Unset):
     """
 
     capabilities: list[ModelCapability] | Unset = UNSET
     compact_threshold: float | Unset = UNSET
     context_window_tokens: int | Unset | None = UNSET
+    image_input: ImageInputPolicy | Unset | None = UNSET
     proactive_context_management_threshold: float | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.image_input_policy import ImageInputPolicy
+
         capabilities: list[str] | Unset = UNSET
         if not isinstance(self.capabilities, Unset):
             capabilities = []
@@ -42,6 +51,14 @@ class HarnessModelCharacteristicsInput:
             context_window_tokens = UNSET
         else:
             context_window_tokens = self.context_window_tokens
+
+        image_input: dict[str, Any] | Unset | None
+        if isinstance(self.image_input, Unset):
+            image_input = UNSET
+        elif isinstance(self.image_input, ImageInputPolicy):
+            image_input = self.image_input.to_dict()
+        else:
+            image_input = self.image_input
 
         proactive_context_management_threshold: float | Unset | None
         if isinstance(self.proactive_context_management_threshold, Unset):
@@ -58,6 +75,8 @@ class HarnessModelCharacteristicsInput:
             field_dict["compact_threshold"] = compact_threshold
         if context_window_tokens is not UNSET:
             field_dict["context_window_tokens"] = context_window_tokens
+        if image_input is not UNSET:
+            field_dict["image_input"] = image_input
         if proactive_context_management_threshold is not UNSET:
             field_dict["proactive_context_management_threshold"] = proactive_context_management_threshold
 
@@ -65,6 +84,8 @@ class HarnessModelCharacteristicsInput:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.image_input_policy import ImageInputPolicy
+
         d = dict(src_dict)
         _capabilities = d.pop("capabilities", UNSET)
         capabilities: list[ModelCapability] | Unset = UNSET
@@ -86,6 +107,23 @@ class HarnessModelCharacteristicsInput:
 
         context_window_tokens = _parse_context_window_tokens(d.pop("context_window_tokens", UNSET))
 
+        def _parse_image_input(data: object) -> ImageInputPolicy | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                image_input_type_0 = ImageInputPolicy.from_dict(data)
+
+                return image_input_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(ImageInputPolicy | Unset | None, data)
+
+        image_input = _parse_image_input(d.pop("image_input", UNSET))
+
         def _parse_proactive_context_management_threshold(data: object) -> float | Unset | None:
             if data is None:
                 return data
@@ -101,6 +139,7 @@ class HarnessModelCharacteristicsInput:
             capabilities=capabilities,
             compact_threshold=compact_threshold,
             context_window_tokens=context_window_tokens,
+            image_input=image_input,
             proactive_context_management_threshold=proactive_context_management_threshold,
         )
 

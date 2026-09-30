@@ -134,6 +134,7 @@ from .headers_credential import HeadersCredential
 from .headers_credential_headers import HeadersCredentialHeaders
 from .health_healthz_get_response_health_healthz_get import HealthHealthzGetResponseHealthHealthzGet
 from .history_purge import HistoryPurge
+from .image_input_policy import ImageInputPolicy
 from .inbox_order import InboxOrder
 from .instrumentation_scope import InstrumentationScope
 from .invitation import Invitation
@@ -554,6 +555,7 @@ __all__ = (
     "HeadersCredentialHeaders",
     "HealthHealthzGetResponseHealthHealthzGet",
     "HistoryPurge",
+    "ImageInputPolicy",
     "InboxOrder",
     "InstrumentationScope",
     "Invitation",
