@@ -290,6 +290,10 @@ from .retry_override import RetryOverride
 from .returned import Returned
 from .revoked_connection import RevokedConnection
 from .revoked_connection_remote_revocation import RevokedConnectionRemoteRevocation
+from .run_configuration_input import RunConfigurationInput
+from .run_configuration_input_extensions import RunConfigurationInputExtensions
+from .run_configuration_output import RunConfigurationOutput
+from .run_configuration_output_extensions import RunConfigurationOutputExtensions
 from .run_items import RunItems
 from .run_labels import RunLabels
 from .run_labels_labels import RunLabelsLabels
@@ -707,6 +711,10 @@ __all__ = (
     "Returned",
     "RevokedConnection",
     "RevokedConnectionRemoteRevocation",
+    "RunConfigurationInput",
+    "RunConfigurationInputExtensions",
+    "RunConfigurationOutput",
+    "RunConfigurationOutputExtensions",
     "RunItems",
     "RunLabels",
     "RunLabelsLabels",
