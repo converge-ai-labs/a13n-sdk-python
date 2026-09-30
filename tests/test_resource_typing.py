@@ -46,14 +46,16 @@ def test_public_typing_rejects_invalid_paths_and_wrong_payload(tmp_path: Path) -
         "from a13n import Client\n"
         "\n"
         "async def misuse(client: Client) -> None:\n"
-        "    client.workspaces('ws').runs('run')\n"
+        "    client.resources.workspaces('ws').runs('run')\n"
+        "    client.workspaces('ws')\n"
+        "    client.organizations('org')\n"
         "    await client.runs('run').wait(timeout='forever', poll_interval=0.1)\n"
         "    await client.agents('agent').send('thread', 123, idempotency_key='key')\n"
         "    await client.threads('thread').stream()\n"
     )
     report = run_pyright(source)
     assert report["returncode"] == 1
-    assert len(report["generalDiagnostics"]) == 4
+    assert len(report["generalDiagnostics"]) == 6
 
 
 def test_frame_discriminants_narrow_data_and_cursor(tmp_path: Path) -> None:

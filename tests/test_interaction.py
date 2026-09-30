@@ -852,8 +852,8 @@ def test_run_items_preserves_display_coverage_and_resume_hint(resume_after: str 
     assert parsed.position == "1-5" and parsed.resume_after == resume_after
     assert parsed.to_dict() == snapshot
     del snapshot["resume_after"]
-    legacy = wire.RunItems.from_dict(snapshot)
-    assert "resume_after" not in legacy.to_dict()
+    omitted_hint = wire.RunItems.from_dict(snapshot)
+    assert "resume_after" not in omitted_hint.to_dict()
 
 
 def test_gap_recovery_is_explicit_readback_then_new_covered_stream() -> None:

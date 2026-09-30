@@ -16,7 +16,7 @@ from ._interaction import Agents, Runs, Threads
 from .errors import TransportError
 from .generated.client import AuthenticatedClient
 from .generated.models import ErrorEnvelope
-from .generated.resources import Organizations, ServiceResources, Workspaces
+from .generated.resources import ServiceResources
 from .generated.types import Response
 from .generated.workspace_routes import WORKSPACE_PATHS
 
@@ -163,14 +163,6 @@ class Client:
     @property
     def resources(self) -> ServiceResources:
         return ServiceResources(self)
-
-    @property
-    def workspaces(self) -> Workspaces:
-        return self.resources.workspaces
-
-    @property
-    def organizations(self) -> Organizations:
-        return self.resources.organizations
 
     @property
     def agents(self) -> Agents:

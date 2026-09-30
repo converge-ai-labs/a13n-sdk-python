@@ -59,6 +59,17 @@ def test_credentials_scopes_and_csrf_are_explicit() -> None:
     asyncio.run(scenario())
 
 
+def test_administration_has_only_generated_resource_entrypoints() -> None:
+    async def scenario() -> None:
+        async with Client("https://service.example") as client:
+            assert not hasattr(client, "workspaces")
+            assert not hasattr(client, "organizations")
+            assert client.resources.workspaces("ws_1").id == "ws_1"
+            assert client.resources.organizations("org_1").id == "org_1"
+
+    asyncio.run(scenario())
+
+
 def test_lazy_pages_and_tenant_binding() -> None:
     async def scenario() -> None:
         visited: list[str] = []
@@ -146,8 +157,8 @@ def test_session_workspace_context_only_on_declared_workspace_routes() -> None:
         ) as client:
             await client.resources.agents.list()
             await client.resources.memories.list()
-            await client.workspaces.list()
-            await client.organizations.list()
+            await client.resources.workspaces.list()
+            await client.resources.organizations.list()
         assert seen[0] == ("/api/v1/agents", "ws_1")
         assert seen[1] == ("/api/v1/memories", "ws_1")
         assert all(scope is None for _, scope in seen[2:])
@@ -170,7 +181,7 @@ def test_session_workspace_scope_respects_service_base_path_prefix() -> None:
             transport=httpx2.MockTransport(handle),
         ) as client:
             await client.resources.agents.list()
-            await client.organizations.list()
+            await client.resources.organizations.list()
         assert seen == [
             ("/proxy/native/api/v1/agents", "ws_1"),
             ("/proxy/native/api/v1/organizations", None),
