@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Any, Literal, ReadOnly, Self, TypedDict, cast
+from typing import TYPE_CHECKING, Any, Literal, NotRequired, ReadOnly, Self, TypedDict, cast
 
 import httpx2
 from pydantic import JsonValue
@@ -29,6 +29,7 @@ if TYPE_CHECKING:
 
 _RETRYABLE_STATUS = frozenset({429, 502, 503, 504})
 _CURSOR = re.compile(r"[0-9]{1,20}-[0-9]{1,20}\Z")
+_POSITION = re.compile(r"(0|[1-9][0-9]{0,19})-(0|[1-9][0-9]{0,19})\Z")
 _TYPES = frozenset({"delta", "boundary", "changed", "reset", "gap"})
 
 
@@ -56,6 +57,10 @@ class ChangedData(TypedDict):
 
 class RunSignalData(TypedDict):
     run_id: ReadOnly[str]
+
+
+class GapData(RunSignalData):
+    position: NotRequired[ReadOnly[str | None]]
 
 
 @dataclass(frozen=True, repr=False)
@@ -88,7 +93,7 @@ class ResetFrame:
 
 @dataclass(frozen=True, repr=False)
 class GapFrame:
-    data: RunSignalData
+    data: GapData
     cursor: None = field(default=None, init=False)
     event_type: Literal["gap"] = field(default="gap", init=False)
 
@@ -169,8 +174,12 @@ def _frame(event_type: str, data: list[str], cursor: str | None) -> ThreadFrame:
                 return ChangedFrame(cast("ChangedData", MappingProxyType(value)))
             if not isinstance(value.get("run_id"), str) or not value["run_id"]:
                 raise ValueError
-            signal = cast("RunSignalData", MappingProxyType(value))
-            return ResetFrame(signal) if event_type == "reset" else GapFrame(signal)
+            if event_type == "gap":
+                position = value.get("position")
+                if position is not None and (not isinstance(position, str) or not _POSITION.fullmatch(position)):
+                    raise ValueError
+                return GapFrame(cast("GapData", MappingProxyType(value)))
+            return ResetFrame(cast("RunSignalData", MappingProxyType(value)))
     except (ValueError, TypeError):
         raise ProtocolError("Malformed Thread stream frame") from None
 
@@ -258,11 +267,17 @@ class ThreadStream:
         self,
         thread: Resource,
         *,
+        run: str | None = None,
+        position: str | None = None,
         after: str | None = None,
         reconnect: bool = True,
         max_reconnects: int = 5,
         max_event_bytes: int = 1_048_576,
     ) -> None:
+        if (run is None) != (position is None):
+            raise ValueError("run and position must be supplied together")
+        if position is not None and not _POSITION.fullmatch(position):
+            raise ValueError("position must be a canonical Native attempt-sequence position")
         if after is not None and not _CURSOR.fullmatch(after):
             raise ValueError("after must be a Native thread-stream entry ID")
         if not isinstance(max_reconnects, int) or isinstance(max_reconnects, bool) or max_reconnects < 0:
@@ -270,6 +285,8 @@ class ThreadStream:
         if not isinstance(max_event_bytes, int) or isinstance(max_event_bytes, bool) or max_event_bytes <= 0:
             raise ValueError("max_event_bytes must be a positive integer")
         self._thread = thread
+        self._run = run
+        self._position = position
         self._acknowledged_cursor = after
         self._pending_ack: str | None = None
         self._last_received_cursor: str | None = None
@@ -415,6 +432,8 @@ class ThreadStream:
     async def _attach(self) -> None:
         request = thread_stream_api_v1_threads_thread_id_stream_get.build_request(
             thread_id=self._thread.id,
+            run=self._run if self._run is not None else UNSET,
+            position=self._position if self._position is not None else UNSET,
             last_event_id=self._acknowledged_cursor if self._acknowledged_cursor is not None else UNSET,
         )
         context = self._thread._client.stream(request)

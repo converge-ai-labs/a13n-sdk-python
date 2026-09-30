@@ -105,6 +105,45 @@ The Client's `timeout` setting is separate: it limits an ordinary HTTP request a
 
 Most applications should stay with Interaction. Advanced consumers can use the generated `client.resources.threads(thread_id).stream.get_stream()` for the raw SSE response, or `ThreadStream` for protocol parsing and reconnect handling. That stream covers the Thread rather than one submitted message and requires explicit event/run and cursor handling. It is not a second high-level conversation mode.
 
-See the [streaming contract](../spec/README.md) before building a protocol-level consumer.
+### Resume from a saved display, not only a cursor
+
+A saved `RunItems` response has two different coordinates:
+
+- `position` (`attempt-sequence`) describes the display's coverage. Send it with its **Run ID** as the paired `run` and `position` stream query parameters.
+- Optional `resume_after` is a covered Redis entry ID. Pass it as `after` on `ThreadStream` (or `last_event_id` on generated `get_stream()`). It is only a seeking hint, not display coverage.
+
+With the query pair, the Service uses a retained hint for direct seeking only when it matches the claimed Run and attempt, the active execution, and a covered sequence. Absent, expired or incompatible hints fall back to retained replay filtered by position. Absence alone is not a gap. Covered boundaries remain observable; an older-attempt claim receives `reset`. This is not a general rule that one cursor takes precedence over another: the [pinned stream contract](../contract/semantics/facts-and-delivery.md#the-thread-stream) owns the conditions.
+
+After receiving a `GapFrame`, explicitly close the old observation, read that exact Run's Items and build a **new** stream from the returned baseline. For example, call this helper after leaving the stream context that produced `gap`:
+
+```python
+from a13n import Client, GapFrame, ThreadStream
+
+
+async def observe_new_baseline(client: Client, thread_id: str, gap: GapFrame) -> None:
+    saved = (await client.runs(gap.data["run_id"]).items.get()).value
+    print("Gap target:", gap.data.get("position"), "Saved coverage:", saved.position)
+    print("Replace provisional preview with saved Items:", saved.to_dict())
+    if saved.complete or saved.position is None:
+        return  # Terminal baseline, or no committed coverage to claim yet.
+    hint = saved.resume_after if isinstance(saved.resume_after, str) else None
+    async with ThreadStream(
+        client.resources.threads(thread_id),
+        run=saved.run.id,
+        position=saved.position,
+        after=hint,
+        reconnect=False,
+    ) as stream:
+        async for frame in stream:
+            print(frame.event_type, frame.data)
+            if frame.event_type in {"gap", "reset"}:
+                break  # Let the application decide whether and when to read again.
+```
+
+A gap may name a missing range through `gap.data.get("position")`, or have no known target. A snapshot may still be behind that range; replacing a preview does **not** prove complete recovery. Keep the preview incomplete until your application can establish coverage, and check saved truncation/omission metadata. The SDK supplies neither a UI reducer nor an implicit readback loop.
+
+`ThreadStream` preserves its original query pair on automatic reconnects. Only requesting the next frame acknowledges the previously yielded cursor-bearing frame in memory for `Last-Event-ID`; it does not update the query position. Serialize application processing before requesting the next frame, and explicitly start a new stream after adopting newer coverage. Fixed original coverage can replay already-applied suffix events on reconnect; neither attachment nor a Redis hint proves exactly-once or lossless delivery.
+
+See the [streaming contract](../spec/03-observation-and-data-access.md) before building a protocol-level consumer. Finite Interaction still binds its exact consumed Run without implicitly claiming a display baseline.
 
 [Back to the guide](README.md) · [Next: waiting and tools](waiting-and-tools.md)

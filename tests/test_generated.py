@@ -144,14 +144,90 @@ def test_generated_thread_sse_exposes_unbuffered_raw_response() -> None:
 
         def handle(request: httpx2.Request) -> httpx2.Response:
             paths.append(request.url.path)
+            assert dict(request.url.params) == {"run": "run_1", "position": "1-3"}
+            assert request.headers["last-event-id"] == "1700000000000-0"
             return httpx2.Response(200, stream=stream, headers={"Content-Type": "text/event-stream"})
 
         async with Client("https://service.example", "token", transport=httpx2.MockTransport(handle)) as client:
             async with asyncio.timeout(0.5):
-                async with client.resources.threads("thr_1").stream.get_stream() as response:
+                async with client.resources.threads("thr_1").stream.get_stream(
+                    run="run_1", position="1-3", last_event_id="1700000000000-0"
+                ) as response:
                     assert response.status_code == 200
                     assert await anext(response.aiter_bytes()) == b'event: changed\ndata: {"version": 1}\n\n'
             assert stream.closed
         assert paths == ["/api/v1/threads/thr_1/stream"]
 
     asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("model", [wire.ModelConfigInput, wire.ModelConfigOutput])
+def test_native_model_settings_preserve_arbitrary_json_and_omission(
+    model: type[wire.ModelConfigInput] | type[wire.ModelConfigOutput],
+) -> None:
+    settings = {
+        "provider_option": {"flags": [True, False, None], "limit": 0, "ratio": 0.25},
+        "seed": None,
+        "extra": "value",
+    }
+    payload = {"model_name": "test", "model_api": "test.model", "settings": settings}
+    parsed = model.from_dict(payload)
+    assert isinstance(parsed.settings, (wire.ModelConfigInputSettings, wire.ModelConfigOutputSettings))
+    assert parsed.settings.to_dict() == settings
+    assert parsed.to_dict() == payload
+    absent = model(model_name="test", model_api="test.model")
+    assert absent.settings is UNSET and "settings" not in absent.to_dict()
+
+
+def test_model_settings_reach_native_request_without_filtering() -> None:
+    import json
+
+    async def scenario() -> None:
+        body = wire.ModelCreate(
+            config=wire.ModelConfigInput(
+                model_name="test",
+                model_api="test.model",
+                settings=wire.ModelConfigInputSettings.from_dict(
+                    {"vendor": {"nested": [None, False, 0]}, "temperature": 0}
+                ),
+            ),
+            name="Configured model",
+            provider_id="mpr_1",
+        )
+
+        def handle(request: httpx2.Request) -> httpx2.Response:
+            assert request.method == "POST" and request.url.path == "/api/v1/models"
+            assert json.loads(request.content) == body.to_dict()
+            return httpx2.Response(
+                400,
+                json={
+                    "error": {
+                        "code": "invalid_argument",
+                        "message": "Provider rejected settings",
+                        "details": {},
+                        "request_id": "req_1",
+                    }
+                },
+            )
+
+        async with Client("https://service.example", transport=httpx2.MockTransport(handle)) as client:
+            with pytest.raises(ApiError, match="Provider rejected settings"):
+                await client.resources.models.create(body=body)
+
+    asyncio.run(scenario())
+
+
+def test_native_upload_ids_and_password_fields_are_forwarded_not_revalidated() -> None:
+    upload_id = "upl_" + "0123456789abcdef" * 2
+    assert wire.AssetCreate(upload_id=upload_id, name="document").to_dict()["upload_id"] == upload_id
+    source = {"kind": "upload", "upload_id": upload_id}
+    assert wire.UploadSource.from_dict(source).to_dict() == source
+    # These generated strings carry Service constraints; the SDK does not own password policy.
+    assert wire.BootstrapInput(email="test@example.test", password="example8").to_dict()["password"] == "example8"
+    assert wire.PasswordChange(current_password="old", password="example8").to_dict() == {
+        "current_password": "old",
+        "password": "example8",
+    }
+    assert wire.PasswordResetConfirm(token="reset-token", password="example8").to_dict()["password"] == "example8"
+    assert wire.LoginInput(email="test@example.test", password="old").to_dict()["password"] == "old"
+    assert "example8" not in repr(wire.PasswordChange(current_password="old", password="example8"))

@@ -116,6 +116,24 @@ print(options.to_dict())
 
 An explicit `extra_body` or `extra_headers` object replaces the inherited object; it is not recursively merged. Keep provider-specific keys within those provider-specific settings rather than adding unsupported top-level fields.
 
+## Forward native Model settings
+
+A Model's `config.settings` is an open native JSON object, not a second SDK-defined hierarchy. Use the generated mapping wrapper to preserve provider-specific JSON values:
+
+```python
+from a13n.generated import models as wire
+
+
+def model_config(model_api: str, model_name: str) -> wire.ModelConfigInput:
+    return wire.ModelConfigInput(
+        model_api=model_api,
+        model_name=model_name,
+        settings=wire.ModelConfigInputSettings.from_dict({"seed": 42, "timeout": 30}),
+    )
+```
+
+Use this config with `wire.ModelCreate` or `wire.ModelUpdate`. Supported native keys and conflict resolution with explicit config fields belong to the Service and installed provider. Nested objects, arrays, booleans, numbers and null values are forwarded unchanged and retained in Model readback. Omitting `settings` differs from explicitly supplying `{}`; the SDK does not fill provider defaults or validate provider policy.
+
 ## Choose the right level
 
 | Task                                               | Preferred entry point                                                  |

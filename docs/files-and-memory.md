@@ -39,6 +39,8 @@ async def summarize_file(client: Client, agent_id: str, path: Path) -> RunOutcom
 
 Call it with a UTF-8 text document such as `Path("report.txt")`. For another file type, set the correct MIME type and ensure your Agent's model/media configuration supports it. Successful storage does not guarantee that every model can interpret the content.
 
+Use the returned upload ID verbatim. Native `upload_id` references have the form `upl_` plus 32 lowercase hexadecimal characters; do not derive an ID from bytes or an idempotency key. The Service validates the reference and its scope.
+
 The SDK does not close caller-owned file objects. The `with` block closes this file after upload. In an application, record the returned upload and Asset IDs so a failure in a later step does not make you blindly repeat the whole sequence.
 
 ## Download without buffering the whole file
