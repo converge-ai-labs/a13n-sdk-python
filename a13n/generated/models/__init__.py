@@ -59,14 +59,21 @@ from .audit_page import AuditPage
 from .auth_configuration import AuthConfiguration
 from .authentication import Authentication
 from .authentication_case import AuthenticationCase
+from .authorization_callback import AuthorizationCallback
+from .authorization_disconnect import AuthorizationDisconnect
 from .authorization_request import AuthorizationRequest
 from .authorization_result import AuthorizationResult
+from .authorization_start import AuthorizationStart
+from .authorization_start_method import AuthorizationStartMethod
+from .authorization_status import AuthorizationStatus
+from .authorization_status_state import AuthorizationStatusState
 from .bearer_credential import BearerCredential
 from .bootstrap_input import BootstrapInput
 from .callback_outcome import CallbackOutcome
 from .catalog_model import CatalogModel
 from .catalog_ref import CatalogRef
 from .certainty import Certainty
+from .chat_gpt_model import ChatGPTModel
 from .child_environment_policy import ChildEnvironmentPolicy
 from .child_environment_policy_mode import ChildEnvironmentPolicyMode
 from .client_authentication import ClientAuthentication
@@ -134,6 +141,7 @@ from .headers_credential import HeadersCredential
 from .headers_credential_headers import HeadersCredentialHeaders
 from .health_healthz_get_response_health_healthz_get import HealthHealthzGetResponseHealthHealthzGet
 from .history_purge import HistoryPurge
+from .image_input_policy import ImageInputPolicy
 from .inbox_order import InboxOrder
 from .instrumentation_scope import InstrumentationScope
 from .invitation import Invitation
@@ -259,6 +267,7 @@ from .principal_summary import PrincipalSummary
 from .profile import Profile
 from .profile_update import ProfileUpdate
 from .provider import Provider
+from .provider_authorization_request import ProviderAuthorizationRequest
 from .provider_config import ProviderConfig
 from .provider_create import ProviderCreate
 from .provider_create_config import ProviderCreateConfig
@@ -289,6 +298,10 @@ from .retry_override import RetryOverride
 from .returned import Returned
 from .revoked_connection import RevokedConnection
 from .revoked_connection_remote_revocation import RevokedConnectionRemoteRevocation
+from .run_configuration_input import RunConfigurationInput
+from .run_configuration_input_extensions import RunConfigurationInputExtensions
+from .run_configuration_output import RunConfigurationOutput
+from .run_configuration_output_extensions import RunConfigurationOutputExtensions
 from .run_items import RunItems
 from .run_labels import RunLabels
 from .run_labels_labels import RunLabelsLabels
@@ -400,6 +413,8 @@ from .trigger import Trigger
 from .upload import Upload
 from .upload_create import UploadCreate
 from .upload_source import UploadSource
+from .url_input_support_input import UrlInputSupportInput
+from .url_input_support_output import UrlInputSupportOutput
 from .url_part import UrlPart
 from .usage_limit import UsageLimit
 from .usage_limits_input import UsageLimitsInput
@@ -408,6 +423,8 @@ from .usage_overview import UsageOverview
 from .usage_summary import UsageSummary
 from .user_key_create import UserKeyCreate
 from .verb import Verb
+from .video_input_policy import VideoInputPolicy
+from .video_url_type import VideoUrlType
 from .wait_reason import WaitReason
 from .web_operation import WebOperation
 from .webhook_delivery import WebhookDelivery
@@ -479,14 +496,21 @@ __all__ = (
     "AuthConfiguration",
     "Authentication",
     "AuthenticationCase",
+    "AuthorizationCallback",
+    "AuthorizationDisconnect",
     "AuthorizationRequest",
     "AuthorizationResult",
+    "AuthorizationStart",
+    "AuthorizationStartMethod",
+    "AuthorizationStatus",
+    "AuthorizationStatusState",
     "BearerCredential",
     "BootstrapInput",
     "CallbackOutcome",
     "CatalogModel",
     "CatalogRef",
     "Certainty",
+    "ChatGPTModel",
     "ChildEnvironmentPolicy",
     "ChildEnvironmentPolicyMode",
     "ClientAuthentication",
@@ -554,6 +578,7 @@ __all__ = (
     "HeadersCredentialHeaders",
     "HealthHealthzGetResponseHealthHealthzGet",
     "HistoryPurge",
+    "ImageInputPolicy",
     "InboxOrder",
     "InstrumentationScope",
     "Invitation",
@@ -677,6 +702,7 @@ __all__ = (
     "Profile",
     "ProfileUpdate",
     "Provider",
+    "ProviderAuthorizationRequest",
     "ProviderConfig",
     "ProviderCreate",
     "ProviderCreateConfig",
@@ -705,6 +731,10 @@ __all__ = (
     "Returned",
     "RevokedConnection",
     "RevokedConnectionRemoteRevocation",
+    "RunConfigurationInput",
+    "RunConfigurationInputExtensions",
+    "RunConfigurationOutput",
+    "RunConfigurationOutputExtensions",
     "RunItems",
     "RunLabels",
     "RunLabelsLabels",
@@ -816,6 +846,8 @@ __all__ = (
     "Upload",
     "UploadCreate",
     "UploadSource",
+    "UrlInputSupportInput",
+    "UrlInputSupportOutput",
     "UrlPart",
     "UsageLimit",
     "UsageLimitsInput",
@@ -824,6 +856,8 @@ __all__ = (
     "UsageSummary",
     "UserKeyCreate",
     "Verb",
+    "VideoInputPolicy",
+    "VideoUrlType",
     "WaitReason",
     "WebOperation",
     "WebhookDelivery",

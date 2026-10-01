@@ -13,6 +13,57 @@ service_acceptance = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(service_acceptance)
 
 
+def test_native_configuration_acceptance_uses_real_generated_forwarding_locally() -> None:
+    import json
+
+    from a13n import Client
+    from tests.test_interaction import entry_view, run_view, submitted
+
+    async def scenario() -> None:
+        configurations: dict[str, dict] = {}
+        posts: list[dict] = []
+
+        def handle(request: httpx2.Request) -> httpx2.Response:
+            if request.method == "POST":
+                body = json.loads(request.content)
+                posts.append(body)
+                run_id = f"run_{len(posts)}"
+                configurations[run_id] = body["options"]["configuration"]
+                receipt = submitted()
+                receipt["run"]["id"] = run_id
+                return httpx2.Response(201, json=receipt)
+            if request.url.path.endswith("/inbox/ent_1"):
+                entry = entry_view(status="consumed")
+                entry["assigned_run_id"] = f"run_{len(posts)}"
+                return httpx2.Response(200, json=entry)
+            run_id = request.url.path.rsplit("/", 1)[-1]
+            view = run_view(run_id=run_id, status="completed")
+            view["options"] = {"configuration": configurations[run_id]}
+            return httpx2.Response(200, json=view)
+
+        async with Client("https://service.example", transport=httpx2.MockTransport(handle)) as client:
+            evidence = await service_acceptance._configuration_acceptance(client, "agt_1")
+        assert evidence["snapshot_readback"] is True
+        assert posts[1]["delivery"] == "next_run"
+        assert configurations["run_1"] != configurations["run_2"]
+        assert configurations["run_1"]["extensions"]["sdk.acceptance"]["enabled"] is False
+
+    asyncio.run(scenario())
+
+
+def test_acceptance_rejects_lost_or_changed_configuration_readback() -> None:
+    from a13n.generated import models as wire
+    from tests.test_interaction import run_view
+
+    expected = service_acceptance._configuration("readback")
+    with pytest.raises(RuntimeError, match="configuration snapshot"):
+        service_acceptance._assert_configuration(wire.RunView.from_dict(run_view()), expected)
+    changed = run_view()
+    changed["options"] = {"configuration": {"allowed_hosts": [], "extensions": {}}}
+    with pytest.raises(RuntimeError, match="configuration snapshot"):
+        service_acceptance._assert_configuration(wire.RunView.from_dict(changed), expected)
+
+
 def test_acceptance_identity_mismatch_is_runtime_error() -> None:
     submitted = SimpleNamespace(
         receipt=SimpleNamespace(

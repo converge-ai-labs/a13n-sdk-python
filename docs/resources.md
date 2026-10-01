@@ -134,6 +134,95 @@ def model_config(model_api: str, model_name: str) -> wire.ModelConfigInput:
 
 Use this config with `wire.ModelCreate` or `wire.ModelUpdate`. Supported native keys and conflict resolution with explicit config fields belong to the Service and installed provider. Nested objects, arrays, booleans, numbers and null values are forwarded unchanged and retained in Model readback. Omitting `settings` differs from explicitly supplying `{}`; the SDK does not fill provider defaults or validate provider policy.
 
+## Forward image and video policy
+
+Media preparation belongs to Service/Harness, not Model settings or SDK processing. Set native characteristics on a Model config:
+
+```python
+from a13n.generated import models as wire
+
+config = wire.ModelConfigInput(
+    model_api="your-installed-api",
+    model_name="your-model",
+    characteristics=wire.HarnessModelCharacteristicsInput(
+        image_input=wire.ImageInputPolicy(max_images=4, split_large_images=False),
+        video_input=wire.VideoInputPolicy(max_video_bytes=8_000_000),
+        url_input=wire.UrlInputSupportInput(video=[wire.VideoUrlType.YOUTUBE]),
+    ),
+)
+```
+
+Use it in `wire.ModelCreate` or `wire.ModelUpdate`. Omitted `image_input` uses native defaults; `image_input=None` disables automatic preparation. Zero limits, false flags and `video=[]` remain explicit values. The Service enforces byte budgets, URL support, host restrictions and TLS; the SDK does not inspect or transform media.
+
+## Select a native Run configuration
+
+Pass configuration through existing typed `options` on `start()` and `send()`; generated `wire.Message` uses the same shape:
+
+```python
+from a13n import Client
+from a13n.generated import models as wire
+
+
+async def restricted_input(client: Client, agent_id: str) -> None:
+    options = wire.RunOptionsInput(
+        configuration=wire.RunConfigurationInput(
+            allowed_hosts=["media.example.test"],
+            extensions=wire.RunConfigurationInputExtensions.from_dict(
+                {"example.policy": {"enabled": False, "limits": [], "note": None}}
+            ),
+        )
+    )
+    payload = wire.MessagePayload(
+        content=[
+            wire.TextPart(type_="text", text="Describe this image and video."),
+            wire.UrlPart(type_="url", url="https://media.example.test/image.png"),
+            wire.UrlPart(type_="url", url="https://media.example.test/video.mp4"),
+        ]
+    )
+    interaction = await client.agents(agent_id).start(payload, options=options, idempotency_key="media-001")
+    outcome = await interaction.result()
+    print(outcome.snapshot.value.options.configuration)
+```
+
+An explicit configuration object is a complete snapshot, not a merge with hidden SDK defaults or revision overrides. `configuration=UNSET` omits it, `configuration=None` sends null, and `wire.RunConfigurationInput()` sends `{}`. Omission/null select the native default for a new Run and retain the accepted snapshot when steering. `allowed_hosts=None` is unrestricted; `allowed_hosts=[]` denies every native URL destination. Extensions are arbitrary namespaced JSON, not SDK policy.
+
+The Service normalizes/freezes the accepted configuration. Steering and pending edits against an active Run may omit it or match the frozen value; a different explicit snapshot returns `409 conflict` with reason `run_configuration_immutable`. The SDK does not auto-queue or retry that request. `delivery=wire.Delivery.NEXT_RUN` selects a new snapshot, while resume successors and inline children inherit their source's configuration.
+
+## Model Provider authorization and discovery
+
+Use the generated Provider graph with an existing Client:
+
+```python
+from a13n import Client
+from a13n.generated import models as wire
+
+
+async def begin_provider_authorization(client: Client, provider_id: str, workspace_id: str) -> wire.AuthorizationStart:
+    provider = client.resources.model_providers(provider_id)
+    await provider.authorization.get(x_workspace_id=workspace_id)
+    started = await provider.authorize(
+        body=wire.ProviderAuthorizationRequest(new_registration=False), x_workspace_id=workspace_id
+    )
+    return started.value  # Hand the returned URL/method to your application's authorized user; do not log it.
+
+
+async def complete_manual_authorization(
+    client: Client, provider_id: str, workspace_id: str, attempt_id: str, callback_url: str
+) -> None:
+    await client.resources.model_providers(provider_id).authorization.callback(
+        body=wire.AuthorizationCallback(attempt_id=attempt_id, callback_url=callback_url),
+        x_workspace_id=workspace_id,
+    )
+
+
+async def discover_provider_models(client: Client, provider_id: str, workspace_id: str) -> list[wire.ChatGPTModel]:
+    return (await client.resources.model_providers(provider_id).models.get(x_workspace_id=workspace_id)).value
+```
+
+Follow the returned `method`: `manual_callback` accepts a pasted callback through `authorization.callback`; `browser_callback` uses the operator-configured hosted flow and status polling. Do not hardcode callback origins, client identity or port, print callback codes, or store Provider tokens. Starting hosted browser authorization requires an unconfined user login, but manual Workspace authorization can use an authorized API key. Service permissions are `read` for status, `write` for authorize/callback/disconnect, and `run` for discovery; the SDK does not replace these checks. OAuth is workspace-shared Provider state, not a personal Connection or a new Client credential.
+
+`await provider.authorization.delete(...)` clears local Provider tokens and reports external revocation separately through nullable `revocation_confirmed`. Treat unknown exchange/revocation outcomes as reported facts, not permission to replay mutations. Hosted callback setup and issuer approval are operator responsibilities.
+
 ## Choose the right level
 
 | Task                                               | Preferred entry point                                                  |

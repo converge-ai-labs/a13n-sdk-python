@@ -130,11 +130,15 @@ from .api.models import (
     update_model_api_v1_models_key_patch,
 )
 from .api.providers import (
+    authorize_model_api_v1_model_providers_provider_id_authorize_post,
+    complete_model_authorization_api_v1_model_providers_provider_id_authorization_callback_post,
     create_provider_api_v1_connector_providers_post,
     create_provider_api_v1_environment_providers_post,
     create_provider_api_v1_memory_providers_post,
     create_provider_api_v1_model_providers_post,
     create_provider_api_v1_web_providers_post,
+    disconnect_model_authorization_api_v1_model_providers_provider_id_authorization_delete,
+    discover_model_provider_models_api_v1_model_providers_provider_id_models_get,
     get_provider_api_v1_connector_providers_provider_id_get,
     get_provider_api_v1_environment_providers_provider_id_get,
     get_provider_api_v1_memory_providers_provider_id_get,
@@ -146,6 +150,7 @@ from .api.providers import (
     list_providers_api_v1_memory_providers_get,
     list_providers_api_v1_model_providers_get,
     list_providers_api_v1_web_providers_get,
+    model_authorization_api_v1_model_providers_provider_id_authorization_get,
     test_provider_api_v1_connector_providers_provider_id_test_post,
     test_provider_api_v1_environment_providers_provider_id_test_post,
     test_provider_api_v1_memory_providers_provider_id_test_post,
@@ -2360,11 +2365,77 @@ class ModelProvidersProviderId(Resource):
             )
         )
 
+    @property
+    def authorization(self) -> ModelProvidersProviderIdAuthorization:
+        return ModelProvidersProviderIdAuthorization(self._client, self._bindings)
+
+    async def authorize(
+        self, *, body: wire.ProviderAuthorizationRequest, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.AuthorizationStart]:
+        """Authorize Model. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: authorize_model_api_v1_model_providers_provider_id_authorize_post.asyncio_detailed(
+                client=client, provider_id=self._bindings["provider_id"], body=body, x_workspace_id=x_workspace_id
+            )
+        )
+
+    @property
+    def models(self) -> ModelProvidersProviderIdModels:
+        return ModelProvidersProviderIdModels(self._client, self._bindings)
+
     async def test(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ProviderTest]:
         """Test model provider. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: test_provider_api_v1_model_providers_provider_id_test_post.asyncio_detailed(
                 client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+
+class ModelProvidersProviderIdAuthorization(Resource):
+    """Bound Native resource: /model-providers / {provider_id} / authorization."""
+
+    async def delete(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.AuthorizationDisconnect]:
+        """Disconnect Model Authorization. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: (
+                disconnect_model_authorization_api_v1_model_providers_provider_id_authorization_delete.asyncio_detailed(
+                    client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
+                )
+            )
+        )
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.AuthorizationStatus]:
+        """Model Authorization. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: model_authorization_api_v1_model_providers_provider_id_authorization_get.asyncio_detailed(
+                client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def callback(
+        self, *, body: wire.AuthorizationCallback, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.AuthorizationStatus]:
+        """Complete Model Authorization. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: (
+                complete_model_authorization_api_v1_model_providers_provider_id_authorization_callback_post.asyncio_detailed(
+                    client=client, provider_id=self._bindings["provider_id"], body=body, x_workspace_id=x_workspace_id
+                )
+            )
+        )
+
+
+class ModelProvidersProviderIdModels(Resource):
+    """Bound Native resource: /model-providers / {provider_id} / models."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[list[wire.ChatGPTModel]]:
+        """Discover Model Provider Models. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: (
+                discover_model_provider_models_api_v1_model_providers_provider_id_models_get.asyncio_detailed(
+                    client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
+                )
             )
         )
 

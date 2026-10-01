@@ -193,6 +193,50 @@ async def _disconnect_acceptance(base_url: str, token: str, ca_bundle: str, agen
     }
 
 
+def _configuration(label: str) -> wire.RunConfigurationInput:
+    return wire.RunConfigurationInput(
+        allowed_hosts=None,
+        extensions=wire.RunConfigurationInputExtensions.from_dict(
+            {
+                "sdk.acceptance": {"label": label, "enabled": False, "zero": 0, "empty": [], "nested": {"null": None}},
+            }
+        ),
+    )
+
+
+def _assert_configuration(run: wire.RunView, expected: wire.RunConfigurationInput) -> None:
+    actual = run.options.configuration
+    if not isinstance(actual, wire.RunConfigurationOutput) or actual.to_dict() != expected.to_dict():
+        raise RuntimeError("Accepted Run did not retain the complete native configuration snapshot")
+
+
+async def _configuration_acceptance(client: Client, agent: str) -> dict[str, Any]:
+    first_configuration = _configuration("start")
+    initial = await client.agents(agent).start(
+        "Short response with native configuration.",
+        options=wire.RunOptionsInput(configuration=first_configuration),
+        idempotency_key=_key("configuration-start"),
+    )
+    initial_outcome = await initial.result(timeout=120.0, poll_interval=0.1)
+    _assert_configuration(initial_outcome.snapshot.value, first_configuration)
+    next_configuration = _configuration("next_run")
+    following = await client.agents(agent).send(
+        initial.thread.id,
+        "Short follow-up with a new configuration snapshot.",
+        delivery=wire.Delivery.NEXT_RUN,
+        options=wire.RunOptionsInput(configuration=next_configuration),
+        idempotency_key=_key("configuration-next"),
+    )
+    following_outcome = await following.result(timeout=120.0, poll_interval=0.1)
+    _assert_configuration(following_outcome.snapshot.value, next_configuration)
+    _assert_configuration((await initial_outcome.run.get()).value, first_configuration)
+    if initial_outcome.status != wire.RunStatus.COMPLETED or following_outcome.status != wire.RunStatus.COMPLETED:
+        raise RuntimeError("Native configuration acceptance did not complete")
+    if following_outcome.run.id == initial_outcome.run.id:
+        raise RuntimeError("next_run did not select a distinct configuration snapshot")
+    return {"start_run_id": initial_outcome.run.id, "next_run_id": following_outcome.run.id, "snapshot_readback": True}
+
+
 async def _inbox_and_control(client: Client, agent: str) -> dict[str, Any]:
     source = await client.agents(agent).start(
         "[interruptible] Hold the run long enough for an inbox message.",
@@ -275,11 +319,15 @@ async def _resume_and_fork(client: Client, agent: str, client_tool_agent: str) -
         raise RuntimeError("Fork did not create a distinct Thread")
     fork_final = await _wait_run(_accepted_run(forked), wire.RunStatus.COMPLETED)
 
+    inherited_configuration = _configuration("resume")
     waiting = await client.agents(client_tool_agent).start(
-        "[client] Review a local SDK scenario.", idempotency_key=_key("waiting")
+        "[client] Review a local SDK scenario.",
+        idempotency_key=_key("waiting"),
+        options=wire.RunOptionsInput(configuration=inherited_configuration),
     )
     waiting_outcome = await waiting.result(timeout=120.0, poll_interval=0.1)
     waiting_run = waiting_outcome.run
+    _assert_configuration(waiting_outcome.snapshot.value, inherited_configuration)
     pending = waiting_outcome.pending
     if (
         waiting_outcome.status != wire.RunStatus.WAITING
@@ -306,12 +354,15 @@ async def _resume_and_fork(client: Client, agent: str, client_tool_agent: str) -
     )
     if resumed.run.id == waiting_run.id:
         raise RuntimeError("Resume did not create a new Run")
+    _assert_configuration(resumed.receipt.value, inherited_configuration)
     resume = resumed.receipt.value.resume
     if resume is None or not isinstance(resume.input_, wire.MessagePayload):
         raise RuntimeError("Successor receipt did not retain atomic resume input")
     if resume.input_.to_dict() != {"content": [{"type": "text", "text": extra_input}]}:
         raise RuntimeError("Successor receipt changed atomic resume input")
     resumed_final = await _wait_run(resumed.run, wire.RunStatus.COMPLETED)
+    _assert_configuration((await resumed.run.get()).value, inherited_configuration)
+    resumed_final["configuration_inherited"] = True
     return {
         "fork": {
             "source": {**_submission_evidence(completed), **first},
@@ -329,6 +380,7 @@ async def main() -> None:
     ca_bundle = _required("A13N_CA_BUNDLE")
     disconnect = await _disconnect_acceptance(base_url, token, ca_bundle, agent)
     async with Client(base_url, token, ca_bundle=ca_bundle, timeout=60.0) as client:
+        configuration = await _configuration_acceptance(client, agent)
         inbox_control = await _inbox_and_control(client, agent)
         imported_history = await _import_history(client, agent)
         successors = await _resume_and_fork(client, agent, client_tool_agent)
@@ -337,6 +389,7 @@ async def main() -> None:
             {
                 "evidence": "real-https-installed-sdk-native",
                 "disconnect": disconnect,
+                "configuration": configuration,
                 "inbox_control": inbox_control,
                 "imported_history": imported_history,
                 "successors": successors,

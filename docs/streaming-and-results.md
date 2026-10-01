@@ -18,7 +18,11 @@ async def display_outcome(outcome: RunOutcome) -> None:
         saved = await outcome.run.items.get()
         for item in saved.value.items:
             content = item.content.to_dict()
-            if item.kind == "text_message" and content.get("role") == "assistant":
+            if (
+                item.kind == "text_message"
+                and content.get("role") == "assistant"
+                and content.get("subagentRunId") is None
+            ):
                 print(content.get("text", "[message content omitted]"))
         if not saved.value.complete or saved.value.dropped:
             print("This view does not contain every Item.")
@@ -54,7 +58,7 @@ async def stream_answer(client: Client, agent_id: str, prompt: str) -> RunOutcom
         async for frame in interaction:
             if frame.event_type == "delta":
                 event = frame.data["event"]
-                if event["type"] == "TEXT_MESSAGE_CONTENT":
+                if event.get("type") == "TEXT_MESSAGE_CONTENT" and event.get("subagentRunId") is None:
                     print(event["delta"], end="", flush=True)
             elif frame.event_type in {"gap", "reset"}:
                 print("\n[Preview interrupted; the saved response will follow.]")
@@ -67,6 +71,10 @@ async def stream_answer(client: Client, agent_id: str, prompt: str) -> RunOutcom
 ```
 
 The loop ends when this execution completes, fails, is cancelled, or pauses for input. It does not wait forever for the underlying connection to close. An execution can finish before you receive any deltas; the result and saved Items still tell you what happened.
+
+Native AG-UI 1.0 events use camelCase fields such as `messageId`, `toolCallId`, and `subagentRunId`. Inline-child events share the Service Run envelope but retain child attribution; the root-only text preview above deliberately excludes them. To display children, group content by `(subagentRunId, messageId)` rather than flattening it into root text. A nested lifecycle event never replaces the exact Service Run outcome.
+
+Tool results can contain an ordered list of native text/image/audio/video/document parts rather than a string. Preserve their `source` descriptors and duplicates; provider file handles are not downloadable URLs. `CUSTOM` values, including null and unknown names, and authored/generated input metadata remain native JSON. Respect `metadata.display: false` in your presentation. Saved tool Item content uses `result_parts` for structured content and `result` for a string, with the same bounded attribution; use a media-aware renderer rather than string coercion. The SDK neither reconstructs source history nor downloads media for display.
 
 Not every frame is a text token. Tool activity, boundaries, and recovery signals also travel through the stream. In a UI, maintain a provisional preview while streaming and replace it from saved Items at the end. If a `gap` or `reset` arrives, discard assumptions about contiguous deltas; refresh the saved view or mark the preview incomplete until you do.
 
