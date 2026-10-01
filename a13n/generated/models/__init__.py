@@ -59,14 +59,20 @@ from .audit_page import AuditPage
 from .auth_configuration import AuthConfiguration
 from .authentication import Authentication
 from .authentication_case import AuthenticationCase
+from .authorization_callback import AuthorizationCallback
+from .authorization_disconnect import AuthorizationDisconnect
 from .authorization_request import AuthorizationRequest
 from .authorization_result import AuthorizationResult
+from .authorization_start import AuthorizationStart
+from .authorization_status import AuthorizationStatus
+from .authorization_status_state import AuthorizationStatusState
 from .bearer_credential import BearerCredential
 from .bootstrap_input import BootstrapInput
 from .callback_outcome import CallbackOutcome
 from .catalog_model import CatalogModel
 from .catalog_ref import CatalogRef
 from .certainty import Certainty
+from .chat_gpt_model import ChatGPTModel
 from .child_environment_policy import ChildEnvironmentPolicy
 from .child_environment_policy_mode import ChildEnvironmentPolicyMode
 from .client_authentication import ClientAuthentication
@@ -260,6 +266,7 @@ from .principal_summary import PrincipalSummary
 from .profile import Profile
 from .profile_update import ProfileUpdate
 from .provider import Provider
+from .provider_authorization_request import ProviderAuthorizationRequest
 from .provider_config import ProviderConfig
 from .provider_create import ProviderCreate
 from .provider_create_config import ProviderCreateConfig
@@ -484,14 +491,20 @@ __all__ = (
     "AuthConfiguration",
     "Authentication",
     "AuthenticationCase",
+    "AuthorizationCallback",
+    "AuthorizationDisconnect",
     "AuthorizationRequest",
     "AuthorizationResult",
+    "AuthorizationStart",
+    "AuthorizationStatus",
+    "AuthorizationStatusState",
     "BearerCredential",
     "BootstrapInput",
     "CallbackOutcome",
     "CatalogModel",
     "CatalogRef",
     "Certainty",
+    "ChatGPTModel",
     "ChildEnvironmentPolicy",
     "ChildEnvironmentPolicyMode",
     "ClientAuthentication",
@@ -683,6 +696,7 @@ __all__ = (
     "Profile",
     "ProfileUpdate",
     "Provider",
+    "ProviderAuthorizationRequest",
     "ProviderConfig",
     "ProviderCreate",
     "ProviderCreateConfig",

@@ -38,6 +38,7 @@ class ProviderType:
         environment_schema (None | ProviderTypeEnvironmentSchemaType0 | Unset):
         model_api_labels (None | ProviderTypeModelApiLabelsType0 | Unset):
         model_apis (list[str] | None | Unset):
+        oauth_scheme (None | str | Unset):
         operations (list[WebOperation] | None | Unset):
         settings_schemas (None | ProviderTypeSettingsSchemasType0 | Unset):
         supports_destroy (bool | None | Unset):
@@ -57,6 +58,7 @@ class ProviderType:
     environment_schema: ProviderTypeEnvironmentSchemaType0 | Unset | None = UNSET
     model_api_labels: ProviderTypeModelApiLabelsType0 | Unset | None = UNSET
     model_apis: list[str] | Unset | None = UNSET
+    oauth_scheme: str | Unset | None = UNSET
     operations: list[WebOperation] | Unset | None = UNSET
     settings_schemas: ProviderTypeSettingsSchemasType0 | Unset | None = UNSET
     supports_destroy: bool | Unset | None = UNSET
@@ -131,6 +133,12 @@ class ProviderType:
         else:
             model_apis = self.model_apis
 
+        oauth_scheme: str | Unset | None
+        if isinstance(self.oauth_scheme, Unset):
+            oauth_scheme = UNSET
+        else:
+            oauth_scheme = self.oauth_scheme
+
         operations: list[str] | Unset | None
         if isinstance(self.operations, Unset):
             operations = UNSET
@@ -187,6 +195,8 @@ class ProviderType:
             field_dict["model_api_labels"] = model_api_labels
         if model_apis is not UNSET:
             field_dict["model_apis"] = model_apis
+        if oauth_scheme is not UNSET:
+            field_dict["oauth_scheme"] = oauth_scheme
         if operations is not UNSET:
             field_dict["operations"] = operations
         if settings_schemas is not UNSET:
@@ -324,6 +334,15 @@ class ProviderType:
 
         model_apis = _parse_model_apis(d.pop("model_apis", UNSET))
 
+        def _parse_oauth_scheme(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        oauth_scheme = _parse_oauth_scheme(d.pop("oauth_scheme", UNSET))
+
         def _parse_operations(data: object) -> list[WebOperation] | Unset | None:
             if data is None:
                 return data
@@ -395,6 +414,7 @@ class ProviderType:
             environment_schema=environment_schema,
             model_api_labels=model_api_labels,
             model_apis=model_apis,
+            oauth_scheme=oauth_scheme,
             operations=operations,
             settings_schemas=settings_schemas,
             supports_destroy=supports_destroy,
