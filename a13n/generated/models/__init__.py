@@ -64,6 +64,7 @@ from .authorization_disconnect import AuthorizationDisconnect
 from .authorization_request import AuthorizationRequest
 from .authorization_result import AuthorizationResult
 from .authorization_start import AuthorizationStart
+from .authorization_start_method import AuthorizationStartMethod
 from .authorization_status import AuthorizationStatus
 from .authorization_status_state import AuthorizationStatusState
 from .bearer_credential import BearerCredential
@@ -500,6 +501,7 @@ __all__ = (
     "AuthorizationRequest",
     "AuthorizationResult",
     "AuthorizationStart",
+    "AuthorizationStartMethod",
     "AuthorizationStatus",
     "AuthorizationStatusState",
     "BearerCredential",

@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import datetime
 from collections.abc import Mapping
-from typing import Any, Literal, TypeVar, cast
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
+from ..models.authorization_start_method import AuthorizationStartMethod
 from ..types import UNSET, Unset
 
 T = TypeVar("T", bound="AuthorizationStart")
@@ -19,13 +20,13 @@ class AuthorizationStart:
         attempt_id (str):
         authorization_url (str):
         expires_at (datetime.datetime):
-        method (Literal['manual_callback'] | Unset):
+        method (AuthorizationStartMethod | Unset):
     """
 
     attempt_id: str
     authorization_url: str
     expires_at: datetime.datetime
-    method: Literal["manual_callback"] | Unset = UNSET
+    method: AuthorizationStartMethod | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -35,7 +36,9 @@ class AuthorizationStart:
 
         expires_at = self.expires_at.isoformat()
 
-        method = self.method
+        method: str | Unset = UNSET
+        if not isinstance(self.method, Unset):
+            method = self.method.value
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
@@ -60,9 +63,12 @@ class AuthorizationStart:
 
         expires_at = datetime.datetime.fromisoformat(d.pop("expires_at"))
 
-        method = cast(Literal["manual_callback"] | Unset, d.pop("method", UNSET))
-        if method != "manual_callback" and not isinstance(method, Unset):
-            raise ValueError(f"method must match const 'manual_callback', got '{method}'")
+        _method = d.pop("method", UNSET)
+        method: AuthorizationStartMethod | Unset
+        if isinstance(_method, Unset):
+            method = UNSET
+        else:
+            method = AuthorizationStartMethod(_method)
 
         authorization_start = cls(
             attempt_id=attempt_id,
