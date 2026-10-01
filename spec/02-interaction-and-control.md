@@ -20,6 +20,14 @@ async with follow_up:
 
 Advanced `client.resources.threads.create(body=wire.NewThread(...), idempotency_key=...)` and `client.resources.threads(thread_id).inbox_entries.create(body=wire.Message(...), idempotency_key=...)` expose complete generated bodies and return **pure** `Result[wire.Submitted]`. Entry edits/withdrawals and Run fork using the Service Submitted shape also remain pure generated results. Only the authored Agent workflow binds `Submitted(thread, entry, run | None, receipt: Result[wire.Submitted])`, with validated references and HTTP evidence. `Run.fork(...)` in the authored layer binds its declared successor receipt. An immediately accepted Run does not prove Entry incorporation. A queued Entry is not a Run. No SDK mutation is retried invisibly.
 
+## Native Run Configuration
+
+`options=wire.RunOptionsInput(configuration=wire.RunConfigurationInput(...))` forwards the shared native Run configuration through both Agent entry points and generated `Message.options`. Configuration is distinct from revision overrides; the SDK adds no top-level configuration argument, default merge, host normalization or security policy.
+
+Omitted configuration and explicit null remain distinct wire values. An explicit object selects a complete snapshot, including `{}`. `allowed_hosts=None` permits unrestricted native URL access; `allowed_hosts=[]` denies it. Arbitrary namespaced `extensions` preserve all JSON values, including false, zero, empty arrays/objects and null. The Service normalizes and freezes the accepted snapshot in `Run.options.configuration`.
+
+The [pinned Run semantics](../contract/semantics/runs.md#run-configuration) own steering, pending edits, next-Run selection and inheritance. Steering and pending edits against an active Run may omit configuration or supply the equal frozen value; a different explicit snapshot raises `run_configuration_immutable` rather than silently queueing. `next_run` selects its own snapshot, while resume input and inline children inherit the accepted one. The SDK forwards the request and reports the Service response without deciding equality or implementing network/media policy.
+
 ## Incorporation and Exact Outcomes
 
 `Interaction.result(timeout=300, poll_interval=0.5)` works without entering a context. It waits for the Entry to settle as **consumed**, **failed**, or **withdrawn**. A failed or withdrawn Entry raises typed `SubmissionError(thread_id, entry_id, entry)` with a safe summary; the snapshot remains available. Assigned is not settled: the Entry may return to pending before another Run incorporates it. On consumed, the SDK reads `assigned_run_id` and polls that exact Run until sealed, rejecting identity mismatch even if another Run belongs to the same Thread. It does not use current/head/latest Thread pointers, auto-resume a waiting Run or follow a successor.

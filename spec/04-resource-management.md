@@ -17,6 +17,12 @@ Generated resources cover the exported Service boundary: IAM and organization/wo
 - Environment selection and mount effects have their declared lifetimes. Updating a Thread does not retarget an already accepted Run. Client shutdown neither stops nor destroys an Environment.
 - Usage and trace observations do not by themselves prove billing settlement, external delivery, or business completion.
 
+## Model Media and Provider Authorization
+
+Generated Model characteristics expose native `image_input`, `video_input`, and `url_input` policies on input and readback. Omitted image policy uses native defaults; null disables automatic preparation. Zero values, false flags and empty URL subtype lists remain explicit. Native Message URL/Asset parts retain order and duplicates through authored and generated entry points. The SDK does not download, resize, split, encode, budget or authorize media.
+
+`client.resources.model_providers(id)` exposes `authorization.get()`, `authorize(body=...)`, `authorization.callback(body=...)`, `authorization.delete()` and `models.get()`. These use the ordinary Client auth/Workspace context and preserve returned method, nullable state, status and HTTP evidence. Service authorizes status with `read`, authorization mutations with `write`, and discovery with `run`. Only hosted `browser_callback` start requires an unconfined user login; manual Workspace authorization may use an authorized API key. The SDK applies no blanket session-only restriction, browser flow, callback origin, client identity or credential store. Operator configuration and external issuer exchange remain Service/Harness ownership.
+
 ## Missing Operations
 
 The SDK does not synthesize removed legacy auth-context, queued-submission, Run-stream, lifecycle-notification, steer/feedback/retry/continue, or Web-provider DTO façade endpoints. A missing Native command remains unavailable rather than being emulated with a different lifecycle. Complete generated models and low-level operations remain accessible alongside convenience methods; they all use the same Client lifetime and wire serialization.

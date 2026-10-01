@@ -40,6 +40,34 @@ def test_public_typing_accepts_agent_submission(tmp_path: Path) -> None:
     assert report["returncode"] == 0, report["generalDiagnostics"]
 
 
+def test_native_configuration_media_and_oauth_typing(tmp_path: Path) -> None:
+    source = tmp_path / "native.py"
+    source.write_text(
+        "from a13n import Client\n"
+        "from a13n.generated import models as wire\n"
+        "async def use(client: Client) -> None:\n"
+        "    options = wire.RunOptionsInput(configuration=wire.RunConfigurationInput(allowed_hosts=[],\n"
+        "        extensions=wire.RunConfigurationInputExtensions.from_dict({'example.flag': False})))\n"
+        "    first = await client.agents('agent').start('hello', options=options, idempotency_key='start')\n"
+        "    await client.agents('agent').send(first.thread.id, wire.MessagePayload(content=[\n"
+        "        wire.UrlPart(type_='url', url='https://media.example/video.mp4')]),\n"
+        "        options=options, idempotency_key='send')\n"
+        "    model = wire.ModelConfigInput(model_name='native', model_api='native', characteristics=\n"
+        "        wire.HarnessModelCharacteristicsInput(image_input=None,\n"
+        "            video_input=wire.VideoInputPolicy(max_video_bytes=0),\n"
+        "            url_input=wire.UrlInputSupportInput(video=[wire.VideoUrlType.YOUTUBE])))\n"
+        "    provider = client.resources.model_providers('provider')\n"
+        "    status: wire.AuthorizationStatus = (await provider.authorization.get()).value\n"
+        "    start: wire.AuthorizationStart = (await provider.authorize(body=wire.ProviderAuthorizationRequest())).value\n"
+        "    await provider.authorization.callback(body=wire.AuthorizationCallback(attempt_id=start.attempt_id,\n"
+        "        callback_url='https://operator.example/callback'))\n"
+        "    models: list[wire.ChatGPTModel] = (await provider.models.get()).value\n"
+        "    disconnect: wire.AuthorizationDisconnect = (await provider.authorization.delete()).value\n"
+    )
+    report = run_pyright(source)
+    assert report["returncode"] == 0, report["generalDiagnostics"]
+
+
 def test_public_typing_rejects_invalid_paths_and_wrong_payload(tmp_path: Path) -> None:
     source = tmp_path / "invalid.py"
     source.write_text(
