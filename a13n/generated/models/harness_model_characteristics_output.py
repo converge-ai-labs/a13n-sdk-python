@@ -9,6 +9,8 @@ from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.image_input_policy import ImageInputPolicy
+    from ..models.url_input_support_output import UrlInputSupportOutput
+    from ..models.video_input_policy import VideoInputPolicy
 
 
 T = TypeVar("T", bound="HarnessModelCharacteristicsOutput")
@@ -25,6 +27,9 @@ class HarnessModelCharacteristicsOutput:
         image_input (ImageInputPolicy | None | Unset): Image preparation policy; omitted uses native defaults, null
             disables automatic preparation.
         proactive_context_management_threshold (float | None | Unset):
+        url_input (UrlInputSupportOutput | Unset): URL subtypes consumed natively by the selected transport.
+        video_input (VideoInputPolicy | Unset): Base64-after byte budget for both one video and all inline videos in a
+            request.
     """
 
     capabilities: list[str] | Unset = UNSET
@@ -32,6 +37,8 @@ class HarnessModelCharacteristicsOutput:
     context_window_tokens: int | Unset | None = UNSET
     image_input: ImageInputPolicy | Unset | None = UNSET
     proactive_context_management_threshold: float | Unset | None = UNSET
+    url_input: UrlInputSupportOutput | Unset = UNSET
+    video_input: VideoInputPolicy | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
         from ..models.image_input_policy import ImageInputPolicy
@@ -62,6 +69,14 @@ class HarnessModelCharacteristicsOutput:
         else:
             proactive_context_management_threshold = self.proactive_context_management_threshold
 
+        url_input: dict[str, Any] | Unset = UNSET
+        if not isinstance(self.url_input, Unset):
+            url_input = self.url_input.to_dict()
+
+        video_input: dict[str, Any] | Unset = UNSET
+        if not isinstance(self.video_input, Unset):
+            video_input = self.video_input.to_dict()
+
         field_dict: dict[str, Any] = {}
 
         field_dict.update({})
@@ -75,12 +90,18 @@ class HarnessModelCharacteristicsOutput:
             field_dict["image_input"] = image_input
         if proactive_context_management_threshold is not UNSET:
             field_dict["proactive_context_management_threshold"] = proactive_context_management_threshold
+        if url_input is not UNSET:
+            field_dict["url_input"] = url_input
+        if video_input is not UNSET:
+            field_dict["video_input"] = video_input
 
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.image_input_policy import ImageInputPolicy
+        from ..models.url_input_support_output import UrlInputSupportOutput
+        from ..models.video_input_policy import VideoInputPolicy
 
         d = dict(src_dict)
         capabilities = cast(list[str], d.pop("capabilities", UNSET))
@@ -124,12 +145,28 @@ class HarnessModelCharacteristicsOutput:
             d.pop("proactive_context_management_threshold", UNSET)
         )
 
+        _url_input = d.pop("url_input", UNSET)
+        url_input: UrlInputSupportOutput | Unset
+        if isinstance(_url_input, Unset):
+            url_input = UNSET
+        else:
+            url_input = UrlInputSupportOutput.from_dict(_url_input)
+
+        _video_input = d.pop("video_input", UNSET)
+        video_input: VideoInputPolicy | Unset
+        if isinstance(_video_input, Unset):
+            video_input = UNSET
+        else:
+            video_input = VideoInputPolicy.from_dict(_video_input)
+
         harness_model_characteristics_output = cls(
             capabilities=capabilities,
             compact_threshold=compact_threshold,
             context_window_tokens=context_window_tokens,
             image_input=image_input,
             proactive_context_management_threshold=proactive_context_management_threshold,
+            url_input=url_input,
+            video_input=video_input,
         )
 
         return harness_model_characteristics_output

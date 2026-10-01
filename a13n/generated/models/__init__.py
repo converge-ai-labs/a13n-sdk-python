@@ -412,6 +412,8 @@ from .trigger import Trigger
 from .upload import Upload
 from .upload_create import UploadCreate
 from .upload_source import UploadSource
+from .url_input_support_input import UrlInputSupportInput
+from .url_input_support_output import UrlInputSupportOutput
 from .url_part import UrlPart
 from .usage_limit import UsageLimit
 from .usage_limits_input import UsageLimitsInput
@@ -420,6 +422,8 @@ from .usage_overview import UsageOverview
 from .usage_summary import UsageSummary
 from .user_key_create import UserKeyCreate
 from .verb import Verb
+from .video_input_policy import VideoInputPolicy
+from .video_url_type import VideoUrlType
 from .wait_reason import WaitReason
 from .web_operation import WebOperation
 from .webhook_delivery import WebhookDelivery
@@ -840,6 +844,8 @@ __all__ = (
     "Upload",
     "UploadCreate",
     "UploadSource",
+    "UrlInputSupportInput",
+    "UrlInputSupportOutput",
     "UrlPart",
     "UsageLimit",
     "UsageLimitsInput",
@@ -848,6 +854,8 @@ __all__ = (
     "UsageSummary",
     "UserKeyCreate",
     "Verb",
+    "VideoInputPolicy",
+    "VideoUrlType",
     "WaitReason",
     "WebOperation",
     "WebhookDelivery",
