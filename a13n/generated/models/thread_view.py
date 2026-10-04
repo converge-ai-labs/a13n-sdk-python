@@ -25,7 +25,6 @@ class ThreadView:
         archived_at (datetime.datetime | None):
         created_at (datetime.datetime):
         current_run_id (None | str):
-        head_run_id (None | str):
         id (str):
         labels (ThreadViewLabels):
         last_run_id (None | str):
@@ -47,7 +46,6 @@ class ThreadView:
     archived_at: datetime.datetime | None
     created_at: datetime.datetime
     current_run_id: str | None
-    head_run_id: str | None
     id: str
     labels: ThreadViewLabels
     last_run_id: str | None
@@ -75,9 +73,6 @@ class ThreadView:
 
         current_run_id: str | None
         current_run_id = self.current_run_id
-
-        head_run_id: str | None
-        head_run_id = self.head_run_id
 
         id = self.id
 
@@ -122,7 +117,6 @@ class ThreadView:
                 "archived_at": archived_at,
                 "created_at": created_at,
                 "current_run_id": current_run_id,
-                "head_run_id": head_run_id,
                 "id": id,
                 "labels": labels,
                 "last_run_id": last_run_id,
@@ -173,13 +167,6 @@ class ThreadView:
             return cast(str | None, data)
 
         current_run_id = _parse_current_run_id(d.pop("current_run_id"))
-
-        def _parse_head_run_id(data: object) -> str | None:
-            if data is None:
-                return data
-            return cast(str | None, data)
-
-        head_run_id = _parse_head_run_id(d.pop("head_run_id"))
 
         id = d.pop("id")
 
@@ -245,7 +232,6 @@ class ThreadView:
             archived_at=archived_at,
             created_at=created_at,
             current_run_id=current_run_id,
-            head_run_id=head_run_id,
             id=id,
             labels=labels,
             last_run_id=last_run_id,

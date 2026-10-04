@@ -18,19 +18,18 @@ T = TypeVar("T", bound="RunItems")
 
 @_attrs_define(repr=False)
 class RunItems:
-    """A run's committed display with the run it describes. Live output continues after `position`.
+    """Items of a run's committed display, in ordinal order, with the run they describe. Ordinals are dense from 1,
+    so the first item's ordinal tells whether earlier ones exist. Live output continues after `position`.
 
-    Attributes:
-        complete (bool):
-        dropped (int):
-        items (list[Item]):
-        position (None | str):
-        run (RunView):
-        resume_after (None | str | Unset):
+        Attributes:
+            complete (bool):
+            items (list[Item]):
+            position (None | str):
+            run (RunView):
+            resume_after (None | str | Unset):
     """
 
     complete: bool
-    dropped: int
     items: list[Item]
     position: str | None
     run: RunView
@@ -39,8 +38,6 @@ class RunItems:
 
     def to_dict(self) -> dict[str, Any]:
         complete = self.complete
-
-        dropped = self.dropped
 
         items = []
         for items_item_data in self.items:
@@ -63,7 +60,6 @@ class RunItems:
         field_dict.update(
             {
                 "complete": complete,
-                "dropped": dropped,
                 "items": items,
                 "position": position,
                 "run": run,
@@ -81,8 +77,6 @@ class RunItems:
 
         d = dict(src_dict)
         complete = d.pop("complete")
-
-        dropped = d.pop("dropped")
 
         items = []
         _items = d.pop("items")
@@ -111,7 +105,6 @@ class RunItems:
 
         run_items = cls(
             complete=complete,
-            dropped=dropped,
             items=items,
             position=position,
             run=run,
