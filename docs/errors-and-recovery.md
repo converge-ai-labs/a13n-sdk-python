@@ -130,13 +130,13 @@ After local observation closes before producing an outcome, do not call `result(
 
 The repository includes opt-in acceptance scripts for a **disposable HTTPS Service**. They create resources and must not target production:
 
-| Script                          | Coverage                                           |
-| ------------------------------- | -------------------------------------------------- |
-| `scripts/service-smoke.py`      | Message interaction, streaming, and file transfer. |
-| `scripts/service_acceptance.py` | Queued messages and explicit Run controls.         |
-| `scripts/memory_acceptance.py`  | Memory files and provider-backed records.          |
+| Script                          | Coverage                                                                       |
+| ------------------------------- | ------------------------------------------------------------------------------ |
+| `scripts/service-smoke.py`      | Message interaction, streaming, and file transfer.                             |
+| `scripts/service_acceptance.py` | Queued messages, Run controls, ordinal windows, failed/cancelled continuation. |
+| `scripts/memory_acceptance.py`  | Memory files and provider-backed records.                                      |
 
-Set `A13N_SERVICE_URL`, `A13N_API_TOKEN`, `A13N_AGENT`, and `A13N_CA_BUNDLE`. Control checks also need `A13N_CLIENT_TOOL_AGENT`; Memory checks need `A13N_MEMORY_PROVIDER` for a configured `mem0_oss` provider. These scripts do not provision the Service, models, or credentials.
+Set `A13N_SERVICE_URL`, `A13N_API_TOKEN`, `A13N_AGENT`, and `A13N_CA_BUNDLE`. Control checks also need `A13N_CLIENT_TOOL_AGENT` and `A13N_FAILURE_PROMPT`. The failure prompt must select a disposable model fixture that fails only for that latest input, so a normal follow-up can succeed; it is not a Service API feature. Missing configuration fails explicitly rather than skipping that scenario. Memory checks need `A13N_MEMORY_PROVIDER` for a configured `mem0_oss` provider. These scripts do not provision the Service, models, or credentials.
 
 See [Contributing](../CONTRIBUTING.md) for local checks. Passing local tests does not establish compatibility with every deployment or model provider; use the [pinned contract](../contract/source.json) when diagnosing version differences.
 

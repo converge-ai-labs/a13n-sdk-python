@@ -42,6 +42,8 @@ The context is single-use. Normal finite completion caches its outcome; `result(
 
 ## Control and Successors
 
+`ThreadView.last_run_id` names the most recently sealed Run of any outcome. Its nearest checkpoint supplies history for the next explicit message. Failed and cancelled Runs pause automatic inbox advancement, not explicit continuation: use normal `Agent.send` after either outcome, without retry, implicit fork, or automatic resubmission. A waiting Run instead requires explicit resume of the exact idle last Run with its complete answers. The SDK forwards these commands and does not duplicate Service scheduling policy.
+
 | Helper                                                                                            | Request and result                            | Boundary                                                       |
 | ------------------------------------------------------------------------------------------------- | --------------------------------------------- | -------------------------------------------------------------- |
 | `await run.interrupt()`                                                                           | `Result[RunView]` via declared interrupt      | Exact Run; no implicit stream close                            |

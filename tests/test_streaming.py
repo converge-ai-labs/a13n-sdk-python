@@ -272,3 +272,64 @@ def test_reconnect_keeps_coverage_and_only_acknowledges_consumed_cursor(monkeypa
         assert all(request.method == "GET" for request in requests)
 
     asyncio.run(scenario())
+
+
+@pytest.mark.parametrize(
+    "metadata",
+    [
+        {},
+        {"ordinal": None, "response_group": None, "failure": None},
+        {
+            "ordinal": 7,
+            "response_group": "response_child",
+            "failure": {"code": "custom", "details": {"values": [None, False, 0]}},
+            "future_field": {"preserved": True},
+        },
+    ],
+)
+def test_item_ref_metadata_and_raw_child_custom_events_are_preserved(metadata: dict) -> None:
+    async def scenario() -> None:
+        item = {"id": "itm_1", "kind": "observation", "state": "failed", **metadata}
+        event = {"type": "CUSTOM", "name": "unknown", "value": {"nested": [None, False]}, "subagentRunId": "child"}
+        data = {"run_id": "run_1", "attempt": 1, "sequence": 5, "event": event, "item": item}
+        transport = httpx2.MockTransport(
+            lambda _: httpx2.Response(
+                200, content=sse("delta", data, "500-0"), headers={"Content-Type": "text/event-stream"}
+            )
+        )
+        async with Client("https://service.example", transport=transport) as client:
+            async with ThreadStream(client.threads("thr_1"), reconnect=False) as stream:
+                frame = await anext(stream)
+                assert frame.event_type == "delta"
+                assert frame.data["item"] == item and frame.data["event"] == event
+                assert stream.last_received_cursor == "500-0"
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize(
+    "metadata",
+    [
+        {"ordinal": True},
+        {"ordinal": 0},
+        {"ordinal": 1.5},
+        {"ordinal": "1"},
+        {"response_group": 1},
+        {"failure": []},
+        {"failure": "failed"},
+    ],
+)
+def test_item_ref_known_optional_fields_follow_nullable_schema(metadata: dict) -> None:
+    data = {
+        "run_id": "run_1",
+        "attempt": 1,
+        "sequence": 5,
+        "event": {},
+        "item": {"id": "itm_1", "kind": "observation", "state": "failed", **metadata},
+    }
+    test_malformed_frame_is_not_silent_recovery(sse("delta", data, "500-0"))
+
+
+def test_delta_missing_required_nullable_item_is_rejected() -> None:
+    data = {"run_id": "run_1", "attempt": 1, "sequence": 5, "event": {"type": "CUSTOM", "value": None}}
+    test_malformed_frame_is_not_silent_recovery(sse("delta", data, "500-0"))

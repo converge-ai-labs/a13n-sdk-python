@@ -43,6 +43,9 @@ class ItemRef(TypedDict):
     id: ReadOnly[str]
     kind: ReadOnly[Literal["text_message", "reasoning_message", "tool_call", "observation"]]
     state: ReadOnly[Literal["in_progress", "completed", "interrupted", "failed"]]
+    ordinal: NotRequired[ReadOnly[int | None]]
+    response_group: NotRequired[ReadOnly[str | None]]
+    failure: NotRequired[ReadOnly[Mapping[str, JsonValue] | None]]
 
 
 class DeltaData(BoundaryData):
@@ -161,6 +164,15 @@ def _frame(event_type: str, data: list[str], cursor: str | None) -> ThreadFrame:
                     or item.get("kind") not in ("text_message", "reasoning_message", "tool_call", "observation")
                     or item.get("state") not in ("in_progress", "completed", "interrupted", "failed")
                 ):
+                    raise ValueError
+                ordinal = item.get("ordinal")
+                if ordinal is not None and (not isinstance(ordinal, int) or isinstance(ordinal, bool) or ordinal < 1):
+                    raise ValueError
+                response_group = item.get("response_group")
+                if response_group is not None and not isinstance(response_group, str):
+                    raise ValueError
+                failure = item.get("failure")
+                if failure is not None and not isinstance(failure, dict):
                     raise ValueError
                 value["item"] = MappingProxyType(item)
             value["event"] = MappingProxyType(value["event"])

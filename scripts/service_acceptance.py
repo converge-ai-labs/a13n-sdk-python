@@ -1,7 +1,9 @@
 """Installed-SDK acceptance against an existing, disposable Native Service.
 
 Requires A13N_SERVICE_URL, A13N_API_TOKEN, A13N_AGENT,
-A13N_CLIENT_TOOL_AGENT and A13N_CA_BUNDLE. All HTTP requests use verified TLS;
+A13N_CLIENT_TOOL_AGENT, A13N_FAILURE_PROMPT and A13N_CA_BUNDLE.
+A13N_FAILURE_PROMPT is a disposable fixture's latest-input-only failure trigger,
+not a Service API capability. All HTTP requests use verified TLS;
 this script neither provisions credentials nor resets Service state. Its output
 contains protocol identities and status, never credentials or model text.
 """
@@ -17,8 +19,9 @@ from uuid import uuid4
 
 import httpx2 as httpx
 
-from a13n import Client, Interaction, Submitted, ThreadStream
+from a13n import ApiError, Client, Interaction, Run, Submitted, ThreadStream
 from a13n.generated import models as wire
+from a13n.generated.types import UNSET
 
 
 class _DisconnectAfterEventStream(httpx.AsyncByteStream):
@@ -131,8 +134,8 @@ async def _wait_run(run: Any, expected: wire.RunStatus) -> dict[str, Any]:
     if result.status != expected or result.snapshot.value.sealed_at is None:
         raise RuntimeError(f"Run {run.id} sealed as {result.status}; expected {expected}")
     items = (await run.items.get()).value
-    if items.run.id != run.id or not items.complete:
-        raise RuntimeError("Run items readback is incomplete or belongs to another Run")
+    if items.run.id != run.id or not items.complete or not items.baseline:
+        raise RuntimeError("Default Run display is not a sealed baseline for the exact Run")
     return {
         "run_id": run.id,
         "status": str(result.status),
@@ -267,10 +270,11 @@ async def _inbox_and_control(client: Client, agent: str) -> dict[str, Any]:
     if interrupted.value.id != interrupt_run.id:
         raise RuntimeError("Interrupt receipt identifies a different Run")
     final = await _wait_run(interrupt_run, wire.RunStatus.CANCELLED)
+    continued = await _continue_sealed(client, agent, interrupt_source, interrupt_run)
     return {
         "source": {**_submission_evidence(source), **first},
         "queued": {**_submission_evidence(queued), "entry_status": str(settled.status), "successor": second},
-        "interrupt": {**_submission_evidence(interrupt_source), **final},
+        "interrupt": {**_submission_evidence(interrupt_source), **final, "normal_continuation": continued},
     }
 
 
@@ -337,8 +341,8 @@ async def _resume_and_fork(client: Client, agent: str, client_tool_agent: str) -
     ):
         raise RuntimeError("Finite Interaction did not expose exactly one pending client call")
     waiting_items = (await waiting_run.items.get()).value
-    if waiting_items.run.id != waiting_run.id or not waiting_items.complete:
-        raise RuntimeError("Waiting Run items readback is incomplete or belongs to another Run")
+    if waiting_items.run.id != waiting_run.id or not waiting_items.complete or not waiting_items.baseline:
+        raise RuntimeError("Waiting Run display is not a sealed baseline for the exact Run")
     waiting_final = {
         "run_id": waiting_run.id,
         "status": str(waiting_outcome.status),
@@ -372,18 +376,114 @@ async def _resume_and_fork(client: Client, agent: str, client_tool_agent: str) -
     }
 
 
+async def _continue_sealed(client: Client, agent: str, source: Interaction, run: Run) -> dict[str, Any]:
+    thread = (await source.thread.get()).value
+    if thread.last_run_id != run.id or thread.current_run_id is not None:
+        raise RuntimeError("Idle Thread does not name its latest sealed failed/cancelled Run")
+    following = await client.agents(agent).send(
+        source.thread.id, "Normal follow-up after the sealed outcome.", idempotency_key=_key("sealed-followup")
+    )
+    successor = _accepted_run(following)
+    accepted = following.receipt.value.run
+    if accepted is None or accepted.id == run.id or accepted.parent_run_id != run.id:
+        raise RuntimeError("Normal message did not continue the latest sealed Run's history")
+    outcome = await following.result(timeout=120.0, poll_interval=0.1)
+    if outcome.status != wire.RunStatus.COMPLETED or outcome.run.id != successor.id:
+        raise RuntimeError("Normal explicit continuation did not complete its exact successor")
+    if (await source.thread.get()).value.last_run_id != successor.id:
+        raise RuntimeError("Completed successor did not become the Thread's latest sealed Run")
+    return {"run_id": successor.id, "parent_run_id": accepted.parent_run_id, "status": str(outcome.status)}
+
+
+async def _failed_continuation_acceptance(client: Client, agent: str, failure_prompt: str) -> dict[str, Any]:
+    initial = await client.agents(agent).start("Establish continuation history.", idempotency_key=_key("failure-base"))
+    original = await initial.result(timeout=120.0, poll_interval=0.1)
+    if original.status != wire.RunStatus.COMPLETED:
+        raise RuntimeError("Failure continuation scenario could not establish an earlier completed Run")
+    failed = await client.agents(agent).send(initial.thread.id, failure_prompt, idempotency_key=_key("failure"))
+    failed_run = _accepted_run(failed)
+    sealed = await _wait_run(failed_run, wire.RunStatus.FAILED)
+    if (await failed_run.get()).value.parent_run_id != original.run.id:
+        raise RuntimeError("Failed Run did not retain its earlier continuation parent")
+    following = await _continue_sealed(client, agent, failed, failed_run)
+    return {"previous_run_id": original.run.id, "source": sealed, "normal_continuation": following}
+
+
+def _historical_window(saved: wire.RunItems, run_id: str) -> None:
+    if saved.run.id != run_id or saved.baseline or not saved.complete:
+        raise RuntimeError("Historical display window has incorrect Run or baseline/seal metadata")
+    if saved.continuation is not None or saved.position is not None or saved.resume_after is not None:
+        raise RuntimeError("Historical ordinal window incorrectly advertises live coverage")
+    ordinals = [item.ordinal for item in saved.items]
+    if ordinals and ordinals != list(range(ordinals[0], ordinals[-1] + 1)):
+        raise RuntimeError("Historical display ordinals are not dense and ordered")
+
+
+async def _paged_display_acceptance(client: Client, agent: str) -> dict[str, Any]:
+    initial = await client.agents(agent).start(
+        "[slow] [long] Exercise native ordinal display windows.", idempotency_key=_key("paged-display")
+    )
+    outcome = await initial.result(timeout=120.0, poll_interval=0.1)
+    if outcome.status != wire.RunStatus.COMPLETED:
+        raise RuntimeError("Paged display scenario did not complete")
+    run = outcome.run
+    recent = (await run.items.get(limit=1)).value
+    if recent.run.id != run.id or not recent.baseline or not recent.complete or not recent.items:
+        raise RuntimeError("Default recent read did not return its exact sealed baseline")
+    if recent.position is None or not isinstance(recent.continuation, wire.DisplayContinuation):
+        raise RuntimeError("Completed default display did not expose shared normalization continuation")
+    cut = recent.continuation.position
+    if recent.position != f"{cut.attempt}-{cut.sequence}" or recent.continuation.run_id != run.id:
+        raise RuntimeError("Default display continuation and coverage disagree")
+    ordinals = [item.ordinal for item in recent.items]
+    if ordinals != list(range(ordinals[0], ordinals[-1] + 1)):
+        raise RuntimeError("Default display ordinals are not dense and ordered")
+    before = (await run.items.get(before=ordinals[0], limit=1)).value
+    forward = (await run.items.get(after=0, limit=1)).value
+    _historical_window(before, run.id)
+    _historical_window(forward, run.id)
+    if any(item.ordinal >= ordinals[0] for item in before.items):
+        raise RuntimeError("before ordinal bound is not exclusive")
+    if len(forward.items) != 1 or forward.items[0].ordinal != 1:
+        raise RuntimeError("after=0 did not return the first display Item")
+    for query in ({"before": 0}, {"after": -1}, {"limit": 501}, {"before": 2, "after": 0}):
+        try:
+            await run.items.get(
+                before=query.get("before", UNSET), after=query.get("after", UNSET), limit=query.get("limit", UNSET)
+            )
+        except ApiError as error:
+            if error.status != 400 or error.code != "invalid_argument":
+                raise
+        else:
+            raise RuntimeError("Service accepted an invalid ordinal window")
+    return {
+        "run_id": run.id,
+        "recent_ordinals": ordinals,
+        "baseline": recent.baseline,
+        "complete": recent.complete,
+        "position": recent.position,
+        "next_ordinal": recent.continuation.next_ordinal,
+        "earlier_ordinals": [item.ordinal for item in before.items],
+        "first_ordinal": forward.items[0].ordinal,
+        "invalid_windows_rejected": 4,
+    }
+
+
 async def main() -> None:
     base_url = _required("A13N_SERVICE_URL")
     token = _required("A13N_API_TOKEN")
     agent = _required("A13N_AGENT")
     client_tool_agent = _required("A13N_CLIENT_TOOL_AGENT")
     ca_bundle = _required("A13N_CA_BUNDLE")
+    failure_prompt = _required("A13N_FAILURE_PROMPT")
     disconnect = await _disconnect_acceptance(base_url, token, ca_bundle, agent)
     async with Client(base_url, token, ca_bundle=ca_bundle, timeout=60.0) as client:
         configuration = await _configuration_acceptance(client, agent)
         inbox_control = await _inbox_and_control(client, agent)
         imported_history = await _import_history(client, agent)
         successors = await _resume_and_fork(client, agent, client_tool_agent)
+        paged_display = await _paged_display_acceptance(client, agent)
+        failed_continuation = await _failed_continuation_acceptance(client, agent, failure_prompt)
     print(
         json.dumps(
             {
@@ -393,6 +493,8 @@ async def main() -> None:
                 "inbox_control": inbox_control,
                 "imported_history": imported_history,
                 "successors": successors,
+                "paged_display": paged_display,
+                "failed_continuation": failed_continuation,
             },
             sort_keys=True,
         )

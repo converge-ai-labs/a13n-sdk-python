@@ -24,8 +24,8 @@ async def display_outcome(outcome: RunOutcome) -> None:
                 and content.get("subagentRunId") is None
             ):
                 print(content.get("text", "[message content omitted]"))
-        if not saved.value.complete or saved.value.dropped:
-            print("This view does not contain every Item.")
+        if saved.value.items and saved.value.items[0].ordinal > 1:
+            print("Earlier Items are available through ordinal paging.")
     elif outcome.status == wire.RunStatus.WAITING:
         print("Input needed:", outcome.pending.to_dict() if outcome.pending else None)
     elif outcome.status == wire.RunStatus.FAILED:
@@ -40,7 +40,11 @@ Call `await display_outcome(await interaction.result())` inside your async appli
 
 `outcome.run.items.get()` returns saved messages and tool activity. `outcome.output` is the Run's output value; it may contain structured output or be `None` even when an ordinary assistant message exists. Do not use `output` as a universal chat-text field.
 
-Items are also a bounded display, not an unlimited archive. Check `complete`, `dropped`, and each content object's omission or truncation flags if your application promises a complete transcript. The SDK cannot reconstruct omitted content from progress events.
+Items are a windowed display, not an unlimited archive. `complete` means the Run is sealed, **not** that the response includes all history. Every Item has a dense 1-based `ordinal`. A default `run.items.get(limit=200)` returns the newest limit plus the entire mutable tail, so it can return more than the requested limit. Check content omission/truncation flags separately; the SDK cannot reconstruct omitted content from progress events.
+
+To read earlier Items, explicitly request `run.items.get(before=first_ordinal, limit=200)`; to read forward, use `after=last_ordinal`. Bounds are exclusive, `before` >= 1, `after` >= 0, and the Service accepts at most 500 as the limit. Do not combine before and after. Each call makes one request; there is no automatic all-history loader. Historical windows have `baseline=False` and null `continuation`, `position`, and `resume_after`, even for a sealed Run. Keep them separate from live recovery coverage.
+
+Only a default read has `baseline=True`: it carries the shared normalization continuation and nullable committed coverage. Generated `DisplayContinuation`, `FragmentState`, `ObserverContinuation`, and `StreamPosition` represent that schema faithfully; they are parser continuation, not execution state. A UI that continues folding needs this state rather than inferring it from Items. The SDK provides no display reducer.
 
 ## Add a live text preview
 
@@ -115,7 +119,7 @@ Most applications should stay with Interaction. Advanced consumers can use the g
 
 ### Resume from a saved display, not only a cursor
 
-A saved `RunItems` response has two different coordinates:
+A default `RunItems` baseline has two different coordinates; a historical ordinal window supplies neither:
 
 - `position` (`attempt-sequence`) describes the display's coverage. Send it with its **Run ID** as the paired `run` and `position` stream query parameters.
 - Optional `resume_after` is a covered Redis entry ID. Pass it as `after` on `ThreadStream` (or `last_event_id` on generated `get_stream()`). It is only a seeking hint, not display coverage.
@@ -132,7 +136,7 @@ async def observe_new_baseline(client: Client, thread_id: str, gap: GapFrame) ->
     saved = (await client.runs(gap.data["run_id"]).items.get()).value
     print("Gap target:", gap.data.get("position"), "Saved coverage:", saved.position)
     print("Replace provisional preview with saved Items:", saved.to_dict())
-    if saved.complete or saved.position is None:
+    if not saved.baseline or saved.complete or saved.position is None:
         return  # Terminal baseline, or no committed coverage to claim yet.
     hint = saved.resume_after if isinstance(saved.resume_after, str) else None
     async with ThreadStream(
