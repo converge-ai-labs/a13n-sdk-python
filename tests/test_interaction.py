@@ -17,7 +17,6 @@ def thread_view(thread_id: str = "thr_1", workspace_id: str = "ws_1") -> dict:
         "archived_at": None,
         "created_at": NOW,
         "current_run_id": None,
-        "head_run_id": None,
         "id": thread_id,
         "labels": {},
         "last_run_id": None,
@@ -844,7 +843,7 @@ def test_run_items_preserves_display_coverage_and_resume_hint(resume_after: str 
         "run": wire.RunView.from_dict(run_view()).to_dict(),
         "items": [],
         "complete": False,
-        "dropped": 2,
+        "baseline": True,
         "position": "1-5",
         "resume_after": resume_after,
     }
@@ -871,7 +870,7 @@ def test_gap_recovery_is_explicit_readback_then_new_covered_stream() -> None:
                         "run": run_view(),
                         "items": [],
                         "complete": False,
-                        "dropped": 0,
+                        "baseline": True,
                         "position": "1-5",
                         "resume_after": "500-0",
                     },
@@ -903,5 +902,92 @@ def test_gap_recovery_is_explicit_readback_then_new_covered_stream() -> None:
                 boundary = await anext(recovered)
                 assert boundary.event_type == "boundary" and boundary.data["sequence"] == 5
         assert [request.method for request in requests] == ["GET", "GET", "GET"]
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("status", ["failed", "cancelled"])
+def test_normal_send_continues_latest_sealed_failure_history_without_retry_or_fork(status: str) -> None:
+    async def scenario() -> None:
+        requests: list[tuple[str, str]] = []
+        source_thread = thread_view()
+        source_thread["last_run_id"] = "run_failed"
+
+        def handle(request: httpx2.Request) -> httpx2.Response:
+            requests.append((request.method, request.url.path))
+            if request.url.path == "/api/v1/runs/run_failed":
+                return httpx2.Response(200, json=run_view(run_id="run_failed", status=status))
+            if request.url.path == "/api/v1/threads/thr_1":
+                return httpx2.Response(200, json=source_thread)
+            if request.method == "POST":
+                assert request.url.path == "/api/v1/threads/thr_1/inbox"
+                assert request.headers["idempotency-key"] == "continue"
+                assert json.loads(request.content)["payload"] == {"content": [{"type": "text", "text": "Continue"}]}
+                return httpx2.Response(
+                    201,
+                    json={
+                        "thread": source_thread,
+                        "entry": entry_view(),
+                        "run": run_view(run_id="run_next"),
+                    },
+                )
+            if request.url.path == "/api/v1/threads/thr_1/inbox/ent_1":
+                entry = entry_view(status="consumed")
+                entry["assigned_run_id"] = "run_next"
+                return httpx2.Response(200, json=entry)
+            assert request.url.path == "/api/v1/runs/run_next"
+            return httpx2.Response(200, json=run_view(run_id="run_next", status="completed"))
+
+        async with Client("https://service.example", transport=httpx2.MockTransport(handle)) as client:
+            source = await client.runs("run_failed").wait()
+            assert source.status == status
+            assert (await client.threads("thr_1").get()).value.last_run_id == "run_failed"
+            following = await client.agents("agt_1").send("thr_1", "Continue", idempotency_key="continue")
+            result = await following.result()
+            assert result.run.id == "run_next" and result.status == "completed"
+        assert [path for method, path in requests if method == "POST"] == ["/api/v1/threads/thr_1/inbox"]
+
+    asyncio.run(scenario())
+
+
+def test_historical_complete_window_does_not_seal_finite_interaction() -> None:
+    async def scenario() -> None:
+        reads = 0
+        methods: list[tuple[str, str]] = []
+
+        def handle(request: httpx2.Request) -> httpx2.Response:
+            nonlocal reads
+            methods.append((request.method, request.url.path))
+            if request.method == "POST":
+                return httpx2.Response(201, json=submitted())
+            if request.url.path.endswith("/items"):
+                assert dict(request.url.params) == {"before": "2"}
+                return httpx2.Response(
+                    200,
+                    json={
+                        "run": run_view(status="completed"),
+                        "items": [],
+                        "baseline": False,
+                        "complete": True,
+                        "position": None,
+                        "continuation": None,
+                        "resume_after": None,
+                    },
+                )
+            if request.url.path.endswith("/inbox/ent_1"):
+                entry = entry_view(status="consumed")
+                entry["assigned_run_id"] = "run_1"
+                return httpx2.Response(200, json=entry)
+            assert request.url.path == "/api/v1/runs/run_1"
+            reads += 1
+            return httpx2.Response(200, json=run_view(status="running" if reads == 1 else "completed"))
+
+        async with Client("https://service.example", transport=httpx2.MockTransport(handle)) as client:
+            interaction = await client.agents("agt_1").start("Hello", idempotency_key="start")
+            page = (await client.runs("run_1").items.get(before=2)).value
+            assert page.complete and not page.baseline and reads == 0
+            outcome = await interaction.result(poll_interval=0.001)
+            assert outcome.status == "completed" and reads == 2
+        assert all(not path.endswith("/stream") for _, path in methods)
 
     asyncio.run(scenario())

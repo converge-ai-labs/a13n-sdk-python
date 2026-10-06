@@ -13,17 +13,41 @@ from ...types import UNSET, Response, Unset
 def build_request(
     run_id: str,
     *,
+    before: int | Unset | None = UNSET,
+    after: int | Unset | None = UNSET,
+    limit: int | Unset = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> dict[str, Any]:
     headers: dict[str, Any] = {}
     if not isinstance(x_workspace_id, Unset):
         headers["X-Workspace-ID"] = x_workspace_id
 
+    params: dict[str, Any] = {}
+
+    json_before: int | Unset | None
+    if isinstance(before, Unset):
+        json_before = UNSET
+    else:
+        json_before = before
+    params["before"] = json_before
+
+    json_after: int | Unset | None
+    if isinstance(after, Unset):
+        json_after = UNSET
+    else:
+        json_after = after
+    params["after"] = json_after
+
+    params["limit"] = limit
+
+    params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
+
     _kwargs: dict[str, Any] = {
         "method": "get",
         "url": "/api/v1/runs/{run_id}/items".format(
             run_id=quote(str(run_id), safe=""),
         ),
+        "params": params,
     }
 
     _kwargs["headers"] = headers
@@ -66,12 +90,23 @@ def sync_detailed(
     run_id: str,
     *,
     client: AuthenticatedClient,
+    before: int | Unset | None = UNSET,
+    after: int | Unset | None = UNSET,
+    limit: int | Unset = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> Response[ErrorEnvelope | RunItems]:
     """Run Items
 
+     A run's committed display items by ordinal. By default the newest, always including the unpaged tail
+    whose
+    items live output can still change; `before` and `after` page from an ordinal and exclude each
+    other.
+
     Args:
         run_id (str):
+        before (int | None | Unset): Return the items just before this ordinal
+        after (int | None | Unset): Return the items just after this ordinal
+        limit (int | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
@@ -86,6 +121,9 @@ def sync_detailed(
 
     kwargs = build_request(
         run_id=run_id,
+        before=before,
+        after=after,
+        limit=limit,
         x_workspace_id=x_workspace_id,
     )
 
@@ -100,12 +138,23 @@ def sync(
     run_id: str,
     *,
     client: AuthenticatedClient,
+    before: int | Unset | None = UNSET,
+    after: int | Unset | None = UNSET,
+    limit: int | Unset = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> ErrorEnvelope | RunItems | None:
     """Run Items
 
+     A run's committed display items by ordinal. By default the newest, always including the unpaged tail
+    whose
+    items live output can still change; `before` and `after` page from an ordinal and exclude each
+    other.
+
     Args:
         run_id (str):
+        before (int | None | Unset): Return the items just before this ordinal
+        after (int | None | Unset): Return the items just after this ordinal
+        limit (int | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
@@ -121,6 +170,9 @@ def sync(
     return sync_detailed(
         run_id=run_id,
         client=client,
+        before=before,
+        after=after,
+        limit=limit,
         x_workspace_id=x_workspace_id,
     ).parsed
 
@@ -129,12 +181,23 @@ async def asyncio_detailed(
     run_id: str,
     *,
     client: AuthenticatedClient,
+    before: int | Unset | None = UNSET,
+    after: int | Unset | None = UNSET,
+    limit: int | Unset = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> Response[ErrorEnvelope | RunItems]:
     """Run Items
 
+     A run's committed display items by ordinal. By default the newest, always including the unpaged tail
+    whose
+    items live output can still change; `before` and `after` page from an ordinal and exclude each
+    other.
+
     Args:
         run_id (str):
+        before (int | None | Unset): Return the items just before this ordinal
+        after (int | None | Unset): Return the items just after this ordinal
+        limit (int | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
@@ -149,6 +212,9 @@ async def asyncio_detailed(
 
     kwargs = build_request(
         run_id=run_id,
+        before=before,
+        after=after,
+        limit=limit,
         x_workspace_id=x_workspace_id,
     )
 
@@ -161,12 +227,23 @@ async def asyncio(
     run_id: str,
     *,
     client: AuthenticatedClient,
+    before: int | Unset | None = UNSET,
+    after: int | Unset | None = UNSET,
+    limit: int | Unset = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> ErrorEnvelope | RunItems | None:
     """Run Items
 
+     A run's committed display items by ordinal. By default the newest, always including the unpaged tail
+    whose
+    items live output can still change; `before` and `after` page from an ordinal and exclude each
+    other.
+
     Args:
         run_id (str):
+        before (int | None | Unset): Return the items just before this ordinal
+        after (int | None | Unset): Return the items just after this ordinal
+        limit (int | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
@@ -183,6 +260,9 @@ async def asyncio(
         await asyncio_detailed(
             run_id=run_id,
             client=client,
+            before=before,
+            after=after,
+            limit=limit,
             x_workspace_id=x_workspace_id,
         )
     ).parsed

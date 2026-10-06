@@ -26,6 +26,7 @@ class Item:
         id (str):
         kind (ItemKind):
         last_stream_id (str):
+        ordinal (int):
         started_at (datetime.datetime):
         state (ItemState):
         ended_at (datetime.datetime | None | Unset):
@@ -36,6 +37,7 @@ class Item:
     id: str
     kind: ItemKind
     last_stream_id: str
+    ordinal: int
     started_at: datetime.datetime
     state: ItemState
     ended_at: datetime.datetime | Unset | None = UNSET
@@ -50,6 +52,8 @@ class Item:
         kind = self.kind.value
 
         last_stream_id = self.last_stream_id
+
+        ordinal = self.ordinal
 
         started_at = self.started_at.isoformat()
 
@@ -72,6 +76,7 @@ class Item:
                 "id": id,
                 "kind": kind,
                 "last_stream_id": last_stream_id,
+                "ordinal": ordinal,
                 "started_at": started_at,
                 "state": state,
             }
@@ -95,6 +100,8 @@ class Item:
         kind = ItemKind(d.pop("kind"))
 
         last_stream_id = d.pop("last_stream_id")
+
+        ordinal = d.pop("ordinal")
 
         started_at = datetime.datetime.fromisoformat(d.pop("started_at"))
 
@@ -123,6 +130,7 @@ class Item:
             id=id,
             kind=kind,
             last_stream_id=last_stream_id,
+            ordinal=ordinal,
             started_at=started_at,
             state=state,
             ended_at=ended_at,

@@ -82,6 +82,7 @@ def test_saved_items_preserve_structured_result_parts_and_child_attribution() ->
         content = {"toolCallId": "call", "subagentRunId": "child", "result_parts": parts}
         item = {
             "id": "itm_child",
+            "ordinal": 1,
             "kind": "tool_call",
             "state": "completed",
             "content": content,
@@ -97,7 +98,7 @@ def test_saved_items_preserve_structured_result_parts_and_child_attribution() ->
                 json={
                     "run": run_view(status="completed"),
                     "complete": True,
-                    "dropped": 0,
+                    "baseline": True,
                     "position": "1-2",
                     "resume_after": None,
                     "items": [item],

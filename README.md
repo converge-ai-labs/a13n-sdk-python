@@ -76,6 +76,8 @@ Run it with the environment you created above:
 
 For an ordinary reply, you should see `Status: completed`, a Thread ID, and the Agent's response. A Thread is a conversation; a Run is one execution within it. `start()` returns an **Interaction**, which lets you wait for the result or stream progress.
 
+Saved Items are a recent ordinal window, not necessarily all display history. `run.items.get(before=..., after=..., limit=...)` supports explicit historical windows; `complete` means the Run is sealed, not that every Item was loaded. See [windowed display and recovery](docs/streaming-and-results.md#messages-and-structured-output-are-different).
+
 An Agent can also pause for input (`waiting`), fail (`failed`), or be cancelled (`cancelled`). See [read and handle results](docs/streaming-and-results.md#read-a-finished-response) for those cases. The example uses a fresh idempotency key for each new message; in an application, save that key if you may need to retry the same submission.
 
 ## Continue the conversation
@@ -92,7 +94,7 @@ next_outcome = await follow_up.result()
 print(next_outcome.status)
 ```
 
-Save the Thread ID to continue later. Each call to `send()` selects the Agent explicitly; a conversation is not permanently tied to one Agent.
+Save the Thread ID to continue later. Each call to `send()` selects the Agent explicitly; a conversation is not permanently tied to one Agent. Normal explicit messages also continue after failed or cancelled Runs: `last_run_id` names the most recently sealed Run of any outcome, whose nearest checkpoint supplies history. Those outcomes pause automatic advancement, not explicit continuation. A waiting Run instead needs [explicit resume with all answers](docs/waiting-and-tools.md).
 
 ## Stream progress
 

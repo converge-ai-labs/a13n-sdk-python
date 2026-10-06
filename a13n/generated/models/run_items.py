@@ -9,6 +9,7 @@ from attrs import field as _attrs_field
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
+    from ..models.display_continuation import DisplayContinuation
     from ..models.item import Item
     from ..models.run_view import RunView
 
@@ -18,29 +19,34 @@ T = TypeVar("T", bound="RunItems")
 
 @_attrs_define(repr=False)
 class RunItems:
-    """A run's committed display with the run it describes. Live output continues after `position`.
+    """Items of a run's committed display, in ordinal order, with the run they describe. Ordinals are dense from 1,
+    so the first item's ordinal tells whether earlier ones exist. Live output continues after `position`.
 
-    Attributes:
-        complete (bool):
-        dropped (int):
-        items (list[Item]):
-        position (None | str):
-        run (RunView):
-        resume_after (None | str | Unset):
+        Attributes:
+            baseline (bool):
+            complete (bool):
+            items (list[Item]):
+            position (None | str):
+            run (RunView):
+            continuation (DisplayContinuation | None | Unset):
+            resume_after (None | str | Unset):
     """
 
+    baseline: bool
     complete: bool
-    dropped: int
     items: list[Item]
     position: str | None
     run: RunView
+    continuation: DisplayContinuation | Unset | None = UNSET
     resume_after: str | Unset | None = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        complete = self.complete
+        from ..models.display_continuation import DisplayContinuation
 
-        dropped = self.dropped
+        baseline = self.baseline
+
+        complete = self.complete
 
         items = []
         for items_item_data in self.items:
@@ -52,6 +58,14 @@ class RunItems:
 
         run = self.run.to_dict()
 
+        continuation: dict[str, Any] | Unset | None
+        if isinstance(self.continuation, Unset):
+            continuation = UNSET
+        elif isinstance(self.continuation, DisplayContinuation):
+            continuation = self.continuation.to_dict()
+        else:
+            continuation = self.continuation
+
         resume_after: str | Unset | None
         if isinstance(self.resume_after, Unset):
             resume_after = UNSET
@@ -62,13 +76,15 @@ class RunItems:
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
+                "baseline": baseline,
                 "complete": complete,
-                "dropped": dropped,
                 "items": items,
                 "position": position,
                 "run": run,
             }
         )
+        if continuation is not UNSET:
+            field_dict["continuation"] = continuation
         if resume_after is not UNSET:
             field_dict["resume_after"] = resume_after
 
@@ -76,13 +92,14 @@ class RunItems:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.display_continuation import DisplayContinuation
         from ..models.item import Item
         from ..models.run_view import RunView
 
         d = dict(src_dict)
-        complete = d.pop("complete")
+        baseline = d.pop("baseline")
 
-        dropped = d.pop("dropped")
+        complete = d.pop("complete")
 
         items = []
         _items = d.pop("items")
@@ -100,6 +117,23 @@ class RunItems:
 
         run = RunView.from_dict(d.pop("run"))
 
+        def _parse_continuation(data: object) -> DisplayContinuation | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                continuation_type_0 = DisplayContinuation.from_dict(data)
+
+                return continuation_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(DisplayContinuation | Unset | None, data)
+
+        continuation = _parse_continuation(d.pop("continuation", UNSET))
+
         def _parse_resume_after(data: object) -> str | Unset | None:
             if data is None:
                 return data
@@ -110,11 +144,12 @@ class RunItems:
         resume_after = _parse_resume_after(d.pop("resume_after", UNSET))
 
         run_items = cls(
+            baseline=baseline,
             complete=complete,
-            dropped=dropped,
             items=items,
             position=position,
             run=run,
+            continuation=continuation,
             resume_after=resume_after,
         )
 

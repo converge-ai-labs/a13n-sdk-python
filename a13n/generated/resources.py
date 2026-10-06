@@ -3054,11 +3054,23 @@ class RunsRunIdAttemptsAttemptIdTrace(Resource):
 class RunsRunIdItems(Resource):
     """Bound Native resource: /runs / {run_id} / items."""
 
-    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.RunItems]:
+    async def get(
+        self,
+        *,
+        before: int | Unset | None = UNSET,
+        after: int | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.RunItems]:
         """Run Items. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: run_items_api_v1_runs_run_id_items_get.asyncio_detailed(
-                client=client, run_id=self._bindings["run_id"], x_workspace_id=x_workspace_id
+                client=client,
+                run_id=self._bindings["run_id"],
+                before=before,
+                after=after,
+                limit=limit,
+                x_workspace_id=x_workspace_id,
             )
         )
 

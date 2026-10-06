@@ -3401,6 +3401,59 @@
         "title": "Deny",
         "type": "object"
       },
+      "DisplayContinuation": {
+        "additionalProperties": false,
+        "description": "Parsing state at a semantic cut; Host paging may retire only immutable items.",
+        "properties": {
+          "arguments": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/_Arguments"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "fragments": {
+            "$ref": "#/components/schemas/FragmentState"
+          },
+          "full_content": {
+            "default": false,
+            "title": "Full Content",
+            "type": "boolean"
+          },
+          "next_ordinal": {
+            "minimum": 1.0,
+            "title": "Next Ordinal",
+            "type": "integer"
+          },
+          "observer": {
+            "$ref": "#/components/schemas/ObserverContinuation"
+          },
+          "position": {
+            "$ref": "#/components/schemas/StreamPosition"
+          },
+          "response_groups": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Response Groups",
+            "type": "object"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "position",
+          "next_ordinal"
+        ],
+        "title": "DisplayContinuation",
+        "type": "object"
+      },
       "EmailChangeConfirm": {
         "additionalProperties": false,
         "properties": {
@@ -4212,6 +4265,38 @@
         "title": "Fork",
         "type": "object"
       },
+      "FragmentState": {
+        "additionalProperties": false,
+        "description": "Incomplete custom payloads, not a journal of completed events.",
+        "properties": {
+          "gap": {
+            "default": false,
+            "title": "Gap",
+            "type": "boolean"
+          },
+          "max_bytes": {
+            "default": 67108864,
+            "minimum": 1.0,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "max_pending": {
+            "default": 8,
+            "minimum": 1.0,
+            "title": "Max Pending",
+            "type": "integer"
+          },
+          "pending": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/_Assembly"
+            },
+            "title": "Pending",
+            "type": "object"
+          }
+        },
+        "title": "FragmentState",
+        "type": "object"
+      },
       "GitHubSource": {
         "additionalProperties": false,
         "description": "A directory of a public GitHub repository.\n\n`ref` defaults to the default branch. On a request `commit` is an optional expectation the resolved ref\nmust meet; in a manifest it records the commit the package was read from.",
@@ -4931,6 +5016,11 @@
             "title": "Last Stream Id",
             "type": "string"
           },
+          "ordinal": {
+            "minimum": 1.0,
+            "title": "Ordinal",
+            "type": "integer"
+          },
           "started_at": {
             "format": "date-time",
             "title": "Started At",
@@ -4942,6 +5032,7 @@
         },
         "required": [
           "id",
+          "ordinal",
           "kind",
           "state",
           "first_stream_id",
@@ -7805,6 +7896,39 @@
         "title": "OAuthSettings",
         "type": "object"
       },
+      "ObserverContinuation": {
+        "additionalProperties": false,
+        "description": "Native conversion cursors required to resume mid-part, without raw history.",
+        "properties": {
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "state": {
+            "$ref": "#/components/schemas/_ObserverState"
+          },
+          "thread_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thread Id"
+          }
+        },
+        "title": "ObserverContinuation",
+        "type": "object"
+      },
       "OperationKind": {
         "enum": [
           "setup",
@@ -9454,15 +9578,25 @@
         "type": "object"
       },
       "RunItems": {
-        "description": "A run's committed display with the run it describes. Live output continues after `position`.",
+        "description": "Items of a run's committed display, in ordinal order, with the run they describe. Ordinals are dense from 1,\nso the first item's ordinal tells whether earlier ones exist. Live output continues after `position`.",
         "properties": {
+          "baseline": {
+            "title": "Baseline",
+            "type": "boolean"
+          },
           "complete": {
             "title": "Complete",
             "type": "boolean"
           },
-          "dropped": {
-            "title": "Dropped",
-            "type": "integer"
+          "continuation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DisplayContinuation"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "items": {
             "items": {
@@ -9500,8 +9634,8 @@
         "required": [
           "run",
           "items",
+          "baseline",
           "position",
-          "dropped",
           "complete"
         ],
         "title": "RunItems",
@@ -9737,6 +9871,17 @@
               }
             ],
             "title": "Current Attempt Id"
+          },
+          "display_position": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Position"
           },
           "environment_mounts": {
             "items": {
@@ -11239,6 +11384,27 @@
         "title": "SpanPage",
         "type": "object"
       },
+      "StreamPosition": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt": {
+            "minimum": 0.0,
+            "title": "Attempt",
+            "type": "integer"
+          },
+          "sequence": {
+            "minimum": 0.0,
+            "title": "Sequence",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "attempt",
+          "sequence"
+        ],
+        "title": "StreamPosition",
+        "type": "object"
+      },
       "SubagentOverride-Input": {
         "additionalProperties": false,
         "description": "Replaces the fields it sets of an edge; an edge the revision lacks sets at least `agent_id`.",
@@ -12250,17 +12416,6 @@
             ],
             "title": "Current Run Id"
           },
-          "head_run_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Head Run Id"
-          },
           "id": {
             "title": "Id",
             "type": "string"
@@ -12378,7 +12533,6 @@
           "origin_tool_call_id",
           "subagent",
           "current_run_id",
-          "head_run_id",
           "last_run_id",
           "mcp_headers",
           "labels",
@@ -13488,6 +13642,154 @@
           }
         },
         "title": "WorkspaceUpdate",
+        "type": "object"
+      },
+      "_Arguments": {
+        "description": "A tool-call part's streamed arguments so far and the one observation item that holds them.",
+        "properties": {
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "event": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "sequence": {
+            "title": "Sequence",
+            "type": "integer"
+          },
+          "size": {
+            "title": "Size",
+            "type": "integer"
+          },
+          "stream": {
+            "$ref": "#/components/schemas/JsonValue"
+          }
+        },
+        "required": [
+          "stream",
+          "key",
+          "at",
+          "sequence",
+          "event",
+          "size"
+        ],
+        "title": "_Arguments",
+        "type": "object"
+      },
+      "_Assembly": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "parts": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Parts",
+            "type": "array"
+          },
+          "size": {
+            "default": 0,
+            "title": "Size",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "count"
+        ],
+        "title": "_Assembly",
+        "type": "object"
+      },
+      "_ObserverState": {
+        "properties": {
+          "children": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/_ObserverState"
+            },
+            "title": "Children",
+            "type": "object"
+          },
+          "parts": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/_PartCursor"
+            },
+            "title": "Parts",
+            "type": "object"
+          },
+          "request_index": {
+            "default": 0,
+            "title": "Request Index",
+            "type": "integer"
+          },
+          "threads": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Threads",
+            "type": "object"
+          }
+        },
+        "title": "_ObserverState",
+        "type": "object"
+      },
+      "_PartCursor": {
+        "properties": {
+          "emitted_content": {
+            "default": false,
+            "title": "Emitted Content",
+            "type": "boolean"
+          },
+          "emitted_signature": {
+            "default": false,
+            "title": "Emitted Signature",
+            "type": "boolean"
+          },
+          "kind": {
+            "enum": [
+              "text",
+              "reasoning",
+              "tool_call"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "part_id": {
+            "title": "Part Id",
+            "type": "string"
+          },
+          "tool_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tool Name"
+          }
+        },
+        "required": [
+          "kind",
+          "part_id"
+        ],
+        "title": "_PartCursor",
         "type": "object"
       }
     },
@@ -23461,6 +23763,7 @@
     },
     "/api/v1/runs/{run_id}/items": {
       "get": {
+        "description": "A run's committed display items by ordinal. By default the newest, always including the unpaged tail whose\nitems live output can still change; `before` and `after` page from an ordinal and exclude each other.",
         "operationId": "run_items_api_v1_runs__run_id__items_get",
         "parameters": [
           {
@@ -23470,6 +23773,56 @@
             "schema": {
               "title": "Run Id",
               "type": "string"
+            }
+          },
+          {
+            "description": "Return the items just before this ordinal",
+            "in": "query",
+            "name": "before",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Return the items just before this ordinal",
+              "title": "Before"
+            }
+          },
+          {
+            "description": "Return the items just after this ordinal",
+            "in": "query",
+            "name": "after",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Return the items just after this ordinal",
+              "title": "After"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 200,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
             }
           },
           {

@@ -132,3 +132,45 @@ def test_frame_typing_rejects_wrong_variant_fields_and_writes(tmp_path: Path) ->
     report = run_pyright(source)
     assert report["returncode"] == 1
     assert len(report["generalDiagnostics"]) == 3
+
+
+def test_ordinal_paging_and_nullable_item_metadata_typing(tmp_path: Path) -> None:
+    source = tmp_path / "paged.py"
+    source.write_text(
+        "from collections.abc import Mapping\n"
+        "from pydantic import JsonValue\n"
+        "from a13n import Client, ThreadFrame\n"
+        "from a13n.generated import models as wire\n"
+        "async def use(client: Client, frame: ThreadFrame) -> None:\n"
+        "    recent: wire.RunItems = (await client.runs('run').items.get(limit=1)).value\n"
+        "    page: wire.RunItems = (await client.runs('run').items.get(before=7, limit=2)).value\n"
+        "    await client.runs('run').items.get(after=0)\n"
+        "    baseline: bool = recent.baseline\n"
+        "    position: str | None = page.position\n"
+        "    ordinal: int = recent.items[0].ordinal\n"
+        "    if isinstance(recent.continuation, wire.DisplayContinuation):\n"
+        "        cut: wire.StreamPosition = recent.continuation.position\n"
+        "    if frame.event_type == 'delta' and frame.data['item'] is not None:\n"
+        "        item = frame.data['item']\n"
+        "        assigned: int | None = item.get('ordinal')\n"
+        "        group: str | None = item.get('response_group')\n"
+        "        failure: Mapping[str, JsonValue] | None = item.get('failure')\n"
+    )
+    report = run_pyright(source)
+    assert report["returncode"] == 0, report["generalDiagnostics"]
+
+
+def test_ordinal_paging_rejects_obsolete_fields_and_cursor_facade_typing(tmp_path: Path) -> None:
+    source = tmp_path / "obsolete.py"
+    source.write_text(
+        "from a13n import Client\n"
+        "async def misuse(client: Client) -> None:\n"
+        "    items = (await client.runs('run').items.get()).value\n"
+        "    print(items.dropped)\n"
+        "    print((await client.threads('thread').get()).value.head_run_id)\n"
+        "    await client.runs('run').items.get(before='cursor')\n"
+        "    client.runs('run').items.pages()\n"
+    )
+    report = run_pyright(source)
+    assert report["returncode"] == 1
+    assert len(report["generalDiagnostics"]) == 4
