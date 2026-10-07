@@ -163,7 +163,6 @@ from .api.providers import (
     update_provider_api_v1_web_providers_provider_id_patch,
 )
 from .api.runs import (
-    answer_pending_api_v1_runs_run_id_answers_post,
     archive_thread_api_v1_threads_thread_id_archive_post,
     create_session_api_v1_sessions_post,
     create_thread_api_v1_threads_post,
@@ -183,7 +182,6 @@ from .api.runs import (
     list_threads_api_v1_threads_get,
     list_trace_spans_api_v1_traces_trace_id_spans_get,
     list_traces_api_v1_traces_get,
-    pending_answers_api_v1_runs_run_id_answers_get,
     reorder_inbox_api_v1_threads_thread_id_inbox_order_put,
     resume_run_api_v1_runs_run_id_resume_post,
     run_attempts_api_v1_runs_run_id_attempts_get,
@@ -2931,10 +2929,6 @@ class Run(Resource):
         )
 
     @property
-    def answers(self) -> RunsRunIdAnswers:
-        return RunsRunIdAnswers(self._client, self._bindings)
-
-    @property
     def attempts(self) -> RunsRunIdAttempts:
         return RunsRunIdAttempts(self._client, self._bindings)
 
@@ -2974,32 +2968,6 @@ class Run(Resource):
         """Resume Run. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: resume_run_api_v1_runs_run_id_resume_post.asyncio_detailed(
-                client=client,
-                run_id=self._bindings["run_id"],
-                body=body,
-                idempotency_key=idempotency_key,
-                x_workspace_id=x_workspace_id,
-            )
-        )
-
-
-class RunsRunIdAnswers(Resource):
-    """Bound Native resource: /runs / {run_id} / answers."""
-
-    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.PendingAnswers]:
-        """Pending Answers. One HTTP request; no automatic replay."""
-        return await self._call(
-            lambda client: pending_answers_api_v1_runs_run_id_answers_get.asyncio_detailed(
-                client=client, run_id=self._bindings["run_id"], x_workspace_id=x_workspace_id
-            )
-        )
-
-    async def create(
-        self, *, body: wire.PendingAnswer, idempotency_key: str, x_workspace_id: str | Unset | None = UNSET
-    ) -> Result[wire.PendingAnswers]:
-        """Answer Pending. One HTTP request; no automatic replay."""
-        return await self._call(
-            lambda client: answer_pending_api_v1_runs_run_id_answers_post.asyncio_detailed(
                 client=client,
                 run_id=self._bindings["run_id"],
                 body=body,
