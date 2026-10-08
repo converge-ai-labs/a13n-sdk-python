@@ -103,6 +103,8 @@ from .connector_app_page import ConnectorAppPage
 from .connector_app_setup_schema import ConnectorAppSetupSchema
 from .connector_config import ConnectorConfig
 from .connector_config_setup import ConnectorConfigSetup
+from .content_ref import ContentRef
+from .content_ref_media_type import ContentRefMediaType
 from .created_subscription import CreatedSubscription
 from .credential_mode import CredentialMode
 from .daily_usage import DailyUsage
@@ -159,6 +161,7 @@ from .invitation_receipt_delivery import InvitationReceiptDelivery
 from .issued_key import IssuedKey
 from .item import Item
 from .item_content import ItemContent
+from .item_content_refs import ItemContentRefs
 from .item_kind import ItemKind
 from .item_state import ItemState
 from .json_part import JsonPart
@@ -316,6 +319,8 @@ from .run_configuration_input import RunConfigurationInput
 from .run_configuration_input_extensions import RunConfigurationInputExtensions
 from .run_configuration_output import RunConfigurationOutput
 from .run_configuration_output_extensions import RunConfigurationOutputExtensions
+from .run_content import RunContent
+from .run_content_media_type import RunContentMediaType
 from .run_items import RunItems
 from .run_labels import RunLabels
 from .run_labels_labels import RunLabelsLabels
@@ -555,6 +560,8 @@ __all__ = (
     "ConnectorAppSetupSchema",
     "ConnectorConfig",
     "ConnectorConfigSetup",
+    "ContentRef",
+    "ContentRefMediaType",
     "CreatedSubscription",
     "CredentialMode",
     "DailyUsage",
@@ -611,6 +618,7 @@ __all__ = (
     "IssuedKey",
     "Item",
     "ItemContent",
+    "ItemContentRefs",
     "ItemKind",
     "ItemState",
     "JsonPart",
@@ -764,6 +772,8 @@ __all__ = (
     "RunConfigurationInputExtensions",
     "RunConfigurationOutput",
     "RunConfigurationOutputExtensions",
+    "RunContent",
+    "RunContentMediaType",
     "RunItems",
     "RunLabels",
     "RunLabelsLabels",

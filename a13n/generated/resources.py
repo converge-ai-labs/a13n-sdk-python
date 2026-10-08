@@ -185,6 +185,7 @@ from .api.runs import (
     reorder_inbox_api_v1_threads_thread_id_inbox_order_put,
     resume_run_api_v1_runs_run_id_resume_post,
     run_attempts_api_v1_runs_run_id_attempts_get,
+    run_content_api_v1_runs_run_id_contents_content_id_get,
     run_items_api_v1_runs_run_id_items_get,
     run_lineage_api_v1_runs_run_id_lineage_get,
     submit_message_api_v1_threads_thread_id_inbox_post,
@@ -2932,6 +2933,10 @@ class Run(Resource):
     def attempts(self) -> RunsRunIdAttempts:
         return RunsRunIdAttempts(self._client, self._bindings)
 
+    @property
+    def contents(self) -> RunsRunIdContents:
+        return RunsRunIdContents(self._client, self._bindings)
+
     async def fork(
         self, *, body: wire.Fork, idempotency_key: str, x_workspace_id: str | Unset | None = UNSET
     ) -> Result[wire.Submitted]:
@@ -3048,6 +3053,28 @@ class RunsRunIdAttemptsAttemptIdTrace(Resource):
             item
             async for page in self.pages(limit=limit, cursor=cursor, x_workspace_id=x_workspace_id)
             for item in page.value.items
+        )
+
+
+class RunsRunIdContents(Resource):
+    """Bound Native resource: /runs / {run_id} / contents."""
+
+    def __call__(self, content_id: str) -> RunsRunIdContentsContentId:
+        return RunsRunIdContentsContentId(self._client, self._bind("content_id", content_id))
+
+
+class RunsRunIdContentsContentId(Resource):
+    """Bound Native resource: /runs / {run_id} / contents / {content_id}."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.RunContent]:
+        """Run Content. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: run_content_api_v1_runs_run_id_contents_content_id_get.asyncio_detailed(
+                client=client,
+                run_id=self._bindings["run_id"],
+                content_id=self._bindings["content_id"],
+                x_workspace_id=x_workspace_id,
+            )
         )
 
 

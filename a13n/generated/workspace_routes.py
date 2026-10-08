@@ -64,6 +64,7 @@ WORKSPACE_PATHS = (
     re.compile("/api/v1/runs/[^/]+\\Z"),
     re.compile("/api/v1/runs/[^/]+/attempts\\Z"),
     re.compile("/api/v1/runs/[^/]+/attempts/[^/]+/trace\\Z"),
+    re.compile("/api/v1/runs/[^/]+/contents/[^/]+\\Z"),
     re.compile("/api/v1/runs/[^/]+/fork\\Z"),
     re.compile("/api/v1/runs/[^/]+/interrupt\\Z"),
     re.compile("/api/v1/runs/[^/]+/items\\Z"),
