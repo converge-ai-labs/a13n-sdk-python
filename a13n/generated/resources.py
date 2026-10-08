@@ -2429,7 +2429,7 @@ class ModelProvidersProviderIdAuthorization(Resource):
 class ModelProvidersProviderIdModels(Resource):
     """Bound Native resource: /model-providers / {provider_id} / models."""
 
-    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[list[wire.ChatGPTModel]]:
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[list[wire.ProviderModel]]:
         """Discover Model Provider Models. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: (

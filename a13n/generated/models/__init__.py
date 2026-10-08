@@ -76,7 +76,6 @@ from .callback_outcome import CallbackOutcome
 from .catalog_model import CatalogModel
 from .catalog_ref import CatalogRef
 from .certainty import Certainty
-from .chat_gpt_model import ChatGPTModel
 from .child_environment_policy import ChildEnvironmentPolicy
 from .child_environment_policy_mode import ChildEnvironmentPolicyMode
 from .client_authentication import ClientAuthentication
@@ -287,6 +286,7 @@ from .provider_create import ProviderCreate
 from .provider_create_config import ProviderCreateConfig
 from .provider_create_credential_type_0 import ProviderCreateCredentialType0
 from .provider_create_extra_headers import ProviderCreateExtraHeaders
+from .provider_model import ProviderModel
 from .provider_page import ProviderPage
 from .provider_test import ProviderTest
 from .provider_test_status import ProviderTestStatus
@@ -528,7 +528,6 @@ __all__ = (
     "CatalogModel",
     "CatalogRef",
     "Certainty",
-    "ChatGPTModel",
     "ChildEnvironmentPolicy",
     "ChildEnvironmentPolicyMode",
     "ClientAuthentication",
@@ -737,6 +736,7 @@ __all__ = (
     "ProviderCreateConfig",
     "ProviderCreateCredentialType0",
     "ProviderCreateExtraHeaders",
+    "ProviderModel",
     "ProviderPage",
     "ProviderTest",
     "ProviderTestStatus",

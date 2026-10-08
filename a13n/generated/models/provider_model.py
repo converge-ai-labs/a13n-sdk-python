@@ -6,12 +6,13 @@ from typing import Any, TypeVar
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
-T = TypeVar("T", bound="ChatGPTModel")
+T = TypeVar("T", bound="ProviderModel")
 
 
 @_attrs_define(repr=False)
-class ChatGPTModel:
-    """
+class ProviderModel:
+    """An upstream choice; wire names retain the original account-discovery contract.
+
     Attributes:
         display_name (str):
         slug (str):
@@ -44,13 +45,13 @@ class ChatGPTModel:
 
         slug = d.pop("slug")
 
-        chat_gpt_model = cls(
+        provider_model = cls(
             display_name=display_name,
             slug=slug,
         )
 
-        chat_gpt_model.additional_properties = d
-        return chat_gpt_model
+        provider_model.additional_properties = d
+        return provider_model
 
     @property
     def additional_keys(self) -> list[str]:
