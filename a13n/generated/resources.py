@@ -94,6 +94,15 @@ from .api.environments import (
     update_environment_api_v1_environments_environment_id_patch,
     update_template_api_v1_environment_templates_template_id_patch,
 )
+from .api.findings import (
+    create_finding_api_v1_findings_post,
+    get_finding_api_v1_findings_finding_id_get,
+    list_analyses_api_v1_finding_analyses_get,
+    list_findings_api_v1_findings_get,
+    prepare_finding_agent_api_v1_finding_agent_post,
+    start_analysis_api_v1_finding_analyses_post,
+    update_finding_api_v1_findings_finding_id_patch,
+)
 from .api.memories import (
     add_mount_api_v1_threads_thread_id_memories_post,
     add_record_api_v1_memories_memory_id_records_post,
@@ -317,6 +326,22 @@ class ServiceResources(Resource):
     def environments(self) -> Environments:
         return Environments(self._client, self._bindings)
 
+    async def finding_agent(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Agent]:
+        """Prepare Finding Agent. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: prepare_finding_agent_api_v1_finding_agent_post.asyncio_detailed(
+                client=client, x_workspace_id=x_workspace_id
+            )
+        )
+
+    @property
+    def finding_analyses(self) -> FindingAnalyses:
+        return FindingAnalyses(self._client, self._bindings)
+
+    @property
+    def findings(self) -> Findings:
+        return Findings(self._client, self._bindings)
+
     @property
     def invitations(self) -> Invitations:
         return Invitations(self._client, self._bindings)
@@ -428,6 +453,7 @@ class Agents(Resource):
         q: str | Unset | None = UNSET,
         archived: bool | Unset | None = UNSET,
         source: wire.AgentSource | Unset | None = UNSET,
+        preset_kind: wire.ListAgentsApiV1AgentsGetPresetKindType0 | Unset | None = UNSET,
         skill_id: str | Unset | None = UNSET,
         skill_revision_id: str | Unset | None = UNSET,
         limit: int | Unset = UNSET,
@@ -442,6 +468,7 @@ class Agents(Resource):
                 q=q,
                 archived=archived,
                 source=source,
+                preset_kind=preset_kind,
                 skill_id=skill_id,
                 skill_revision_id=skill_revision_id,
                 limit=limit,
@@ -457,6 +484,7 @@ class Agents(Resource):
         q: str | Unset | None = UNSET,
         archived: bool | Unset | None = UNSET,
         source: wire.AgentSource | Unset | None = UNSET,
+        preset_kind: wire.ListAgentsApiV1AgentsGetPresetKindType0 | Unset | None = UNSET,
         skill_id: str | Unset | None = UNSET,
         skill_revision_id: str | Unset | None = UNSET,
         limit: int | Unset = UNSET,
@@ -471,6 +499,7 @@ class Agents(Resource):
                 q=q,
                 archived=archived,
                 source=source,
+                preset_kind=preset_kind,
                 skill_id=skill_id,
                 skill_revision_id=skill_revision_id,
                 limit=limit,
@@ -488,6 +517,7 @@ class Agents(Resource):
         q: str | Unset | None = UNSET,
         archived: bool | Unset | None = UNSET,
         source: wire.AgentSource | Unset | None = UNSET,
+        preset_kind: wire.ListAgentsApiV1AgentsGetPresetKindType0 | Unset | None = UNSET,
         skill_id: str | Unset | None = UNSET,
         skill_revision_id: str | Unset | None = UNSET,
         limit: int | Unset = UNSET,
@@ -502,6 +532,7 @@ class Agents(Resource):
                 q=q,
                 archived=archived,
                 source=source,
+                preset_kind=preset_kind,
                 skill_id=skill_id,
                 skill_revision_id=skill_revision_id,
                 limit=limit,
@@ -1621,6 +1652,192 @@ class EnvironmentsEnvironmentId(Resource):
             lambda client: stop_environment_api_v1_environments_environment_id_stop_post.asyncio_detailed(
                 client=client,
                 environment_id=self._bindings["environment_id"],
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+
+class FindingAnalyses(Resource):
+    """Bound Native resource: /finding-analyses."""
+
+    async def list(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.AnalysisPage]:
+        """List Analyses. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: list_analyses_api_v1_finding_analyses_get.asyncio_detailed(
+                client=client, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
+            )
+        )
+
+    def pages(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[Result[wire.AnalysisPage]]:
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        return pages(
+            lambda next_cursor: self.list(limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor),
+            lambda value: value.next_cursor,
+            cursor,
+        )
+
+    def iter(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[wire.Analysis]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(limit=limit, cursor=cursor, x_workspace_id=x_workspace_id)
+            for item in page.value.items
+        )
+
+    async def create(
+        self, *, body: wire.AnalysisCreate, idempotency_key: str, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.Analysis]:
+        """Start Analysis. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: start_analysis_api_v1_finding_analyses_post.asyncio_detailed(
+                client=client, body=body, idempotency_key=idempotency_key, x_workspace_id=x_workspace_id
+            )
+        )
+
+
+class Findings(Resource):
+    """Bound Native resource: /findings."""
+
+    async def list(
+        self,
+        *,
+        agent_id: str | Unset | None = UNSET,
+        category: wire.Category | Unset | None = UNSET,
+        severity: wire.Severity | Unset | None = UNSET,
+        assessment: wire.Assessment | Unset | None = UNSET,
+        closed: bool | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.FindingPage]:
+        """List Findings. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: list_findings_api_v1_findings_get.asyncio_detailed(
+                client=client,
+                agent_id=agent_id,
+                category=category,
+                severity=severity,
+                assessment=assessment,
+                closed=closed,
+                limit=limit,
+                cursor=cursor,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    def pages(
+        self,
+        *,
+        agent_id: str | Unset | None = UNSET,
+        category: wire.Category | Unset | None = UNSET,
+        severity: wire.Severity | Unset | None = UNSET,
+        assessment: wire.Assessment | Unset | None = UNSET,
+        closed: bool | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[Result[wire.FindingPage]]:
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        return pages(
+            lambda next_cursor: self.list(
+                agent_id=agent_id,
+                category=category,
+                severity=severity,
+                assessment=assessment,
+                closed=closed,
+                limit=limit,
+                x_workspace_id=x_workspace_id,
+                cursor=next_cursor,
+            ),
+            lambda value: value.next_cursor,
+            cursor,
+        )
+
+    def iter(
+        self,
+        *,
+        agent_id: str | Unset | None = UNSET,
+        category: wire.Category | Unset | None = UNSET,
+        severity: wire.Severity | Unset | None = UNSET,
+        assessment: wire.Assessment | Unset | None = UNSET,
+        closed: bool | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[wire.Finding]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(
+                agent_id=agent_id,
+                category=category,
+                severity=severity,
+                assessment=assessment,
+                closed=closed,
+                limit=limit,
+                cursor=cursor,
+                x_workspace_id=x_workspace_id,
+            )
+            for item in page.value.items
+        )
+
+    async def create(
+        self, *, body: wire.FindingCreate, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.Finding]:
+        """Create Finding. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: create_finding_api_v1_findings_post.asyncio_detailed(
+                client=client, body=body, x_workspace_id=x_workspace_id
+            )
+        )
+
+    def __call__(self, finding_id: str) -> FindingsFindingId:
+        return FindingsFindingId(self._client, self._bind("finding_id", finding_id))
+
+
+class FindingsFindingId(Resource):
+    """Bound Native resource: /findings / {finding_id}."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Finding]:
+        """Get Finding. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_finding_api_v1_findings_finding_id_get.asyncio_detailed(
+                client=client, finding_id=self._bindings["finding_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def update(
+        self,
+        *,
+        body: wire.FindingUpdate,
+        if_match: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.Finding]:
+        """Update Finding. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: update_finding_api_v1_findings_finding_id_patch.asyncio_detailed(
+                client=client,
+                finding_id=self._bindings["finding_id"],
+                body=body,
                 if_match=if_match,
                 x_workspace_id=x_workspace_id,
             )

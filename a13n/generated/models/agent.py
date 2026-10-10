@@ -7,7 +7,9 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
+from ..models.agent_preset_kind_type_0 import AgentPresetKindType0
 from ..models.agent_source import AgentSource
+from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.agent_labels import AgentLabels
@@ -35,6 +37,7 @@ class Agent:
         updated_by_id (str):
         version (int):
         workspace_id (str):
+        preset_kind (AgentPresetKindType0 | None | Unset):
     """
 
     archived_at: datetime.datetime | None
@@ -52,6 +55,7 @@ class Agent:
     updated_by_id: str
     version: int
     workspace_id: str
+    preset_kind: AgentPresetKindType0 | Unset | None = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -91,6 +95,14 @@ class Agent:
 
         workspace_id = self.workspace_id
 
+        preset_kind: str | Unset | None
+        if isinstance(self.preset_kind, Unset):
+            preset_kind = UNSET
+        elif isinstance(self.preset_kind, AgentPresetKindType0):
+            preset_kind = self.preset_kind.value
+        else:
+            preset_kind = self.preset_kind
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -112,6 +124,8 @@ class Agent:
                 "workspace_id": workspace_id,
             }
         )
+        if preset_kind is not UNSET:
+            field_dict["preset_kind"] = preset_kind
 
         return field_dict
 
@@ -174,6 +188,23 @@ class Agent:
 
         workspace_id = d.pop("workspace_id")
 
+        def _parse_preset_kind(data: object) -> AgentPresetKindType0 | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, str):
+                    raise TypeError()
+                preset_kind_type_0 = AgentPresetKindType0(data)
+
+                return preset_kind_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(AgentPresetKindType0 | Unset | None, data)
+
+        preset_kind = _parse_preset_kind(d.pop("preset_kind", UNSET))
+
         agent = cls(
             archived_at=archived_at,
             created_at=created_at,
@@ -190,6 +221,7 @@ class Agent:
             updated_by_id=updated_by_id,
             version=version,
             workspace_id=workspace_id,
+            preset_kind=preset_kind,
         )
 
         agent.additional_properties = d
