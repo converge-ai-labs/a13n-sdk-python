@@ -106,6 +106,21 @@
             "title": "Organization Id",
             "type": "string"
           },
+          "preset_kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "composer",
+                  "finding"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preset Kind"
+          },
           "source": {
             "$ref": "#/components/schemas/AgentSource"
           },
@@ -1355,6 +1370,194 @@
         "title": "AgentValidate",
         "type": "object"
       },
+      "Analysis": {
+        "properties": {
+          "agent_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agent Id"
+          },
+          "cited_trace_count": {
+            "title": "Cited Trace Count",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "finding_count": {
+            "title": "Finding Count",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "read_trace_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Read Trace Ids",
+            "type": "array"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "run_status": {
+            "title": "Run Status",
+            "type": "string"
+          },
+          "selected_traces": {
+            "items": {
+              "$ref": "#/components/schemas/SelectedTrace"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Selected Traces",
+            "type": "array"
+          },
+          "selection": {
+            "$ref": "#/components/schemas/AnalysisCreate"
+          },
+          "selection_truncated": {
+            "title": "Selection Truncated",
+            "type": "boolean"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "thread_id": {
+            "title": "Thread Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "agent_id",
+          "session_id",
+          "thread_id",
+          "run_id",
+          "run_status",
+          "selection",
+          "selected_traces",
+          "selection_truncated",
+          "read_trace_ids",
+          "finding_count",
+          "cited_trace_count",
+          "created_at"
+        ],
+        "title": "Analysis",
+        "type": "object"
+      },
+      "AnalysisCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "agent_id": {
+            "anyOf": [
+              {
+                "maxLength": 41,
+                "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agent Id"
+          },
+          "max_traces": {
+            "default": 10,
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "Max Traces",
+            "type": "integer"
+          },
+          "presets": {
+            "items": {
+              "$ref": "#/components/schemas/Preset"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Presets",
+            "type": "array"
+          },
+          "started_after": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started After"
+          },
+          "started_before": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started Before"
+          },
+          "trace_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{32}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trace Id"
+          }
+        },
+        "title": "AnalysisCreate",
+        "type": "object"
+      },
+      "AnalysisPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Analysis"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "AnalysisPage",
+        "type": "object"
+      },
       "ApiKey": {
         "properties": {
           "created_at": {
@@ -1501,6 +1704,16 @@
         ],
         "title": "Approve",
         "type": "object"
+      },
+      "Assessment": {
+        "enum": [
+          "unreviewed",
+          "confirmed",
+          "expected",
+          "insufficient",
+          "false_positive"
+        ],
+        "type": "string"
       },
       "Asset": {
         "properties": {
@@ -2395,6 +2608,20 @@
         "title": "CatalogRef",
         "type": "object"
       },
+      "Category": {
+        "enum": [
+          "unclear_request",
+          "instruction_issue",
+          "tool_design",
+          "tool_usage",
+          "tool_execution",
+          "answer_quality",
+          "context_gap",
+          "workflow_issue",
+          "boundary_violation"
+        ],
+        "type": "string"
+      },
       "Certainty": {
         "enum": [
           "not_dispatched",
@@ -2402,24 +2629,6 @@
           "unknown"
         ],
         "type": "string"
-      },
-      "ChatGPTModel": {
-        "properties": {
-          "display_name": {
-            "title": "Display Name",
-            "type": "string"
-          },
-          "slug": {
-            "title": "Slug",
-            "type": "string"
-          }
-        },
-        "required": [
-          "slug",
-          "display_name"
-        ],
-        "title": "ChatGPTModel",
-        "type": "object"
       },
       "ChildEnvironmentPolicy": {
         "additionalProperties": false,
@@ -3202,6 +3411,46 @@
           "actions"
         ],
         "title": "ConnectorConfig",
+        "type": "object"
+      },
+      "ContentRef": {
+        "additionalProperties": false,
+        "description": "An immutable Host-owned value, loaded through that Host's authorized content API.",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "media_type": {
+            "enum": [
+              "text/plain",
+              "application/json"
+            ],
+            "title": "Media Type",
+            "type": "string"
+          },
+          "preview": {
+            "title": "Preview",
+            "type": "string"
+          },
+          "size_bytes": {
+            "minimum": 0.0,
+            "title": "Size Bytes",
+            "type": "integer"
+          },
+          "truncated": {
+            "default": false,
+            "title": "Truncated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "size_bytes",
+          "media_type",
+          "preview"
+        ],
+        "title": "ContentRef",
         "type": "object"
       },
       "CreatedSubscription": {
@@ -4116,6 +4365,37 @@
         "title": "ErrorEnvelope",
         "type": "object"
       },
+      "Evidence": {
+        "additionalProperties": false,
+        "properties": {
+          "run_id": {
+            "maxLength": 41,
+            "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "span_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{16}$",
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Span Ids",
+            "type": "array"
+          },
+          "trace_id": {
+            "pattern": "^[0-9a-f]{32}$",
+            "title": "Trace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "trace_id"
+        ],
+        "title": "Evidence",
+        "type": "object"
+      },
       "ExternalTargetCreate": {
         "additionalProperties": false,
         "description": "An envd daemon someone runs, registered by its endpoint and the token it accepts.",
@@ -4199,6 +4479,296 @@
           "message"
         ],
         "title": "Failure",
+        "type": "object"
+      },
+      "Finding": {
+        "additionalProperties": false,
+        "properties": {
+          "agent_id": {
+            "maxLength": 41,
+            "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+            "title": "Agent Id",
+            "type": "string"
+          },
+          "agent_revision_id": {
+            "maxLength": 41,
+            "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+            "title": "Agent Revision Id",
+            "type": "string"
+          },
+          "analysis_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Analysis Id"
+          },
+          "assessment": {
+            "$ref": "#/components/schemas/Assessment"
+          },
+          "assessment_note": {
+            "title": "Assessment Note",
+            "type": "string"
+          },
+          "category": {
+            "$ref": "#/components/schemas/Category",
+            "description": "One primary issue type for the central evidenced claim, separate from analysis presets, impact and review. Put uncertainty in explanation/limitations; do not invent categories."
+          },
+          "closed": {
+            "title": "Closed",
+            "type": "boolean"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by_id": {
+            "title": "Created By Id",
+            "type": "string"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Evidence",
+            "type": "array"
+          },
+          "explanation": {
+            "maxLength": 8192,
+            "minLength": 1,
+            "title": "Explanation",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "limitations": {
+            "default": "",
+            "maxLength": 4096,
+            "title": "Limitations",
+            "type": "string"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/Severity",
+            "default": "warning"
+          },
+          "source_key": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Source Key",
+            "type": "string"
+          },
+          "source_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Run Id"
+          },
+          "suggestion": {
+            "maxLength": 8192,
+            "minLength": 1,
+            "title": "Suggestion",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "workspace_id": {
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "agent_id",
+          "agent_revision_id",
+          "title",
+          "category",
+          "explanation",
+          "suggestion",
+          "evidence",
+          "source_key",
+          "id",
+          "workspace_id",
+          "analysis_id",
+          "source_run_id",
+          "created_by_id",
+          "assessment",
+          "assessment_note",
+          "closed",
+          "version",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "Finding",
+        "type": "object"
+      },
+      "FindingCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "agent_id": {
+            "maxLength": 41,
+            "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+            "title": "Agent Id",
+            "type": "string"
+          },
+          "agent_revision_id": {
+            "maxLength": 41,
+            "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+            "title": "Agent Revision Id",
+            "type": "string"
+          },
+          "category": {
+            "$ref": "#/components/schemas/Category",
+            "description": "One primary issue type for the central evidenced claim, separate from analysis presets, impact and review. Put uncertainty in explanation/limitations; do not invent categories."
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Evidence",
+            "type": "array"
+          },
+          "explanation": {
+            "maxLength": 8192,
+            "minLength": 1,
+            "title": "Explanation",
+            "type": "string"
+          },
+          "limitations": {
+            "default": "",
+            "maxLength": 4096,
+            "title": "Limitations",
+            "type": "string"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/Severity",
+            "default": "warning"
+          },
+          "source_key": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Source Key",
+            "type": "string"
+          },
+          "suggestion": {
+            "maxLength": 8192,
+            "minLength": 1,
+            "title": "Suggestion",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "agent_id",
+          "agent_revision_id",
+          "title",
+          "category",
+          "explanation",
+          "suggestion",
+          "evidence",
+          "source_key"
+        ],
+        "title": "FindingCreate",
+        "type": "object"
+      },
+      "FindingPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Finding"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "FindingPage",
+        "type": "object"
+      },
+      "FindingUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "assessment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Assessment"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "assessment_note": {
+            "anyOf": [
+              {
+                "maxLength": 2048,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assessment Note"
+          },
+          "closed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed"
+          }
+        },
+        "title": "FindingUpdate",
         "type": "object"
       },
       "Fork": {
@@ -4987,6 +5557,13 @@
               "$ref": "#/components/schemas/JsonValue"
             },
             "title": "Content",
+            "type": "object"
+          },
+          "content_refs": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ContentRef"
+            },
+            "title": "Content Refs",
             "type": "object"
           },
           "ended_at": {
@@ -6713,6 +7290,59 @@
         "title": "Message",
         "type": "object"
       },
+      "MessageAuthor": {
+        "additionalProperties": false,
+        "properties": {
+          "entry_id": {
+            "title": "Entry Id",
+            "type": "string"
+          },
+          "principal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PrincipalSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "principal_id": {
+            "title": "Principal Id",
+            "type": "string"
+          },
+          "submitted_at": {
+            "format": "date-time",
+            "title": "Submitted At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "entry_id",
+          "principal_id",
+          "submitted_at",
+          "principal"
+        ],
+        "title": "MessageAuthor",
+        "type": "object"
+      },
+      "MessageAuthors": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/MessageAuthor"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "MessageAuthors",
+        "type": "object"
+      },
       "MessageHistory": {
         "description": "Pydantic AI ModelMessage JSON objects, validated by the Service. Imports completed user text, model text and closed tool-call/JSON-result exchanges; no instructions, media or suspended execution. At most 256 messages and 256 KiB of normalized JSON.",
         "items": {
@@ -8351,6 +8981,14 @@
         "title": "PluginSelection",
         "type": "object"
       },
+      "Preset": {
+        "enum": [
+          "execution",
+          "recovery",
+          "answer"
+        ],
+        "type": "string"
+      },
       "PriceComponent-Input": {
         "additionalProperties": false,
         "description": "One genai-prices usage dimension and its USD unit price.",
@@ -8883,6 +9521,35 @@
         "title": "ProviderCreate",
         "type": "object"
       },
+      "ProviderModel": {
+        "description": "An upstream choice; wire names retain the original account-discovery contract.",
+        "properties": {
+          "characteristics": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HarnessModelCharacteristics-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug",
+          "display_name"
+        ],
+        "title": "ProviderModel",
+        "type": "object"
+      },
       "ProviderPage": {
         "properties": {
           "items": {
@@ -9122,6 +9789,11 @@
               }
             ],
             "title": "Supports Destroy"
+          },
+          "supports_model_discovery": {
+            "default": false,
+            "title": "Supports Model Discovery",
+            "type": "boolean"
           },
           "supports_stop": {
             "anyOf": [
@@ -9575,6 +10247,38 @@
           }
         },
         "title": "RunConfiguration",
+        "type": "object"
+      },
+      "RunContent": {
+        "description": "One immutable saved display value, possibly truncated, read under the owning run's authority.",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "media_type": {
+            "enum": [
+              "text/plain",
+              "application/json"
+            ],
+            "title": "Media Type",
+            "type": "string"
+          },
+          "truncated": {
+            "default": false,
+            "title": "Truncated",
+            "type": "boolean"
+          },
+          "value": {
+            "$ref": "#/components/schemas/JsonValue"
+          }
+        },
+        "required": [
+          "id",
+          "media_type",
+          "value"
+        ],
+        "title": "RunContent",
         "type": "object"
       },
       "RunItems": {
@@ -10132,6 +10836,28 @@
         "title": "RunView",
         "type": "object"
       },
+      "SelectedTrace": {
+        "additionalProperties": false,
+        "properties": {
+          "run_id": {
+            "maxLength": 41,
+            "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "trace_id": {
+            "pattern": "^[0-9a-f]{32}$",
+            "title": "Trace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "trace_id",
+          "run_id"
+        ],
+        "title": "SelectedTrace",
+        "type": "object"
+      },
       "ServiceAccount": {
         "properties": {
           "created_at": {
@@ -10542,6 +11268,14 @@
         ],
         "title": "SessionView",
         "type": "object"
+      },
+      "Severity": {
+        "enum": [
+          "critical",
+          "warning",
+          "suggestion"
+        ],
+        "type": "string"
       },
       "Skill": {
         "properties": {
@@ -12889,7 +13623,9 @@
           "web",
           "memory",
           "assets",
-          "configuration"
+          "configuration",
+          "traces",
+          "findings"
         ],
         "type": "string"
       },
@@ -13875,12 +14611,13 @@
         "summary": "Prepare Composer",
         "tags": [
           "agents"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/agents": {
       "get": {
-        "description": "Agents of the workspace. `q` matches the name or description, ignoring case; `archived` keeps only\narchived agents, or only open ones; `source=builtin` finds the Agent Composer; the skill filters keep those\nwith a revision pinning that skill or that skill revision.",
+        "description": "Agents of the workspace. `q` matches the name or description, ignoring case; `archived` keeps only\narchived agents, or only open ones; `source=builtin` finds managed presets; the skill filters keep those\nwith a revision pinning that skill or that skill revision.",
         "operationId": "list_agents_api_v1_agents_get",
         "parameters": [
           {
@@ -13950,6 +14687,26 @@
                 }
               ],
               "title": "Source"
+            }
+          },
+          {
+            "in": "query",
+            "name": "preset_kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "composer",
+                    "finding"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Preset Kind"
             }
           },
           {
@@ -14064,7 +14821,8 @@
         "summary": "List Agents",
         "tags": [
           "agents"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "post": {
         "operationId": "create_agent_api_v1_agents_post",
@@ -14130,7 +14888,8 @@
         "summary": "Create Agent",
         "tags": [
           "agents"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/agents/validate": {
@@ -14192,7 +14951,8 @@
         "summary": "Validate Revision",
         "tags": [
           "agents"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/agents/{agent_id}": {
@@ -14258,7 +15018,8 @@
         "summary": "Get Agent",
         "tags": [
           "agents"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "patch": {
         "operationId": "update_agent_api_v1_agents__agent_id__patch",
@@ -14352,7 +15113,8 @@
         "summary": "Update Agent",
         "tags": [
           "agents"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/agents/{agent_id}/archive": {
@@ -14438,7 +15200,8 @@
         "summary": "Archive Agent",
         "tags": [
           "agents"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/agents/{agent_id}/avatar": {
@@ -14524,7 +15287,8 @@
         "summary": "Delete Avatar",
         "tags": [
           "agents"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "get": {
         "operationId": "get_avatar_api_v1_agents__agent_id__avatar_get",
@@ -14785,7 +15549,8 @@
         "summary": "Duplicate Agent",
         "tags": [
           "agents"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/agents/{agent_id}/revisions": {
@@ -14879,7 +15644,8 @@
         "summary": "List Revisions",
         "tags": [
           "agents"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "post": {
         "description": "A configuration that validates to the default revision's creates nothing and returns that revision.",
@@ -14974,7 +15740,8 @@
         "summary": "Create Revision",
         "tags": [
           "agents"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/agents/{agent_id}/revisions/{revision_id}": {
@@ -15049,7 +15816,8 @@
         "summary": "Get Revision",
         "tags": [
           "agents"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/agents/{agent_id}/revisions/{revision_id}/set-default": {
@@ -15144,7 +15912,8 @@
         "summary": "Set Default",
         "tags": [
           "agents"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/agents/{agent_id}/unarchive": {
@@ -15230,7 +15999,8 @@
         "summary": "Unarchive Agent",
         "tags": [
           "agents"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/assets": {
@@ -15315,7 +16085,8 @@
         "summary": "List Assets",
         "tags": [
           "assets"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "post": {
         "operationId": "create_asset_api_v1_assets_post",
@@ -15391,7 +16162,8 @@
         "summary": "Create Asset",
         "tags": [
           "assets"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/assets/{asset_id}": {
@@ -15477,7 +16249,8 @@
         "summary": "Retire Asset",
         "tags": [
           "assets"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "get": {
         "operationId": "get_asset_api_v1_assets__asset_id__get",
@@ -15541,7 +16314,8 @@
         "summary": "Get Asset",
         "tags": [
           "assets"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/assets/{asset_id}/content": {
@@ -15941,7 +16715,8 @@
         "summary": "List Connections",
         "tags": [
           "connections"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "post": {
         "operationId": "create_connection_api_v1_connections_post",
@@ -16007,7 +16782,8 @@
         "summary": "Create Connection",
         "tags": [
           "connections"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/connections/callback": {
@@ -16218,7 +16994,8 @@
         "summary": "Get Connection",
         "tags": [
           "connections"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "patch": {
         "operationId": "update_connection_api_v1_connections__connection_id__patch",
@@ -16312,7 +17089,8 @@
         "summary": "Update Connection",
         "tags": [
           "connections"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/connections/{connection_id}/authorize": {
@@ -16495,7 +17273,8 @@
         "summary": "Revoke Connection",
         "tags": [
           "connections"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/connections/{connection_id}/test": {
@@ -16562,7 +17341,8 @@
         "summary": "Test Connection",
         "tags": [
           "connections"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/connections/{connection_id}/tools": {
@@ -16628,7 +17408,8 @@
         "summary": "List Tools",
         "tags": [
           "connections"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/connector-providers": {
@@ -16713,7 +17494,8 @@
         "summary": "List connector providers",
         "tags": [
           "providers"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "post": {
         "operationId": "create_provider_api_v1_connector_providers_post",
@@ -16779,7 +17561,8 @@
         "summary": "Create connector provider",
         "tags": [
           "providers"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/connector-providers/{provider_id}": {
@@ -16845,7 +17628,8 @@
         "summary": "Get connector provider",
         "tags": [
           "providers"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "patch": {
         "description": "A `config` change must also replace or remove a stored credential: it never follows a new endpoint.",
@@ -16940,7 +17724,8 @@
         "summary": "Update connector provider",
         "tags": [
           "providers"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/connector-providers/{provider_id}/apps": {
@@ -17061,7 +17846,8 @@
         "summary": "List Apps",
         "tags": [
           "connections"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/connector-providers/{provider_id}/apps/{app}": {
@@ -17136,7 +17922,8 @@
         "summary": "Get App",
         "tags": [
           "connections"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/connector-providers/{provider_id}/apps/{app}/actions": {
@@ -17211,7 +17998,8 @@
         "summary": "List Actions",
         "tags": [
           "connections"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/connector-providers/{provider_id}/test": {
@@ -17278,7 +18066,8 @@
         "summary": "Test connector provider",
         "tags": [
           "providers"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/environment-providers": {
@@ -17363,7 +18152,8 @@
         "summary": "List environment providers",
         "tags": [
           "providers"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "post": {
         "operationId": "create_provider_api_v1_environment_providers_post",
@@ -17429,7 +18219,8 @@
         "summary": "Create environment provider",
         "tags": [
           "providers"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/environment-providers/{provider_id}": {
@@ -17495,7 +18286,8 @@
         "summary": "Get environment provider",
         "tags": [
           "providers"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "patch": {
         "description": "A `config` change must also replace or remove a stored credential: it never follows a new endpoint.",
@@ -17590,7 +18382,8 @@
         "summary": "Update environment provider",
         "tags": [
           "providers"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/environment-providers/{provider_id}/test": {
@@ -17657,7 +18450,8 @@
         "summary": "Test environment provider",
         "tags": [
           "providers"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/environment-templates": {
@@ -17761,7 +18555,8 @@
         "summary": "List Templates",
         "tags": [
           "environments"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "post": {
         "operationId": "create_template_api_v1_environment_templates_post",
@@ -17827,7 +18622,8 @@
         "summary": "Create Template",
         "tags": [
           "environments"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/environment-templates/{template_id}": {
@@ -17893,7 +18689,8 @@
         "summary": "Get Template",
         "tags": [
           "environments"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "patch": {
         "operationId": "update_template_api_v1_environment_templates__template_id__patch",
@@ -17987,7 +18784,8 @@
         "summary": "Update Template",
         "tags": [
           "environments"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/environments": {
@@ -18089,7 +18887,8 @@
         "summary": "List Environments",
         "tags": [
           "environments"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "post": {
         "description": "Reserve a managed sandbox from a template (`creating`), or register an external envd target (`ready`).",
@@ -18164,7 +18963,8 @@
         "summary": "Create Environment",
         "tags": [
           "environments"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/environments/{environment_id}": {
@@ -18250,7 +19050,8 @@
         "summary": "Delete Environment",
         "tags": [
           "environments"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "get": {
         "operationId": "get_environment_api_v1_environments__environment_id__get",
@@ -18314,7 +19115,8 @@
         "summary": "Get Environment",
         "tags": [
           "environments"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "patch": {
         "operationId": "update_environment_api_v1_environments__environment_id__patch",
@@ -18408,7 +19210,8 @@
         "summary": "Update Environment",
         "tags": [
           "environments"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/environments/{environment_id}/stop": {
@@ -18494,6 +19297,622 @@
         "summary": "Stop Environment",
         "tags": [
           "environments"
+        ],
+        "x-a13n-mcp": true
+      }
+    },
+    "/api/v1/finding-agent": {
+      "post": {
+        "operationId": "prepare_finding_agent_api_v1_finding_agent_post",
+        "parameters": [
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Agent"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "csrf": [],
+            "loginSession": []
+          }
+        ],
+        "summary": "Prepare Finding Agent",
+        "tags": [
+          "findings"
+        ]
+      }
+    },
+    "/api/v1/finding-analyses": {
+      "get": {
+        "operationId": "list_analyses_api_v1_finding_analyses_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "loginSession": []
+          }
+        ],
+        "summary": "List Analyses",
+        "tags": [
+          "findings"
+        ],
+        "x-a13n-mcp": true
+      },
+      "post": {
+        "operationId": "start_analysis_api_v1_finding_analyses_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "^[!-~]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalysisCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Analysis"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "csrf": [],
+            "loginSession": []
+          }
+        ],
+        "summary": "Start Analysis",
+        "tags": [
+          "findings"
+        ]
+      }
+    },
+    "/api/v1/findings": {
+      "get": {
+        "operationId": "list_findings_api_v1_findings_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "agent_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Agent Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Category"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "in": "query",
+            "name": "severity",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Severity"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Severity"
+            }
+          },
+          {
+            "in": "query",
+            "name": "assessment",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Assessment"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Assessment"
+            }
+          },
+          {
+            "in": "query",
+            "name": "closed",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Closed"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FindingPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "loginSession": []
+          }
+        ],
+        "summary": "List Findings",
+        "tags": [
+          "findings"
+        ],
+        "x-a13n-mcp": true
+      },
+      "post": {
+        "operationId": "create_finding_api_v1_findings_post",
+        "parameters": [
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FindingCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Finding"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "csrf": [],
+            "loginSession": []
+          }
+        ],
+        "summary": "Create Finding",
+        "tags": [
+          "findings"
+        ]
+      }
+    },
+    "/api/v1/findings/{finding_id}": {
+      "get": {
+        "operationId": "get_finding_api_v1_findings__finding_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "finding_id",
+            "required": true,
+            "schema": {
+              "title": "Finding Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Finding"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "loginSession": []
+          }
+        ],
+        "summary": "Get Finding",
+        "tags": [
+          "findings"
+        ],
+        "x-a13n-mcp": true
+      },
+      "patch": {
+        "operationId": "update_finding_api_v1_findings__finding_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "finding_id",
+            "required": true,
+            "schema": {
+              "title": "Finding Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The resource's ETag: `\"{id}:{version}\"` of its current view, `\"{key}:{version}\"` for a model",
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The resource's ETag: `\"{id}:{version}\"` of its current view, `\"{key}:{version}\"` for a model",
+              "title": "If-Match"
+            }
+          },
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FindingUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Finding"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "csrf": [],
+            "loginSession": []
+          }
+        ],
+        "summary": "Update Finding",
+        "tags": [
+          "findings"
         ]
       }
     },
@@ -18626,7 +20045,8 @@
         "summary": "List Mcp Servers",
         "tags": [
           "connections"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/media-understanding-defaults": {
@@ -18683,7 +20103,8 @@
         "summary": "Get Media Defaults",
         "tags": [
           "models"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "put": {
         "description": "Replaces all three kinds; each model must declare it understands its kind. Requires workspace admin.",
@@ -18769,7 +20190,8 @@
         "summary": "Replace Media Defaults",
         "tags": [
           "models"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/memories": {
@@ -18906,7 +20328,8 @@
         "summary": "List Memories",
         "tags": [
           "memories"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "post": {
         "operationId": "create_memory_api_v1_memories_post",
@@ -18972,7 +20395,8 @@
         "summary": "Create Memory",
         "tags": [
           "memories"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/memories/{memory_id}": {
@@ -19051,7 +20475,8 @@
         "summary": "Delete Memory",
         "tags": [
           "memories"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "get": {
         "operationId": "get_memory_api_v1_memories__memory_id__get",
@@ -19115,7 +20540,8 @@
         "summary": "Get Memory",
         "tags": [
           "memories"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "patch": {
         "operationId": "update_memory_api_v1_memories__memory_id__patch",
@@ -19209,7 +20635,8 @@
         "summary": "Update Memory",
         "tags": [
           "memories"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/memories/{memory_id}/files": {
@@ -19316,7 +20743,8 @@
         "summary": "List Files",
         "tags": [
           "memories"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "post": {
         "operationId": "create_file_api_v1_memories__memory_id__files_post",
@@ -19391,7 +20819,8 @@
         "summary": "Create File",
         "tags": [
           "memories"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/memories/{memory_id}/files/move": {
@@ -19488,7 +20917,8 @@
         "summary": "Move File",
         "tags": [
           "memories"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/memories/{memory_id}/files/{path}": {
@@ -19576,7 +21006,8 @@
         "summary": "Delete File",
         "tags": [
           "memories"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "get": {
         "operationId": "read_file_api_v1_memories__memory_id__files__path__get",
@@ -19649,7 +21080,8 @@
         "summary": "Read File",
         "tags": [
           "memories"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "put": {
         "operationId": "replace_file_api_v1_memories__memory_id__files__path__put",
@@ -19752,7 +21184,8 @@
         "summary": "Replace File",
         "tags": [
           "memories"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/memories/{memory_id}/records": {
@@ -19849,7 +21282,8 @@
         "summary": "List Records",
         "tags": [
           "memories"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "post": {
         "operationId": "add_record_api_v1_memories__memory_id__records_post",
@@ -19924,7 +21358,8 @@
         "summary": "Add Record",
         "tags": [
           "memories"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/memories/{memory_id}/records/search": {
@@ -20002,7 +21437,8 @@
         "summary": "Search Records",
         "tags": [
           "memories"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/memories/{memory_id}/records/{record_id}": {
@@ -20072,7 +21508,8 @@
         "summary": "Delete Record",
         "tags": [
           "memories"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "put": {
         "description": "Replace the record's text; records carry no version, so the last writer wins.",
@@ -20158,7 +21595,8 @@
         "summary": "Update Record",
         "tags": [
           "memories"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/memories/{memory_id}/revisions": {
@@ -20237,7 +21675,8 @@
         "summary": "Purge History",
         "tags": [
           "memories"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "get": {
         "operationId": "list_revisions_api_v1_memories__memory_id__revisions_get",
@@ -20363,7 +21802,8 @@
         "summary": "List Revisions",
         "tags": [
           "memories"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/memories/{memory_id}/revisions/{seq}": {
@@ -20438,7 +21878,8 @@
         "summary": "Get Revision",
         "tags": [
           "memories"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/memories/{memory_id}/revisions/{seq}/restore": {
@@ -20534,7 +21975,8 @@
         "summary": "Restore Revision",
         "tags": [
           "memories"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/memory-providers": {
@@ -20619,7 +22061,8 @@
         "summary": "List memory providers",
         "tags": [
           "providers"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "post": {
         "operationId": "create_provider_api_v1_memory_providers_post",
@@ -20685,7 +22128,8 @@
         "summary": "Create memory provider",
         "tags": [
           "providers"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/memory-providers/{provider_id}": {
@@ -20751,7 +22195,8 @@
         "summary": "Get memory provider",
         "tags": [
           "providers"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "patch": {
         "description": "A `config` change must also replace or remove a stored credential: it never follows a new endpoint.",
@@ -20846,7 +22291,8 @@
         "summary": "Update memory provider",
         "tags": [
           "providers"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/memory-providers/{provider_id}/test": {
@@ -20913,7 +22359,8 @@
         "summary": "Test memory provider",
         "tags": [
           "providers"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/model-catalog": {
@@ -20946,7 +22393,8 @@
         "summary": "Get Model Catalog",
         "tags": [
           "models"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/model-providers": {
@@ -21031,7 +22479,8 @@
         "summary": "List model providers",
         "tags": [
           "providers"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "post": {
         "operationId": "create_provider_api_v1_model_providers_post",
@@ -21097,7 +22546,8 @@
         "summary": "Create model provider",
         "tags": [
           "providers"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/model-providers/{provider_id}": {
@@ -21163,7 +22613,8 @@
         "summary": "Get model provider",
         "tags": [
           "providers"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "patch": {
         "description": "A `config` change must also replace or remove a stored credential: it never follows a new endpoint.",
@@ -21258,7 +22709,8 @@
         "summary": "Update model provider",
         "tags": [
           "providers"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/model-providers/{provider_id}/authorization": {
@@ -21586,7 +23038,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/ChatGPTModel"
+                    "$ref": "#/components/schemas/ProviderModel"
                   },
                   "title": "Response Discover Model Provider Models Api V1 Model Providers  Provider Id  Models Get",
                   "type": "array"
@@ -21613,7 +23065,8 @@
         "summary": "Discover Model Provider Models",
         "tags": [
           "providers"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/model-providers/{provider_id}/test": {
@@ -21680,7 +23133,8 @@
         "summary": "Test model provider",
         "tags": [
           "providers"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/models": {
@@ -21765,7 +23219,8 @@
         "summary": "List Models",
         "tags": [
           "models"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "post": {
         "description": "Needs `write` on the workspace and on the model's provider, whose credential the model spends.",
@@ -21832,7 +23287,8 @@
         "summary": "Create Model",
         "tags": [
           "models"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/models/{key}": {
@@ -21898,7 +23354,8 @@
         "summary": "Get Model",
         "tags": [
           "models"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "patch": {
         "description": "A configuration change also needs `write` on the model's provider.",
@@ -21993,7 +23450,8 @@
         "summary": "Update Model",
         "tags": [
           "models"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/organizations": {
@@ -23260,7 +24718,8 @@
         "summary": "List Provider Types",
         "tags": [
           "providers"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/runs/{run_id}": {
@@ -23589,6 +25048,83 @@
           }
         ],
         "summary": "List Attempt Spans",
+        "tags": [
+          "runs"
+        ],
+        "x-a13n-mcp": true
+      }
+    },
+    "/api/v1/runs/{run_id}/contents/{content_id}": {
+      "get": {
+        "description": "The complete value behind a committed display reference.",
+        "operationId": "run_content_api_v1_runs__run_id__contents__content_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "content_id",
+            "required": true,
+            "schema": {
+              "title": "Content Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunContent"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "loginSession": []
+          }
+        ],
+        "summary": "Run Content",
         "tags": [
           "runs"
         ]
@@ -24484,6 +26020,88 @@
         ]
       }
     },
+    "/api/v1/sessions/{session_id}/message-authors": {
+      "get": {
+        "operationId": "get_message_authors_api_v1_sessions__session_id__message_authors_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "entry_id",
+            "required": true,
+            "schema": {
+              "items": {
+                "maxLength": 72,
+                "minLength": 1,
+                "type": "string"
+              },
+              "maxItems": 100,
+              "minItems": 1,
+              "title": "Entry Id",
+              "type": "array"
+            }
+          },
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageAuthors"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "loginSession": []
+          }
+        ],
+        "summary": "Get Message Authors",
+        "tags": [
+          "runs"
+        ]
+      }
+    },
     "/api/v1/skills": {
       "get": {
         "description": "Skills of the workspace. `q` matches the name or description, ignoring case; `source` the kind of\nsource the default revision was read from; `archived` keeps only archived skills, or only open ones.",
@@ -24640,7 +26258,8 @@
         "summary": "List Skills",
         "tags": [
           "skills"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "post": {
         "operationId": "create_skill_api_v1_skills_post",
@@ -24706,7 +26325,8 @@
         "summary": "Create Skill",
         "tags": [
           "skills"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/skills/validate": {
@@ -24775,7 +26395,8 @@
         "summary": "Validate Package",
         "tags": [
           "skills"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/skills/{skill_id}": {
@@ -24841,7 +26462,8 @@
         "summary": "Get Skill",
         "tags": [
           "skills"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "patch": {
         "description": "Name, description and labels; an archived skill changes only by unarchiving.",
@@ -24936,7 +26558,8 @@
         "summary": "Update Skill",
         "tags": [
           "skills"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/skills/{skill_id}/archive": {
@@ -25023,7 +26646,8 @@
         "summary": "Archive Skill",
         "tags": [
           "skills"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/skills/{skill_id}/revisions": {
@@ -25117,7 +26741,8 @@
         "summary": "List Revisions",
         "tags": [
           "skills"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "post": {
         "description": "A package whose manifest equals the default revision's creates nothing and returns that revision.",
@@ -25212,7 +26837,8 @@
         "summary": "Create Revision",
         "tags": [
           "skills"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/skills/{skill_id}/revisions/{revision_id}": {
@@ -25287,7 +26913,8 @@
         "summary": "Get Revision",
         "tags": [
           "skills"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/skills/{skill_id}/revisions/{revision_id}/content": {
@@ -25545,7 +27172,8 @@
         "summary": "Set Default Revision",
         "tags": [
           "skills"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/skills/{skill_id}/unarchive": {
@@ -25631,7 +27259,8 @@
         "summary": "Unarchive Skill",
         "tags": [
           "skills"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/subscriptions": {
@@ -25716,7 +27345,8 @@
         "summary": "List Subscriptions",
         "tags": [
           "subscriptions"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "post": {
         "description": "The response is the only time the signing secret is returned.",
@@ -25783,7 +27413,8 @@
         "summary": "Create Subscription",
         "tags": [
           "subscriptions"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/subscriptions/{subscription_id}": {
@@ -25862,7 +27493,8 @@
         "summary": "Delete Subscription",
         "tags": [
           "subscriptions"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "get": {
         "operationId": "get_subscription_api_v1_subscriptions__subscription_id__get",
@@ -25926,7 +27558,8 @@
         "summary": "Get Subscription",
         "tags": [
           "subscriptions"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "patch": {
         "operationId": "update_subscription_api_v1_subscriptions__subscription_id__patch",
@@ -26020,7 +27653,8 @@
         "summary": "Update Subscription",
         "tags": [
           "subscriptions"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/subscriptions/{subscription_id}/deliveries": {
@@ -26114,7 +27748,8 @@
         "summary": "List Deliveries",
         "tags": [
           "subscriptions"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/subscriptions/{subscription_id}/deliveries/{delivery_id}/redeliver": {
@@ -26190,7 +27825,8 @@
         "summary": "Redeliver",
         "tags": [
           "subscriptions"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/threads": {
@@ -26711,7 +28347,8 @@
         "summary": "List Mounts",
         "tags": [
           "environments"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "post": {
         "operationId": "add_mount_api_v1_threads__thread_id__environments_post",
@@ -26805,7 +28442,8 @@
         "summary": "Add Mount",
         "tags": [
           "environments"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/threads/{thread_id}/environments/{name}": {
@@ -26893,7 +28531,8 @@
         "summary": "Remove Mount",
         "tags": [
           "environments"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/threads/{thread_id}/inbox": {
@@ -28090,7 +29729,8 @@
         "summary": "List Toolsets",
         "tags": [
           "agents"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/trace-backend": {
@@ -28148,7 +29788,8 @@
         "summary": "Get Trace Backend",
         "tags": [
           "runs"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/traces": {
@@ -28343,7 +29984,8 @@
         "summary": "List Traces",
         "tags": [
           "runs"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/traces/{trace_id}": {
@@ -28411,7 +30053,8 @@
         "summary": "Get Trace",
         "tags": [
           "runs"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/traces/{trace_id}/spans": {
@@ -28507,7 +30150,8 @@
         "summary": "List Trace Spans",
         "tags": [
           "runs"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/uploads": {
@@ -29864,7 +31508,8 @@
         "summary": "List web providers",
         "tags": [
           "providers"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "post": {
         "operationId": "create_provider_api_v1_web_providers_post",
@@ -29930,7 +31575,8 @@
         "summary": "Create web provider",
         "tags": [
           "providers"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/web-providers/{provider_id}": {
@@ -29996,7 +31642,8 @@
         "summary": "Get web provider",
         "tags": [
           "providers"
-        ]
+        ],
+        "x-a13n-mcp": true
       },
       "patch": {
         "description": "A `config` change must also replace or remove a stored credential: it never follows a new endpoint.",
@@ -30091,7 +31738,8 @@
         "summary": "Update web provider",
         "tags": [
           "providers"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/web-providers/{provider_id}/test": {
@@ -30158,7 +31806,8 @@
         "summary": "Test web provider",
         "tags": [
           "providers"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/workspaces": {

@@ -6,51 +6,72 @@ from typing import Any, TypeVar
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
-T = TypeVar("T", bound="ChatGPTModel")
+from ..models.run_content_media_type import RunContentMediaType
+from ..types import UNSET, Unset
+
+T = TypeVar("T", bound="RunContent")
 
 
 @_attrs_define(repr=False)
-class ChatGPTModel:
-    """
+class RunContent:
+    """One immutable saved display value, possibly truncated, read under the owning run's authority.
+
     Attributes:
-        display_name (str):
-        slug (str):
+        id (str):
+        media_type (RunContentMediaType):
+        value (Any):
+        truncated (bool | Unset):
     """
 
-    display_name: str
-    slug: str
+    id: str
+    media_type: RunContentMediaType
+    value: Any
+    truncated: bool | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        display_name = self.display_name
+        id = self.id
 
-        slug = self.slug
+        media_type = self.media_type.value
+
+        value = self.value
+
+        truncated = self.truncated
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
-                "display_name": display_name,
-                "slug": slug,
+                "id": id,
+                "media_type": media_type,
+                "value": value,
             }
         )
+        if truncated is not UNSET:
+            field_dict["truncated"] = truncated
 
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        display_name = d.pop("display_name")
+        id = d.pop("id")
 
-        slug = d.pop("slug")
+        media_type = RunContentMediaType(d.pop("media_type"))
 
-        chat_gpt_model = cls(
-            display_name=display_name,
-            slug=slug,
+        value = d.pop("value")
+
+        truncated = d.pop("truncated", UNSET)
+
+        run_content = cls(
+            id=id,
+            media_type=media_type,
+            value=value,
+            truncated=truncated,
         )
 
-        chat_gpt_model.additional_properties = d
-        return chat_gpt_model
+        run_content.additional_properties = d
+        return run_content
 
     @property
     def additional_keys(self) -> list[str]:

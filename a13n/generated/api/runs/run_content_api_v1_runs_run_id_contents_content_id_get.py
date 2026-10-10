@@ -6,12 +6,13 @@ import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
 from ...models.error_envelope import ErrorEnvelope
-from ...models.provider_model import ProviderModel
+from ...models.run_content import RunContent
 from ...types import UNSET, Response, Unset
 
 
 def build_request(
-    provider_id: str,
+    run_id: str,
+    content_id: str,
     *,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> dict[str, Any]:
@@ -21,8 +22,9 @@ def build_request(
 
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": "/api/v1/model-providers/{provider_id}/models".format(
-            provider_id=quote(str(provider_id), safe=""),
+        "url": "/api/v1/runs/{run_id}/contents/{content_id}".format(
+            run_id=quote(str(run_id), safe=""),
+            content_id=quote(str(content_id), safe=""),
         ),
     }
 
@@ -30,16 +32,9 @@ def build_request(
     return _kwargs
 
 
-def _parse_response(
-    *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> ErrorEnvelope | list[ProviderModel]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> ErrorEnvelope | RunContent:
     if response.status_code == 200:
-        response_200 = []
-        _response_200 = response.json()
-        for response_200_item_data in _response_200:
-            response_200_item = ProviderModel.from_dict(response_200_item_data)
-
-            response_200.append(response_200_item)
+        response_200 = RunContent.from_dict(response.json())
 
         return response_200
 
@@ -55,7 +50,7 @@ def _parse_response(
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[ErrorEnvelope | list[ProviderModel]]:
+) -> Response[ErrorEnvelope | RunContent]:
     from ....errors import ProtocolError
 
     try:
@@ -70,15 +65,19 @@ def _build_response(
 
 
 def sync_detailed(
-    provider_id: str,
+    run_id: str,
+    content_id: str,
     *,
     client: AuthenticatedClient,
     x_workspace_id: str | Unset | None = UNSET,
-) -> Response[ErrorEnvelope | list[ProviderModel]]:
-    """Discover Model Provider Models
+) -> Response[ErrorEnvelope | RunContent]:
+    """Run Content
+
+     The complete value behind a committed display reference.
 
     Args:
-        provider_id (str):
+        run_id (str):
+        content_id (str):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
@@ -88,11 +87,12 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorEnvelope | list[ProviderModel]]
+        Response[ErrorEnvelope | RunContent]
     """
 
     kwargs = build_request(
-        provider_id=provider_id,
+        run_id=run_id,
+        content_id=content_id,
         x_workspace_id=x_workspace_id,
     )
 
@@ -104,15 +104,19 @@ def sync_detailed(
 
 
 def sync(
-    provider_id: str,
+    run_id: str,
+    content_id: str,
     *,
     client: AuthenticatedClient,
     x_workspace_id: str | Unset | None = UNSET,
-) -> ErrorEnvelope | list[ProviderModel] | None:
-    """Discover Model Provider Models
+) -> ErrorEnvelope | RunContent | None:
+    """Run Content
+
+     The complete value behind a committed display reference.
 
     Args:
-        provider_id (str):
+        run_id (str):
+        content_id (str):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
@@ -122,26 +126,31 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorEnvelope | list[ProviderModel]
+        ErrorEnvelope | RunContent
     """
 
     return sync_detailed(
-        provider_id=provider_id,
+        run_id=run_id,
+        content_id=content_id,
         client=client,
         x_workspace_id=x_workspace_id,
     ).parsed
 
 
 async def asyncio_detailed(
-    provider_id: str,
+    run_id: str,
+    content_id: str,
     *,
     client: AuthenticatedClient,
     x_workspace_id: str | Unset | None = UNSET,
-) -> Response[ErrorEnvelope | list[ProviderModel]]:
-    """Discover Model Provider Models
+) -> Response[ErrorEnvelope | RunContent]:
+    """Run Content
+
+     The complete value behind a committed display reference.
 
     Args:
-        provider_id (str):
+        run_id (str):
+        content_id (str):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
@@ -151,11 +160,12 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorEnvelope | list[ProviderModel]]
+        Response[ErrorEnvelope | RunContent]
     """
 
     kwargs = build_request(
-        provider_id=provider_id,
+        run_id=run_id,
+        content_id=content_id,
         x_workspace_id=x_workspace_id,
     )
 
@@ -165,15 +175,19 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    provider_id: str,
+    run_id: str,
+    content_id: str,
     *,
     client: AuthenticatedClient,
     x_workspace_id: str | Unset | None = UNSET,
-) -> ErrorEnvelope | list[ProviderModel] | None:
-    """Discover Model Provider Models
+) -> ErrorEnvelope | RunContent | None:
+    """Run Content
+
+     The complete value behind a committed display reference.
 
     Args:
-        provider_id (str):
+        run_id (str):
+        content_id (str):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
@@ -183,12 +197,13 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorEnvelope | list[ProviderModel]
+        ErrorEnvelope | RunContent
     """
 
     return (
         await asyncio_detailed(
-            provider_id=provider_id,
+            run_id=run_id,
+            content_id=content_id,
             client=client,
             x_workspace_id=x_workspace_id,
         )

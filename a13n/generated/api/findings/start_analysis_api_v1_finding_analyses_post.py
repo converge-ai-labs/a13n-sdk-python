@@ -1,47 +1,45 @@
 from http import HTTPStatus
 from typing import Any
-from urllib.parse import quote
 
 import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
+from ...models.analysis import Analysis
+from ...models.analysis_create import AnalysisCreate
 from ...models.error_envelope import ErrorEnvelope
-from ...models.provider_model import ProviderModel
 from ...types import UNSET, Response, Unset
 
 
 def build_request(
-    provider_id: str,
     *,
+    body: AnalysisCreate,
+    idempotency_key: str,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> dict[str, Any]:
     headers: dict[str, Any] = {}
+    headers["Idempotency-Key"] = idempotency_key
+
     if not isinstance(x_workspace_id, Unset):
         headers["X-Workspace-ID"] = x_workspace_id
 
     _kwargs: dict[str, Any] = {
-        "method": "get",
-        "url": "/api/v1/model-providers/{provider_id}/models".format(
-            provider_id=quote(str(provider_id), safe=""),
-        ),
+        "method": "post",
+        "url": "/api/v1/finding-analyses",
     }
+
+    _kwargs["json"] = body.to_dict()
+
+    headers["Content-Type"] = "application/json"
 
     _kwargs["headers"] = headers
     return _kwargs
 
 
-def _parse_response(
-    *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> ErrorEnvelope | list[ProviderModel]:
-    if response.status_code == 200:
-        response_200 = []
-        _response_200 = response.json()
-        for response_200_item_data in _response_200:
-            response_200_item = ProviderModel.from_dict(response_200_item_data)
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Analysis | ErrorEnvelope:
+    if response.status_code == 201:
+        response_201 = Analysis.from_dict(response.json())
 
-            response_200.append(response_200_item)
-
-        return response_200
+        return response_201
 
     if response.status_code == 400:
         response_400 = ErrorEnvelope.from_dict(response.json())
@@ -55,7 +53,7 @@ def _parse_response(
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[ErrorEnvelope | list[ProviderModel]]:
+) -> Response[Analysis | ErrorEnvelope]:
     from ....errors import ProtocolError
 
     try:
@@ -70,29 +68,32 @@ def _build_response(
 
 
 def sync_detailed(
-    provider_id: str,
     *,
     client: AuthenticatedClient,
+    body: AnalysisCreate,
+    idempotency_key: str,
     x_workspace_id: str | Unset | None = UNSET,
-) -> Response[ErrorEnvelope | list[ProviderModel]]:
-    """Discover Model Provider Models
+) -> Response[Analysis | ErrorEnvelope]:
+    """Start Analysis
 
     Args:
-        provider_id (str):
+        idempotency_key (str):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
+        body (AnalysisCreate):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorEnvelope | list[ProviderModel]]
+        Response[Analysis | ErrorEnvelope]
     """
 
     kwargs = build_request(
-        provider_id=provider_id,
+        body=body,
+        idempotency_key=idempotency_key,
         x_workspace_id=x_workspace_id,
     )
 
@@ -104,58 +105,64 @@ def sync_detailed(
 
 
 def sync(
-    provider_id: str,
     *,
     client: AuthenticatedClient,
+    body: AnalysisCreate,
+    idempotency_key: str,
     x_workspace_id: str | Unset | None = UNSET,
-) -> ErrorEnvelope | list[ProviderModel] | None:
-    """Discover Model Provider Models
+) -> Analysis | ErrorEnvelope | None:
+    """Start Analysis
 
     Args:
-        provider_id (str):
+        idempotency_key (str):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
+        body (AnalysisCreate):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorEnvelope | list[ProviderModel]
+        Analysis | ErrorEnvelope
     """
 
     return sync_detailed(
-        provider_id=provider_id,
         client=client,
+        body=body,
+        idempotency_key=idempotency_key,
         x_workspace_id=x_workspace_id,
     ).parsed
 
 
 async def asyncio_detailed(
-    provider_id: str,
     *,
     client: AuthenticatedClient,
+    body: AnalysisCreate,
+    idempotency_key: str,
     x_workspace_id: str | Unset | None = UNSET,
-) -> Response[ErrorEnvelope | list[ProviderModel]]:
-    """Discover Model Provider Models
+) -> Response[Analysis | ErrorEnvelope]:
+    """Start Analysis
 
     Args:
-        provider_id (str):
+        idempotency_key (str):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
+        body (AnalysisCreate):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorEnvelope | list[ProviderModel]]
+        Response[Analysis | ErrorEnvelope]
     """
 
     kwargs = build_request(
-        provider_id=provider_id,
+        body=body,
+        idempotency_key=idempotency_key,
         x_workspace_id=x_workspace_id,
     )
 
@@ -165,31 +172,34 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    provider_id: str,
     *,
     client: AuthenticatedClient,
+    body: AnalysisCreate,
+    idempotency_key: str,
     x_workspace_id: str | Unset | None = UNSET,
-) -> ErrorEnvelope | list[ProviderModel] | None:
-    """Discover Model Provider Models
+) -> Analysis | ErrorEnvelope | None:
+    """Start Analysis
 
     Args:
-        provider_id (str):
+        idempotency_key (str):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
+        body (AnalysisCreate):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorEnvelope | list[ProviderModel]
+        Analysis | ErrorEnvelope
     """
 
     return (
         await asyncio_detailed(
-            provider_id=provider_id,
             client=client,
+            body=body,
+            idempotency_key=idempotency_key,
             x_workspace_id=x_workspace_id,
         )
     ).parsed

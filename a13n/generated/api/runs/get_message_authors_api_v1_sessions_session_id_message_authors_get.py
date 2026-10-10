@@ -6,24 +6,34 @@ import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
 from ...models.error_envelope import ErrorEnvelope
-from ...models.provider_model import ProviderModel
+from ...models.message_authors import MessageAuthors
 from ...types import UNSET, Response, Unset
 
 
 def build_request(
-    provider_id: str,
+    session_id: str,
     *,
+    entry_id: list[str],
     x_workspace_id: str | Unset | None = UNSET,
 ) -> dict[str, Any]:
     headers: dict[str, Any] = {}
     if not isinstance(x_workspace_id, Unset):
         headers["X-Workspace-ID"] = x_workspace_id
 
+    params: dict[str, Any] = {}
+
+    json_entry_id = entry_id
+
+    params["entry_id"] = json_entry_id
+
+    params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
+
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": "/api/v1/model-providers/{provider_id}/models".format(
-            provider_id=quote(str(provider_id), safe=""),
+        "url": "/api/v1/sessions/{session_id}/message-authors".format(
+            session_id=quote(str(session_id), safe=""),
         ),
+        "params": params,
     }
 
     _kwargs["headers"] = headers
@@ -32,14 +42,9 @@ def build_request(
 
 def _parse_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> ErrorEnvelope | list[ProviderModel]:
+) -> ErrorEnvelope | MessageAuthors:
     if response.status_code == 200:
-        response_200 = []
-        _response_200 = response.json()
-        for response_200_item_data in _response_200:
-            response_200_item = ProviderModel.from_dict(response_200_item_data)
-
-            response_200.append(response_200_item)
+        response_200 = MessageAuthors.from_dict(response.json())
 
         return response_200
 
@@ -55,7 +60,7 @@ def _parse_response(
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[ErrorEnvelope | list[ProviderModel]]:
+) -> Response[ErrorEnvelope | MessageAuthors]:
     from ....errors import ProtocolError
 
     try:
@@ -70,15 +75,17 @@ def _build_response(
 
 
 def sync_detailed(
-    provider_id: str,
+    session_id: str,
     *,
     client: AuthenticatedClient,
+    entry_id: list[str],
     x_workspace_id: str | Unset | None = UNSET,
-) -> Response[ErrorEnvelope | list[ProviderModel]]:
-    """Discover Model Provider Models
+) -> Response[ErrorEnvelope | MessageAuthors]:
+    """Get Message Authors
 
     Args:
-        provider_id (str):
+        session_id (str):
+        entry_id (list[str]):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
@@ -88,11 +95,12 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorEnvelope | list[ProviderModel]]
+        Response[ErrorEnvelope | MessageAuthors]
     """
 
     kwargs = build_request(
-        provider_id=provider_id,
+        session_id=session_id,
+        entry_id=entry_id,
         x_workspace_id=x_workspace_id,
     )
 
@@ -104,15 +112,17 @@ def sync_detailed(
 
 
 def sync(
-    provider_id: str,
+    session_id: str,
     *,
     client: AuthenticatedClient,
+    entry_id: list[str],
     x_workspace_id: str | Unset | None = UNSET,
-) -> ErrorEnvelope | list[ProviderModel] | None:
-    """Discover Model Provider Models
+) -> ErrorEnvelope | MessageAuthors | None:
+    """Get Message Authors
 
     Args:
-        provider_id (str):
+        session_id (str):
+        entry_id (list[str]):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
@@ -122,26 +132,29 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorEnvelope | list[ProviderModel]
+        ErrorEnvelope | MessageAuthors
     """
 
     return sync_detailed(
-        provider_id=provider_id,
+        session_id=session_id,
         client=client,
+        entry_id=entry_id,
         x_workspace_id=x_workspace_id,
     ).parsed
 
 
 async def asyncio_detailed(
-    provider_id: str,
+    session_id: str,
     *,
     client: AuthenticatedClient,
+    entry_id: list[str],
     x_workspace_id: str | Unset | None = UNSET,
-) -> Response[ErrorEnvelope | list[ProviderModel]]:
-    """Discover Model Provider Models
+) -> Response[ErrorEnvelope | MessageAuthors]:
+    """Get Message Authors
 
     Args:
-        provider_id (str):
+        session_id (str):
+        entry_id (list[str]):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
@@ -151,11 +164,12 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorEnvelope | list[ProviderModel]]
+        Response[ErrorEnvelope | MessageAuthors]
     """
 
     kwargs = build_request(
-        provider_id=provider_id,
+        session_id=session_id,
+        entry_id=entry_id,
         x_workspace_id=x_workspace_id,
     )
 
@@ -165,15 +179,17 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    provider_id: str,
+    session_id: str,
     *,
     client: AuthenticatedClient,
+    entry_id: list[str],
     x_workspace_id: str | Unset | None = UNSET,
-) -> ErrorEnvelope | list[ProviderModel] | None:
-    """Discover Model Provider Models
+) -> ErrorEnvelope | MessageAuthors | None:
+    """Get Message Authors
 
     Args:
-        provider_id (str):
+        session_id (str):
+        entry_id (list[str]):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
@@ -183,13 +199,14 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorEnvelope | list[ProviderModel]
+        ErrorEnvelope | MessageAuthors
     """
 
     return (
         await asyncio_detailed(
-            provider_id=provider_id,
+            session_id=session_id,
             client=client,
+            entry_id=entry_id,
             x_workspace_id=x_workspace_id,
         )
     ).parsed

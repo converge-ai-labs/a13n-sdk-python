@@ -12,6 +12,7 @@ from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.item_content import ItemContent
+    from ..models.item_content_refs import ItemContentRefs
 
 
 T = TypeVar("T", bound="Item")
@@ -29,6 +30,7 @@ class Item:
         ordinal (int):
         started_at (datetime.datetime):
         state (ItemState):
+        content_refs (ItemContentRefs | Unset):
         ended_at (datetime.datetime | None | Unset):
     """
 
@@ -40,6 +42,7 @@ class Item:
     ordinal: int
     started_at: datetime.datetime
     state: ItemState
+    content_refs: ItemContentRefs | Unset = UNSET
     ended_at: datetime.datetime | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
@@ -58,6 +61,10 @@ class Item:
         started_at = self.started_at.isoformat()
 
         state = self.state.value
+
+        content_refs: dict[str, Any] | Unset = UNSET
+        if not isinstance(self.content_refs, Unset):
+            content_refs = self.content_refs.to_dict()
 
         ended_at: str | Unset | None
         if isinstance(self.ended_at, Unset):
@@ -81,6 +88,8 @@ class Item:
                 "state": state,
             }
         )
+        if content_refs is not UNSET:
+            field_dict["content_refs"] = content_refs
         if ended_at is not UNSET:
             field_dict["ended_at"] = ended_at
 
@@ -89,6 +98,7 @@ class Item:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.item_content import ItemContent
+        from ..models.item_content_refs import ItemContentRefs
 
         d = dict(src_dict)
         content = ItemContent.from_dict(d.pop("content"))
@@ -106,6 +116,13 @@ class Item:
         started_at = datetime.datetime.fromisoformat(d.pop("started_at"))
 
         state = ItemState(d.pop("state"))
+
+        _content_refs = d.pop("content_refs", UNSET)
+        content_refs: ItemContentRefs | Unset
+        if isinstance(_content_refs, Unset):
+            content_refs = UNSET
+        else:
+            content_refs = ItemContentRefs.from_dict(_content_refs)
 
         def _parse_ended_at(data: object) -> datetime.datetime | Unset | None:
             if data is None:
@@ -133,6 +150,7 @@ class Item:
             ordinal=ordinal,
             started_at=started_at,
             state=state,
+            content_refs=content_refs,
             ended_at=ended_at,
         )
 
