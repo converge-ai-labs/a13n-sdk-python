@@ -215,6 +215,8 @@ from .memory_revision_page import MemoryRevisionPage
 from .memory_update import MemoryUpdate
 from .memory_update_labels_type_0 import MemoryUpdateLabelsType0
 from .message import Message
+from .message_author import MessageAuthor
+from .message_authors import MessageAuthors
 from .message_history_item import MessageHistoryItem
 from .message_payload import MessagePayload
 from .model import Model
@@ -670,6 +672,8 @@ __all__ = (
     "MemoryUpdate",
     "MemoryUpdateLabelsType0",
     "Message",
+    "MessageAuthor",
+    "MessageAuthors",
     "MessageHistoryItem",
     "MessagePayload",
     "Model",

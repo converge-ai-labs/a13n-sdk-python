@@ -169,6 +169,7 @@ from .api.runs import (
     edit_entry_api_v1_threads_thread_id_inbox_entry_id_patch,
     fork_run_api_v1_runs_run_id_fork_post,
     get_entry_api_v1_threads_thread_id_inbox_entry_id_get,
+    get_message_authors_api_v1_sessions_session_id_message_authors_get,
     get_run_api_v1_runs_run_id_get,
     get_session_api_v1_sessions_session_id_get,
     get_thread_api_v1_threads_thread_id_get,
@@ -3275,6 +3276,24 @@ class Session(Resource):
                 body=body,
                 if_match=if_match,
                 x_workspace_id=x_workspace_id,
+            )
+        )
+
+    @property
+    def message_authors(self) -> SessionsSessionIdMessageAuthors:
+        return SessionsSessionIdMessageAuthors(self._client, self._bindings)
+
+
+class SessionsSessionIdMessageAuthors(Resource):
+    """Bound Native resource: /sessions / {session_id} / message-authors."""
+
+    async def get(
+        self, *, entry_id: list[str], x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.MessageAuthors]:
+        """Get Message Authors. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_message_authors_api_v1_sessions_session_id_message_authors_get.asyncio_detailed(
+                client=client, session_id=self._bindings["session_id"], entry_id=entry_id, x_workspace_id=x_workspace_id
             )
         )
 
