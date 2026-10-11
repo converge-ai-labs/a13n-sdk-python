@@ -4,8 +4,9 @@ import json
 import httpx2
 import pytest
 
-from a13n import ApiError, Client, ProtocolError, TransportError, text_input
+from a13n import ApiError, Client, ProtocolError, TransportError
 from a13n.generated import models as wire
+from tests.test_interaction import text_input
 
 
 def test_credentials_scopes_and_csrf_are_explicit() -> None:

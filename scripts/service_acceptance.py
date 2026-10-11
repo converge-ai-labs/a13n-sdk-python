@@ -19,7 +19,7 @@ from uuid import uuid4
 
 import httpx2 as httpx
 
-from a13n import ApiError, Client, Interaction, Run, Submitted, ThreadStream
+from a13n import ApiError, Client, Interaction, Returned, Run, RunConfiguration, RunOptions, Submitted, ThreadStream
 from a13n.generated import models as wire
 from a13n.generated.types import UNSET
 
@@ -107,31 +107,36 @@ def _required(name: str) -> str:
 
 
 def _submission_evidence(submitted: Submitted | Interaction) -> dict[str, str | None]:
+    assert submitted.receipt is not None and submitted.thread is not None and submitted.entry is not None
     value = submitted.receipt.value
+    assert isinstance(value, wire.Submitted)
     if (
         value.thread.id != submitted.thread.id
         or value.entry.id != submitted.entry.id
         or value.entry.thread_id != submitted.thread.id
-        or (value.run.id if value.run is not None else None)
-        != (submitted.run.id if submitted.run is not None else None)
     ):
         raise RuntimeError("Submission receipt identities do not match bound resources")
     return {
         "thread_id": submitted.thread.id,
         "entry_id": submitted.entry.id,
         "run_id": submitted.run.id if submitted.run else None,
+        "provisional_run_id": value.run.id if value.run else None,
     }
 
 
 def _accepted_run(submitted: Submitted | Interaction) -> Any:
-    if submitted.run is None:
-        raise RuntimeError("Idle Thread submission unexpectedly has no Run")
-    return submitted.run
+    assert submitted.receipt is not None and submitted.thread is not None
+    value = submitted.receipt.value
+    assert isinstance(value, wire.Submitted)
+    if value.run is None:
+        raise RuntimeError("Idle Thread submission unexpectedly has no provisional Run")
+    # Explicit control/readback from actual receipt evidence, not incorporation authority.
+    return submitted.thread.client.runs(value.run.id)
 
 
 async def _wait_run(run: Any, expected: wire.RunStatus) -> dict[str, Any]:
-    result = await run.wait(timeout=120.0, poll_interval=0.1)
-    if result.status != expected or result.snapshot.value.sealed_at is None:
+    result = await run.result(timeout=120.0, poll_interval=0.1)
+    if result.status != expected or result.evidence.value.sealed_at is None:
         raise RuntimeError(f"Run {run.id} sealed as {result.status}; expected {expected}")
     items = (await run.items.get()).value
     if items.run.id != run.id or not items.complete or not items.baseline:
@@ -154,6 +159,7 @@ async def _disconnect_acceptance(base_url: str, token: str, ca_bundle: str, agen
         submitted = await client.agents(agent).start(
             "[slow] [long] Exercise Native Thread SSE cursor recovery.", idempotency_key=_key("stream")
         )
+        assert submitted.thread is not None
         cursors: list[str] = []
         frames: list[str] = []
         async with asyncio.timeout(120.0):
@@ -196,18 +202,16 @@ async def _disconnect_acceptance(base_url: str, token: str, ca_bundle: str, agen
     }
 
 
-def _configuration(label: str) -> wire.RunConfigurationInput:
-    return wire.RunConfigurationInput(
+def _configuration(label: str) -> RunConfiguration:
+    return RunConfiguration(
         allowed_hosts=None,
-        extensions=wire.RunConfigurationInputExtensions.from_dict(
-            {
-                "sdk.acceptance": {"label": label, "enabled": False, "zero": 0, "empty": [], "nested": {"null": None}},
-            }
-        ),
+        extensions={
+            "sdk.acceptance": {"label": label, "enabled": False, "zero": 0, "empty": [], "nested": {"null": None}}
+        },
     )
 
 
-def _assert_configuration(run: wire.RunView, expected: wire.RunConfigurationInput) -> None:
+def _assert_configuration(run: wire.RunView, expected: RunConfiguration) -> None:
     actual = run.options.configuration
     if not isinstance(actual, wire.RunConfigurationOutput) or actual.to_dict() != expected.to_dict():
         raise RuntimeError("Accepted Run did not retain the complete native configuration snapshot")
@@ -217,21 +221,22 @@ async def _configuration_acceptance(client: Client, agent: str) -> dict[str, Any
     first_configuration = _configuration("start")
     initial = await client.agents(agent).start(
         "Short response with native configuration.",
-        options=wire.RunOptionsInput(configuration=first_configuration),
+        options=RunOptions(configuration=first_configuration),
         idempotency_key=_key("configuration-start"),
     )
+    assert initial.thread is not None
     initial_outcome = await initial.result(timeout=120.0, poll_interval=0.1)
-    _assert_configuration(initial_outcome.snapshot.value, first_configuration)
+    _assert_configuration(initial_outcome.evidence.value, first_configuration)
     next_configuration = _configuration("next_run")
     following = await client.agents(agent).send(
         initial.thread.id,
         "Short follow-up with a new configuration snapshot.",
         delivery=wire.Delivery.NEXT_RUN,
-        options=wire.RunOptionsInput(configuration=next_configuration),
+        options=RunOptions(configuration=next_configuration),
         idempotency_key=_key("configuration-next"),
     )
     following_outcome = await following.result(timeout=120.0, poll_interval=0.1)
-    _assert_configuration(following_outcome.snapshot.value, next_configuration)
+    _assert_configuration(following_outcome.evidence.value, next_configuration)
     _assert_configuration((await initial_outcome.run.get()).value, first_configuration)
     if initial_outcome.status != wire.RunStatus.COMPLETED or following_outcome.status != wire.RunStatus.COMPLETED:
         raise RuntimeError("Native configuration acceptance did not complete")
@@ -245,11 +250,14 @@ async def _inbox_and_control(client: Client, agent: str) -> dict[str, Any]:
         "[interruptible] Hold the run long enough for an inbox message.",
         idempotency_key=_key("inbox-source"),
     )
+    assert source.thread is not None
     run = _accepted_run(source)
     queued = await client.agents(agent).send(
         source.thread.id, "Follow-up Native inbox message.", idempotency_key=_key("inbox-next")
     )
-    if queued.run is not None:
+    assert queued.receipt is not None and queued.entry is not None
+    assert isinstance(queued.receipt.value, wire.Submitted)
+    if queued.receipt.value.run is not None:
         raise RuntimeError("Submission to a running Thread did not remain queued")
     first = await _wait_run(run, wire.RunStatus.COMPLETED)
     incorporated = await queued.result(timeout=120.0, poll_interval=0.1)
@@ -290,6 +298,7 @@ async def _import_history(client: Client, agent: str) -> dict[str, Any]:
     initial = await client.agents(agent).start(
         "Short Native response using imported context.", message_history=history, idempotency_key=_key("import")
     )
+    assert initial.thread is not None
     first = await _wait_run(_accepted_run(initial), wire.RunStatus.COMPLETED)
     thread = (await initial.thread.get()).value
     if [message.to_dict() for message in thread.message_history] != history:
@@ -314,11 +323,11 @@ async def _resume_and_fork(client: Client, agent: str, client_tool_agent: str) -
     original = _accepted_run(completed)
     first = await _wait_run(original, wire.RunStatus.COMPLETED)
     forked = await original.fork(
-        body=wire.Fork(
-            agent_id=agent, payload=wire.MessagePayload(content=[wire.TextPart(type_="text", text="Forked response.")])
-        ),
+        "Forked response.",
+        agent_id=agent,
         idempotency_key=_key("fork"),
     )
+    assert forked.thread is not None and completed.thread is not None
     if forked.thread.id == completed.thread.id:
         raise RuntimeError("Fork did not create a distinct Thread")
     fork_final = await _wait_run(_accepted_run(forked), wire.RunStatus.COMPLETED)
@@ -327,11 +336,11 @@ async def _resume_and_fork(client: Client, agent: str, client_tool_agent: str) -
     waiting = await client.agents(client_tool_agent).start(
         "[client] Review a local SDK scenario.",
         idempotency_key=_key("waiting"),
-        options=wire.RunOptionsInput(configuration=inherited_configuration),
+        options=RunOptions(configuration=inherited_configuration),
     )
     waiting_outcome = await waiting.result(timeout=120.0, poll_interval=0.1)
     waiting_run = waiting_outcome.run
-    _assert_configuration(waiting_outcome.snapshot.value, inherited_configuration)
+    _assert_configuration(waiting_outcome.evidence.value, inherited_configuration)
     pending = waiting_outcome.pending
     if (
         waiting_outcome.status != wire.RunStatus.WAITING
@@ -351,11 +360,12 @@ async def _resume_and_fork(client: Client, agent: str, client_tool_agent: str) -
     }
     extra_input = "Additional context submitted atomically with the client tool result."
     resumed = await waiting_run.resume(
-        approvals={},
-        calls={pending.calls[0].tool_call_id: wire.Returned(status="returned", value={"decision": "approved"})},
+        {pending.calls[0].tool_call_id: Returned({"decision": "approved"})},
         input=extra_input,
         idempotency_key=_key("resume"),
     )
+    assert resumed.run is not None and resumed.receipt is not None
+    assert isinstance(resumed.receipt.value, wire.RunView)
     if resumed.run.id == waiting_run.id:
         raise RuntimeError("Resume did not create a new Run")
     _assert_configuration(resumed.receipt.value, inherited_configuration)
@@ -377,6 +387,7 @@ async def _resume_and_fork(client: Client, agent: str, client_tool_agent: str) -
 
 
 async def _continue_sealed(client: Client, agent: str, source: Interaction, run: Run) -> dict[str, Any]:
+    assert source.thread is not None
     thread = (await source.thread.get()).value
     if thread.last_run_id != run.id or thread.current_run_id is not None:
         raise RuntimeError("Idle Thread does not name its latest sealed failed/cancelled Run")
@@ -384,6 +395,7 @@ async def _continue_sealed(client: Client, agent: str, source: Interaction, run:
         source.thread.id, "Normal follow-up after the sealed outcome.", idempotency_key=_key("sealed-followup")
     )
     successor = _accepted_run(following)
+    assert following.receipt is not None and isinstance(following.receipt.value, wire.Submitted)
     accepted = following.receipt.value.run
     if accepted is None or accepted.id == run.id or accepted.parent_run_id != run.id:
         raise RuntimeError("Normal message did not continue the latest sealed Run's history")
@@ -400,6 +412,7 @@ async def _failed_continuation_acceptance(client: Client, agent: str, failure_pr
     original = await initial.result(timeout=120.0, poll_interval=0.1)
     if original.status != wire.RunStatus.COMPLETED:
         raise RuntimeError("Failure continuation scenario could not establish an earlier completed Run")
+    assert initial.thread is not None
     failed = await client.agents(agent).send(initial.thread.id, failure_prompt, idempotency_key=_key("failure"))
     failed_run = _accepted_run(failed)
     sealed = await _wait_run(failed_run, wire.RunStatus.FAILED)
