@@ -89,7 +89,7 @@ async def main() -> None:
         assert submitted_receipt.value.run is not None
         thread = client.resources.threads(submitted_receipt.value.thread.id)
         run = client.runs(submitted_receipt.value.run.id)
-        assert (await run.wait(timeout=60, poll_interval=0.1)).status == wire.RunStatus.COMPLETED
+        assert (await run.result(timeout=60, poll_interval=0.1)).status == wire.RunStatus.COMPLETED
         state = await thread.get()
         mounted = await thread.memories("notes").update(
             body=wire.MemoryMountUpdate(access=wire.MemoryAccess.WRITE), if_match=etag(state)

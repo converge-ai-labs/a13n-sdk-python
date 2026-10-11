@@ -21,18 +21,18 @@ The quick start is a complete executable program. Chapter examples are small, ty
 
 For example, after copying `review_plan()` from the first chapter, replace the quick start's message section with a call to `await review_plan(client, os.environ["A13N_AGENT"], "Your project plan")`. Keep the existing `asyncio.run(main())` at the program boundary; do not start nested event loops.
 
-Most examples generate a fresh idempotency key because each call demonstrates a new operation. Applications that need recovery should persist their key and request before submission, as described in the recovery chapter.
+Minimal workflows omit the key and expose the once-generated key on the returned Interaction. Explicit keys in other examples identify intentionally new operations; no SDK mutation retries automatically. Applications that need recovery should persist their key and request before submission, as described in the recovery chapter.
 
 ## Find a specific answer
 
-| I want to…                                                  | Read                                                                                       |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| Display assistant text rather than an optional output value | [Read a finished response](streaming-and-results.md#read-a-finished-response)              |
-| Stop a progress display without cancelling remote work      | [Observation lifetime](streaming-and-results.md#own-the-observation-lifetime)              |
-| Approve one requested action, not every pending tool        | [Approval decisions](waiting-and-tools.md#resume-after-an-approval-decision)               |
-| Attach a file rather than only upload it                    | [Attach a local document](files-and-memory.md#attach-a-local-document)                     |
-| Resolve an edit conflict                                    | [Conditional edits](resources.md#make-a-conditional-edit)                                  |
-| Continue after my process restarts                          | [Recover a submission](errors-and-recovery.md#recover-a-queued-or-interrupted-observation) |
+| I want to…                                             | Read                                                                                       |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| Read final text or full structured output              | [Read a finished response](streaming-and-results.md#read-a-finished-response)              |
+| Stop a progress display without cancelling remote work | [Observation lifetime](streaming-and-results.md#own-the-observation-lifetime)              |
+| Approve one requested action, not every pending tool   | [Approval decisions](waiting-and-tools.md#submit-a-complete-answer-batch)                  |
+| Attach a file rather than only upload it               | [Attach a local document](files-and-memory.md#attach-a-local-document)                     |
+| Resolve an edit conflict                               | [Conditional edits](resources.md#make-a-conditional-edit)                                  |
+| Continue after my process restarts                     | [Recover a submission](errors-and-recovery.md#recover-a-queued-or-interrupted-observation) |
 
 ## Reference and development
 

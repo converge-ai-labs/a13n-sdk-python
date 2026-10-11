@@ -159,32 +159,27 @@ Use it in `wire.ModelCreate` or `wire.ModelUpdate`. Omitted `image_input` uses n
 Pass configuration through existing typed `options` on `start()` and `send()`; generated `wire.Message` uses the same shape:
 
 ```python
-from a13n import Client
-from a13n.generated import models as wire
+from a13n import Client, RunConfiguration, RunOptions, UrlPart
 
 
 async def restricted_input(client: Client, agent_id: str) -> None:
-    options = wire.RunOptionsInput(
-        configuration=wire.RunConfigurationInput(
+    options = RunOptions(
+        configuration=RunConfiguration(
             allowed_hosts=["media.example.test"],
-            extensions=wire.RunConfigurationInputExtensions.from_dict(
-                {"example.policy": {"enabled": False, "limits": [], "note": None}}
-            ),
+            extensions={"example.policy": {"enabled": False, "limits": [], "note": None}},
         )
     )
-    payload = wire.MessagePayload(
-        content=[
-            wire.TextPart(type_="text", text="Describe this image and video."),
-            wire.UrlPart(type_="url", url="https://media.example.test/image.png"),
-            wire.UrlPart(type_="url", url="https://media.example.test/video.mp4"),
-        ]
-    )
+    payload = [
+        "Describe this image and video.",
+        UrlPart("https://media.example.test/image.png"),
+        UrlPart("https://media.example.test/video.mp4"),
+    ]
     interaction = await client.agents(agent_id).start(payload, options=options, idempotency_key="media-001")
     outcome = await interaction.result()
-    print(outcome.snapshot.value.options.configuration)
+    print(outcome.evidence.value.options.configuration)
 ```
 
-An explicit configuration object is a complete snapshot, not a merge with hidden SDK defaults or revision overrides. `configuration=UNSET` omits it, `configuration=None` sends null, and `wire.RunConfigurationInput()` sends `{}`. Omission/null select the native default for a new Run and retain the accepted snapshot when steering. `allowed_hosts=None` is unrestricted; `allowed_hosts=[]` denies every native URL destination. Extensions are arbitrary namespaced JSON, not SDK policy.
+An explicit configuration object is a complete snapshot, not a merge with hidden SDK defaults or revision overrides. `configuration=UNSET` omits it, `configuration=None` sends null, and `RunConfiguration()` sends `{}`. Omission/null select the native default for a new Run and retain the accepted snapshot when steering. `allowed_hosts=None` is unrestricted; `allowed_hosts=[]` denies every native URL destination. Extensions are arbitrary namespaced JSON, not SDK policy.
 
 The Service normalizes/freezes the accepted configuration. Steering and pending edits against an active Run may omit it or match the frozen value; a different explicit snapshot returns `409 conflict` with reason `run_configuration_immutable`. The SDK does not auto-queue or retry that request. `delivery=wire.Delivery.NEXT_RUN` selects a new snapshot, while resume successors and inline children inherit their source's configuration.
 

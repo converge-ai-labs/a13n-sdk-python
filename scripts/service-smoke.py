@@ -30,6 +30,7 @@ async def main() -> None:
                 async for _frame in interaction:
                     frames += 1
                 final = await interaction.result()
+        assert interaction.thread is not None
         items = await final.run.items.get()
         with BytesIO(payload) as source:
             uploaded = await client.resources.uploads.create(

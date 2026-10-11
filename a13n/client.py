@@ -13,6 +13,7 @@ from urllib.parse import urlsplit
 import httpx2
 
 from ._interaction import Agents, Runs, Threads
+from ._submission import mark_dispatch
 from .errors import TransportError
 from .generated.client import AuthenticatedClient
 from .generated.models import ErrorEnvelope
@@ -54,6 +55,7 @@ class _ManagedAuth(httpx2.Auth):
                 request.headers.setdefault("X-Workspace-ID", self.workspace_id)
             if request.method not in {"GET", "HEAD", "OPTIONS"} and self.csrf_token is not None:
                 request.headers["X-CSRF-Token"] = self.csrf_token
+        mark_dispatch()
         yield request
 
 
@@ -205,8 +207,8 @@ class Client:
         try:
             async with asyncio.timeout(self._timeout):
                 return await operation(self._api)
-        except (httpx2.HTTPError, TimeoutError):
-            raise TransportError("Service transport failed; mutation outcome may be unknown") from None
+        except (httpx2.HTTPError, TimeoutError) as cause:
+            raise TransportError("Service transport failed; mutation outcome may be unknown") from cause
         finally:
             self._leave_io(task)
 

@@ -12,7 +12,7 @@ The sequence is upload bytes, create an Asset, then reference its ID in a messag
 from pathlib import Path
 from uuid import uuid4
 
-from a13n import Client, RunOutcome
+from a13n import AssetPart, Client, MemoryMount, RunOutcome
 from a13n.generated import models as wire
 from a13n.generated.types import File
 
@@ -26,12 +26,7 @@ async def summarize_file(client: Client, agent_id: str, path: Path) -> RunOutcom
     asset = await client.resources.assets.create(
         body=wire.AssetCreate(name=path.name, upload_id=uploaded.value.upload_id)
     )
-    payload = wire.MessagePayload(
-        content=[
-            wire.TextPart(type_="text", text="Summarize this document and list any open questions."),
-            wire.AssetPart(type_="asset", asset_id=asset.value.id),
-        ]
-    )
+    payload = ["Summarize this document and list any open questions.", AssetPart(asset.value.id)]
     interaction = await client.agents(agent_id).start(payload, idempotency_key=uuid4().hex)
     print("Asset:", asset.value.id, "Thread:", interaction.thread.id)
     return await interaction.result()
@@ -100,14 +95,13 @@ Give a new conversation a named, read-only mount:
 ```python
 from uuid import uuid4
 
-from a13n import Client, RunOutcome
-from a13n.generated import models as wire
+from a13n import Client, MemoryMount, RunOutcome
 
 
 async def ask_with_notes(client: Client, agent_id: str, memory_id: str) -> RunOutcome:
     interaction = await client.agents(agent_id).start(
         "Read the project notes and propose the next milestone.",
-        memories=[wire.MemoryMount(name="notes", memory_id=memory_id, access=wire.MemoryAccess.READ)],
+        memories=[MemoryMount(name="notes", memory_id=memory_id, access="read")],
         idempotency_key=uuid4().hex,
     )
     return await interaction.result()

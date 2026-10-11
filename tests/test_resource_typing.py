@@ -22,13 +22,14 @@ def test_public_typing_accepts_agent_submission(tmp_path: Path) -> None:
         "\n"
         "async def use(client: Client) -> None:\n"
         "    submission = await client.agents('agent').start('hello', idempotency_key='key')\n"
+        "    assert submission.entry is not None\n"
         "    entry_id: str = submission.entry.id\n"
         "    memory = client.resources.memories('mem')\n"
         "    revision = await memory.revisions(5).get()\n"
         "    sequence: int = revision.value.seq\n"
         "    print(sequence)\n"
         "    if submission.run is not None:\n"
-        "        status = await submission.run.wait(timeout=5, poll_interval=0.1)\n"
+        "        status = await submission.run.result(timeout=5, poll_interval=0.1)\n"
         "        print(status.status)\n"
         "    async with submission:\n"
         "        async for frame in submission:\n"
@@ -43,14 +44,15 @@ def test_public_typing_accepts_agent_submission(tmp_path: Path) -> None:
 def test_native_configuration_media_and_oauth_typing(tmp_path: Path) -> None:
     source = tmp_path / "native.py"
     source.write_text(
-        "from a13n import Client\n"
+        "from a13n import Client, RunOptions, RunConfiguration, UrlPart\n"
         "from a13n.generated import models as wire\n"
         "async def use(client: Client) -> None:\n"
-        "    options = wire.RunOptionsInput(configuration=wire.RunConfigurationInput(allowed_hosts=[],\n"
-        "        extensions=wire.RunConfigurationInputExtensions.from_dict({'example.flag': False})))\n"
+        "    options = RunOptions(configuration=RunConfiguration(allowed_hosts=[],\n"
+        "        extensions={'example.flag': False}))\n"
         "    first = await client.agents('agent').start('hello', options=options, idempotency_key='start')\n"
-        "    await client.agents('agent').send(first.thread.id, wire.MessagePayload(content=[\n"
-        "        wire.UrlPart(type_='url', url='https://media.example/video.mp4')]),\n"
+        "    assert first.thread is not None\n"
+        "    await client.agents('agent').send(first.thread.id, [\n"
+        "        UrlPart('https://media.example/video.mp4')],\n"
         "        options=options, idempotency_key='send')\n"
         "    model = wire.ModelConfigInput(model_name='native', model_api='native', characteristics=\n"
         "        wire.HarnessModelCharacteristicsInput(image_input=None,\n"
@@ -77,7 +79,7 @@ def test_public_typing_rejects_invalid_paths_and_wrong_payload(tmp_path: Path) -
         "    client.resources.workspaces('ws').runs('run')\n"
         "    client.workspaces('ws')\n"
         "    client.organizations('org')\n"
-        "    await client.runs('run').wait(timeout='forever', poll_interval=0.1)\n"
+        "    await client.runs('run').result(timeout='forever', poll_interval=0.1)\n"
         "    await client.agents('agent').send('thread', 123, idempotency_key='key')\n"
         "    await client.threads('thread').stream()\n"
     )
@@ -89,7 +91,7 @@ def test_public_typing_rejects_invalid_paths_and_wrong_payload(tmp_path: Path) -
 def test_frame_discriminants_narrow_data_and_cursor(tmp_path: Path) -> None:
     source = tmp_path / "frames.py"
     source.write_text(
-        "from a13n import ThreadFrame, ThreadStream, Client, text_input\n"
+        "from a13n import ThreadFrame, ThreadStream, Client\n"
         "from a13n.generated import models as wire\n"
         "def consume(frame: ThreadFrame) -> None:\n"
         "    if frame.event_type == 'delta':\n"
@@ -112,7 +114,8 @@ def test_frame_discriminants_narrow_data_and_cursor(tmp_path: Path) -> None:
         "async def full(client: Client) -> None:\n"
         "    stream = ThreadStream(client.threads('thread'), run='run', position='1-3', after='1-0')\n"
         "    result = await client.resources.threads.create(\n"
-        "        body=wire.NewThread(agent_id='agent', payload=text_input('hello'), memories=[]), idempotency_key='key')\n"
+        "        body=wire.NewThread(agent_id='agent', payload=wire.MessagePayload(content=[\n"
+        "            wire.TextPart(type_='text', text='hello')]), memories=[]), idempotency_key='key')\n"
     )
     report = run_pyright(source)
     assert report["returncode"] == 0, report["generalDiagnostics"]
@@ -174,3 +177,40 @@ def test_ordinal_paging_rejects_obsolete_fields_and_cursor_facade_typing(tmp_pat
     report = run_pyright(source)
     assert report["returncode"] == 1
     assert len(report["generalDiagnostics"]) == 4
+
+
+def test_root_only_workflow_values_and_resume_typing(tmp_path: Path) -> None:
+    source = tmp_path / "workflow.py"
+    source.write_text(
+        "from pydantic import JsonValue\n"
+        "from a13n import (Client, AgentOverride, RunConfiguration, RunOptions, UsageLimit,\n"
+        "    TextPart, JsonPart, UrlPart, AssetPart, Approve, Deny, Returned, Failed, PreviewInterrupted)\n"
+        "async def use(client: Client) -> None:\n"
+        "    options = RunOptions(configuration=RunConfiguration(allowed_hosts=None,\n"
+        "        extensions={'example': [False, 0, None]}), overrides=AgentOverride(\n"
+        "        output_spec={'schema': {'type': 'object'}}, model_settings={'temperature': 0}),\n"
+        "        labels={}, max_usage=UsageLimit(2))\n"
+        "    submitted = await client.agents('agent').start([TextPart('hello'), JsonPart(None),\n"
+        "        UrlPart('https://example.test'), AssetPart('asset')], options=options)\n"
+        "    outcome = await submitted.result()\n"
+        "    output: JsonValue = outcome.output\n"
+        "    if outcome.pending is not None:\n"
+        "        for request in outcome.pending.calls:\n"
+        "            arguments: dict[str, JsonValue] = request.arguments\n"
+        "    resumed = await outcome.run.resume({'ap': Approve(), 'deny': Deny(None),\n"
+        "        'call': Returned(None), 'fail': Failed('unavailable')}, input=None)\n"
+        "    assert resumed.run is not None\n"
+        "    fork = await resumed.run.fork('alternative', agent_id='agent', options=options)\n"
+        "    assert fork.thread is not None and fork.entry is not None\n"
+        "    recovered = client.threads(fork.thread.id).interaction(fork.entry.id)\n"
+        "    async with recovered:\n"
+        "        try:\n"
+        "            async for chunk in recovered.text_stream():\n"
+        "                text: str = chunk\n"
+        "        except PreviewInterrupted:\n"
+        "            async for frame in recovered:\n"
+        "                print(frame.event_type)\n"
+        "        final = await recovered.result()\n"
+    )
+    report = run_pyright(source)
+    assert report["returncode"] == 0, report["generalDiagnostics"]

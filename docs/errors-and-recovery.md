@@ -12,7 +12,6 @@ A rejected request raises `ApiError`. A Run that was accepted and later failed r
 from uuid import uuid4
 
 from a13n import ApiError, Client
-from a13n.generated import models as wire
 
 
 async def review_with_diagnostics(client: Client, agent_id: str, prompt: str) -> None:
@@ -23,10 +22,10 @@ async def review_with_diagnostics(client: Client, agent_id: str, prompt: str) ->
         print("Request rejected:", error.status, error.code, error.request_id)
         raise
 
-    if outcome.status == wire.RunStatus.FAILED:
+    if outcome.status == "failed":
         print("Run failed:", outcome.run.id)
-        print(outcome.failure.to_dict() if outcome.failure else "No failure detail")
-    elif outcome.status == wire.RunStatus.WAITING:
+        print(outcome.failure.message if outcome.failure else "No failure detail")
+    elif outcome.status == "waiting":
         print("Run needs input:", outcome.run.id)
     else:
         print("Run status:", outcome.status)
@@ -38,6 +37,8 @@ Branch on `status` and `code`, not on the human-readable message. Preserve `requ
 | ------------------------ | ----------------------------------------------------------------------------------------------------- |
 | `ApiError`               | The Service rejected a request. Inspect status, code, details, and any retry information.             |
 | `SubmissionError`        | The submitted inbox Entry settled without incorporation into a Run. Inspect its saved `entry`.        |
+| `UnknownOutcomeError`    | A dispatched authored mutation lacks a trustworthy acknowledgement; retain its key and reconcile.     |
+| `PreviewInterrupted`     | Provisional text projection stopped; authoritative result and sequential raw access remain available. |
 | `TransportError`         | Local transport failed. A write may already have reached the Service. Reconcile before another write. |
 | `ProtocolError`          | A response does not meet the SDK's expected protocol. Check the deployment and pinned contract.       |
 | `TimeoutError`           | The local observation budget expired. Recover from saved identities.                                  |
@@ -68,46 +69,30 @@ async def submit_for_later(
 
 Generate and persist `request_key` with your application job **before** calling this helper. After it returns, persist the returned IDs, then call `await interaction.result()`. Persist the original message and options as appropriate for your application's data policy; the key alone is not enough to reconstruct an identical retry.
 
-The initial receipt may contain a Run, but a queued submission can have `interaction.run is None`. The Entry ID remains useful in both cases. Do not assume that a Thread's newest Run belongs to your message.
+The initial `.receipt` may contain a provisional Run, but `interaction.run` remains `None` until its Entry is consumed. The Entry ID remains useful in both cases. Do not assume that a Thread's newest Run belongs to your message.
 
 ## Recover a queued or interrupted observation
 
-Read the exact inbox Entry until it settles. Only after it is `consumed` is its assigned Run the execution to observe:
+Construct an Interaction from saved IDs without a network request or fabricated receipt. It applies the same consumed-only binding and one deadline as normal submission:
 
 ```python
-import asyncio
-
-from a13n import Client, ProtocolError, RunOutcome, SubmissionError
-from a13n.generated import models as wire
+from a13n import Client, RunOutcome
 
 
 async def recover_submission(client: Client, thread_id: str, entry_id: str) -> RunOutcome:
-    entry = client.resources.threads(thread_id).inbox_entries(entry_id)
-    async with asyncio.timeout(300):
-        while True:
-            saved = await entry.get()
-            if saved.value.id != entry_id or saved.value.thread_id != thread_id:
-                raise ProtocolError("The Entry does not match the saved submission")
-            if saved.value.status == wire.EntryStatus.CONSUMED:
-                run_id = saved.value.assigned_run_id
-                if run_id is None:
-                    raise ProtocolError("Consumed Entry has no assigned Run")
-                outcome = await client.runs(run_id).wait()
-                if outcome.snapshot.value.thread_id != thread_id:
-                    raise ProtocolError("The Run does not belong to the saved Thread")
-                return outcome
-            if saved.value.status in {wire.EntryStatus.FAILED, wire.EntryStatus.WITHDRAWN}:
-                raise SubmissionError(thread_id, entry_id, saved)
-            await asyncio.sleep(0.5)
+    recovered = client.threads(thread_id).interaction(entry_id, timeout=300)
+    return await recovered.result()
 ```
 
-This is explicit recovery for a saved receipt, not code you need to wrap around every Interaction. The normal Interaction already handles queuing and exact-Run selection.
+`recovered.receipt` is `None`; `.thread` and `.entry` select saved identities. Both result-only and `async with recovered` streaming use the ordinary finite Interaction. A failed/withdrawn Entry raises `SubmissionError`, not an observed Run failure.
 
 An assigned Run can change before the Entry is consumed. Waiting only for a non-null `assigned_run_id`, or following the newest Run on the Thread, can give you another execution's result. Keep the `consumed` check.
 
-If you already saved the final exact Run ID, `await client.runs(run_id).wait()` is enough. If that Run was waiting and you resumed it, observe the returned **successor** ID; the previous Run does not become the successor.
+If you already saved the final exact Run ID, `await client.runs(run_id).result()` is enough. Use `client.runs(run_id).observe(timeout=300)` when you also want raw or text-preview iteration. Exact Run selection never follows successors. If a waiting Run was resumed, use the returned **successor Interaction**; the previous Run does not become the successor.
 
 ## Retry a submission with an unknown outcome
+
+`UnknownOutcomeError` identifies an attempted dispatch without trustworthy acknowledgement, including a malformed accepted receipt. It exposes `idempotency_key`, safe `operation`, known `thread_id`/`run_id`, optional HTTP `evidence`, and the original chained cause. Known Service rejection stays `ApiError`; local pre-dispatch validation and closed-client failures are not unknown outcomes. Native cancellation propagates unchanged.
 
 If the connection fails before a receipt arrives, the Service may still have accepted the write. A new idempotency key would describe a new operation and can duplicate the conversation or message.
 
@@ -117,6 +102,8 @@ Keep one stable key and payload for the original logical operation:
 2. If a receipt arrives, save its Thread and Entry IDs and recover by those identities.
 3. If the outcome remains unknown, reconcile the same submission using the **same key and unchanged payload**, according to the Service's idempotency rules.
 4. Use a new key only for an intentionally new operation.
+
+A key omitted on start/send/resume/fork is generated once before dispatch; no mutation is automatically retried. A generated key cannot be recovered from a cancelled coroutine that never returns. Persist a caller-selected key and identical logical body first for durable/cancellation-safe work. `A13nError` is the common SDK category; `TimeoutError` and `asyncio.CancelledError` retain their native Python meanings.
 
 Do not turn this into an unbounded automatic retry loop. Some operations do not accept an idempotency key; inspect their responses or resource state instead of assuming they can be replayed safely. For a client tool that changes application data, also reconcile the tool's own side effect before [resuming](waiting-and-tools.md).
 
