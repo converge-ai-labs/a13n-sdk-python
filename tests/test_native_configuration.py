@@ -71,7 +71,7 @@ def test_configuration_and_media_forward_through_start_send_and_message(options_
             ]
             await agent.start(parts, options=public_options, idempotency_key="start")
             await agent.send("thr_1", parts, options=public_options, idempotency_key="send")
-            await client.resources.threads("thr_1").inbox_entries.create(
+            await client.api.threads("thr_1").inbox_entries.create(
                 body=wire.Message(agent_id="agt_1", payload=payload, options=options), idempotency_key="message"
             )
         assert len(requests) == 3
@@ -186,6 +186,6 @@ def test_model_media_policies_reach_native_model_update_without_processing() -> 
 
         async with Client("https://service.example", transport=httpx2.MockTransport(handle)) as client:
             with pytest.raises(ApiError):
-                await client.resources.models("mdl_1").update(body=body, if_match='"mdl:1"')
+                await client.api.models("mdl_1").update(body=body, if_match='"mdl:1"')
 
     asyncio.run(scenario())

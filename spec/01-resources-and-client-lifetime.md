@@ -5,7 +5,7 @@
 Python 3.13+ SDK calls are async-first. A Client owns one endpoint, credential mode and transport. Binding a reference, reading its ID, or constructing an advanced stream sends no request; an ID is not proof of existence or authority.
 
 - `client.agents(agent_id)` binds an Agent; `client.threads(thread_id)` a continuing history and inbox; `client.runs(run_id)` an exact accepted execution. An `InboxEntry` is retained intent, not a Run. `Session` groups Threads but is neither an IAM session nor a hidden current conversation. A RunAttempt is operational evidence, not Worker control authority.
-- `client.resources` exposes the complete pure-schema generated Native hierarchy. Workspace business resources are flat (`client.resources.agents`, `.threads`, `.runs`, `.memories`, `.assets`, `.models`, `.skills`, etc.). Administration retaining explicit organization/workspace IDs is separate. Authored `client.agents`, `.threads`, `.runs` bind workflow handles. Administration uses only `client.resources.organizations` and `client.resources.workspaces`, without duplicate Client shortcuts. Both layers reuse one transport, not duplicate HTTP implementations.
+- `client.api` exposes the complete pure-schema generated Native hierarchy. Workspace business resources are flat (`client.api.agents`, `.threads`, `.runs`, `.memories`, `.assets`, `.models`, `.skills`, etc.). Administration retaining explicit organization/workspace IDs is separate. Authored `client.agents`, `.threads`, `.runs` bind workflow handles. Administration uses only `client.api.organizations` and `client.api.workspaces`, without duplicate Client shortcuts. Both layers reuse one transport, not duplicate HTTP implementations. `Client.api` is the only public generated hierarchy entry; the obsolete `Client.resources` entry has no alias or compatibility shim.
 - Named child collections expose only declared capabilities. `list()` fetches one page; `pages()` and `iter()` are lazy. A reference's `get()` returns a fresh snapshot, never an implicit cache; mutable generated model fields are local, not remote updates.
 - The generated layer returns `Result[wire.Submitted]` for submission operations without high-level binding. The authored Agent workflow validates canonical Thread, Entry and optional Run identities and binds them on its Interaction receipt. Derived references share the Client and never silently follow successors. No workspace-key lookup or extra resolution request is performed.
 
@@ -13,7 +13,7 @@ Python 3.13+ SDK calls are async-first. A Client owns one endpoint, credential m
 
 Every generated one-request resource operation, including submissions, returns `Result[T]`. Authored Agent interactions expose the original `Result[wire.Submitted]` at `.receipt` alongside bound Thread/Entry/Run handles. `Result[T]` exposes `.value`, `.status_code`, case-insensitive `.headers`, original `.content`, `.etag` and `.request_id`. Success can legitimately contain `None` or binary content. HTTP rejection raises `ApiError`; malformed required responses raise `ProtocolError`.
 
-`a13n.generated.models` retains all generated attrs models; `a13n.generated.api` retains typed HTTP operations. `Client.execute()` returns the generated response including typed errors and raw evidence, without resource error mapping. `Client.stream(request)` returns a raw response context. The generated Thread `stream` child preserves the declared SSE HTTP operation. Explicit `ThreadStream(client.resources.threads(thread_id))` supplies protocol-level parsed Thread-wide SSE for advanced callers without adding another ordinary high-level Thread method. These surfaces use the same transport, serialization and authentication as the primary `Interaction`.
+`a13n.generated.models` retains all generated attrs models; `a13n.generated.api` retains typed HTTP operations. `Client.execute()` returns the generated response including typed errors and raw evidence, without resource error mapping. `Client.stream(request)` returns a raw response context. The generated Thread `stream` child preserves the declared SSE HTTP operation. Explicit `ThreadStream(client.api.threads(thread_id))` supplies protocol-level parsed Thread-wide SSE for advanced callers without adding another ordinary high-level Thread method. These surfaces use the same transport, serialization and authentication as the primary `Interaction`.
 
 ## Authentication
 
@@ -44,8 +44,8 @@ Use `async with Client(...)` or await `aclose()`. The Client owns its pool, supp
 | `await interaction.result()`                                                | Exact authoritative `RunOutcome` without SSE                |
 | `async with interaction: async for frame in interaction: ...`               | Finite, run-scoped provisional observation                  |
 | `await resource.get()` / `await collection.list(...)`                       | One typed `Result[T]`                                       |
-| `await client.resources.threads.create(body=wire.NewThread(...), ...)`      | Pure generated `Result[wire.Submitted]`                     |
-| `ThreadStream(client.resources.threads(thread_id), ...)`                    | Explicit advanced Thread-wide parsed SSE context            |
+| `await client.api.threads.create(body=wire.NewThread(...), ...)`            | Pure generated `Result[wire.Submitted]`                     |
+| `ThreadStream(client.api.threads(thread_id), ...)`                          | Explicit advanced Thread-wide parsed SSE context            |
 | `await client.execute(operation)` / `client.stream(request)`                | Generated HTTP response / raw asynchronous response context |
 
 A collection is not implicitly awaitable or iterable. Pagination does not promise snapshot isolation.

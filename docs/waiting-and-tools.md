@@ -51,7 +51,7 @@ from a13n.generated import models as wire
 
 
 async def create_order_assistant(client: Client, model_key: str) -> str:
-    created = await client.resources.agents.create(
+    created = await client.api.agents.create(
         body=wire.AgentCreate(
             name="Order assistant",
             config=wire.AgentConfigInput(

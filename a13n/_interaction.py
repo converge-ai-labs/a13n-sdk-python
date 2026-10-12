@@ -427,7 +427,7 @@ class AgentMethods(Resource):
         )
         key = _key(idempotency_key)
         with mutation(key, "start") as attempt:
-            receipt = await self.client.resources.threads.create(body=body, idempotency_key=key)
+            receipt = await self.client.api.threads.create(body=body, idempotency_key=key)
             attempt.evidence = receipt
             return Interaction(_submitted(self.client, receipt), idempotency_key=key)
 
@@ -442,7 +442,7 @@ class AgentMethods(Resource):
         options: RunOptions | Unset = UNSET,
     ) -> Interaction:
         """Submit one Message as this Agent to an explicitly named Thread."""
-        resource = self.client.resources.threads(thread_id).inbox_entries
+        resource = self.client.api.threads(thread_id).inbox_entries
         body = wire.Message(
             agent_id=self.id,
             payload=payload(input),
@@ -489,7 +489,7 @@ class RunMethods(Resource):
         body = wire.Resume.from_dict(intent)
         key = _key(idempotency_key)
         with mutation(key, "resume", run_id=self.id) as attempt:
-            receipt = await self.client.resources.runs(self.id).resume(body=body, idempotency_key=key)
+            receipt = await self.client.api.runs(self.id).resume(body=body, idempotency_key=key)
             attempt.evidence = receipt
             value = receipt.value
             if not value.id or value.id == self.id or not value.workspace_id or not value.thread_id:
@@ -526,7 +526,7 @@ class RunMethods(Resource):
         )
         key = _key(idempotency_key)
         with mutation(key, "fork", run_id=self.id) as attempt:
-            receipt = await self.client.resources.runs(self.id).fork(body=body, idempotency_key=key)
+            receipt = await self.client.api.runs(self.id).fork(body=body, idempotency_key=key)
             attempt.evidence = receipt
             return Interaction(_submitted(self.client, receipt), idempotency_key=key)
 
@@ -554,7 +554,7 @@ class Agents(Resource):
 
 
 class Agent(AgentMethods):
-    """An Agent selection; management remains on client.resources.agents."""
+    """An Agent selection; management remains on client.api.agents."""
 
 
 class Threads(Resource):
@@ -582,7 +582,7 @@ class Thread(Resource):
         )
 
     async def get(self) -> Result[wire.ThreadView]:
-        return await self._client.resources.threads(self.id).get()
+        return await self._client.api.threads(self.id).get()
 
 
 class Runs(Resource):
@@ -591,19 +591,19 @@ class Runs(Resource):
 
 
 class Run(RunMethods):
-    """One exact Run; advanced resources remain available at client.resources.runs."""
+    """One exact Run; advanced resources remain available at client.api.runs."""
 
     async def get(self) -> Result[wire.RunView]:
-        return await self._client.resources.runs(self.id).get()
+        return await self._client.api.runs(self.id).get()
 
     @property
     def items(self) -> protocol.RunsRunIdItems:
-        return self._client.resources.runs(self.id).items
+        return self._client.api.runs(self.id).items
 
     async def interrupt(self) -> Result[wire.RunView]:
-        return await self._client.resources.runs(self.id).interrupt()
+        return await self._client.api.runs(self.id).interrupt()
 
 
 class InboxEntry(InboxEntryMethods):
     async def get(self) -> Result[wire.EntryView]:
-        return await self._client.resources.threads(self.selectors["thread_id"]).inbox_entries(self.id).get()
+        return await self._client.api.threads(self.selectors["thread_id"]).inbox_entries(self.id).get()

@@ -20,7 +20,7 @@ async def main() -> None:
     async with Client(
         os.environ["A13N_SERVICE_URL"], os.environ["A13N_API_TOKEN"], ca_bundle=os.environ["A13N_CA_BUNDLE"]
     ) as client:
-        agents = await client.resources.agents.list(limit=10)
+        agents = await client.api.agents.list(limit=10)
         interaction = await client.agents(os.environ["A13N_AGENT"]).start(
             "[slow] [long] Native Python SDK integration check.", idempotency_key=key + "-start"
         )
@@ -33,7 +33,7 @@ async def main() -> None:
         assert interaction.thread is not None
         items = await final.run.items.get()
         with BytesIO(payload) as source:
-            uploaded = await client.resources.uploads.create(
+            uploaded = await client.api.uploads.create(
                 body=wire.UploadCreate(
                     file=File(payload=source, file_name="sdk-integration.txt", mime_type="text/plain")
                 ),
@@ -41,11 +41,11 @@ async def main() -> None:
             )
             if source.closed:
                 raise RuntimeError("SDK closed the caller-owned upload stream")
-        asset = await client.resources.assets.create(
+        asset = await client.api.assets.create(
             body=wire.AssetCreate(name="sdk-integration.txt", upload_id=uploaded.value.upload_id)
         )
         received = bytearray()
-        async with client.resources.assets(asset.value.id).content.get_stream() as response:
+        async with client.api.assets(asset.value.id).content.get_stream() as response:
             if response.status_code != 200:
                 raise RuntimeError(f"Asset read returned {response.status_code}")
             async for chunk in response.aiter_bytes():

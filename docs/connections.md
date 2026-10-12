@@ -19,7 +19,7 @@ async def main() -> None:
         os.environ["A13N_API_TOKEN"],
         timeout=30,
     ) as client:
-        page = await client.resources.agents.list(limit=10)
+        page = await client.api.agents.list(limit=10)
         for agent in page.value.items:
             print(agent.id, agent.name)
 
@@ -44,7 +44,7 @@ from a13n import Client
 
 async def check_private_service(service_url: str, api_key: str, ca_file: str) -> None:
     async with Client(service_url, api_key, ca_bundle=ca_file) as client:
-        response = await client.resources.agents.list(limit=1)
+        response = await client.api.agents.list(limit=1)
         print("Connected; request ID:", response.request_id)
 ```
 
@@ -74,7 +74,7 @@ async def list_session_agents(
         csrf_token=csrf_token,
         workspace_id=workspace_id,
     ) as client:
-        async for agent in client.resources.agents.iter(limit=20):
+        async for agent in client.api.agents.iter(limit=20):
             print(agent.id, agent.name)
 ```
 
@@ -91,7 +91,7 @@ from a13n import Client
 
 
 async def list_in_workspace(session_client: Client, workspace_id: str) -> None:
-    page = await session_client.resources.agents.list(x_workspace_id=workspace_id, limit=20)
+    page = await session_client.api.agents.list(x_workspace_id=workspace_id, limit=20)
     for agent in page.value.items:
         print(agent.id, agent.name)
 ```

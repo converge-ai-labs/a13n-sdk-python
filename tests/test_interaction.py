@@ -298,7 +298,7 @@ def test_low_level_resume_posts_exact_generated_body_once() -> None:
             }
         )
         async with Client("https://service.example", transport=httpx2.MockTransport(handle)) as client:
-            result = await client.resources.runs("run_1").resume(body=body, idempotency_key="low-level")
+            result = await client.api.runs("run_1").resume(body=body, idempotency_key="low-level")
             assert isinstance(result, Result) and result.value.id == "run_2"
         assert len(requests) == 1
         assert requests[0].url.path == "/api/v1/runs/run_1/resume"
@@ -421,7 +421,7 @@ def test_full_thread_body_returns_bound_receipt_without_losing_options(accepted:
             return httpx2.Response(201, json=submitted(run=accepted), headers={"X-Request-Id": "req_1"})
 
         async with Client("https://service.example", transport=httpx2.MockTransport(handle)) as client:
-            result = await client.resources.threads.create(body=body, idempotency_key="rich")
+            result = await client.api.threads.create(body=body, idempotency_key="rich")
             assert isinstance(result, Result)
             assert result.value.thread.id == "thr_1" and result.value.entry.id == "ent_1"
             assert (result.value.run is not None) == accepted
@@ -436,7 +436,7 @@ def test_full_inbox_body_uses_the_same_bound_receipt() -> None:
     async def scenario() -> None:
         transport = httpx2.MockTransport(lambda _: httpx2.Response(200, json=submitted(run=False)))
         async with Client("https://service.example", transport=transport) as client:
-            result = await client.resources.threads("thr_1").inbox_entries.create(
+            result = await client.api.threads("thr_1").inbox_entries.create(
                 body=wire.Message(agent_id="agt_1", payload=text_input("Hello")), idempotency_key="full"
             )
             assert isinstance(result, Result) and result.value.run is None
