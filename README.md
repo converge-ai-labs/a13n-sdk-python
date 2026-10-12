@@ -45,24 +45,18 @@ Save this as `quickstart.py`:
 ```python
 import asyncio
 import os
-from uuid import uuid4
-
-from a13n import Client
+from a13n import Client, PreviewInterrupted
 
 
 async def main() -> None:
     async with Client(os.environ["A13N_SERVICE_URL"], os.environ["A13N_API_TOKEN"]) as client:
         agent = client.agents(os.environ["A13N_AGENT"])
-        interaction = await agent.start("Explain what you can help me with.", idempotency_key=uuid4().hex)
+        interaction = await agent.start("Explain what you can help me with.")
         outcome = await interaction.result()
         print("Status:", outcome.status)
         print("Thread:", interaction.thread.id)
 
-        messages = await outcome.run.items.get()
-        for item in messages.value.items:
-            content = item.content.to_dict()
-            if item.kind == "text_message" and content.get("role") == "assistant":
-                print(content.get("text", "[message content omitted]"))
+        print("Reply:", outcome.text if outcome.text is not None else outcome.output)
 
 
 asyncio.run(main())
@@ -76,9 +70,9 @@ Run it with the environment you created above:
 
 For an ordinary reply, you should see `Status: completed`, a Thread ID, and the Agent's response. A Thread is a conversation; a Run is one execution within it. `start()` returns an **Interaction**, which lets you wait for the result or stream progress.
 
-Saved Items are a recent ordinal window, not necessarily all display history. `run.items.get(before=..., after=..., limit=...)` supports explicit historical windows; `complete` means the Run is sealed, not that every Item was loaded. See [windowed display and recovery](docs/streaming-and-results.md#messages-and-structured-output-are-different).
+`outcome.output` preserves the full structured Run output; `outcome.text` is available only when it is a string, including an empty string. Neither requires an Items request. Advanced saved display is a separate, bounded ordinal window; see [windowed display and recovery](docs/streaming-and-results.md#messages-and-structured-output-are-different).
 
-An Agent can also pause for input (`waiting`), fail (`failed`), or be cancelled (`cancelled`). See [read and handle results](docs/streaming-and-results.md#read-a-finished-response) for those cases. The example uses a fresh idempotency key for each new message; in an application, save that key if you may need to retry the same submission.
+An Agent can also pause for input (`waiting`), fail (`failed`), or be cancelled (`cancelled`). See [read and handle results](docs/streaming-and-results.md#read-a-finished-response) for those cases. Omitting a key generates one key before dispatch, exposed as `interaction.idempotency_key`; the SDK never retries a mutation. Durable or cancellation-safe jobs must persist their own key and identical input/options **before** sending. See [recovery](docs/errors-and-recovery.md).
 
 ## Continue the conversation
 
@@ -88,7 +82,6 @@ Add this inside `main()`, while the Client is still open, after the first comple
 follow_up = await agent.send(
     interaction.thread.id,
     "Give me a concrete example.",
-    idempotency_key=uuid4().hex,
 )
 next_outcome = await follow_up.result()
 print(next_outcome.status)
@@ -101,17 +94,33 @@ Save the Thread ID to continue later. Each call to `send()` selects the Agent ex
 Replace the `start()` / `result()` section with this when you want updates while the Agent works:
 
 ```python
-interaction = await agent.start("Draft a short project plan.", idempotency_key=uuid4().hex)
+interaction = await agent.start("Draft a short project plan.")
 async with interaction:
-    async for frame in interaction:
-        print(frame.event_type, frame.data)
+    try:
+        async for chunk in interaction.text_stream():
+            print(chunk, end="", flush=True)
+    except PreviewInterrupted as error:
+        print("\nPreview stopped:", error.reason)
     outcome = await interaction.result()
+print("Final output:", outcome.output)
 print("Status:", outcome.status)
 ```
 
 The loop ends when this execution finishes or pauses for input, even if the connection stays open. The context manager cleans up the connection if you break out early. Closing it stops local observation, **not** the remote Agent.
 
-These frames are progress events, not just text tokens. For the saved response, use `outcome.run.items.get()` as in the quick start. A stream can have gaps; [streaming and results](docs/streaming-and-results.md) explains how to handle them.
+Text chunks are provisional root-assistant preview, not a lossless transcript. Gap/reset and unsupported framing stop preview without losing the authoritative result. For native progress events use `async for frame in interaction` instead; never consume raw and text concurrently. [Streaming and results](docs/streaming-and-results.md) explains the limits and local lifetime.
+
+## Native Service API
+
+For resource management and lower-level Service operations, use the generated `client.api` entry on the same Client:
+
+```python
+response = await client.api.agents.list(limit=10)
+for agent_view in response.value.items:
+    print(agent_view.id, agent_view.name)
+```
+
+Replace previous `client.resources.<collection>` calls with `client.api.<collection>`; no `resources` alias is retained before 0.1. The authored `client.agents(agent_id)` conversation workflow is unchanged. See the [complete resource API](docs/resources.md) for typed request models and HTTP evidence.
 
 ## Next steps
 

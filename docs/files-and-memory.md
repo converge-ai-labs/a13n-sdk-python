@@ -12,26 +12,19 @@ The sequence is upload bytes, create an Asset, then reference its ID in a messag
 from pathlib import Path
 from uuid import uuid4
 
-from a13n import Client, RunOutcome
+from a13n import AssetPart, Client, MemoryMount, RunOutcome
 from a13n.generated import models as wire
 from a13n.generated.types import File
 
 
 async def summarize_file(client: Client, agent_id: str, path: Path) -> RunOutcome:
     with path.open("rb") as source:
-        uploaded = await client.resources.uploads.create(
+        uploaded = await client.api.uploads.create(
             body=wire.UploadCreate(file=File(payload=source, file_name=path.name, mime_type="text/plain")),
             idempotency_key=uuid4().hex,
         )
-    asset = await client.resources.assets.create(
-        body=wire.AssetCreate(name=path.name, upload_id=uploaded.value.upload_id)
-    )
-    payload = wire.MessagePayload(
-        content=[
-            wire.TextPart(type_="text", text="Summarize this document and list any open questions."),
-            wire.AssetPart(type_="asset", asset_id=asset.value.id),
-        ]
-    )
+    asset = await client.api.assets.create(body=wire.AssetCreate(name=path.name, upload_id=uploaded.value.upload_id))
+    payload = ["Summarize this document and list any open questions.", AssetPart(asset.value.id)]
     interaction = await client.agents(agent_id).start(payload, idempotency_key=uuid4().hex)
     print("Asset:", asset.value.id, "Thread:", interaction.thread.id)
     return await interaction.result()
@@ -54,7 +47,7 @@ from a13n import Client
 
 
 async def download_asset(client: Client, asset_id: str, destination: Path) -> None:
-    async with client.resources.assets(asset_id).content.get_stream() as response:
+    async with client.api.assets(asset_id).content.get_stream() as response:
         response.raise_for_status()
         with destination.open("xb") as output:
             async for chunk in response.aiter_bytes():
@@ -74,14 +67,14 @@ from a13n.generated import models as wire
 
 
 async def create_project_notes(client: Client) -> str:
-    created = await client.resources.memories.create(
+    created = await client.api.memories.create(
         body=wire.MemoryCreate(
             name="Project notes",
             guide="Read notes/project.md before answering project questions.",
         )
     )
     memory_id = created.value.id
-    note = await client.resources.memories(memory_id).files.create(
+    note = await client.api.memories(memory_id).files.create(
         body=wire.MemoryFileCreate(
             path="notes/project.md",
             content="# Project\n\nThe first milestone is a working import pipeline.\n",
@@ -100,14 +93,13 @@ Give a new conversation a named, read-only mount:
 ```python
 from uuid import uuid4
 
-from a13n import Client, RunOutcome
-from a13n.generated import models as wire
+from a13n import Client, MemoryMount, RunOutcome
 
 
 async def ask_with_notes(client: Client, agent_id: str, memory_id: str) -> RunOutcome:
     interaction = await client.agents(agent_id).start(
         "Read the project notes and propose the next milestone.",
-        memories=[wire.MemoryMount(name="notes", memory_id=memory_id, access=wire.MemoryAccess.READ)],
+        memories=[MemoryMount(name="notes", memory_id=memory_id, access="read")],
         idempotency_key=uuid4().hex,
     )
     return await interaction.result()
@@ -125,7 +117,7 @@ from a13n.generated import models as wire
 
 
 async def append_milestone(client: Client, memory_id: str, milestone: str) -> None:
-    file = client.resources.memories(memory_id).files("notes/project.md")
+    file = client.api.memories(memory_id).files("notes/project.md")
     current = await file.get()
     updated = await file.replace(
         body=wire.MemoryFileReplace(content=current.value.content + "\n" + milestone + "\n"),
@@ -140,10 +132,10 @@ Pass logical paths directly, including slashes and Unicode. Do not pre-encode th
 
 ## Understand revisions before restoring
 
-Memory file revisions use integer sequence numbers, not opaque revision IDs. List them through `client.resources.memories(memory_id).revisions`, inspect a revision's detail, then explicitly choose whether to restore it.
+Memory file revisions use integer sequence numbers, not opaque revision IDs. List them through `client.api.memories(memory_id).revisions`, inspect a revision's detail, then explicitly choose whether to restore it.
 
 Restoring a revision **undoes that recorded change**; it does not mean “make this revision current.” Undoing a file's creation can remove the file. The restore response is a `MemoryFileState`, whose `file` may therefore be `None`. Account for that before dereferencing a returned file.
 
-Provider-backed records are another Memory surface. They have their own CRUD and search operations rather than file-style ETags, and require a configured provider. Provider accounts are managed through `client.resources.memory_providers`; a local file Memory does not require that integration.
+Provider-backed records are another Memory surface. They have their own CRUD and search operations rather than file-style ETags, and require a configured provider. Provider accounts are managed through `client.api.memory_providers`; a local file Memory does not require that integration.
 
 [Back to the guide](README.md) · [Next: connections and authentication](connections.md)

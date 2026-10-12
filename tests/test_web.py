@@ -29,7 +29,7 @@ def test_web_provider_navigation_is_workspace_scoped_and_preserves_pagination() 
             return httpx2.Response(200, json={"items": [], "next_cursor": None})
 
         async with Client("https://service.example", "token", transport=httpx2.MockTransport(handle)) as client:
-            providers = client.resources.web_providers
+            providers = client.api.web_providers
             assert not visited
             result = await providers.list()
             assert result.value.items == []
@@ -59,7 +59,7 @@ def test_provider_mutations_never_automatically_replay() -> None:
 
         async with Client("https://service.example", "token", transport=httpx2.MockTransport(handle)) as client:
             with pytest.raises(ApiError) as error:
-                await client.resources.web_providers("prv_1").update(body=wire.ProviderUpdate(), if_match='"prv_1:1"')
+                await client.api.web_providers("prv_1").update(body=wire.ProviderUpdate(), if_match='"prv_1:1"')
             assert error.value.details["current_etag"] == "new"
             assert len(requests) == 1
             assert requests[0].headers["if-match"] == '"prv_1:1"'

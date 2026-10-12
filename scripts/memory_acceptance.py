@@ -33,20 +33,20 @@ async def main() -> None:
     async with Client(
         required("A13N_SERVICE_URL"), required("A13N_API_TOKEN"), ca_bundle=required("A13N_CA_BUNDLE")
     ) as client:
-        provider = client.resources.memory_providers(required("A13N_MEMORY_PROVIDER"))
+        provider = client.api.memory_providers(required("A13N_MEMORY_PROVIDER"))
         assert (await provider.get()).value.type_ == "mem0_oss"
         assert (await provider.test()).value.status == wire.ProviderTestStatus.SUCCEEDED
-        assert required("A13N_MEMORY_PROVIDER") in [p.id async for p in client.resources.memory_providers.iter()]
-        assert (await client.resources.auth.configuration.get()).value.initialized
-        assert (await client.resources.healthz.get()).status_code == 200
-        assert (await client.resources.readyz.get()).status_code == 200
+        assert required("A13N_MEMORY_PROVIDER") in [p.id async for p in client.api.memory_providers.iter()]
+        assert (await client.api.auth.configuration.get()).value.initialized
+        assert (await client.api.healthz.get()).status_code == 200
+        assert (await client.api.readyz.get()).status_code == 200
 
         key = f"py-memory-{uuid4().hex}"
-        created = await client.resources.memories.create(body=wire.MemoryCreate(name=key))
-        memory = client.resources.memories(created.value.id)
+        created = await client.api.memories.create(body=wire.MemoryCreate(name=key))
+        memory = client.api.memories(created.value.id)
         updated = await memory.update(body=wire.MemoryUpdate(name="SDK file memory"), if_match=etag(created))
         assert updated.value.name == "SDK file memory"
-        assert memory.id in [item.id async for item in client.resources.memories.iter()]
+        assert memory.id in [item.id async for item in client.api.memories.iter()]
         path = "projects/计划 #1%.md"
         file = memory.files(path)
         first = await memory.files.create(body=wire.MemoryFileCreate(path=path, content="first"))
@@ -78,7 +78,7 @@ async def main() -> None:
         assert (await memory.revisions(changed).restore()).value.file is not None
 
         mounts = [wire.MemoryMount(name="notes", memory_id=memory.id, access=wire.MemoryAccess.READ)]
-        submitted_receipt = await client.resources.threads.create(
+        submitted_receipt = await client.api.threads.create(
             body=wire.NewThread(
                 agent_id=required("A13N_AGENT"),
                 memories=mounts,
@@ -87,9 +87,9 @@ async def main() -> None:
             idempotency_key=key,
         )
         assert submitted_receipt.value.run is not None
-        thread = client.resources.threads(submitted_receipt.value.thread.id)
+        thread = client.api.threads(submitted_receipt.value.thread.id)
         run = client.runs(submitted_receipt.value.run.id)
-        assert (await run.wait(timeout=60, poll_interval=0.1)).status == wire.RunStatus.COMPLETED
+        assert (await run.result(timeout=60, poll_interval=0.1)).status == wire.RunStatus.COMPLETED
         state = await thread.get()
         mounted = await thread.memories("notes").update(
             body=wire.MemoryMountUpdate(access=wire.MemoryAccess.WRITE), if_match=etag(state)
@@ -103,10 +103,10 @@ async def main() -> None:
         assert len((await thread.memories.list()).value.items) == 1
         await thread.memories("extra").delete(if_match=etag(extra))
 
-        record_created = await client.resources.memories.create(
+        record_created = await client.api.memories.create(
             body=wire.MemoryCreate(name=f"{key}-records", type_="mem0_oss", provider_id=provider.id)
         )
-        records_memory = client.resources.memories(record_created.value.id)
+        records_memory = client.api.memories(record_created.value.id)
         record = await records_memory.records.create(body=wire.MemoryRecordText(text="prefers tea"))
         await records_memory.records(record.value.id).replace(body=wire.MemoryRecordText(text="prefers coffee"))
         found = await records_memory.records.search(body=wire.MemoryRecordSearch(query="coffee", limit=3))

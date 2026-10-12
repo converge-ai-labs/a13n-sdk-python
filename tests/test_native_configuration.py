@@ -6,7 +6,7 @@ import json
 import httpx2
 import pytest
 
-from a13n import ApiError, Client
+from a13n import ApiError, AssetPart, Client, RunConfiguration, RunOptions, UrlPart
 from a13n.generated import models as wire
 from a13n.generated.types import UNSET
 from tests.test_interaction import submitted
@@ -58,9 +58,20 @@ def test_configuration_and_media_forward_through_start_send_and_message(options_
 
         async with Client("https://service.example", transport=httpx2.MockTransport(handle)) as client:
             agent = client.agents("agt_1")
-            await agent.start(payload, options=options, idempotency_key="start")
-            await agent.send("thr_1", payload, options=options, idempotency_key="send")
-            await client.resources.threads("thr_1").inbox_entries.create(
+            configuration = options_json.get("configuration", UNSET)
+            public_options = RunOptions(
+                configuration=RunConfiguration(**configuration) if isinstance(configuration, dict) else configuration
+            )
+            parts = [
+                "Inspect these in order",
+                UrlPart("https://media.example.test/image.png"),
+                UrlPart("https://media.example.test/video.mp4"),
+                AssetPart("ast_1"),
+                UrlPart("https://media.example.test/image.png"),
+            ]
+            await agent.start(parts, options=public_options, idempotency_key="start")
+            await agent.send("thr_1", parts, options=public_options, idempotency_key="send")
+            await client.api.threads("thr_1").inbox_entries.create(
                 body=wire.Message(agent_id="agt_1", payload=payload, options=options), idempotency_key="message"
             )
         assert len(requests) == 3
@@ -113,7 +124,7 @@ def test_frozen_configuration_conflict_is_not_rewritten_or_replayed() -> None:
                     "thr_1",
                     "x",
                     delivery=wire.Delivery.STEER,
-                    options=wire.RunOptionsInput(configuration=wire.RunConfigurationInput(allowed_hosts=[])),
+                    options=RunOptions(configuration=RunConfiguration(allowed_hosts=[])),
                     idempotency_key="steer",
                 )
             assert error.value.code == "conflict" and error.value.status == 409
@@ -175,6 +186,6 @@ def test_model_media_policies_reach_native_model_update_without_processing() -> 
 
         async with Client("https://service.example", transport=httpx2.MockTransport(handle)) as client:
             with pytest.raises(ApiError):
-                await client.resources.models("mdl_1").update(body=body, if_match='"mdl:1"')
+                await client.api.models("mdl_1").update(body=body, if_match='"mdl:1"')
 
     asyncio.run(scenario())

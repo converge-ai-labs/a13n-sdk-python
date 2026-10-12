@@ -73,7 +73,7 @@ def test_generated_binary_download_is_unbuffered_and_workspace_bound() -> None:
             return httpx2.Response(200, content=b"\0zip-binary", headers={"Content-Type": "application/octet-stream"})
 
         async with Client("https://service.example", "token", transport=httpx2.MockTransport(handle)) as client:
-            async with client.resources.assets("ast_1").content.get_stream() as response:
+            async with client.api.assets("ast_1").content.get_stream() as response:
                 assert response.status_code == 200
                 assert await response.aread() == b"\0zip-binary"
             assert paths == ["/api/v1/assets/ast_1/content"]
@@ -102,7 +102,7 @@ def test_generated_upload_accepts_binary_file_part_not_utf8_string() -> None:
         payload = BytesIO(b"\x00\xff" * 32_768)
         async with Client("https://service.example", "token", transport=httpx2.MockTransport(handle)) as client:
             with pytest.raises(ApiError):
-                await client.resources.uploads.create(
+                await client.api.uploads.create(
                     body=wire.UploadCreate(
                         file=File(payload=payload, file_name="binary.dat", mime_type="application/octet-stream")
                     ),
@@ -150,7 +150,7 @@ def test_generated_thread_sse_exposes_unbuffered_raw_response() -> None:
 
         async with Client("https://service.example", "token", transport=httpx2.MockTransport(handle)) as client:
             async with asyncio.timeout(0.5):
-                async with client.resources.threads("thr_1").stream.get_stream(
+                async with client.api.threads("thr_1").stream.get_stream(
                     run="run_1", position="1-3", last_event_id="1700000000000-0"
                 ) as response:
                     assert response.status_code == 200
@@ -212,7 +212,7 @@ def test_model_settings_reach_native_request_without_filtering() -> None:
 
         async with Client("https://service.example", transport=httpx2.MockTransport(handle)) as client:
             with pytest.raises(ApiError, match="Provider rejected settings"):
-                await client.resources.models.create(body=body)
+                await client.api.models.create(body=body)
 
     asyncio.run(scenario())
 

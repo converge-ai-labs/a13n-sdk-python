@@ -6,39 +6,30 @@ These examples take an open `Client` from the [quick start](../README.md#quick-s
 
 ## Read a finished response
 
-A successful HTTP submission does not mean execution succeeded. Check the outcome, then read the saved response:
+A successful HTTP submission does not mean execution succeeded. Check the outcome and read authoritative output directly, with no additional Items request:
 
 ```python
 from a13n import RunOutcome
-from a13n.generated import models as wire
 
 
-async def display_outcome(outcome: RunOutcome) -> None:
-    if outcome.status == wire.RunStatus.COMPLETED:
-        saved = await outcome.run.items.get()
-        for item in saved.value.items:
-            content = item.content.to_dict()
-            if (
-                item.kind == "text_message"
-                and content.get("role") == "assistant"
-                and content.get("subagentRunId") is None
-            ):
-                print(content.get("text", "[message content omitted]"))
-        if saved.value.items and saved.value.items[0].ordinal > 1:
-            print("Earlier Items are available through ordinal paging.")
-    elif outcome.status == wire.RunStatus.WAITING:
-        print("Input needed:", outcome.pending.to_dict() if outcome.pending else None)
-    elif outcome.status == wire.RunStatus.FAILED:
-        print("Execution failed:", outcome.failure.to_dict() if outcome.failure else None)
+def display_outcome(outcome: RunOutcome) -> None:
+    if outcome.status == "completed":
+        print(outcome.text if outcome.text is not None else outcome.output)
+    elif outcome.status == "waiting":
+        print("Input needed:", outcome.pending)
+    elif outcome.status == "failed":
+        print("Execution failed:", outcome.failure)
     else:
         print("Execution cancelled.")
 ```
 
-Call `await display_outcome(await interaction.result())` inside your async application. A `waiting` outcome needs [an explicit response](waiting-and-tools.md), not another wait on the same Run.
+Call `display_outcome(await interaction.result())` inside your async application. A `waiting` outcome needs [an explicit response](waiting-and-tools.md), not another wait on the same Run.
 
 ### Messages and structured output are different
 
-`outcome.run.items.get()` returns saved messages and tool activity. `outcome.output` is the Run's output value; it may contain structured output or be `None` even when an ordinary assistant message exists. Do not use `output` as a universal chat-text field.
+`outcome.output` is the full Run output, preserving JSON null, false, zero, empty containers and structured values. `outcome.text` returns it only if it is a string, including an empty string. It never scans Items or coerces structured JSON into chat text. `.run`, `.run_id`, `.thread_id`, `.pending` and `.failure` are direct workflow values; `.evidence` explicitly retains HTTP status, headers, request ID and the native response.
+
+**Advanced display readback:** `outcome.run.items.get()` separately returns saved messages and tool activity. A Run can have null output even when display activity exists; no final output is fabricated from it.
 
 Items are a windowed display, not an unlimited archive. `complete` means the Run is sealed, **not** that the response includes all history. Every Item has a dense 1-based `ordinal`. A default `run.items.get(limit=200)` returns the newest limit plus the entire mutable tail, so it can return more than the requested limit. Check content omission/truncation flags separately; the SDK cannot reconstruct omitted content from progress events.
 
@@ -51,40 +42,38 @@ Only a default read has `baseline=True`: it carries the shared normalization con
 This function prints text deltas while the Agent works, then prints the saved result. It deliberately distinguishes the preview from the saved response instead of concatenating both into one supposedly complete transcript:
 
 ```python
-from uuid import uuid4
-
-from a13n import Client, RunOutcome
+from a13n import Client, PreviewInterrupted, RunOutcome
 
 
 async def stream_answer(client: Client, agent_id: str, prompt: str) -> RunOutcome:
-    interaction = await client.agents(agent_id).start(prompt, idempotency_key=uuid4().hex)
+    interaction = await client.agents(agent_id).start(prompt)
     async with interaction:
-        async for frame in interaction:
-            if frame.event_type == "delta":
-                event = frame.data["event"]
-                if event.get("type") == "TEXT_MESSAGE_CONTENT" and event.get("subagentRunId") is None:
-                    print(event["delta"], end="", flush=True)
-            elif frame.event_type in {"gap", "reset"}:
-                print("\n[Preview interrupted; the saved response will follow.]")
+        try:
+            async for chunk in interaction.text_stream():
+                print(chunk, end="", flush=True)
+        except PreviewInterrupted as error:
+            print("Preview stopped:", error.reason)
         outcome = await interaction.result()
 
-    print("\nSaved result:", outcome.status)
-    saved = await outcome.run.items.get()
-    print(saved.value.to_dict())
+    print("Final output:", outcome.output)
     return outcome
 ```
 
 The loop ends when this execution completes, fails, is cancelled, or pauses for input. It does not wait forever for the underlying connection to close. An execution can finish before you receive any deltas; the result and saved Items still tell you what happened.
 
+`text_stream()` lazily projects the existing finite reader. It emits root assistant string CONTENT only after a trustworthy START, excludes explicit child attribution and `metadata.display: false`, and tracks at most 128 active identities without buffering a transcript. Gap/reset, discontinuous Service per-attempt sequences, missing or ambiguous START, duplicate identity, attempt changes, malformed framing and state exhaustion raise sticky `PreviewInterrupted(reason, run_id)`. The still-open Interaction's outcome observer continues; `result()` remains available, and deliberate sequential raw consumption is allowed after interruption. A second text consumer or concurrent raw/text read is rejected.
+
+The pinned `a13n.stream.fragment` CUSTOM envelope carries slices of an original large CUSTOM event, not standard text-message suffixes. Exact-root fragments conservatively interrupt this preview because it does not assemble their semantics; this is an unsupported-framing limitation, not proof of lost assistant text. Explicit foreign/child/hidden fragments are filtered first. Unknown unframed CUSTOM events are ignored by preview and preserved by raw access. Every exact-Run outer Service sequence is tracked before child/hidden exclusion; after the initial observed coordinate, deltas must remain dense. Late boundaries at or below the received high-water mark are notifications, not resets; a boundary ahead of it interrupts preview. Nested event/source coordinates and foreign Runs do not affect tracking. No baseline repair occurs.
+
 Native AG-UI 1.0 events use camelCase fields such as `messageId`, `toolCallId`, and `subagentRunId`. Inline-child events share the Service Run envelope but retain child attribution; the root-only text preview above deliberately excludes them. To display children, group content by `(subagentRunId, messageId)` rather than flattening it into root text. A nested lifecycle event never replaces the exact Service Run outcome.
 
 Tool results can contain an ordered list of native text/image/audio/video/document parts rather than a string. Preserve their `source` descriptors and duplicates; provider file handles are not downloadable URLs. `CUSTOM` values, including null and unknown names, and authored/generated input metadata remain native JSON. Respect `metadata.display: false` in your presentation. Saved tool Item content uses `result_parts` for structured content and `result` for a string, with the same bounded attribution; use a media-aware renderer rather than string coercion. The SDK neither reconstructs source history nor downloads media for display.
 
-Not every frame is a text token. Tool activity, boundaries, and recovery signals also travel through the stream. In a UI, maintain a provisional preview while streaming and replace it from saved Items at the end. If a `gap` or `reset` arrives, discard assumptions about contiguous deltas; refresh the saved view or mark the preview incomplete until you do.
+Not every frame is a text token. Tool activity, boundaries, and recovery signals also travel through the stream. For native progress events, use `async for frame in interaction` instead. In a UI, keep provisional preview separate from authoritative final output and advanced saved display. If a `gap` or `reset` arrives, discard assumptions about contiguous deltas; refresh the saved view or mark the preview incomplete until you do.
 
 ## Own the observation lifetime
 
-Keep iteration inside `async with interaction`. The context closes its local reader on normal completion, exceptions, or an early `break`. An Interaction has one reader and one observation lifetime; it is not a broadcast channel for several UI consumers.
+Keep iteration inside `async with interaction`. Leaving the context closes its local reader on completion, exceptions, or early exit. Breaking a loop alone while remaining inside the context does not release it. If abandoning a paused text iterator, call `await preview.aclose()` before sequential raw consumption; use `finally` or context exit to release the Interaction. An Interaction has one reader and one observation lifetime; it is not a broadcast channel for several UI consumers.
 
 `result()` is also useful without iteration. It does not open SSE, and a successfully obtained outcome is cached. After normal stream completion, you can still read that outcome. Closing before an outcome is available is different: the closed Interaction will not silently start another observation.
 
@@ -115,7 +104,7 @@ The Client's `timeout` setting is separate: it limits an ordinary HTTP request a
 
 ## When you need Thread-wide events
 
-Most applications should stay with Interaction. Advanced consumers can use the generated `client.resources.threads(thread_id).stream.get_stream()` for the raw SSE response, or `ThreadStream` for protocol parsing and reconnect handling. That stream covers the Thread rather than one submitted message and requires explicit event/run and cursor handling. It is not a second high-level conversation mode.
+Most applications should stay with Interaction. Advanced consumers can use the generated `client.api.threads(thread_id).stream.get_stream()` for the raw SSE response, or `ThreadStream` for protocol parsing and reconnect handling. That stream covers the Thread rather than one submitted message and requires explicit event/run and cursor handling. It is not a second high-level conversation mode.
 
 ### Resume from a saved display, not only a cursor
 
@@ -140,7 +129,7 @@ async def observe_new_baseline(client: Client, thread_id: str, gap: GapFrame) ->
         return  # Terminal baseline, or no committed coverage to claim yet.
     hint = saved.resume_after if isinstance(saved.resume_after, str) else None
     async with ThreadStream(
-        client.resources.threads(thread_id),
+        client.api.threads(thread_id),
         run=saved.run.id,
         position=saved.position,
         after=hint,

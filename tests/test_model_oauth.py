@@ -69,7 +69,7 @@ def test_generated_oauth_graph_preserves_scope_status_nullable_data_and_auth(ses
             else Client("https://service.example", "fixture-key", transport=transport)
         )
         async with client:
-            provider = client.resources.model_providers("mpr_1")
+            provider = client.api.model_providers("mpr_1")
             status = await provider.authorization.get(x_workspace_id="ws_1")
             assert status.value.to_dict() == STATUS
             start = await provider.authorize(
@@ -127,7 +127,7 @@ def test_hosted_authorization_denial_is_service_owned_and_not_replayed() -> None
 
         async with Client("https://service.example", "fixture-key", transport=httpx2.MockTransport(handle)) as client:
             with pytest.raises(ApiError) as error:
-                await client.resources.model_providers("mpr_1").authorize(body=wire.ProviderAuthorizationRequest())
+                await client.api.model_providers("mpr_1").authorize(body=wire.ProviderAuthorizationRequest())
             assert error.value.status == 403 and error.value.code == "forbidden"
         assert len(seen) == 1  # No fallback login, callback origin rewrite or mutation replay.
 

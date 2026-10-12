@@ -65,12 +65,13 @@ def test_acceptance_rejects_lost_or_changed_configuration_readback() -> None:
 
 
 def test_acceptance_identity_mismatch_is_runtime_error() -> None:
+    from a13n.generated import models as wire
+    from tests.test_interaction import submitted as submitted_view
+
+    value = wire.Submitted.from_dict(submitted_view())
+    value.thread.id = "thr_wrong"
     submitted = SimpleNamespace(
-        receipt=SimpleNamespace(
-            value=SimpleNamespace(
-                thread=SimpleNamespace(id="thr_wrong"), entry=SimpleNamespace(id="ent_1", thread_id="thr_1"), run=None
-            )
-        ),
+        receipt=SimpleNamespace(value=value),
         thread=SimpleNamespace(id="thr_1"),
         entry=SimpleNamespace(id="ent_1"),
         run=None,

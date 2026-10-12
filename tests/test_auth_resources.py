@@ -4,8 +4,9 @@ import json
 import httpx2
 import pytest
 
-from a13n import ApiError, Client, ProtocolError, TransportError, text_input
+from a13n import ApiError, Client, ProtocolError, TransportError
 from a13n.generated import models as wire
+from tests.test_interaction import text_input
 
 
 def test_credentials_scopes_and_csrf_are_explicit() -> None:
@@ -24,11 +25,11 @@ def test_credentials_scopes_and_csrf_are_explicit() -> None:
             return httpx2.Response(200, json={"items": [], "next_cursor": None}, headers={"ETag": '"ws_1:2"'})
 
         async with Client("https://service.example", "secret-token", transport=httpx2.MockTransport(handle)) as client:
-            result = await client.resources.threads.list()
+            result = await client.api.threads.list()
             assert result.etag == '"ws_1:2"'
             assert result.value.items == []
             with pytest.raises(ApiError) as error:
-                await client.resources.threads.create(
+                await client.api.threads.create(
                     body=wire.NewThread(agent_id="agt_1", payload=text_input("Hi")), idempotency_key="k"
                 )
             assert error.value.status == 400 and error.value.code == "invalid_argument"
@@ -44,13 +45,13 @@ def test_credentials_scopes_and_csrf_are_explicit() -> None:
             csrf_token="csrf",
             transport=httpx2.MockTransport(handle),
         ) as session:
-            await session.resources.threads.list()
+            await session.api.threads.list()
             with pytest.raises(ApiError):
-                await session.resources.threads.create(
+                await session.api.threads.create(
                     body=wire.NewThread(agent_id="agt_1", payload=text_input("Hi")), idempotency_key="k"
                 )
             session.set_csrf_token("changed")
-            await session.resources.threads.list()
+            await session.api.threads.list()
         assert "authorization" not in seen[0][2]
         assert seen[0][2]["origin"] == "https://service.example"
         assert "x-workspace-id" not in seen[0][2]
@@ -64,8 +65,8 @@ def test_administration_has_only_generated_resource_entrypoints() -> None:
         async with Client("https://service.example") as client:
             assert not hasattr(client, "workspaces")
             assert not hasattr(client, "organizations")
-            assert client.resources.workspaces("ws_1").id == "ws_1"
-            assert client.resources.organizations("org_1").id == "org_1"
+            assert client.api.workspaces("ws_1").id == "ws_1"
+            assert client.api.organizations("org_1").id == "org_1"
 
     asyncio.run(scenario())
 
@@ -80,11 +81,11 @@ def test_lazy_pages_and_tenant_binding() -> None:
             return httpx2.Response(200, json={"items": [], "next_cursor": "next" if cursor is None else None})
 
         async with Client("https://service.example", "t", transport=httpx2.MockTransport(handle)) as client:
-            collection = client.resources.threads
+            collection = client.api.threads
             assert not visited
             assert client.threads("thr_1").id == "thr_1"
             assert client.runs("run_1").selectors == {"run_id": "run_1"}
-            assert client.resources.threads("thr_1").inbox_entries("entry_1").id == "entry_1"
+            assert client.api.threads("thr_1").inbox_entries("entry_1").id == "entry_1"
             pages = [page async for page in collection.pages(limit=1)]
             assert len(pages) == 2
             assert "cursor=next" in visited[-1]
@@ -110,7 +111,7 @@ def test_generated_error_envelope_and_unknown_transport_outcome() -> None:
 
         async with Client("https://service.example", "token", transport=httpx2.MockTransport(failure)) as client:
             with pytest.raises(ApiError) as error:
-                await client.resources.threads.list()
+                await client.api.threads.list()
             assert (error.value.status, error.value.code, error.value.details["current_etag"]) == (
                 412,
                 "precondition_failed",
@@ -123,7 +124,7 @@ def test_generated_error_envelope_and_unknown_transport_outcome() -> None:
 
         async with Client("https://service.example", "token", transport=httpx2.MockTransport(disconnect)) as client:
             with pytest.raises(TransportError, match="unknown"):
-                await client.resources.threads.list()
+                await client.api.threads.list()
 
     asyncio.run(scenario())
 
@@ -136,7 +137,7 @@ def test_error_does_not_infer_success_from_empty_body() -> None:
             transport=httpx2.MockTransport(lambda _request: httpx2.Response(500, content=b"broken")),
         ) as client:
             with pytest.raises((ProtocolError, json.JSONDecodeError)):
-                await client.resources.threads.list()
+                await client.api.threads.list()
 
     asyncio.run(scenario())
 
@@ -155,10 +156,10 @@ def test_session_workspace_context_only_on_declared_workspace_routes() -> None:
             workspace_id="ws_1",
             transport=httpx2.MockTransport(handle),
         ) as client:
-            await client.resources.agents.list()
-            await client.resources.memories.list()
-            await client.resources.workspaces.list()
-            await client.resources.organizations.list()
+            await client.api.agents.list()
+            await client.api.memories.list()
+            await client.api.workspaces.list()
+            await client.api.organizations.list()
         assert seen[0] == ("/api/v1/agents", "ws_1")
         assert seen[1] == ("/api/v1/memories", "ws_1")
         assert all(scope is None for _, scope in seen[2:])
@@ -180,8 +181,8 @@ def test_session_workspace_scope_respects_service_base_path_prefix() -> None:
             workspace_id="ws_1",
             transport=httpx2.MockTransport(handle),
         ) as client:
-            await client.resources.agents.list()
-            await client.resources.organizations.list()
+            await client.api.agents.list()
+            await client.api.organizations.list()
         assert seen == [
             ("/proxy/native/api/v1/agents", "ws_1"),
             ("/proxy/native/api/v1/organizations", None),

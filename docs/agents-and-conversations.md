@@ -14,7 +14,7 @@ from a13n.generated import models as wire
 
 
 async def create_reviewer(client: Client, model_key: str) -> str:
-    created = await client.resources.agents.create(
+    created = await client.api.agents.create(
         body=wire.AgentCreate(
             name="Project reviewer",
             config=wire.AgentConfigInput(
@@ -36,40 +36,34 @@ Save the returned Agent ID. Creating a new Agent on every application request is
 Here is a complete two-message workflow. It returns the conversation ID so your application can store it alongside its own chat record:
 
 ```python
-from uuid import uuid4
-
 from a13n import Client
-from a13n.generated import models as wire
 
 
 async def review_plan(client: Client, agent_id: str, plan: str) -> str:
     agent = client.agents(agent_id)
-    first = await agent.start(plan, idempotency_key=uuid4().hex)
+    first = await agent.start(plan)
     outcome = await first.result()
-    if outcome.status != wire.RunStatus.COMPLETED:
+    if outcome.status != "completed":
         print("Review needs attention:", outcome.status)
         return first.thread.id
 
-    messages = await outcome.run.items.get()
-    print(messages.value.to_dict())
+    print(outcome.text if outcome.text is not None else outcome.output)
 
     follow_up = await agent.send(
         first.thread.id,
         "Turn your recommendation into three implementation steps.",
-        idempotency_key=uuid4().hex,
     )
     next_outcome = await follow_up.result()
     print("Follow-up:", next_outcome.status)
-    next_messages = await next_outcome.run.items.get()
-    print(next_messages.value.to_dict())
+    print(next_outcome.output)
     return first.thread.id
 ```
 
 Both messages belong to the same Thread but produce separate executions. A Thread is not permanently bound to an Agent: every `send()` explicitly selects one. Keep that selection in your application rather than relying on a hidden “current Agent.”
 
-The example prints saved Items, including messages and tool activity. To display assistant text only, use the filtering loop in the quick start. A `waiting` result is not a failed request; it needs the [input or tool workflow](waiting-and-tools.md).
+The example prints authoritative output directly. String output also has `outcome.text`; structured output stays structured. Saved Items are advanced bounded display, not the final-output owner. A `waiting` result is not a failed request; it needs the [input or tool workflow](waiting-and-tools.md).
 
-For each **new** message, generate a new idempotency key. For a retry of the **same** message, reuse its original key and payload. Production applications should persist them before submission; see [recovery](errors-and-recovery.md#retry-a-submission-with-an-unknown-outcome).
+For each **new** message, omit the key for an SDK-generated one or select a new application key. For a retry of the **same** message, reuse its original key and payload. Production applications should persist them before submission; see [recovery](errors-and-recovery.md#retry-a-submission-with-an-unknown-outcome).
 
 ## Import an existing model conversation
 
@@ -98,49 +92,48 @@ The Service validates native history (completed text or closed tool-call/result 
 
 ## Supply structured input
 
-A string is convenient for plain text. A `MessagePayload` lets you combine text with JSON or an uploaded Asset:
+A string is convenient for plain text. An ordered sequence combines strings with public `TextPart`, `JsonPart`, `UrlPart` and `AssetPart` values; constructors supply their wire discriminators:
 
 ```python
-from uuid import uuid4
-
-from a13n import Client, RunOutcome
-from a13n.generated import models as wire
+from a13n import Client, JsonPart, RunOutcome
 
 
 async def review_budget(client: Client, agent_id: str) -> RunOutcome:
-    payload = wire.MessagePayload(
-        content=[
-            wire.TextPart(type_="text", text="Identify the largest budget risk."),
-            wire.JsonPart(type_="json", value={"currency": "USD", "budget": 5000, "weeks": 4}),
+    interaction = await client.agents(agent_id).start(
+        [
+            "Identify the largest budget risk.",
+            JsonPart({"currency": "USD", "budget": 5000, "weeks": 4}),
         ]
     )
-    interaction = await client.agents(agent_id).start(payload, idempotency_key=uuid4().hex)
     return await interaction.result()
 ```
 
-`send()` accepts the same payload type. See [files and Memory](files-and-memory.md) for an upload-to-message example; uploading bytes alone does not attach them to a conversation.
+`send()`, resume input and fork accept the same public input. See [files and Memory](files-and-memory.md) for an upload-to-message example; uploading bytes alone does not attach them to a conversation.
 
 ## Change settings for one execution
 
 Use `options` when a particular request needs different settings without changing the saved Agent. This example selects another configured Model key for one review:
 
 ```python
-from uuid import uuid4
-
-from a13n import Client, RunOutcome
-from a13n.generated import models as wire
+from a13n import AgentOverride, Client, RunConfiguration, RunOptions, RunOutcome, UsageLimit
 
 
 async def detailed_review(client: Client, agent_id: str, model_key: str, plan: str) -> RunOutcome:
     interaction = await client.agents(agent_id).start(
         plan,
-        options=wire.RunOptionsInput(overrides=wire.AgentOverrideInput(model=model_key)),
-        idempotency_key=uuid4().hex,
+        options=RunOptions(
+            configuration=RunConfiguration(allowed_hosts=[], extensions={"example.policy": {"enabled": False}}),
+            overrides=AgentOverride(model=model_key, model_settings={"extra_body": {}}),
+            labels={"purpose": "review"},
+            max_usage=UsageLimit(10),
+        ),
     )
     return await interaction.result()
 ```
 
-Other typed settings include instructions, client tools, Skills, and model settings. Use `wire.SkillSelection(skill_id=...)` for a Skill. Provider-specific settings must be supported by your chosen provider; the SDK does not translate arbitrary provider options.
+`AgentOverride` exposes every selectable field: client_tools, connection_tools, instructions, media_understanding, model, model_characteristics, model_settings, output_spec, plugins, retries, reviewer, skills, subagents and toolsets. Nested schema objects are native JSON mappings, for example `skills=[{"skill_id": skill_id}]` or `output_spec={"schema": {"type": "object"}}`. This avoids a second generated-model hierarchy. Provider-specific settings must be supported by the chosen provider; the SDK does not translate provider options.
+
+Public `UNSET` preserves omission. Nullable fields accept `None`, and empty lists/mappings remain explicit. `RunConfiguration(allowed_hosts=None)` is unrestricted; `allowed_hosts=[]` denies native URL access. `RunOptions(configuration=RunConfiguration())` sends an explicit empty snapshot. No adapter inserts defaults or merges policy.
 
 For `model_settings.extra_body` and `extra_headers`, an explicit object replaces the inherited object rather than recursively merging it. An empty object clears it. See [omitted and null values](resources.md#omitted-null-and-empty-values) before building dynamic patches.
 
@@ -151,7 +144,7 @@ For `model_settings.extra_body` and `extra_headers`, an explicit object replaces
 | `memories` / `environments` on `start()` | The new conversation needs explicit mounts.                                                                     |
 | `delivery`                               | You need an explicit message-delivery policy. Keep the default unless your application requires another policy. |
 
-The full request types live in [generated models](../a13n/generated/models). For ordinary conversations, keep using `start()` and `send()` rather than assembling low-level Thread submissions yourself.
+Public `MountCreate(name, environment_id, working_directory=UNSET)` and `MemoryMount(name, memory_id, access, recall=UNSET)` cover initial mounts; `mcp_headers` is a native mapping. The full management request types remain in [generated models](../a13n/generated/models). Ordinary conversations use `start()` and `send()`.
 
 ## Next
 

@@ -1,8 +1,10 @@
 # The resource API
 
-The Agent workflow is designed for conversations. `client.resources` is the complete, generated API for management and lower-level operations: Agents, Models, Skills, files, Memory, Threads, and administration. Both use the same Client and credentials.
+The Agent workflow is designed for conversations. `client.api` is the complete, generated API for management and lower-level operations: Agents, Models, Skills, files, Memory, Threads, and administration. Both use the same Client and credentials.
 
 Use this chapter when you need to list or edit resources, inspect HTTP metadata, or work with a Service operation that is not part of `start()` / `send()`.
+
+**Migration:** replace `client.resources.<collection>` with `client.api.<collection>`. The pre-0.1 SDK does not retain a `resources` alias. Authored `client.agents(agent_id)`, `client.threads(thread_id)` and `client.runs(run_id)` workflows are unchanged; the generated graph, credentials and Client lifetime are shared.
 
 ## Find a resource and inspect its response
 
@@ -13,7 +15,7 @@ from a13n import Client
 
 
 async def find_agents(client: Client, query: str) -> None:
-    response = await client.resources.agents.list(q=query, limit=10)
+    response = await client.api.agents.list(q=query, limit=10)
     for agent in response.value.items:
         print(agent.id, agent.name)
     print("HTTP status:", response.status_code)
@@ -43,7 +45,7 @@ from a13n import Client
 
 
 async def print_agent_directory(client: Client) -> None:
-    async for agent in client.resources.agents.iter(limit=50):
+    async for agent in client.api.agents.iter(limit=50):
         print(agent.id, agent.name)
 ```
 
@@ -54,7 +56,7 @@ from a13n import Client
 
 
 async def inspect_agent_pages(client: Client) -> None:
-    async for page in client.resources.agents.pages(limit=50):
+    async for page in client.api.agents.pages(limit=50):
         print("Page request:", page.request_id, "Items:", len(page.value.items))
 ```
 
@@ -70,7 +72,7 @@ from a13n.generated import models as wire
 
 
 async def rename_agent(client: Client, agent_id: str, name: str) -> None:
-    resource = client.resources.agents(agent_id)
+    resource = client.api.agents(agent_id)
     current = await resource.get()
     updated = await resource.update(body=wire.AgentUpdate(name=name), if_match=current.etag)
     print("Renamed:", updated.value.name, "ETag:", updated.etag)
@@ -159,32 +161,27 @@ Use it in `wire.ModelCreate` or `wire.ModelUpdate`. Omitted `image_input` uses n
 Pass configuration through existing typed `options` on `start()` and `send()`; generated `wire.Message` uses the same shape:
 
 ```python
-from a13n import Client
-from a13n.generated import models as wire
+from a13n import Client, RunConfiguration, RunOptions, UrlPart
 
 
 async def restricted_input(client: Client, agent_id: str) -> None:
-    options = wire.RunOptionsInput(
-        configuration=wire.RunConfigurationInput(
+    options = RunOptions(
+        configuration=RunConfiguration(
             allowed_hosts=["media.example.test"],
-            extensions=wire.RunConfigurationInputExtensions.from_dict(
-                {"example.policy": {"enabled": False, "limits": [], "note": None}}
-            ),
+            extensions={"example.policy": {"enabled": False, "limits": [], "note": None}},
         )
     )
-    payload = wire.MessagePayload(
-        content=[
-            wire.TextPart(type_="text", text="Describe this image and video."),
-            wire.UrlPart(type_="url", url="https://media.example.test/image.png"),
-            wire.UrlPart(type_="url", url="https://media.example.test/video.mp4"),
-        ]
-    )
+    payload = [
+        "Describe this image and video.",
+        UrlPart("https://media.example.test/image.png"),
+        UrlPart("https://media.example.test/video.mp4"),
+    ]
     interaction = await client.agents(agent_id).start(payload, options=options, idempotency_key="media-001")
     outcome = await interaction.result()
-    print(outcome.snapshot.value.options.configuration)
+    print(outcome.evidence.value.options.configuration)
 ```
 
-An explicit configuration object is a complete snapshot, not a merge with hidden SDK defaults or revision overrides. `configuration=UNSET` omits it, `configuration=None` sends null, and `wire.RunConfigurationInput()` sends `{}`. Omission/null select the native default for a new Run and retain the accepted snapshot when steering. `allowed_hosts=None` is unrestricted; `allowed_hosts=[]` denies every native URL destination. Extensions are arbitrary namespaced JSON, not SDK policy.
+An explicit configuration object is a complete snapshot, not a merge with hidden SDK defaults or revision overrides. `configuration=UNSET` omits it, `configuration=None` sends null, and `RunConfiguration()` sends `{}`. Omission/null select the native default for a new Run and retain the accepted snapshot when steering. `allowed_hosts=None` is unrestricted; `allowed_hosts=[]` denies every native URL destination. Extensions are arbitrary namespaced JSON, not SDK policy.
 
 The Service normalizes/freezes the accepted configuration. Steering and pending edits against an active Run may omit it or match the frozen value; a different explicit snapshot returns `409 conflict` with reason `run_configuration_immutable`. The SDK does not auto-queue or retry that request. `delivery=wire.Delivery.NEXT_RUN` selects a new snapshot, while resume successors and inline children inherit their source's configuration.
 
@@ -198,7 +195,7 @@ from a13n.generated import models as wire
 
 
 async def begin_provider_authorization(client: Client, provider_id: str, workspace_id: str) -> wire.AuthorizationStart:
-    provider = client.resources.model_providers(provider_id)
+    provider = client.api.model_providers(provider_id)
     await provider.authorization.get(x_workspace_id=workspace_id)
     started = await provider.authorize(
         body=wire.ProviderAuthorizationRequest(new_registration=False), x_workspace_id=workspace_id
@@ -209,14 +206,14 @@ async def begin_provider_authorization(client: Client, provider_id: str, workspa
 async def complete_manual_authorization(
     client: Client, provider_id: str, workspace_id: str, attempt_id: str, callback_url: str
 ) -> None:
-    await client.resources.model_providers(provider_id).authorization.callback(
+    await client.api.model_providers(provider_id).authorization.callback(
         body=wire.AuthorizationCallback(attempt_id=attempt_id, callback_url=callback_url),
         x_workspace_id=workspace_id,
     )
 
 
 async def discover_provider_models(client: Client, provider_id: str, workspace_id: str) -> list[wire.ChatGPTModel]:
-    return (await client.resources.model_providers(provider_id).models.get(x_workspace_id=workspace_id)).value
+    return (await client.api.model_providers(provider_id).models.get(x_workspace_id=workspace_id)).value
 ```
 
 Follow the returned `method`: `manual_callback` accepts a pasted callback through `authorization.callback`; `browser_callback` uses the operator-configured hosted flow and status polling. Do not hardcode callback origins, client identity or port, print callback codes, or store Provider tokens. Starting hosted browser authorization requires an unconfined user login, but manual Workspace authorization can use an authorized API key. Service permissions are `read` for status, `write` for authorize/callback/disconnect, and `run` for discovery; the SDK does not replace these checks. OAuth is workspace-shared Provider state, not a personal Connection or a new Client credential.
@@ -229,8 +226,8 @@ Follow the returned `method`: `manual_callback` accepts a pasted callback throug
 | -------------------------------------------------- | ---------------------------------------------------------------------- |
 | Start or continue a conversation                   | `client.agents(id).start(...)` / `.send(...)`                          |
 | Wait for a known execution or resume a waiting one | `client.runs(id)`                                                      |
-| Create or edit an Agent                            | `client.resources.agents`                                              |
-| Manage files, Memory, or administrative resources  | The corresponding `client.resources` collection                        |
+| Create or edit an Agent                            | `client.api.agents`                                                    |
+| Manage files, Memory, or administrative resources  | The corresponding `client.api` collection                              |
 | Build a protocol integration                       | Generated request modules, `Client.execute()`, or raw response streams |
 
 Generated Thread creation and inbox submission return `Result[wire.Submitted]`, not an Interaction. They perform the declared request and do not adopt the higher-level observation lifecycle. Prefer the Agent workflow unless your integration needs to own that protocol itself.

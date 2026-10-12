@@ -2,7 +2,7 @@
 
 ## Scope and Authority
 
-`Client.resources` exposes the generated public Native resource hierarchy, not a second handwritten management API. Workspace business collections use flat paths and implicit API-key workspace context; Service and Organization administration retains its declared explicit owner selectors. A resource reference does not gain mutation authority outside its owner; a selector is not evidence of access.
+`Client.api` exposes the generated public Native resource hierarchy, not a second handwritten management API. Workspace business collections use flat paths and implicit API-key workspace context; Service and Organization administration retains its declared explicit owner selectors. A resource reference does not gain mutation authority outside its owner; a selector is not evidence of access.
 
 Supported methods come from the pinned OpenAPI operation, not generic active-record CRUD. Collections provide declared one-page reads and lazy pagination; identified resources expose only the generated `get`, `update`, `replace`, `delete`, and named commands that their endpoint supports. Mutations preserve ETags, versions, idempotency keys, and typed bodies. The SDK neither refetches a stale version nor retries an uncertain mutation automatically.
 
@@ -21,7 +21,7 @@ Generated resources cover the exported Service boundary: IAM and organization/wo
 
 Generated Model characteristics expose native `image_input`, `video_input`, and `url_input` policies on input and readback. Omitted image policy uses native defaults; null disables automatic preparation. Zero values, false flags and empty URL subtype lists remain explicit. Native Message URL/Asset parts retain order and duplicates through authored and generated entry points. The SDK does not download, resize, split, encode, budget or authorize media.
 
-`client.resources.model_providers(id)` exposes `authorization.get()`, `authorize(body=...)`, `authorization.callback(body=...)`, `authorization.delete()` and `models.get()`. These use the ordinary Client auth/Workspace context and preserve returned method, nullable state, status and HTTP evidence. Service authorizes status with `read`, authorization mutations with `write`, and discovery with `run`. Only hosted `browser_callback` start requires an unconfined user login; manual Workspace authorization may use an authorized API key. The SDK applies no blanket session-only restriction, browser flow, callback origin, client identity or credential store. Operator configuration and external issuer exchange remain Service/Harness ownership.
+`client.api.model_providers(id)` exposes `authorization.get()`, `authorize(body=...)`, `authorization.callback(body=...)`, `authorization.delete()` and `models.get()`. These use the ordinary Client auth/Workspace context and preserve returned method, nullable state, status and HTTP evidence. Service authorizes status with `read`, authorization mutations with `write`, and discovery with `run`. Only hosted `browser_callback` start requires an unconfined user login; manual Workspace authorization may use an authorized API key. The SDK applies no blanket session-only restriction, browser flow, callback origin, client identity or credential store. Operator configuration and external issuer exchange remain Service/Harness ownership.
 
 ## Missing Operations
 
@@ -29,7 +29,7 @@ The SDK does not synthesize removed legacy auth-context, queued-submission, Run-
 
 ## Memory
 
-Flat workspace `client.resources.memories` exposes metadata, file content and history, or provider-backed records. `client.resources.memory_providers` retains provider ownership and optional Workspace binding. Generated methods preserve the Service's distinct file and record operations rather than synthesizing common CRUD.
+Flat workspace `client.api.memories` exposes metadata, file content and history, or provider-backed records. `client.api.memory_providers` retains provider ownership and optional Workspace binding. Generated methods preserve the Service's distinct file and record operations rather than synthesizing common CRUD.
 
 File content is JSON text, not Asset binary transfer. File paths may contain directory separators and Unicode; references encode selectors once. File replacement, deletion and moves require the current file ETag; Memory metadata changes and deletion use the Memory ETag. Revisions bind an integer sequence. Restore undoes that change by writing its previous content; restoring a creation removes the file. It requires the current file ETag when that path exists and may return a null file state. History purge selects a path, not a revision sequence.
 

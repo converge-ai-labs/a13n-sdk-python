@@ -10,16 +10,43 @@ if TYPE_CHECKING:
     from .generated.models import EntryView
 
 
-class ProtocolError(Exception):
+class A13nError(Exception):
+    """Base for SDK failures; observed Run failures remain outcomes."""
+
+
+class ProtocolError(A13nError):
     """A malformed or oversized Service response."""
 
 
-class TransportError(RuntimeError):
+class TransportError(A13nError, RuntimeError):
     """Transport failed; a mutation's outcome can be unknown."""
 
 
 @dataclass(repr=False)
-class SubmissionError(Exception):
+class UnknownOutcomeError(TransportError):
+    """A dispatched mutation has no trustworthy acknowledgement; never auto-retried."""
+
+    idempotency_key: str
+    operation: str
+    thread_id: str | None = None
+    run_id: str | None = None
+    evidence: object | None = None
+
+    def __str__(self) -> str:
+        return f"{self.operation} acknowledgement unavailable; mutation outcome is unknown"
+
+
+@dataclass(repr=False)
+class PreviewInterrupted(A13nError):
+    reason: str
+    run_id: str
+
+    def __str__(self) -> str:
+        return f"Text preview interrupted: {self.reason}"
+
+
+@dataclass(repr=False)
+class SubmissionError(A13nError):
     """An exact inbox entry settled without incorporation into a Run."""
 
     thread_id: str
@@ -31,7 +58,7 @@ class SubmissionError(Exception):
 
 
 @dataclass(repr=False)
-class ApiError(Exception):
+class ApiError(A13nError):
     status: int
     code: str
     message: str
