@@ -2,12 +2,16 @@ from __future__ import annotations
 
 import datetime
 from collections.abc import Mapping
-from typing import Any, TypeVar, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
 from ..types import UNSET, Unset
+
+if TYPE_CHECKING:
+    from ..models.memory_record_provenance import MemoryRecordProvenance
+
 
 T = TypeVar("T", bound="MemoryRecordView")
 
@@ -19,20 +23,32 @@ class MemoryRecordView:
     Attributes:
         id (str):
         text (str):
+        provenance (MemoryRecordProvenance | None | Unset):
         score (float | None | Unset):
         updated_at (datetime.datetime | None | Unset):
     """
 
     id: str
     text: str
+    provenance: MemoryRecordProvenance | Unset | None = UNSET
     score: float | Unset | None = UNSET
     updated_at: datetime.datetime | Unset | None = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.memory_record_provenance import MemoryRecordProvenance
+
         id = self.id
 
         text = self.text
+
+        provenance: dict[str, Any] | Unset | None
+        if isinstance(self.provenance, Unset):
+            provenance = UNSET
+        elif isinstance(self.provenance, MemoryRecordProvenance):
+            provenance = self.provenance.to_dict()
+        else:
+            provenance = self.provenance
 
         score: float | Unset | None
         if isinstance(self.score, Unset):
@@ -56,6 +72,8 @@ class MemoryRecordView:
                 "text": text,
             }
         )
+        if provenance is not UNSET:
+            field_dict["provenance"] = provenance
         if score is not UNSET:
             field_dict["score"] = score
         if updated_at is not UNSET:
@@ -65,10 +83,29 @@ class MemoryRecordView:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.memory_record_provenance import MemoryRecordProvenance
+
         d = dict(src_dict)
         id = d.pop("id")
 
         text = d.pop("text")
+
+        def _parse_provenance(data: object) -> MemoryRecordProvenance | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                provenance_type_0 = MemoryRecordProvenance.from_dict(data)
+
+                return provenance_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(MemoryRecordProvenance | Unset | None, data)
+
+        provenance = _parse_provenance(d.pop("provenance", UNSET))
 
         def _parse_score(data: object) -> float | Unset | None:
             if data is None:
@@ -99,6 +136,7 @@ class MemoryRecordView:
         memory_record_view = cls(
             id=id,
             text=text,
+            provenance=provenance,
             score=score,
             updated_at=updated_at,
         )

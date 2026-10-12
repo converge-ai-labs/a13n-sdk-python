@@ -216,7 +216,9 @@ from .memory_mount_page import MemoryMountPage
 from .memory_mount_update import MemoryMountUpdate
 from .memory_page import MemoryPage
 from .memory_record_page import MemoryRecordPage
+from .memory_record_provenance import MemoryRecordProvenance
 from .memory_record_search import MemoryRecordSearch
+from .memory_record_source import MemoryRecordSource
 from .memory_record_text import MemoryRecordText
 from .memory_record_view import MemoryRecordView
 from .memory_revision import MemoryRevision
@@ -688,7 +690,9 @@ __all__ = (
     "MemoryMountUpdate",
     "MemoryPage",
     "MemoryRecordPage",
+    "MemoryRecordProvenance",
     "MemoryRecordSearch",
+    "MemoryRecordSource",
     "MemoryRecordText",
     "MemoryRecordView",
     "MemoryRevision",
