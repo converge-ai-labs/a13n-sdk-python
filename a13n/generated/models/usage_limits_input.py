@@ -15,8 +15,9 @@ T = TypeVar("T", bound="UsageLimitsInput")
 class UsageLimitsInput:
     """Limits on model usage.
 
-    The request count is tracked by pydantic_ai, and the request limit is checked before each request to the model.
-    Token counts are provided in responses from the model, and the token limits are checked after each response.
+    The request count is tracked by Pydantic AI, and the request limit is checked at the start of each step of the
+    agent loop. Token counts are provided in responses from the model, and the token limits are checked after each
+    response.
 
     Each of the limits can be set to `None` to disable that limit.
 
