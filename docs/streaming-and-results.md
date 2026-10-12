@@ -104,7 +104,7 @@ The Client's `timeout` setting is separate: it limits an ordinary HTTP request a
 
 ## When you need Thread-wide events
 
-Most applications should stay with Interaction. Advanced consumers can use the generated `client.resources.threads(thread_id).stream.get_stream()` for the raw SSE response, or `ThreadStream` for protocol parsing and reconnect handling. That stream covers the Thread rather than one submitted message and requires explicit event/run and cursor handling. It is not a second high-level conversation mode.
+Most applications should stay with Interaction. Advanced consumers can use the generated `client.api.threads(thread_id).stream.get_stream()` for the raw SSE response, or `ThreadStream` for protocol parsing and reconnect handling. That stream covers the Thread rather than one submitted message and requires explicit event/run and cursor handling. It is not a second high-level conversation mode.
 
 ### Resume from a saved display, not only a cursor
 
@@ -129,7 +129,7 @@ async def observe_new_baseline(client: Client, thread_id: str, gap: GapFrame) ->
         return  # Terminal baseline, or no committed coverage to claim yet.
     hint = saved.resume_after if isinstance(saved.resume_after, str) else None
     async with ThreadStream(
-        client.resources.threads(thread_id),
+        client.api.threads(thread_id),
         run=saved.run.id,
         position=saved.position,
         after=hint,

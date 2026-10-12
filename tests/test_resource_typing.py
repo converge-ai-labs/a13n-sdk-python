@@ -24,7 +24,7 @@ def test_public_typing_accepts_agent_submission(tmp_path: Path) -> None:
         "    submission = await client.agents('agent').start('hello', idempotency_key='key')\n"
         "    assert submission.entry is not None\n"
         "    entry_id: str = submission.entry.id\n"
-        "    memory = client.resources.memories('mem')\n"
+        "    memory = client.api.memories('mem')\n"
         "    revision = await memory.revisions(5).get()\n"
         "    sequence: int = revision.value.seq\n"
         "    print(sequence)\n"
@@ -58,7 +58,7 @@ def test_native_configuration_media_and_oauth_typing(tmp_path: Path) -> None:
         "        wire.HarnessModelCharacteristicsInput(image_input=None,\n"
         "            video_input=wire.VideoInputPolicy(max_video_bytes=0),\n"
         "            url_input=wire.UrlInputSupportInput(video=[wire.VideoUrlType.YOUTUBE])))\n"
-        "    provider = client.resources.model_providers('provider')\n"
+        "    provider = client.api.model_providers('provider')\n"
         "    status: wire.AuthorizationStatus = (await provider.authorization.get()).value\n"
         "    start: wire.AuthorizationStart = (await provider.authorize(body=wire.ProviderAuthorizationRequest())).value\n"
         "    await provider.authorization.callback(body=wire.AuthorizationCallback(attempt_id=start.attempt_id,\n"
@@ -76,7 +76,7 @@ def test_public_typing_rejects_invalid_paths_and_wrong_payload(tmp_path: Path) -
         "from a13n import Client\n"
         "\n"
         "async def misuse(client: Client) -> None:\n"
-        "    client.resources.workspaces('ws').runs('run')\n"
+        "    client.api.workspaces('ws').runs('run')\n"
         "    client.workspaces('ws')\n"
         "    client.organizations('org')\n"
         "    await client.runs('run').result(timeout='forever', poll_interval=0.1)\n"
@@ -113,7 +113,7 @@ def test_frame_discriminants_narrow_data_and_cursor(tmp_path: Path) -> None:
         "        run_id: str = frame.data['run_id']\n"
         "async def full(client: Client) -> None:\n"
         "    stream = ThreadStream(client.threads('thread'), run='run', position='1-3', after='1-0')\n"
-        "    result = await client.resources.threads.create(\n"
+        "    result = await client.api.threads.create(\n"
         "        body=wire.NewThread(agent_id='agent', payload=wire.MessagePayload(content=[\n"
         "            wire.TextPart(type_='text', text='hello')]), memories=[]), idempotency_key='key')\n"
     )
@@ -214,3 +214,12 @@ def test_root_only_workflow_values_and_resume_typing(tmp_path: Path) -> None:
     )
     report = run_pyright(source)
     assert report["returncode"] == 0, report["generalDiagnostics"]
+
+
+def test_public_typing_rejects_obsolete_resources_entry(tmp_path: Path) -> None:
+    source = tmp_path / "obsolete_entry.py"
+    source.write_text("from a13n import Client\ndef misuse(client: Client) -> None:\n    client.resources\n")
+    report = run_pyright(source)
+    assert report["returncode"] == 1
+    assert len(report["generalDiagnostics"]) == 1
+    assert '"resources"' in report["generalDiagnostics"][0]["message"]

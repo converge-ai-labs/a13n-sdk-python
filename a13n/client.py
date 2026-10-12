@@ -163,7 +163,8 @@ class Client:
         self._auth.csrf_token = value
 
     @property
-    def resources(self) -> ServiceResources:
+    def api(self) -> ServiceResources:
+        """Complete generated Native Service API using this Client's transport and lifetime."""
         return ServiceResources(self)
 
     @property

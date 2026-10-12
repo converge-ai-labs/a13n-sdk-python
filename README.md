@@ -110,6 +110,18 @@ The loop ends when this execution finishes or pauses for input, even if the conn
 
 Text chunks are provisional root-assistant preview, not a lossless transcript. Gap/reset and unsupported framing stop preview without losing the authoritative result. For native progress events use `async for frame in interaction` instead; never consume raw and text concurrently. [Streaming and results](docs/streaming-and-results.md) explains the limits and local lifetime.
 
+## Native Service API
+
+For resource management and lower-level Service operations, use the generated `client.api` entry on the same Client:
+
+```python
+response = await client.api.agents.list(limit=10)
+for agent_view in response.value.items:
+    print(agent_view.id, agent_view.name)
+```
+
+Replace previous `client.resources.<collection>` calls with `client.api.<collection>`; no `resources` alias is retained before 0.1. The authored `client.agents(agent_id)` conversation workflow is unchanged. See the [complete resource API](docs/resources.md) for typed request models and HTTP evidence.
+
 ## Next steps
 
 The [Python SDK guide](docs/README.md) takes you from your first conversation to an application that can recover after interruptions:

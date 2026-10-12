@@ -14,7 +14,7 @@ from a13n.generated import models as wire
 
 
 async def create_reviewer(client: Client, model_key: str) -> str:
-    created = await client.resources.agents.create(
+    created = await client.api.agents.create(
         body=wire.AgentCreate(
             name="Project reviewer",
             config=wire.AgentConfigInput(

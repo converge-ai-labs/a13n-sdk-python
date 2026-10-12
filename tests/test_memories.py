@@ -83,7 +83,7 @@ def test_memory_files_revisions_and_mounts_preserve_paths_and_etags() -> None:
             return httpx2.Response(200, json=FILE, headers={"ETag": '"file:2"'})
 
         async with Client("https://service.example", "test", transport=httpx2.MockTransport(respond)) as client:
-            memory = client.resources.memories("mem_one")
+            memory = client.api.memories("mem_one")
             file = memory.files(FILE_PATH)
             result = await file.get()
             assert result.value.content == "text" and result.etag == '"file:2"'
@@ -97,7 +97,7 @@ def test_memory_files_revisions_and_mounts_preserve_paths_and_etags() -> None:
             assert (await revision.get()).value.previous_content == "old"
             assert (await revision.restore(if_match='"file:3"')).value.file is None
             await memory.revisions(6).restore()
-            mounts = client.resources.threads("thr_one").memories
+            mounts = client.api.threads("thr_one").memories
             mounted = await mounts.create(
                 body=wire.MemoryMount(name="notes", memory_id="mem_one", access=wire.MemoryAccess.READ),
                 if_match='"thr:2"',
@@ -154,7 +154,7 @@ def test_record_shapes_search_body_and_no_write_replay() -> None:
             return httpx2.Response(200, json={"id": "r1", "text": "changed", "score": None, "updated_at": None})
 
         async with Client("https://service.example", "test", transport=httpx2.MockTransport(respond)) as client:
-            records = client.resources.memories("mem_one").records
+            records = client.api.memories("mem_one").records
             found = await records.search(body=wire.MemoryRecordSearch(query="private query", limit=3))
             assert found.value.items[0].score is None
             await records("r1").replace(body=wire.MemoryRecordText(text="changed"))
@@ -182,7 +182,7 @@ def test_memory_pages_snapshot_labels_and_preserve_opaque_cursors() -> None:
 
         async with Client("https://service.example", "test", transport=httpx2.MockTransport(respond)) as client:
             labels = ["team:a", "scope:b"]
-            pages = client.resources.memories.pages(label=labels)
+            pages = client.api.memories.pages(label=labels)
             labels.append("later")
             assert not seen
             assert len([page async for page in pages]) == 2
@@ -215,9 +215,9 @@ def test_bootstrap_and_initialization_configuration_are_available() -> None:
         async with Client.session(
             "https://service.example", origin="https://service.example", transport=httpx2.MockTransport(respond)
         ) as client:
-            assert (await client.resources.auth.configuration.get()).value.initialized is True
+            assert (await client.api.auth.configuration.get()).value.initialized is True
             with pytest.raises(ApiError):
-                await client.resources.auth.bootstrap(
+                await client.api.auth.bootstrap(
                     body=wire.BootstrapInput(email="owner@example.test", password="test-only")
                 )
         assert len(seen) == 2
