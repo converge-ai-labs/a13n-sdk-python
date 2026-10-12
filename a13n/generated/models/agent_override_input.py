@@ -36,6 +36,7 @@ class AgentOverrideInput:
             client_tools (list[ClientToolDefinition] | None | Unset):
             connection_tools (list[ConnectionSelection] | None | Unset):
             instructions (None | str | Unset):
+            lazy_environment (bool | None | Unset):
             media_understanding (MediaUnderstandingSelection | None | Unset):
             model (None | str | Unset):
             model_characteristics (AgentModelCharacteristics | None | Unset):
@@ -52,6 +53,7 @@ class AgentOverrideInput:
     client_tools: list[ClientToolDefinition] | Unset | None = UNSET
     connection_tools: list[ConnectionSelection] | Unset | None = UNSET
     instructions: str | Unset | None = UNSET
+    lazy_environment: bool | Unset | None = UNSET
     media_understanding: MediaUnderstandingSelection | Unset | None = UNSET
     model: str | Unset | None = UNSET
     model_characteristics: AgentModelCharacteristics | Unset | None = UNSET
@@ -105,6 +107,12 @@ class AgentOverrideInput:
             instructions = UNSET
         else:
             instructions = self.instructions
+
+        lazy_environment: bool | Unset | None
+        if isinstance(self.lazy_environment, Unset):
+            lazy_environment = UNSET
+        else:
+            lazy_environment = self.lazy_environment
 
         media_understanding: dict[str, Any] | Unset | None
         if isinstance(self.media_understanding, Unset):
@@ -209,6 +217,8 @@ class AgentOverrideInput:
             field_dict["connection_tools"] = connection_tools
         if instructions is not UNSET:
             field_dict["instructions"] = instructions
+        if lazy_environment is not UNSET:
+            field_dict["lazy_environment"] = lazy_environment
         if media_understanding is not UNSET:
             field_dict["media_understanding"] = media_understanding
         if model is not UNSET:
@@ -305,6 +315,15 @@ class AgentOverrideInput:
             return cast(str | Unset | None, data)
 
         instructions = _parse_instructions(d.pop("instructions", UNSET))
+
+        def _parse_lazy_environment(data: object) -> bool | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(bool | Unset | None, data)
+
+        lazy_environment = _parse_lazy_environment(d.pop("lazy_environment", UNSET))
 
         def _parse_media_understanding(data: object) -> MediaUnderstandingSelection | Unset | None:
             if data is None:
@@ -499,6 +518,7 @@ class AgentOverrideInput:
             client_tools=client_tools,
             connection_tools=connection_tools,
             instructions=instructions,
+            lazy_environment=lazy_environment,
             media_understanding=media_understanding,
             model=model,
             model_characteristics=model_characteristics,

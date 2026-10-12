@@ -36,6 +36,7 @@ class AgentConfigOutput:
         connection_tools (list[ConnectionSelection] | Unset):
         default_environment_template_id (None | str | Unset):
         instructions (str | Unset):
+        lazy_environment (bool | Unset):
         media_understanding (MediaUnderstandingSelection | Unset): The model, by key, describing each media kind a model
             cannot read; a kind without one is unavailable.
         memory_mounts (list[MemoryMount] | Unset):
@@ -58,6 +59,7 @@ class AgentConfigOutput:
     connection_tools: list[ConnectionSelection] | Unset = UNSET
     default_environment_template_id: str | Unset | None = UNSET
     instructions: str | Unset = UNSET
+    lazy_environment: bool | Unset = UNSET
     media_understanding: MediaUnderstandingSelection | Unset = UNSET
     memory_mounts: list[MemoryMount] | Unset = UNSET
     model_characteristics: AgentModelCharacteristics | Unset = UNSET
@@ -100,6 +102,8 @@ class AgentConfigOutput:
             default_environment_template_id = self.default_environment_template_id
 
         instructions = self.instructions
+
+        lazy_environment = self.lazy_environment
 
         media_understanding: dict[str, Any] | Unset = UNSET
         if not isinstance(self.media_understanding, Unset):
@@ -187,6 +191,8 @@ class AgentConfigOutput:
             field_dict["default_environment_template_id"] = default_environment_template_id
         if instructions is not UNSET:
             field_dict["instructions"] = instructions
+        if lazy_environment is not UNSET:
+            field_dict["lazy_environment"] = lazy_environment
         if media_understanding is not UNSET:
             field_dict["media_understanding"] = media_understanding
         if memory_mounts is not UNSET:
@@ -265,6 +271,8 @@ class AgentConfigOutput:
         )
 
         instructions = d.pop("instructions", UNSET)
+
+        lazy_environment = d.pop("lazy_environment", UNSET)
 
         _media_understanding = d.pop("media_understanding", UNSET)
         media_understanding: MediaUnderstandingSelection | Unset
@@ -394,6 +402,7 @@ class AgentConfigOutput:
             connection_tools=connection_tools,
             default_environment_template_id=default_environment_template_id,
             instructions=instructions,
+            lazy_environment=lazy_environment,
             media_understanding=media_understanding,
             memory_mounts=memory_mounts,
             model_characteristics=model_characteristics,
