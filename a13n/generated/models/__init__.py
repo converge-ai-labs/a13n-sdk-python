@@ -121,6 +121,7 @@ from .delivery import Delivery
 from .delivery_page import DeliveryPage
 from .deny import Deny
 from .display_continuation import DisplayContinuation
+from .display_continuation_memory_sources import DisplayContinuationMemorySources
 from .display_continuation_response_groups import DisplayContinuationResponseGroups
 from .email_change_confirm import EmailChangeConfirm
 from .entry_page import EntryPage
@@ -142,6 +143,7 @@ from .evidence import Evidence
 from .external_target_create import ExternalTargetCreate
 from .failed import Failed
 from .failure import Failure
+from .file_source import FileSource
 from .finding import Finding
 from .finding_create import FindingCreate
 from .finding_page import FindingPage
@@ -226,6 +228,9 @@ from .memory_revision_detail import MemoryRevisionDetail
 from .memory_revision_detail_op import MemoryRevisionDetailOp
 from .memory_revision_op import MemoryRevisionOp
 from .memory_revision_page import MemoryRevisionPage
+from .memory_source import MemorySource
+from .memory_source_kind import MemorySourceKind
+from .memory_source_status import MemorySourceStatus
 from .memory_update import MemoryUpdate
 from .memory_update_labels_type_0 import MemoryUpdateLabelsType0
 from .message import Message
@@ -324,6 +329,7 @@ from .provider_update import ProviderUpdate
 from .provider_update_config_type_0 import ProviderUpdateConfigType0
 from .provider_update_credential_type_0 import ProviderUpdateCredentialType0
 from .provider_update_extra_headers import ProviderUpdateExtraHeaders
+from .record_source import RecordSource
 from .resume import Resume
 from .resume_approvals import ResumeApprovals
 from .resume_calls import ResumeCalls
@@ -597,6 +603,7 @@ __all__ = (
     "DeliveryPage",
     "Deny",
     "DisplayContinuation",
+    "DisplayContinuationMemorySources",
     "DisplayContinuationResponseGroups",
     "EmailChangeConfirm",
     "EntryPage",
@@ -618,6 +625,7 @@ __all__ = (
     "ExternalTargetCreate",
     "Failed",
     "Failure",
+    "FileSource",
     "Finding",
     "FindingCreate",
     "FindingPage",
@@ -700,6 +708,9 @@ __all__ = (
     "MemoryRevisionDetailOp",
     "MemoryRevisionOp",
     "MemoryRevisionPage",
+    "MemorySource",
+    "MemorySourceKind",
+    "MemorySourceStatus",
     "MemoryUpdate",
     "MemoryUpdateLabelsType0",
     "Message",
@@ -796,6 +807,7 @@ __all__ = (
     "ProviderUpdateConfigType0",
     "ProviderUpdateCredentialType0",
     "ProviderUpdateExtraHeaders",
+    "RecordSource",
     "Resume",
     "ResumeApprovals",
     "ResumeCalls",
