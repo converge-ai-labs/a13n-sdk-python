@@ -138,4 +138,10 @@ Restoring a revision **undoes that recorded change**; it does not mean “make t
 
 Provider-backed records are another Memory surface. They have their own CRUD and search operations rather than file-style ETags, and require a configured provider. Provider accounts are managed through `client.api.memory_providers`; a local file Memory does not require that integration.
 
+## Read provenance
+
+Provider-backed record reads may include `record.provenance`: nullable creation evidence, confirmed `last_write`, and `content_matches`. A null or omitted provenance value remains distinct from known attribution. Source principal, Run, attempt and tool-call IDs may be null; `principal_name` is an optional current display value. Confirmed provenance does not turn a provider's uncertain write into an automatically retryable operation.
+
+Automatic memory deliveries for an assistant reply are available in raw `delta.item.memory_sources` and saved `item.content.to_dict().get("memory_sources")`. They identify delivered record/file digests, optional memory IDs/cursors, and truncation. These sources record loaded context rather than causal proof; inherited history and explicit memory-tool reads are outside this projection. Content remains in the Memory or execution archive, and a digest cannot reconstruct an older value. `a13n.streaming.MemorySource`, `RecordSource` and `FileSource` expose typed raw fields without inserting omitted defaults.
+
 [Back to the guide](README.md) · [Next: connections and authentication](connections.md)

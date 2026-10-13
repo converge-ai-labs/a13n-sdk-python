@@ -62,3 +62,37 @@ def test_changed_http_contract_regenerates_bindings(tmp_path: Path) -> None:
     install(output, target)
     assert not (target / "obsolete.txt").exists()
     assert "autogen_probe_value" in (target / "api/default/autogen_probe.py").read_text()
+
+
+def test_every_pinned_named_model_and_inline_schema_has_generated_coverage() -> None:
+    import re
+
+    from a13n.generated import models as wire
+
+    document = prepare(json.loads((ROOT / "contract/openapi.json").read_text()))
+    schemas = document["components"]["schemas"]
+    # Primitive aliases, arrays and unions are inlined into consuming signatures.
+    inline = {
+        "ApprovalDecision",
+        "CallResult",
+        "ConnectionConfig",
+        "EnteredCredential",
+        "InitialMounts",
+        "JsonValue",
+        "MessageHistory",
+        "Part",
+        "ToolCallId",
+        "ToolPermissionSetting",
+    }
+    named = set()
+    for name, schema in schemas.items():
+        title = schema.get("title", name)
+        exported = "".join(part[0].upper() + part[1:] for part in re.split("[^A-Za-z0-9]+", title) if part)
+        if name not in inline:
+            assert exported in wire.__all__, name
+            named.add(name)
+    assert named | inline == schemas.keys()
+    assert len(schemas) == 340
+    for name in inline:
+        reference = f"#/components/schemas/{name}"
+        assert reference in json.dumps(document), name

@@ -147,4 +147,25 @@ A gap may name a missing range through `gap.data.get("position")`, or have no kn
 
 See the [streaming contract](../spec/03-observation-and-data-access.md) before building a protocol-level consumer. Finite Interaction still binds its exact consumed Run without implicitly claiming a display baseline.
 
+## Read a saved display value
+
+Saved Items may expose `content_refs`, mapping content field names to immutable references with media type, byte size, preview and truncation. Load a value explicitly through the same Client:
+
+```python
+from a13n import Client
+from a13n.generated import models as wire
+
+
+async def load_saved_text(client: Client, run_id: str) -> None:
+    saved = await client.api.runs(run_id).items.get(limit=1)
+    for item in saved.value.items:
+        refs = item.content_refs
+        if isinstance(refs, wire.ItemContentRefs) and "text" in refs.additional_properties:
+            ref = refs.additional_properties["text"]
+            content = await client.api.runs(run_id).contents(ref.id).get()
+            print(content.value.value, content.value.truncated)
+```
+
+Each request returns the whole saved value as `RunContent`, including native JSON false, zero, null or empty containers. Service checks the reference belongs to the Run's committed display and returns `Cache-Control: no-store`; superseded, private or other-Run references are `not_found`, and missing/damaged objects are `unavailable`. The value may itself be truncated. Finite observation and bounded text preview do not fetch references or synthesize expanded history.
+
 [Back to the guide](README.md) · [Next: waiting and tools](waiting-and-tools.md)

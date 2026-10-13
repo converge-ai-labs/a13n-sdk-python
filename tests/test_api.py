@@ -17,6 +17,8 @@ FAMILIES = {
     "environment_providers",
     "environment_templates",
     "environments",
+    "finding_analyses",
+    "findings",
     "invitations",
     "mcp_servers",
     "media_understanding_defaults",

@@ -91,6 +91,7 @@ class AgentOverride(_Value):
     client_tools: list[dict[str, JsonValue]] | Unset | None = UNSET
     connection_tools: list[dict[str, JsonValue]] | Unset | None = UNSET
     instructions: str | Unset | None = UNSET
+    lazy_environment: bool | Unset | None = UNSET
     media_understanding: Mapping[str, JsonValue] | Unset | None = UNSET
     model: str | Unset | None = UNSET
     model_characteristics: Mapping[str, JsonValue] | Unset | None = UNSET
@@ -99,6 +100,7 @@ class AgentOverride(_Value):
     plugins: list[dict[str, JsonValue]] | Unset | None = UNSET
     retries: Mapping[str, JsonValue] | Unset | None = UNSET
     reviewer: Mapping[str, JsonValue] | Unset | None = UNSET
+    skill_sync: Mapping[str, JsonValue] | Unset | None = UNSET
     skills: list[dict[str, JsonValue]] | Unset | None = UNSET
     subagents: Mapping[str, JsonValue] | Unset | None = UNSET
     toolsets: Mapping[str, JsonValue] | Unset | None = UNSET

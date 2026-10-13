@@ -185,6 +185,54 @@ An explicit configuration object is a complete snapshot, not a merge with hidden
 
 The Service normalizes/freezes the accepted configuration. Steering and pending edits against an active Run may omit it or match the frozen value; a different explicit snapshot returns `409 conflict` with reason `run_configuration_immutable`. The SDK does not auto-queue or retry that request. `delivery=wire.Delivery.NEXT_RUN` selects a new snapshot, while resume successors and inline children inherit their source's configuration.
 
+## Select Environment and skill preparation
+
+```python
+from a13n import AgentOverride, Client, RunOptions
+
+
+async def isolated_skills(client: Client, agent_id: str) -> None:
+    interaction = await client.agents(agent_id).start(
+        "Use the selected skills.",
+        options=RunOptions(
+            overrides=AgentOverride(
+                lazy_environment=False,
+                skill_sync={"mode": "isolated", "cache_count": 0},
+            )
+        ),
+        idempotency_key="skills-001",
+    )
+    print((await interaction.result()).status)
+```
+
+Omission inherits the Agent's policy. Service defaults to lazy instance readiness and shared skill publication (`mode=shared`, `overwrite=true`, `cleanup=false`). Setting `lazy_environment=False` prepares all frozen mounted instances before Harness entry; execution connections still open on first use. A `skill_sync` override replaces the complete policy block. Shared overwrite replaces selected directories, while shared cleanup removes unselected names; isolated mode uses immutable digest directories, with a default soft budget of 128 packages and zero disabling trimming. Select mode-specific fields only. The SDK forwards these choices without managing Environments or a local skill cache.
+
+## Findings, analyses, and message authors
+
+```python
+from a13n import Client
+from a13n.generated import models as wire
+
+
+async def diagnostic_resources(client: Client, session_id: str, entry_ids: list[str]) -> None:
+    prepared = await client.api.finding_agent()
+    analysis = await client.api.finding_analyses.create(
+        body=wire.AnalysisCreate(max_traces=1, presets=[wire.Preset.EXECUTION]),
+        idempotency_key="analysis-001",
+    )
+    print(prepared.value.preset_kind, analysis.value.run_id)
+    async for page in client.api.findings.pages(closed=False, limit=10):
+        for finding in page.value.items:
+            print(finding.id, finding.category, finding.assessment)
+    authors = await client.api.sessions(session_id).message_authors.get(entry_id=entry_ids)
+    for author in authors.value.items:
+        print(author.entry_id, author.principal_id, author.principal)
+```
+
+Finding Agent is a builtin preset distinct from Composer. Analysis creation accepts a normal Run; use its `run_id` to observe completion through `client.runs(id)`. Findings retain evidence, limitations and reviewer assessment; zero Findings is not proof of complete inspection or Agent health. Native `findings.create()`, `findings(id).get()` and `findings(id).update(body=..., if_match=...)` remain explicit requests with typed bodies and HTTP evidence. Preparing a preset needs a usable model and Service write permission; analysis and evidence access require their native permissions and configured trace backend.
+
+Message authors are resolved for 1–100 repeated Entry IDs in one Session. Missing, foreign-session and non-message entries are omitted. Principal IDs and original submission times remain stable, while `principal` is a current profile or null; this query does not grant member-directory access.
+
 ## Model Provider authorization and discovery
 
 Use the generated Provider graph with an existing Client:
@@ -212,7 +260,7 @@ async def complete_manual_authorization(
     )
 
 
-async def discover_provider_models(client: Client, provider_id: str, workspace_id: str) -> list[wire.ChatGPTModel]:
+async def discover_provider_models(client: Client, provider_id: str, workspace_id: str) -> list[wire.ProviderModel]:
     return (await client.api.model_providers(provider_id).models.get(x_workspace_id=workspace_id)).value
 ```
 
