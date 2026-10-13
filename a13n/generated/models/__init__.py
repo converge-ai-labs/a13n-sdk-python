@@ -171,6 +171,7 @@ from .invitation_create import InvitationCreate
 from .invitation_page import InvitationPage
 from .invitation_receipt import InvitationReceipt
 from .invitation_receipt_delivery import InvitationReceiptDelivery
+from .isolated_skill_sync import IsolatedSkillSync
 from .issued_key import IssuedKey
 from .item import Item
 from .item_content import ItemContent
@@ -376,6 +377,7 @@ from .session_update_labels import SessionUpdateLabels
 from .session_view import SessionView
 from .session_view_labels import SessionViewLabels
 from .severity import Severity
+from .shared_skill_sync import SharedSkillSync
 from .skill import Skill
 from .skill_create import SkillCreate
 from .skill_create_labels import SkillCreateLabels
@@ -653,6 +655,7 @@ __all__ = (
     "InvitationPage",
     "InvitationReceipt",
     "InvitationReceiptDelivery",
+    "IsolatedSkillSync",
     "IssuedKey",
     "Item",
     "ItemContent",
@@ -854,6 +857,7 @@ __all__ = (
     "SessionView",
     "SessionViewLabels",
     "Severity",
+    "SharedSkillSync",
     "Skill",
     "SkillCreate",
     "SkillCreateLabels",

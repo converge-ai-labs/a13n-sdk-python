@@ -15,10 +15,12 @@ if TYPE_CHECKING:
     from ..models.agent_reviewer import AgentReviewer
     from ..models.client_tool_definition import ClientToolDefinition
     from ..models.connection_selection import ConnectionSelection
+    from ..models.isolated_skill_sync import IsolatedSkillSync
     from ..models.media_understanding_selection import MediaUnderstandingSelection
     from ..models.output_spec import OutputSpec
     from ..models.plugin_selection import PluginSelection
     from ..models.retry_override import RetryOverride
+    from ..models.shared_skill_sync import SharedSkillSync
     from ..models.skill_selection import SkillSelection
 
 
@@ -45,6 +47,7 @@ class AgentOverrideOutput:
             plugins (list[PluginSelection] | None | Unset):
             retries (None | RetryOverride | Unset):
             reviewer (AgentReviewer | None | Unset):
+            skill_sync (IsolatedSkillSync | None | SharedSkillSync | Unset):
             skills (list[SkillSelection] | None | Unset):
             subagents (AgentOverrideOutputSubagentsType0 | None | Unset):
             toolsets (AgentOverrideOutputToolsetsType0 | None | Unset):
@@ -62,6 +65,7 @@ class AgentOverrideOutput:
     plugins: list[PluginSelection] | Unset | None = UNSET
     retries: RetryOverride | Unset | None = UNSET
     reviewer: AgentReviewer | Unset | None = UNSET
+    skill_sync: IsolatedSkillSync | SharedSkillSync | Unset | None = UNSET
     skills: list[SkillSelection] | Unset | None = UNSET
     subagents: AgentOverrideOutputSubagentsType0 | Unset | None = UNSET
     toolsets: AgentOverrideOutputToolsetsType0 | Unset | None = UNSET
@@ -74,9 +78,11 @@ class AgentOverrideOutput:
         from ..models.agent_override_output_subagents_type_0 import AgentOverrideOutputSubagentsType0
         from ..models.agent_override_output_toolsets_type_0 import AgentOverrideOutputToolsetsType0
         from ..models.agent_reviewer import AgentReviewer
+        from ..models.isolated_skill_sync import IsolatedSkillSync
         from ..models.media_understanding_selection import MediaUnderstandingSelection
         from ..models.output_spec import OutputSpec
         from ..models.retry_override import RetryOverride
+        from ..models.shared_skill_sync import SharedSkillSync
 
         client_tools: list[dict[str, Any]] | Unset | None
         if isinstance(self.client_tools, Unset):
@@ -180,6 +186,16 @@ class AgentOverrideOutput:
         else:
             reviewer = self.reviewer
 
+        skill_sync: dict[str, Any] | Unset | None
+        if isinstance(self.skill_sync, Unset):
+            skill_sync = UNSET
+        elif isinstance(self.skill_sync, SharedSkillSync):
+            skill_sync = self.skill_sync.to_dict()
+        elif isinstance(self.skill_sync, IsolatedSkillSync):
+            skill_sync = self.skill_sync.to_dict()
+        else:
+            skill_sync = self.skill_sync
+
         skills: list[dict[str, Any]] | Unset | None
         if isinstance(self.skills, Unset):
             skills = UNSET
@@ -235,6 +251,8 @@ class AgentOverrideOutput:
             field_dict["retries"] = retries
         if reviewer is not UNSET:
             field_dict["reviewer"] = reviewer
+        if skill_sync is not UNSET:
+            field_dict["skill_sync"] = skill_sync
         if skills is not UNSET:
             field_dict["skills"] = skills
         if subagents is not UNSET:
@@ -255,10 +273,12 @@ class AgentOverrideOutput:
         from ..models.agent_reviewer import AgentReviewer
         from ..models.client_tool_definition import ClientToolDefinition
         from ..models.connection_selection import ConnectionSelection
+        from ..models.isolated_skill_sync import IsolatedSkillSync
         from ..models.media_understanding_selection import MediaUnderstandingSelection
         from ..models.output_spec import OutputSpec
         from ..models.plugin_selection import PluginSelection
         from ..models.retry_override import RetryOverride
+        from ..models.shared_skill_sync import SharedSkillSync
         from ..models.skill_selection import SkillSelection
 
         d = dict(src_dict)
@@ -458,6 +478,31 @@ class AgentOverrideOutput:
 
         reviewer = _parse_reviewer(d.pop("reviewer", UNSET))
 
+        def _parse_skill_sync(data: object) -> IsolatedSkillSync | SharedSkillSync | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                skill_sync_type_0_type_0 = SharedSkillSync.from_dict(data)
+
+                return skill_sync_type_0_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                skill_sync_type_0_type_1 = IsolatedSkillSync.from_dict(data)
+
+                return skill_sync_type_0_type_1
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(IsolatedSkillSync | SharedSkillSync | Unset | None, data)
+
+        skill_sync = _parse_skill_sync(d.pop("skill_sync", UNSET))
+
         def _parse_skills(data: object) -> list[SkillSelection] | Unset | None:
             if data is None:
                 return data
@@ -527,6 +572,7 @@ class AgentOverrideOutput:
             plugins=plugins,
             retries=retries,
             reviewer=reviewer,
+            skill_sync=skill_sync,
             skills=skills,
             subagents=subagents,
             toolsets=toolsets,

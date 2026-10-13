@@ -16,11 +16,13 @@ if TYPE_CHECKING:
     from ..models.agent_reviewer import AgentReviewer
     from ..models.client_tool_definition import ClientToolDefinition
     from ..models.connection_selection import ConnectionSelection
+    from ..models.isolated_skill_sync import IsolatedSkillSync
     from ..models.media_understanding_selection import MediaUnderstandingSelection
     from ..models.memory_mount import MemoryMount
     from ..models.output_spec import OutputSpec
     from ..models.plugin_selection import PluginSelection
     from ..models.retry_config import RetryConfig
+    from ..models.shared_skill_sync import SharedSkillSync
     from ..models.skill_selection import SkillSelection
 
 
@@ -47,6 +49,7 @@ class AgentConfigOutput:
         plugins (list[PluginSelection] | Unset):
         retries (None | RetryConfig | Unset):
         reviewer (AgentReviewer | None | Unset):
+        skill_sync (IsolatedSkillSync | SharedSkillSync | Unset):
         skills (list[SkillSelection] | Unset):
         subagent_mode (AgentConfigOutputSubagentMode | Unset):
         subagents (AgentConfigOutputSubagents | Unset):
@@ -68,6 +71,7 @@ class AgentConfigOutput:
     plugins: list[PluginSelection] | Unset = UNSET
     retries: RetryConfig | Unset | None = UNSET
     reviewer: AgentReviewer | Unset | None = UNSET
+    skill_sync: IsolatedSkillSync | SharedSkillSync | Unset = UNSET
     skills: list[SkillSelection] | Unset = UNSET
     subagent_mode: AgentConfigOutputSubagentMode | Unset = UNSET
     subagents: AgentConfigOutputSubagents | Unset = UNSET
@@ -78,6 +82,7 @@ class AgentConfigOutput:
         from ..models.agent_reviewer import AgentReviewer
         from ..models.output_spec import OutputSpec
         from ..models.retry_config import RetryConfig
+        from ..models.shared_skill_sync import SharedSkillSync
 
         model = self.model
 
@@ -155,6 +160,14 @@ class AgentConfigOutput:
         else:
             reviewer = self.reviewer
 
+        skill_sync: dict[str, Any] | Unset
+        if isinstance(self.skill_sync, Unset):
+            skill_sync = UNSET
+        elif isinstance(self.skill_sync, SharedSkillSync):
+            skill_sync = self.skill_sync.to_dict()
+        else:
+            skill_sync = self.skill_sync.to_dict()
+
         skills: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.skills, Unset):
             skills = []
@@ -209,6 +222,8 @@ class AgentConfigOutput:
             field_dict["retries"] = retries
         if reviewer is not UNSET:
             field_dict["reviewer"] = reviewer
+        if skill_sync is not UNSET:
+            field_dict["skill_sync"] = skill_sync
         if skills is not UNSET:
             field_dict["skills"] = skills
         if subagent_mode is not UNSET:
@@ -231,11 +246,13 @@ class AgentConfigOutput:
         from ..models.agent_reviewer import AgentReviewer
         from ..models.client_tool_definition import ClientToolDefinition
         from ..models.connection_selection import ConnectionSelection
+        from ..models.isolated_skill_sync import IsolatedSkillSync
         from ..models.media_understanding_selection import MediaUnderstandingSelection
         from ..models.memory_mount import MemoryMount
         from ..models.output_spec import OutputSpec
         from ..models.plugin_selection import PluginSelection
         from ..models.retry_config import RetryConfig
+        from ..models.shared_skill_sync import SharedSkillSync
         from ..models.skill_selection import SkillSelection
 
         d = dict(src_dict)
@@ -364,6 +381,25 @@ class AgentConfigOutput:
 
         reviewer = _parse_reviewer(d.pop("reviewer", UNSET))
 
+        def _parse_skill_sync(data: object) -> IsolatedSkillSync | SharedSkillSync | Unset:
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                skill_sync_type_0 = SharedSkillSync.from_dict(data)
+
+                return skill_sync_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            if not isinstance(data, dict):
+                raise TypeError()
+            skill_sync_type_1 = IsolatedSkillSync.from_dict(data)
+
+            return skill_sync_type_1
+
+        skill_sync = _parse_skill_sync(d.pop("skill_sync", UNSET))
+
         _skills = d.pop("skills", UNSET)
         skills: list[SkillSelection] | Unset = UNSET
         if _skills is not UNSET:
@@ -411,6 +447,7 @@ class AgentConfigOutput:
             plugins=plugins,
             retries=retries,
             reviewer=reviewer,
+            skill_sync=skill_sync,
             skills=skills,
             subagent_mode=subagent_mode,
             subagents=subagents,
