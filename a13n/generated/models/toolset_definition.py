@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, TypeVar
 from attrs import define as _attrs_define
 
 from ..models.toolset_key import ToolsetKey
+from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.tool_definition import ToolDefinition
@@ -24,6 +25,7 @@ class ToolsetDefinition:
         display_name (str):
         key (ToolsetKey):
         tools (list[ToolDefinition]):
+        description (str | Unset):
     """
 
     config_schema: ToolsetDefinitionConfigSchema
@@ -31,6 +33,7 @@ class ToolsetDefinition:
     display_name: str
     key: ToolsetKey
     tools: list[ToolDefinition]
+    description: str | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
         config_schema = self.config_schema.to_dict()
@@ -46,6 +49,8 @@ class ToolsetDefinition:
             tools_item = tools_item_data.to_dict()
             tools.append(tools_item)
 
+        description = self.description
+
         field_dict: dict[str, Any] = {}
 
         field_dict.update(
@@ -57,6 +62,8 @@ class ToolsetDefinition:
                 "tools": tools,
             }
         )
+        if description is not UNSET:
+            field_dict["description"] = description
 
         return field_dict
 
@@ -81,12 +88,15 @@ class ToolsetDefinition:
 
             tools.append(tools_item)
 
+        description = d.pop("description", UNSET)
+
         toolset_definition = cls(
             config_schema=config_schema,
             default_enabled=default_enabled,
             display_name=display_name,
             key=key,
             tools=tools,
+            description=description,
         )
 
         return toolset_definition
