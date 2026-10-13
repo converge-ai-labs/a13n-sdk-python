@@ -39,6 +39,29 @@ class BoundaryData(TypedDict):
     sequence: ReadOnly[int]
 
 
+class RecordSource(TypedDict):
+    id: ReadOnly[str]
+    sha256: ReadOnly[str]
+
+
+class FileSource(TypedDict):
+    path: ReadOnly[str]
+    sha256: ReadOnly[str]
+    bytes: ReadOnly[int]
+    truncated: NotRequired[ReadOnly[bool]]
+
+
+class MemorySource(TypedDict):
+    kind: ReadOnly[Literal["record", "file"]]
+    memory: ReadOnly[str]
+    status: ReadOnly[Literal["recalled", "failed", "timeout", "full", "changes", "unchanged", "omitted", "unavailable"]]
+    memory_id: NotRequired[ReadOnly[str | None]]
+    cursor: NotRequired[ReadOnly[str | None]]
+    records: NotRequired[ReadOnly[list[RecordSource]]]
+    files: NotRequired[ReadOnly[list[FileSource]]]
+    sources_truncated: NotRequired[ReadOnly[bool]]
+
+
 class ItemRef(TypedDict):
     id: ReadOnly[str]
     kind: ReadOnly[Literal["text_message", "reasoning_message", "tool_call", "observation"]]
@@ -46,6 +69,7 @@ class ItemRef(TypedDict):
     ordinal: NotRequired[ReadOnly[int | None]]
     response_group: NotRequired[ReadOnly[str | None]]
     failure: NotRequired[ReadOnly[Mapping[str, JsonValue] | None]]
+    memory_sources: NotRequired[ReadOnly[list[MemorySource] | None]]
 
 
 class DeltaData(BoundaryData):
@@ -138,6 +162,54 @@ async def _lines(response: httpx2.Response, limit: int) -> AsyncIterator[bytes]:
         raise ProtocolError("Thread stream ended with a truncated SSE line")
 
 
+def _memory_sources(value: Any) -> None:
+    """Validate the pinned provenance shape without filling omitted defaults."""
+    if value is None:
+        return
+    if not isinstance(value, list):
+        raise ValueError
+    for source in value:
+        if (
+            not isinstance(source, dict)
+            or source.keys()
+            - {"kind", "memory", "status", "memory_id", "cursor", "records", "files", "sources_truncated"}
+            or source.get("kind") not in ("record", "file")
+            or not isinstance(source.get("memory"), str)
+            or source.get("status")
+            not in ("recalled", "failed", "timeout", "full", "changes", "unchanged", "omitted", "unavailable")
+        ):
+            raise ValueError
+        for key in ("memory_id", "cursor"):
+            if source.get(key) is not None and not isinstance(source[key], str):
+                raise ValueError
+        if "sources_truncated" in source and not isinstance(source["sources_truncated"], bool):
+            raise ValueError
+        records = source.get("records", [])
+        files = source.get("files", [])
+        if not isinstance(records, list) or not isinstance(files, list):
+            raise ValueError
+        for record in records:
+            if (
+                not isinstance(record, dict)
+                or record.keys() - {"id", "sha256"}
+                or not isinstance(record.get("id"), str)
+                or not isinstance(record.get("sha256"), str)
+            ):
+                raise ValueError
+        for file in files:
+            if (
+                not isinstance(file, dict)
+                or file.keys() - {"path", "sha256", "bytes", "truncated"}
+                or not isinstance(file.get("path"), str)
+                or not isinstance(file.get("sha256"), str)
+                or not isinstance(file.get("bytes"), int)
+                or isinstance(file["bytes"], bool)
+                or file["bytes"] < 0
+                or ("truncated" in file and not isinstance(file["truncated"], bool))
+            ):
+                raise ValueError
+
+
 def _frame(event_type: str, data: list[str], cursor: str | None) -> ThreadFrame:
     try:
         value = json.loads("\n".join(data))
@@ -174,6 +246,7 @@ def _frame(event_type: str, data: list[str], cursor: str | None) -> ThreadFrame:
                 failure = item.get("failure")
                 if failure is not None and not isinstance(failure, dict):
                     raise ValueError
+                _memory_sources(item.get("memory_sources"))
                 value["item"] = MappingProxyType(item)
             value["event"] = MappingProxyType(value["event"])
             return DeltaFrame(cast("DeltaData", MappingProxyType(value)), cursor)

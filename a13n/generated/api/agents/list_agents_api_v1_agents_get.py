@@ -7,6 +7,7 @@ from ...client import AuthenticatedClient, Client
 from ...models.agent_page import AgentPage
 from ...models.agent_source import AgentSource
 from ...models.error_envelope import ErrorEnvelope
+from ...models.list_agents_api_v1_agents_get_preset_kind_type_0 import ListAgentsApiV1AgentsGetPresetKindType0
 from ...types import UNSET, Response, Unset
 
 
@@ -16,6 +17,7 @@ def build_request(
     q: str | Unset | None = UNSET,
     archived: bool | Unset | None = UNSET,
     source: AgentSource | Unset | None = UNSET,
+    preset_kind: ListAgentsApiV1AgentsGetPresetKindType0 | Unset | None = UNSET,
     skill_id: str | Unset | None = UNSET,
     skill_revision_id: str | Unset | None = UNSET,
     limit: int | Unset = UNSET,
@@ -60,6 +62,15 @@ def build_request(
     else:
         json_source = source
     params["source"] = json_source
+
+    json_preset_kind: str | Unset | None
+    if isinstance(preset_kind, Unset):
+        json_preset_kind = UNSET
+    elif isinstance(preset_kind, ListAgentsApiV1AgentsGetPresetKindType0):
+        json_preset_kind = preset_kind.value
+    else:
+        json_preset_kind = preset_kind
+    params["preset_kind"] = json_preset_kind
 
     json_skill_id: str | Unset | None
     if isinstance(skill_id, Unset):
@@ -135,6 +146,7 @@ def sync_detailed(
     q: str | Unset | None = UNSET,
     archived: bool | Unset | None = UNSET,
     source: AgentSource | Unset | None = UNSET,
+    preset_kind: ListAgentsApiV1AgentsGetPresetKindType0 | Unset | None = UNSET,
     skill_id: str | Unset | None = UNSET,
     skill_revision_id: str | Unset | None = UNSET,
     limit: int | Unset = UNSET,
@@ -144,8 +156,8 @@ def sync_detailed(
     """List Agents
 
      Agents of the workspace. `q` matches the name or description, ignoring case; `archived` keeps only
-    archived agents, or only open ones; `source=builtin` finds the Agent Composer; the skill filters
-    keep those
+    archived agents, or only open ones; `source=builtin` finds managed presets; the skill filters keep
+    those
     with a revision pinning that skill or that skill revision.
 
     Args:
@@ -153,6 +165,7 @@ def sync_detailed(
         q (None | str | Unset):
         archived (bool | None | Unset):
         source (AgentSource | None | Unset):
+        preset_kind (ListAgentsApiV1AgentsGetPresetKindType0 | None | Unset):
         skill_id (None | str | Unset):
         skill_revision_id (None | str | Unset):
         limit (int | Unset):
@@ -174,6 +187,7 @@ def sync_detailed(
         q=q,
         archived=archived,
         source=source,
+        preset_kind=preset_kind,
         skill_id=skill_id,
         skill_revision_id=skill_revision_id,
         limit=limit,
@@ -195,6 +209,7 @@ def sync(
     q: str | Unset | None = UNSET,
     archived: bool | Unset | None = UNSET,
     source: AgentSource | Unset | None = UNSET,
+    preset_kind: ListAgentsApiV1AgentsGetPresetKindType0 | Unset | None = UNSET,
     skill_id: str | Unset | None = UNSET,
     skill_revision_id: str | Unset | None = UNSET,
     limit: int | Unset = UNSET,
@@ -204,8 +219,8 @@ def sync(
     """List Agents
 
      Agents of the workspace. `q` matches the name or description, ignoring case; `archived` keeps only
-    archived agents, or only open ones; `source=builtin` finds the Agent Composer; the skill filters
-    keep those
+    archived agents, or only open ones; `source=builtin` finds managed presets; the skill filters keep
+    those
     with a revision pinning that skill or that skill revision.
 
     Args:
@@ -213,6 +228,7 @@ def sync(
         q (None | str | Unset):
         archived (bool | None | Unset):
         source (AgentSource | None | Unset):
+        preset_kind (ListAgentsApiV1AgentsGetPresetKindType0 | None | Unset):
         skill_id (None | str | Unset):
         skill_revision_id (None | str | Unset):
         limit (int | Unset):
@@ -235,6 +251,7 @@ def sync(
         q=q,
         archived=archived,
         source=source,
+        preset_kind=preset_kind,
         skill_id=skill_id,
         skill_revision_id=skill_revision_id,
         limit=limit,
@@ -250,6 +267,7 @@ async def asyncio_detailed(
     q: str | Unset | None = UNSET,
     archived: bool | Unset | None = UNSET,
     source: AgentSource | Unset | None = UNSET,
+    preset_kind: ListAgentsApiV1AgentsGetPresetKindType0 | Unset | None = UNSET,
     skill_id: str | Unset | None = UNSET,
     skill_revision_id: str | Unset | None = UNSET,
     limit: int | Unset = UNSET,
@@ -259,8 +277,8 @@ async def asyncio_detailed(
     """List Agents
 
      Agents of the workspace. `q` matches the name or description, ignoring case; `archived` keeps only
-    archived agents, or only open ones; `source=builtin` finds the Agent Composer; the skill filters
-    keep those
+    archived agents, or only open ones; `source=builtin` finds managed presets; the skill filters keep
+    those
     with a revision pinning that skill or that skill revision.
 
     Args:
@@ -268,6 +286,7 @@ async def asyncio_detailed(
         q (None | str | Unset):
         archived (bool | None | Unset):
         source (AgentSource | None | Unset):
+        preset_kind (ListAgentsApiV1AgentsGetPresetKindType0 | None | Unset):
         skill_id (None | str | Unset):
         skill_revision_id (None | str | Unset):
         limit (int | Unset):
@@ -289,6 +308,7 @@ async def asyncio_detailed(
         q=q,
         archived=archived,
         source=source,
+        preset_kind=preset_kind,
         skill_id=skill_id,
         skill_revision_id=skill_revision_id,
         limit=limit,
@@ -308,6 +328,7 @@ async def asyncio(
     q: str | Unset | None = UNSET,
     archived: bool | Unset | None = UNSET,
     source: AgentSource | Unset | None = UNSET,
+    preset_kind: ListAgentsApiV1AgentsGetPresetKindType0 | Unset | None = UNSET,
     skill_id: str | Unset | None = UNSET,
     skill_revision_id: str | Unset | None = UNSET,
     limit: int | Unset = UNSET,
@@ -317,8 +338,8 @@ async def asyncio(
     """List Agents
 
      Agents of the workspace. `q` matches the name or description, ignoring case; `archived` keeps only
-    archived agents, or only open ones; `source=builtin` finds the Agent Composer; the skill filters
-    keep those
+    archived agents, or only open ones; `source=builtin` finds managed presets; the skill filters keep
+    those
     with a revision pinning that skill or that skill revision.
 
     Args:
@@ -326,6 +347,7 @@ async def asyncio(
         q (None | str | Unset):
         archived (bool | None | Unset):
         source (AgentSource | None | Unset):
+        preset_kind (ListAgentsApiV1AgentsGetPresetKindType0 | None | Unset):
         skill_id (None | str | Unset):
         skill_revision_id (None | str | Unset):
         limit (int | Unset):
@@ -349,6 +371,7 @@ async def asyncio(
             q=q,
             archived=archived,
             source=source,
+            preset_kind=preset_kind,
             skill_id=skill_id,
             skill_revision_id=skill_revision_id,
             limit=limit,

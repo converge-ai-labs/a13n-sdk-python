@@ -88,6 +88,7 @@ def test_all_non_null_override_fields_remain_selectable_without_wire_import() ->
         "client_tools": [{"name": "lookup", "description": "find", "parameters_json_schema": {"type": "object"}}],
         "connection_tools": [],
         "instructions": "",
+        "lazy_environment": False,
         "media_understanding": {},
         "model": "mdl_1",
         "model_characteristics": {},
@@ -96,10 +97,12 @@ def test_all_non_null_override_fields_remain_selectable_without_wire_import() ->
         "plugins": [],
         "retries": {},
         "reviewer": {"model": "review-model"},
+        "skill_sync": {"mode": "isolated", "cache_count": 0},
         "skills": [],
         "subagents": {},
         "toolsets": {},
     }
+    assert set(values) == {field.name for field in fields(AgentOverride)}
     options = RunOptions(overrides=AgentOverride(**values))
     # The generated adapter, not an alternate authored schema validator, owns serialization.
     assert options.into_wire().to_dict()["overrides"] == values

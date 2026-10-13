@@ -7,6 +7,7 @@ from attrs import define as _attrs_define
 
 from ..models.tool_definition_supported_permissions_item import ToolDefinitionSupportedPermissionsItem
 from ..models.tool_permission_mode import ToolPermissionMode
+from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.tool_definition_config_schema import ToolDefinitionConfigSchema
@@ -30,6 +31,7 @@ class ToolDefinition:
         model_name (str):
         resource_selector (None | ToolResourceSelector):
         supported_permissions (list[ToolDefinitionSupportedPermissionsItem]):
+        description (str | Unset):
     """
 
     config_schema: ToolDefinitionConfigSchema
@@ -42,6 +44,7 @@ class ToolDefinition:
     model_name: str
     resource_selector: ToolResourceSelector | None
     supported_permissions: list[ToolDefinitionSupportedPermissionsItem]
+    description: str | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
         from ..models.tool_resource_selector import ToolResourceSelector
@@ -73,6 +76,8 @@ class ToolDefinition:
             supported_permissions_item = supported_permissions_item_data.value
             supported_permissions.append(supported_permissions_item)
 
+        description = self.description
+
         field_dict: dict[str, Any] = {}
 
         field_dict.update(
@@ -89,6 +94,8 @@ class ToolDefinition:
                 "supported_permissions": supported_permissions,
             }
         )
+        if description is not UNSET:
+            field_dict["description"] = description
 
         return field_dict
 
@@ -136,6 +143,8 @@ class ToolDefinition:
 
             supported_permissions.append(supported_permissions_item)
 
+        description = d.pop("description", UNSET)
+
         tool_definition = cls(
             config_schema=config_schema,
             default_enabled=default_enabled,
@@ -147,6 +156,7 @@ class ToolDefinition:
             model_name=model_name,
             resource_selector=resource_selector,
             supported_permissions=supported_permissions,
+            description=description,
         )
 
         return tool_definition

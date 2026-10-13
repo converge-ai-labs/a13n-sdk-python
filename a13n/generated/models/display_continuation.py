@@ -9,6 +9,7 @@ from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.arguments import Arguments
+    from ..models.display_continuation_memory_sources import DisplayContinuationMemorySources
     from ..models.display_continuation_response_groups import DisplayContinuationResponseGroups
     from ..models.fragment_state import FragmentState
     from ..models.observer_continuation import ObserverContinuation
@@ -29,6 +30,7 @@ class DisplayContinuation:
         arguments (Arguments | None | Unset):
         fragments (FragmentState | Unset): Incomplete custom payloads, not a journal of completed events.
         full_content (bool | Unset):
+        memory_sources (DisplayContinuationMemorySources | Unset):
         observer (ObserverContinuation | Unset): Native conversion cursors required to resume mid-part, without raw
             history.
         response_groups (DisplayContinuationResponseGroups | Unset):
@@ -40,6 +42,7 @@ class DisplayContinuation:
     arguments: Arguments | Unset | None = UNSET
     fragments: FragmentState | Unset = UNSET
     full_content: bool | Unset = UNSET
+    memory_sources: DisplayContinuationMemorySources | Unset = UNSET
     observer: ObserverContinuation | Unset = UNSET
     response_groups: DisplayContinuationResponseGroups | Unset = UNSET
 
@@ -66,6 +69,10 @@ class DisplayContinuation:
 
         full_content = self.full_content
 
+        memory_sources: dict[str, Any] | Unset = UNSET
+        if not isinstance(self.memory_sources, Unset):
+            memory_sources = self.memory_sources.to_dict()
+
         observer: dict[str, Any] | Unset = UNSET
         if not isinstance(self.observer, Unset):
             observer = self.observer.to_dict()
@@ -89,6 +96,8 @@ class DisplayContinuation:
             field_dict["fragments"] = fragments
         if full_content is not UNSET:
             field_dict["full_content"] = full_content
+        if memory_sources is not UNSET:
+            field_dict["memory_sources"] = memory_sources
         if observer is not UNSET:
             field_dict["observer"] = observer
         if response_groups is not UNSET:
@@ -99,6 +108,7 @@ class DisplayContinuation:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.arguments import Arguments
+        from ..models.display_continuation_memory_sources import DisplayContinuationMemorySources
         from ..models.display_continuation_response_groups import DisplayContinuationResponseGroups
         from ..models.fragment_state import FragmentState
         from ..models.observer_continuation import ObserverContinuation
@@ -137,6 +147,13 @@ class DisplayContinuation:
 
         full_content = d.pop("full_content", UNSET)
 
+        _memory_sources = d.pop("memory_sources", UNSET)
+        memory_sources: DisplayContinuationMemorySources | Unset
+        if isinstance(_memory_sources, Unset):
+            memory_sources = UNSET
+        else:
+            memory_sources = DisplayContinuationMemorySources.from_dict(_memory_sources)
+
         _observer = d.pop("observer", UNSET)
         observer: ObserverContinuation | Unset
         if isinstance(_observer, Unset):
@@ -158,6 +175,7 @@ class DisplayContinuation:
             arguments=arguments,
             fragments=fragments,
             full_content=full_content,
+            memory_sources=memory_sources,
             observer=observer,
             response_groups=response_groups,
         )

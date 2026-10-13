@@ -8,7 +8,7 @@ Supported methods come from the pinned OpenAPI operation, not generic active-rec
 
 ## Management Families
 
-Generated resources cover the exported Service boundary: IAM and organization/workspace administration; Agents and immutable revisions; Models, provider configuration and credentials; Skills, staged uploads, Assets and binary content; Sessions, Threads, inbox Entries, Runs and Attempts; Environments and mounts; Memory; integrations and scheduled work; usage, audit, webhooks, and trace projections. This enumeration does not claim every conceptual domain has a public endpoint: `a13n.generated.resources` and the pinned OpenAPI are the operation inventory.
+Generated resources cover the exported Service boundary: IAM and organization/workspace administration; Agents and immutable revisions; Models, provider configuration and credentials; Skills, staged uploads, Assets and binary content; Sessions, Threads, inbox Entries, Runs and Attempts; Environments and mounts; Memory; integrations and scheduled work; usage, audit, webhooks, trace projections, Findings and managed analyses. This enumeration does not claim every conceptual domain has a public endpoint: `a13n.generated.resources` and the pinned OpenAPI are the operation inventory.
 
 - Agent selection, immutable revision choice, and a Run's reported executed revision remain separate. A later Agent update does not mutate an accepted Run.
 - Model `config.settings` is an open native JSON mapping on both request and readback; generated wrappers preserve nested JSON and omission rather than imposing a parallel settings hierarchy or provider policy. Only Models accept stable keys. Agents and Skills use IDs; removed Service secrets are distinct from retained provider credentials. Credential metadata is not a plaintext secret retrieval mechanism. Authentication Sessions are not interaction Sessions.
@@ -22,6 +22,20 @@ Generated resources cover the exported Service boundary: IAM and organization/wo
 Generated Model characteristics expose native `image_input`, `video_input`, and `url_input` policies on input and readback. Omitted image policy uses native defaults; null disables automatic preparation. Zero values, false flags and empty URL subtype lists remain explicit. Native Message URL/Asset parts retain order and duplicates through authored and generated entry points. The SDK does not download, resize, split, encode, budget or authorize media.
 
 `client.api.model_providers(id)` exposes `authorization.get()`, `authorize(body=...)`, `authorization.callback(body=...)`, `authorization.delete()` and `models.get()`. These use the ordinary Client auth/Workspace context and preserve returned method, nullable state, status and HTTP evidence. Service authorizes status with `read`, authorization mutations with `write`, and discovery with `run`. Only hosted `browser_callback` start requires an unconfined user login; manual Workspace authorization may use an authorized API key. The SDK applies no blanket session-only restriction, browser flow, callback origin, client identity or credential store. Operator configuration and external issuer exchange remain Service/Harness ownership.
+
+Discovery returns `ProviderModel` choices, preserving the original `slug` and `display_name` wire fields plus optional nullable characteristics. `ProviderType.supports_model_discovery` declares capability across provider types; there is no retained ChatGPT-only model alias.
+
+## Environment Preparation and Skills
+
+`AgentOverride.lazy_environment` and `skill_sync` use the same generated serialization as revision configuration. Omission inherits native policy; permitted null, false and empty values remain explicit. Service defaults to lazy instance readiness. `lazy_environment=False` creates/starts frozen mounts before Harness entry; execution connections remain first-use in both modes. Mount working directories and standalone Environment operations retain Service-owned preparation and provider semantics; the SDK does not construct local providers or choose a project directory.
+
+Service's default skill policy is shared publication (`mode=shared`, `overwrite=true`, `cleanup=false`); opt-in isolated policy uses `mode=isolated`, `cache_count=128`. A Run override replaces the whole block, and omitted members use that mode's native defaults. Shared overwrite/cleanup acts on mutable conventional skill names; isolated packages use digest directories and a soft count budget, with zero disabling trimming. The SDK preserves the policy and performs no publication, cache management or migration.
+
+## Findings and Message Authors
+
+`client.api.finding_agent()` prepares the ordinary builtin Finding Agent; `preset_kind=finding` distinguishes it from Composer. `client.api.finding_analyses` exposes one-page/lazy reads and explicit keyed creation of an Analysis backed by an ordinary Run. Analysis is diagnostic selection evidence, not a separate execution lifecycle or proof of complete review. `client.api.findings` exposes declared list/create/get/update operations with native category, severity, assessment, evidence, pagination and conditional-update metadata. Service owns evidence authorization and validation; the SDK performs no trace inference or automatic analysis.
+
+`client.api.sessions(id).message_authors.get(entry_id=[...])` submits repeated query IDs and retains each matching entry's original principal ID/submission time and optional current Principal summary. Missing, foreign-session and non-message entries are omitted by Service. This query neither grants directory access nor changes attribution when an Entry is queued, consumed or forked.
 
 ## Missing Operations
 

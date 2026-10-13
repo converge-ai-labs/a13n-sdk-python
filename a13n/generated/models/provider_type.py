@@ -42,6 +42,7 @@ class ProviderType:
         operations (list[WebOperation] | None | Unset):
         settings_schemas (None | ProviderTypeSettingsSchemasType0 | Unset):
         supports_destroy (bool | None | Unset):
+        supports_model_discovery (bool | Unset):
         supports_stop (bool | None | Unset):
     """
 
@@ -62,6 +63,7 @@ class ProviderType:
     operations: list[WebOperation] | Unset | None = UNSET
     settings_schemas: ProviderTypeSettingsSchemasType0 | Unset | None = UNSET
     supports_destroy: bool | Unset | None = UNSET
+    supports_model_discovery: bool | Unset = UNSET
     supports_stop: bool | Unset | None = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -165,6 +167,8 @@ class ProviderType:
         else:
             supports_destroy = self.supports_destroy
 
+        supports_model_discovery = self.supports_model_discovery
+
         supports_stop: bool | Unset | None
         if isinstance(self.supports_stop, Unset):
             supports_stop = UNSET
@@ -203,6 +207,8 @@ class ProviderType:
             field_dict["settings_schemas"] = settings_schemas
         if supports_destroy is not UNSET:
             field_dict["supports_destroy"] = supports_destroy
+        if supports_model_discovery is not UNSET:
+            field_dict["supports_model_discovery"] = supports_model_discovery
         if supports_stop is not UNSET:
             field_dict["supports_stop"] = supports_stop
 
@@ -391,6 +397,8 @@ class ProviderType:
 
         supports_destroy = _parse_supports_destroy(d.pop("supports_destroy", UNSET))
 
+        supports_model_discovery = d.pop("supports_model_discovery", UNSET)
+
         def _parse_supports_stop(data: object) -> bool | Unset | None:
             if data is None:
                 return data
@@ -418,6 +426,7 @@ class ProviderType:
             operations=operations,
             settings_schemas=settings_schemas,
             supports_destroy=supports_destroy,
+            supports_model_discovery=supports_model_discovery,
             supports_stop=supports_stop,
         )
 

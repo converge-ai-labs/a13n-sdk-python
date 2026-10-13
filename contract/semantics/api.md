@@ -6,6 +6,22 @@ The Service exposes one HTTP namespace, `/api/v1`. The exported OpenAPI document
 
 Resource routes are served by the `all` and `control` roles; the `worker` role serves only `/healthz` and `/readyz` ([09](09-runtime.md#roles)). The Service follows the [platform API conventions](../api-conventions.md) except where this chapter states otherwise.
 
+## MCP management surface
+
+`/api/v1/mcp/` serves Streamable HTTP MCP on API-serving roles. It is an alternate transport for workspace resource management and read-only trace queries, not an execution engine or an arbitrary HTTP proxy. The original HTTP operations retain ownership of authentication, authorization, validation, audit, preconditions, pagination and trace redaction.
+
+The assembled application's OpenAPI admits operations individually through `x-a13n-mcp: true`. Admission covers JSON workspace resource operations, including resources that reference existing upload IDs, environment management and read-only Run/Attempt trace lookup. Agent execution/submission/resume/cancellation/waiting, live output/SSE, file transfers and binary content, organization/member/permission administration, and browser login/OAuth authorization flows remain outside this surface. Findings list/detail and Analysis history are admitted read-only JSON queries. Finding submission/review and analysis start/preset preparation remain direct HTTP operations. Distribution routes follow the same explicit admission and JSON constraints. Unmarked operations stay absent; invalid admitted operations and tool-name collisions fail assembly. Generated tool names are deterministic for their operation IDs, independent of route traversal order. Arguments cannot redirect dispatch to a different operation.
+
+Discovery and invocation require a Bearer credential authenticated by the selected Distribution authenticator with a workspace-confined principal. Browser cookies are not used. An explicit `X-Workspace-ID` must agree with confinement. Credentials and workspace selection are connection context, not tool arguments. Each generated call forwards the caller's credential to the original HTTP application, which authorizes again; neither identities nor cookies are shared across invocations. The transport supplies no additional approval authority.
+
+Path, query and declared operation-header parameters retain their schemas. The original JSON body is nested under `request_body`, preserving unions, requiredness, explicit nulls, omitted fields and empty objects. API tool results expose `{status, headers, body}` in ordinary and structured tool content. `headers` contains ETag, request ID and retry-after metadata when present, under lowercase names, never response cookies. `body` is the unchanged JSON response, or null for an empty response. Non-success HTTP responses are tool errors with the original Service error body and request ID. Protocol argument failures are MCP errors, not fabricated HTTP responses. Output schemas describe this envelope rather than advertising the bare API body.
+
+`If-Match` remains caller-supplied; stale and missing preconditions are not repaired. Included operations retain their existing replay behavior. MCP performs no automatic write retry, invents no request key, and adds no durable request-key store. A lost transport response does not establish whether a mutation committed; callers inspect the underlying resource before retrying.
+
+`search_documents(query, limit, language)` is read-only local lexical search over canonical Service Markdown bundled with the installed release. Its wheel and sdist carry the index; rebuilding a wheel from an sdist and installed search need neither a checkout, website, model nor external search service. Search accepts 1–256 characters, 1–10 results (default 5), and explicit `en` (default) or `zh-CN` selection. It ranks titles above headings above body matches with stable ties, returns bounded text (at most 3000 characters per result), source paths and lines, heading paths and installed package version, and identifies truncation and no matches. External links and website-generated API-reference operation pages are not implied to be bundled or version-matched. Guidance for excluded HTTP workflows supplies neither execution capability nor permission.
+
+[09](09-runtime.md#startup-readiness-and-shutdown) owns MCP process lifetime and ingress.
+
 ## Conventions
 
 ### Authentication
@@ -60,17 +76,17 @@ Every conditional route declares the `If-Match` header (at most 512 characters).
 - ending a login session, changing one's password and disabling one's own account, which name one session or check the current password;
 - interrupt, whose outcome follows from the run's state ([05](05-runs.md#waiting-interrupt-and-fork));
 - webhook redelivery, which requires a dead delivery ([07](07-facts-and-delivery.md#lifecycle-webhooks));
-- provider and connection tests, validation checks and preparing Agent Composer.
+- provider and connection tests, validation checks and preparing a managed Agent preset.
 
 ### Idempotency
 
 These commands require `Idempotency-Key`: 1 to 512 visible ASCII characters (`^[!-~]+$`); a missing or malformed key is 400 `invalid_argument`. The evidence lives on what the command created:
 
-| Command                                                                     | Evidence and key namespace                                                        | Replay compares                      | Reuse for another request                |
-| --------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ------------------------------------ | ---------------------------------------- |
-| `POST …/threads`, `POST …/threads/{thread}/inbox`, `POST …/runs/{run}/fork` | The entry; unique `(workspace_id, principal_id, request_key)` shared by all three | Request kind, target and body digest | 409 `conflict`, `idempotency_key_reused` |
-| `POST …/runs/{run}/resume`                                                  | The successor run; unique `(workspace_id, resumed_by_id, request_key)`            | Digest of the run ID and request     | 409 `conflict`, `idempotency_key_reused` |
-| `POST …/uploads`                                                            | The upload; unique `(workspace_id, created_by_id, request_key)`                   | The bytes, filename and content type | 409 `conflict`, `idempotency_key_reused` |
+| Command                                                                                                | Evidence and key namespace                                                                                                   | Replay compares                      | Reuse for another request                |
+| ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ | ---------------------------------------- |
+| `POST …/threads`, `POST …/threads/{thread}/inbox`, `POST …/runs/{run}/fork`, `POST …/finding-analyses` | The entry (and analysis selection for analysis); unique `(workspace_id, principal_id, request_key)` shared by these commands | Request kind, target and body digest | 409 `conflict`, `idempotency_key_reused` |
+| `POST …/runs/{run}/resume`                                                                             | The successor run; unique `(workspace_id, resumed_by_id, request_key)`                                                       | Digest of the run ID and request     | 409 `conflict`, `idempotency_key_reused` |
+| `POST …/uploads`                                                                                       | The upload; unique `(workspace_id, created_by_id, request_key)`                                                              | The bytes, filename and content type | 409 `conflict`, `idempotency_key_reused` |
 
 Authentication and current scope permission precede the lookup, and the lookup precedes validation of mutable state. A first call answers 201 (uploads: 200); a replay answers 200 with the created objects in their current state, not a byte-for-byte copy of the first response. Concurrent callers are arbitrated by the unique index: the loser rolls back everything it tentatively created and replays the winner. Pending edits never change the stored digest, and keys and withdrawn entries stay with history, so a key is never reusable. Submissions return `Submitted {thread, entry, run | null}`; resume returns the successor run.
 
@@ -95,11 +111,25 @@ Every failure, including a request no route answers, answers in one envelope; `/
 
 ### Statuses
 
-201 answers a creation, 200 a replay or any other success with a body, and 204 a success without one. A revision publication equal to the current default also answers 201 ([04](04-resources.md#revisioned-heads)), and preparing Agent Composer answers 200 whether it creates or updates the agent. 202 answers environment stop and delete, which only begin an operation ([06](06-environments.md#stop-start-and-delete)).
+201 answers a creation, 200 a replay or any other success with a body, and 204 a success without one. A revision publication equal to the current default also answers 201 ([04](04-resources.md#revisioned-heads)), and preparing a managed Agent preset answers 200 whether it creates or updates the agent. 202 answers environment stop and delete, which only begin an operation ([06](06-environments.md#stop-start-and-delete)).
 
 ## Route index
 
 Paths are relative to `/api/v1` unless they start at the root. `{org}` is an organization ID and `{ws}` a workspace ID. Account, public and deployment-wide (marked) routes act in no workspace; any other path with neither acts in the request's workspace ([paths and scope](#paths-and-scope)). `{model}` is a model key.
+
+### Findings
+
+| Method | Route                 | Result / authority                                                                                   |
+| ------ | --------------------- | ---------------------------------------------------------------------------------------------------- |
+| POST   | `/finding-agent`      | Prepare the managed Finding Agent; `write`                                                           |
+| POST   | `/finding-analyses`   | Start bounded analysis; `run` + `write`, `Idempotency-Key`; 201 new, 200 replay                      |
+| GET    | `/finding-analyses`   | Newest-first analysis history and current Run statuses; `read`                                       |
+| POST   | `/findings`           | Submit a finding with stable body `source_key`; `write`; 201 including retry readback                |
+| GET    | `/findings`           | Newest-first collection, filtering by Agent, category, severity, assessment and closed state; `read` |
+| GET    | `/findings/{finding}` | Read one finding and its ETag; `read`                                                                |
+| PATCH  | `/findings/{finding}` | Review, close or reopen; `write`, `If-Match`                                                         |
+
+[Findings and analysis](07-facts-and-delivery.md#findings-and-analysis) owns selection, submission retry and coverage semantics. Both lists use bounded keyset pages; finding cursors bind their filters. These commands do not publish an Agent revision.
 
 ### Health
 
@@ -244,25 +274,27 @@ Paths are relative to `/api/v1` unless they start at the root. `{org}` is an org
 
 ### Sessions, threads and runs
 
-| Path                              | Methods            | Owner                                            |
-| --------------------------------- | ------------------ | ------------------------------------------------ |
-| `/sessions`                       | GET, POST          | [05](05-runs.md#reads)                           |
-| `/sessions/{session}`             | GET, PATCH         | [05](05-runs.md#reads)                           |
-| `/threads`                        | GET, POST          | [05](05-runs.md#submit-and-accept)               |
-| `/threads/{thread}`               | GET, PATCH         | [05](05-runs.md#reads)                           |
-| `/threads/{thread}/archive`       | POST               | [05](05-runs.md#waiting-interrupt-and-fork)      |
-| `/threads/{thread}/runs`          | GET                | [05](05-runs.md#reads)                           |
-| `/threads/{thread}/stream`        | GET                | [07](07-facts-and-delivery.md#the-thread-stream) |
-| `/threads/{thread}/inbox`         | GET, POST          | [05](05-runs.md#submit-and-accept)               |
-| `/threads/{thread}/inbox/order`   | PUT                | [05](05-runs.md#editing-queued-input)            |
-| `/threads/{thread}/inbox/{entry}` | GET, PATCH, DELETE | [05](05-runs.md#editing-queued-input)            |
-| `/runs/{run}`                     | GET, PATCH         | [05](05-runs.md#reads)                           |
-| `/runs/{run}/interrupt`           | POST               | [05](05-runs.md#waiting-interrupt-and-fork)      |
-| `/runs/{run}/fork`                | POST               | [05](05-runs.md#waiting-interrupt-and-fork)      |
-| `/runs/{run}/resume`              | POST               | [05](05-runs.md#waiting-interrupt-and-fork)      |
-| `/runs/{run}/items`               | GET                | [05](05-runs.md#reads)                           |
-| `/runs/{run}/lineage`             | GET                | [05](05-runs.md#reads)                           |
-| `/runs/{run}/attempts`            | GET                | [05](05-runs.md#reads)                           |
+| Path                                  | Methods            | Owner                                            |
+| ------------------------------------- | ------------------ | ------------------------------------------------ |
+| `/sessions`                           | GET, POST          | [05](05-runs.md#reads)                           |
+| `/sessions/{session}`                 | GET, PATCH         | [05](05-runs.md#reads)                           |
+| `/sessions/{session}/message-authors` | GET                | [05](05-runs.md#reads)                           |
+| `/threads`                            | GET, POST          | [05](05-runs.md#submit-and-accept)               |
+| `/threads/{thread}`                   | GET, PATCH         | [05](05-runs.md#reads)                           |
+| `/threads/{thread}/archive`           | POST               | [05](05-runs.md#waiting-interrupt-and-fork)      |
+| `/threads/{thread}/runs`              | GET                | [05](05-runs.md#reads)                           |
+| `/threads/{thread}/stream`            | GET                | [07](07-facts-and-delivery.md#the-thread-stream) |
+| `/threads/{thread}/inbox`             | GET, POST          | [05](05-runs.md#submit-and-accept)               |
+| `/threads/{thread}/inbox/order`       | PUT                | [05](05-runs.md#editing-queued-input)            |
+| `/threads/{thread}/inbox/{entry}`     | GET, PATCH, DELETE | [05](05-runs.md#editing-queued-input)            |
+| `/runs/{run}`                         | GET, PATCH         | [05](05-runs.md#reads)                           |
+| `/runs/{run}/interrupt`               | POST               | [05](05-runs.md#waiting-interrupt-and-fork)      |
+| `/runs/{run}/fork`                    | POST               | [05](05-runs.md#waiting-interrupt-and-fork)      |
+| `/runs/{run}/resume`                  | POST               | [05](05-runs.md#waiting-interrupt-and-fork)      |
+| `/runs/{run}/items`                   | GET                | [05](05-runs.md#reads)                           |
+| `/runs/{run}/contents/{content}`      | GET                | [05](05-runs.md#reads)                           |
+| `/runs/{run}/lineage`                 | GET                | [05](05-runs.md#reads)                           |
+| `/runs/{run}/attempts`                | GET                | [05](05-runs.md#reads)                           |
 
 ### Environments
 

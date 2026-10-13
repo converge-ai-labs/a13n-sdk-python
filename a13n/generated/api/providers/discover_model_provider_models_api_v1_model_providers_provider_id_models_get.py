@@ -5,8 +5,8 @@ from urllib.parse import quote
 import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
-from ...models.chat_gpt_model import ChatGPTModel
 from ...models.error_envelope import ErrorEnvelope
+from ...models.provider_model import ProviderModel
 from ...types import UNSET, Response, Unset
 
 
@@ -32,12 +32,12 @@ def build_request(
 
 def _parse_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> ErrorEnvelope | list[ChatGPTModel]:
+) -> ErrorEnvelope | list[ProviderModel]:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
         for response_200_item_data in _response_200:
-            response_200_item = ChatGPTModel.from_dict(response_200_item_data)
+            response_200_item = ProviderModel.from_dict(response_200_item_data)
 
             response_200.append(response_200_item)
 
@@ -55,7 +55,7 @@ def _parse_response(
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[ErrorEnvelope | list[ChatGPTModel]]:
+) -> Response[ErrorEnvelope | list[ProviderModel]]:
     from ....errors import ProtocolError
 
     try:
@@ -74,7 +74,7 @@ def sync_detailed(
     *,
     client: AuthenticatedClient,
     x_workspace_id: str | Unset | None = UNSET,
-) -> Response[ErrorEnvelope | list[ChatGPTModel]]:
+) -> Response[ErrorEnvelope | list[ProviderModel]]:
     """Discover Model Provider Models
 
     Args:
@@ -88,7 +88,7 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorEnvelope | list[ChatGPTModel]]
+        Response[ErrorEnvelope | list[ProviderModel]]
     """
 
     kwargs = build_request(
@@ -108,7 +108,7 @@ def sync(
     *,
     client: AuthenticatedClient,
     x_workspace_id: str | Unset | None = UNSET,
-) -> ErrorEnvelope | list[ChatGPTModel] | None:
+) -> ErrorEnvelope | list[ProviderModel] | None:
     """Discover Model Provider Models
 
     Args:
@@ -122,7 +122,7 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorEnvelope | list[ChatGPTModel]
+        ErrorEnvelope | list[ProviderModel]
     """
 
     return sync_detailed(
@@ -137,7 +137,7 @@ async def asyncio_detailed(
     *,
     client: AuthenticatedClient,
     x_workspace_id: str | Unset | None = UNSET,
-) -> Response[ErrorEnvelope | list[ChatGPTModel]]:
+) -> Response[ErrorEnvelope | list[ProviderModel]]:
     """Discover Model Provider Models
 
     Args:
@@ -151,7 +151,7 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorEnvelope | list[ChatGPTModel]]
+        Response[ErrorEnvelope | list[ProviderModel]]
     """
 
     kwargs = build_request(
@@ -169,7 +169,7 @@ async def asyncio(
     *,
     client: AuthenticatedClient,
     x_workspace_id: str | Unset | None = UNSET,
-) -> ErrorEnvelope | list[ChatGPTModel] | None:
+) -> ErrorEnvelope | list[ProviderModel] | None:
     """Discover Model Provider Models
 
     Args:
@@ -183,7 +183,7 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorEnvelope | list[ChatGPTModel]
+        ErrorEnvelope | list[ProviderModel]
     """
 
     return (

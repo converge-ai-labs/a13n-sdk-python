@@ -120,7 +120,7 @@ for agent_view in response.value.items:
     print(agent_view.id, agent_view.name)
 ```
 
-Replace previous `client.resources.<collection>` calls with `client.api.<collection>`; no `resources` alias is retained before 0.1. The authored `client.agents(agent_id)` conversation workflow is unchanged. See the [complete resource API](docs/resources.md) for typed request models and HTTP evidence.
+Replace previous `client.resources.<collection>` calls with `client.api.<collection>`; no `resources` alias is retained before 0.1. The authored `client.agents(agent_id)` conversation workflow is unchanged. See the [complete resource API](docs/resources.md) for typed request models and HTTP evidence, including Findings, analyses, session message authors, and explicit saved Run content reads.
 
 ## Next steps
 

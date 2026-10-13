@@ -41,6 +41,8 @@ async def decide_one_approval(outcome: RunOutcome, approved: bool) -> RunOutcome
 
 The Service accepts **no omission defaults or partial answers**. Pass one answer map covering all pending IDs. The SDK splits approvals and calls into both wire maps in one request, including empty categories; Service alone validates completeness and category matching. Missing, unexpected, or category-mismatched IDs reject the *whole* request. Do not infer that omission denies a request or produces a default failed result. A successful resume produces a **different Run**; observing the old Run still yields `waiting`. Save the new ID and persist the idempotency key and complete answer payload before submission if a network failure may require reconciliation.
 
+Your application owns answer collection, draft persistence and when to submit. Service accepts 1–128 combined answers within its 262144-byte canonical body bound. Invalid coverage or question values raise a known `ApiError`; the batch creates no successor. A repeated identical explicit request under the same key returns the same successor, while a changed body conflicts. The SDK performs one mutation request per invocation and never retries it automatically. Pending approvals may retain presentation metadata; pending calls carry tool name and arguments without question presentation.
+
 ## Declare a client tool
 
 A client tool lets the Agent request data or actions belonging to your application without receiving direct database credentials. The Agent configuration defines the name, description and parameter schema:

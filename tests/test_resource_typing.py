@@ -63,7 +63,7 @@ def test_native_configuration_media_and_oauth_typing(tmp_path: Path) -> None:
         "    start: wire.AuthorizationStart = (await provider.authorize(body=wire.ProviderAuthorizationRequest())).value\n"
         "    await provider.authorization.callback(body=wire.AuthorizationCallback(attempt_id=start.attempt_id,\n"
         "        callback_url='https://operator.example/callback'))\n"
-        "    models: list[wire.ChatGPTModel] = (await provider.models.get()).value\n"
+        "    models: list[wire.ProviderModel] = (await provider.models.get()).value\n"
         "    disconnect: wire.AuthorizationDisconnect = (await provider.authorization.delete()).value\n"
     )
     report = run_pyright(source)
@@ -223,3 +223,47 @@ def test_public_typing_rejects_obsolete_resources_entry(tmp_path: Path) -> None:
     assert report["returncode"] == 1
     assert len(report["generalDiagnostics"]) == 1
     assert '"resources"' in report["generalDiagnostics"][0]["message"]
+
+
+def test_saved_content_findings_and_provenance_typing(tmp_path: Path) -> None:
+    source = tmp_path / "catchup.py"
+    source.write_text(
+        "from a13n import Client, AgentOverride, RunOptions, ThreadFrame\n"
+        "from a13n.generated import models as wire\n"
+        "from a13n.streaming import MemorySource, FileSource, RecordSource\n"
+        "async def use(client: Client, frame: ThreadFrame) -> None:\n"
+        "    options = RunOptions(overrides=AgentOverride(lazy_environment=False,\n"
+        "        skill_sync={'mode': 'isolated', 'cache_count': 0}))\n"
+        "    prepared: wire.Agent = (await client.api.finding_agent()).value\n"
+        "    analysis: wire.Analysis = (await client.api.finding_analyses.create(\n"
+        "        body=wire.AnalysisCreate(max_traces=1), idempotency_key='analysis')).value\n"
+        "    findings: wire.FindingPage = (await client.api.findings.list(closed=False)).value\n"
+        "    finding: wire.Finding = (await client.api.findings('finding').get()).value\n"
+        "    await client.api.findings('finding').update(body=wire.FindingUpdate(closed=False))\n"
+        "    content: wire.RunContent = (await client.api.runs('run').contents('content').get()).value\n"
+        "    authors: wire.MessageAuthors = (await client.api.sessions('session').message_authors.get(\n"
+        "        entry_id=['entry'])).value\n"
+        "    if frame.event_type == 'delta' and frame.data['item'] is not None:\n"
+        "        sources: list[MemorySource] | None = frame.data['item'].get('memory_sources')\n"
+        "        if sources:\n"
+        "            files: list[FileSource] = sources[0].get('files', [])\n"
+        "            records: list[RecordSource] = sources[0].get('records', [])\n"
+    )
+    report = run_pyright(source)
+    assert report["returncode"] == 0, report["generalDiagnostics"]
+
+
+def test_provenance_and_override_typing_rejects_invalid_native_shapes(tmp_path: Path) -> None:
+    source = tmp_path / "bad_catchup.py"
+    source.write_text(
+        "from a13n import AgentOverride, ThreadFrame\n"
+        "from a13n.streaming import MemorySource\n"
+        "bad = AgentOverride(lazy_environment='false', skill_sync=123)\n"
+        "source: MemorySource = {'kind': 'unknown', 'memory': 'notes', 'status': 'recalled'}\n"
+        "def mutate(frame: ThreadFrame) -> None:\n"
+        "    if frame.event_type == 'delta' and frame.data['item'] is not None:\n"
+        "        frame.data['item']['memory_sources'] = []\n"
+    )
+    report = run_pyright(source)
+    assert report["returncode"] == 1
+    assert len(report["generalDiagnostics"]) == 4
