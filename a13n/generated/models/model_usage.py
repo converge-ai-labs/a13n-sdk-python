@@ -13,25 +13,32 @@ T = TypeVar("T", bound="ModelUsage")
 class ModelUsage:
     """
     Attributes:
+        average_time_to_first_chunk_seconds (float | None):
         cache_read_tokens (int):
         cache_write_tokens (int):
         cost (None | str):
         input_tokens (int):
         model (None | str):
         output_tokens (int):
+        output_tokens_per_second (float | None):
         requests (int):
     """
 
+    average_time_to_first_chunk_seconds: float | None
     cache_read_tokens: int
     cache_write_tokens: int
     cost: str | None
     input_tokens: int
     model: str | None
     output_tokens: int
+    output_tokens_per_second: float | None
     requests: int
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        average_time_to_first_chunk_seconds: float | None
+        average_time_to_first_chunk_seconds = self.average_time_to_first_chunk_seconds
+
         cache_read_tokens = self.cache_read_tokens
 
         cache_write_tokens = self.cache_write_tokens
@@ -46,18 +53,23 @@ class ModelUsage:
 
         output_tokens = self.output_tokens
 
+        output_tokens_per_second: float | None
+        output_tokens_per_second = self.output_tokens_per_second
+
         requests = self.requests
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
+                "average_time_to_first_chunk_seconds": average_time_to_first_chunk_seconds,
                 "cache_read_tokens": cache_read_tokens,
                 "cache_write_tokens": cache_write_tokens,
                 "cost": cost,
                 "input_tokens": input_tokens,
                 "model": model,
                 "output_tokens": output_tokens,
+                "output_tokens_per_second": output_tokens_per_second,
                 "requests": requests,
             }
         )
@@ -67,6 +79,16 @@ class ModelUsage:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
+
+        def _parse_average_time_to_first_chunk_seconds(data: object) -> float | None:
+            if data is None:
+                return data
+            return cast(float | None, data)
+
+        average_time_to_first_chunk_seconds = _parse_average_time_to_first_chunk_seconds(
+            d.pop("average_time_to_first_chunk_seconds")
+        )
+
         cache_read_tokens = d.pop("cache_read_tokens")
 
         cache_write_tokens = d.pop("cache_write_tokens")
@@ -89,15 +111,24 @@ class ModelUsage:
 
         output_tokens = d.pop("output_tokens")
 
+        def _parse_output_tokens_per_second(data: object) -> float | None:
+            if data is None:
+                return data
+            return cast(float | None, data)
+
+        output_tokens_per_second = _parse_output_tokens_per_second(d.pop("output_tokens_per_second"))
+
         requests = d.pop("requests")
 
         model_usage = cls(
+            average_time_to_first_chunk_seconds=average_time_to_first_chunk_seconds,
             cache_read_tokens=cache_read_tokens,
             cache_write_tokens=cache_write_tokens,
             cost=cost,
             input_tokens=input_tokens,
             model=model,
             output_tokens=output_tokens,
+            output_tokens_per_second=output_tokens_per_second,
             requests=requests,
         )
 

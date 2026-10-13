@@ -355,6 +355,7 @@ from .run_options_output import RunOptionsOutput
 from .run_options_output_labels import RunOptionsOutputLabels
 from .run_page import RunPage
 from .run_status import RunStatus
+from .run_usage import RunUsage
 from .run_view import RunView
 from .run_view_input_type_0 import RunViewInputType0
 from .run_view_labels import RunViewLabels
@@ -835,6 +836,7 @@ __all__ = (
     "RunOptionsOutputLabels",
     "RunPage",
     "RunStatus",
+    "RunUsage",
     "RunView",
     "RunViewInputType0",
     "RunViewLabels",
