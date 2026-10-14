@@ -177,6 +177,7 @@ from .api.runs import (
     create_thread_api_v1_threads_post,
     edit_entry_api_v1_threads_thread_id_inbox_entry_id_patch,
     fork_run_api_v1_runs_run_id_fork_post,
+    get_attempt_api_v1_runs_run_id_attempts_attempt_id_get,
     get_entry_api_v1_threads_thread_id_inbox_entry_id_get,
     get_message_authors_api_v1_sessions_session_id_message_authors_get,
     get_run_api_v1_runs_run_id_get,
@@ -187,6 +188,7 @@ from .api.runs import (
     interrupt_run_api_v1_runs_run_id_interrupt_post,
     list_attempt_spans_api_v1_runs_run_id_attempts_attempt_id_trace_get,
     list_inbox_api_v1_threads_thread_id_inbox_get,
+    list_runs_api_v1_runs_get,
     list_sessions_api_v1_sessions_get,
     list_thread_runs_api_v1_threads_thread_id_runs_get,
     list_threads_api_v1_threads_get,
@@ -3118,6 +3120,101 @@ class ProviderTypesKind(Resource):
 class Runs(Resource):
     """Bound Native resource: /runs."""
 
+    async def list(
+        self,
+        *,
+        agent_id: str | Unset | None = UNSET,
+        session_id: str | Unset | None = UNSET,
+        thread_id: str | Unset | None = UNSET,
+        principal_id: str | Unset | None = UNSET,
+        status: wire.ListRunsApiV1RunsGetStatusType0 | Unset | None = UNSET,
+        created_after: datetime.datetime | Unset | None = UNSET,
+        created_before: datetime.datetime | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.RunPage]:
+        """List Runs. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: list_runs_api_v1_runs_get.asyncio_detailed(
+                client=client,
+                agent_id=agent_id,
+                session_id=session_id,
+                thread_id=thread_id,
+                principal_id=principal_id,
+                status=status,
+                created_after=created_after,
+                created_before=created_before,
+                limit=limit,
+                cursor=cursor,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    def pages(
+        self,
+        *,
+        agent_id: str | Unset | None = UNSET,
+        session_id: str | Unset | None = UNSET,
+        thread_id: str | Unset | None = UNSET,
+        principal_id: str | Unset | None = UNSET,
+        status: wire.ListRunsApiV1RunsGetStatusType0 | Unset | None = UNSET,
+        created_after: datetime.datetime | Unset | None = UNSET,
+        created_before: datetime.datetime | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[Result[wire.RunPage]]:
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        return pages(
+            lambda next_cursor: self.list(
+                agent_id=agent_id,
+                session_id=session_id,
+                thread_id=thread_id,
+                principal_id=principal_id,
+                status=status,
+                created_after=created_after,
+                created_before=created_before,
+                limit=limit,
+                x_workspace_id=x_workspace_id,
+                cursor=next_cursor,
+            ),
+            lambda value: value.next_cursor,
+            cursor,
+        )
+
+    def iter(
+        self,
+        *,
+        agent_id: str | Unset | None = UNSET,
+        session_id: str | Unset | None = UNSET,
+        thread_id: str | Unset | None = UNSET,
+        principal_id: str | Unset | None = UNSET,
+        status: wire.ListRunsApiV1RunsGetStatusType0 | Unset | None = UNSET,
+        created_after: datetime.datetime | Unset | None = UNSET,
+        created_before: datetime.datetime | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[wire.RunView]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(
+                agent_id=agent_id,
+                session_id=session_id,
+                thread_id=thread_id,
+                principal_id=principal_id,
+                status=status,
+                created_after=created_after,
+                created_before=created_before,
+                limit=limit,
+                cursor=cursor,
+                x_workspace_id=x_workspace_id,
+            )
+            for item in page.value.items
+        )
+
     def __call__(self, run_id: str) -> Run:
         return Run(self._client, self._bind("run_id", run_id))
 
@@ -3217,6 +3314,17 @@ class RunsRunIdAttempts(Resource):
 
 class RunsRunIdAttemptsAttemptId(Resource):
     """Bound Native resource: /runs / {run_id} / attempts / {attempt_id}."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.AttemptView]:
+        """Get Attempt. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_attempt_api_v1_runs_run_id_attempts_attempt_id_get.asyncio_detailed(
+                client=client,
+                run_id=self._bindings["run_id"],
+                attempt_id=self._bindings["attempt_id"],
+                x_workspace_id=x_workspace_id,
+            )
+        )
 
     @property
     def trace(self) -> RunsRunIdAttemptsAttemptIdTrace:

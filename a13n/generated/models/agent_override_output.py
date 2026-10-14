@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Literal, TypeVar, cast
 
 from attrs import define as _attrs_define
 
@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from ..models.isolated_skill_sync import IsolatedSkillSync
     from ..models.media_understanding_selection import MediaUnderstandingSelection
     from ..models.output_spec import OutputSpec
+    from ..models.platform_selection import PlatformSelection
     from ..models.plugin_selection import PluginSelection
     from ..models.retry_override import RetryOverride
     from ..models.shared_skill_sync import SharedSkillSync
@@ -35,6 +36,7 @@ class AgentOverrideOutput:
     edge removes it; every other field replaces the revision's value.
 
         Attributes:
+            builtin_skills (list[Literal['platform-operations']] | None | Unset):
             client_tools (list[ClientToolDefinition] | None | Unset):
             connection_tools (list[ConnectionSelection] | None | Unset):
             instructions (None | str | Unset):
@@ -44,6 +46,7 @@ class AgentOverrideOutput:
             model_characteristics (AgentModelCharacteristics | None | Unset):
             model_settings (AgentOverrideOutputModelSettingsType0 | None | Unset):
             output_spec (None | OutputSpec | Unset):
+            platform_tools (None | PlatformSelection | Unset):
             plugins (list[PluginSelection] | None | Unset):
             retries (None | RetryOverride | Unset):
             reviewer (AgentReviewer | None | Unset):
@@ -53,6 +56,7 @@ class AgentOverrideOutput:
             toolsets (AgentOverrideOutputToolsetsType0 | None | Unset):
     """
 
+    builtin_skills: list[Literal["platform-operations"]] | Unset | None = UNSET
     client_tools: list[ClientToolDefinition] | Unset | None = UNSET
     connection_tools: list[ConnectionSelection] | Unset | None = UNSET
     instructions: str | Unset | None = UNSET
@@ -62,6 +66,7 @@ class AgentOverrideOutput:
     model_characteristics: AgentModelCharacteristics | Unset | None = UNSET
     model_settings: AgentOverrideOutputModelSettingsType0 | Unset | None = UNSET
     output_spec: OutputSpec | Unset | None = UNSET
+    platform_tools: PlatformSelection | Unset | None = UNSET
     plugins: list[PluginSelection] | Unset | None = UNSET
     retries: RetryOverride | Unset | None = UNSET
     reviewer: AgentReviewer | Unset | None = UNSET
@@ -81,8 +86,18 @@ class AgentOverrideOutput:
         from ..models.isolated_skill_sync import IsolatedSkillSync
         from ..models.media_understanding_selection import MediaUnderstandingSelection
         from ..models.output_spec import OutputSpec
+        from ..models.platform_selection import PlatformSelection
         from ..models.retry_override import RetryOverride
         from ..models.shared_skill_sync import SharedSkillSync
+
+        builtin_skills: list[Literal["platform-operations"]] | Unset | None
+        if isinstance(self.builtin_skills, Unset):
+            builtin_skills = UNSET
+        elif isinstance(self.builtin_skills, list):
+            builtin_skills = self.builtin_skills
+
+        else:
+            builtin_skills = self.builtin_skills
 
         client_tools: list[dict[str, Any]] | Unset | None
         if isinstance(self.client_tools, Unset):
@@ -158,6 +173,14 @@ class AgentOverrideOutput:
         else:
             output_spec = self.output_spec
 
+        platform_tools: dict[str, Any] | Unset | None
+        if isinstance(self.platform_tools, Unset):
+            platform_tools = UNSET
+        elif isinstance(self.platform_tools, PlatformSelection):
+            platform_tools = self.platform_tools.to_dict()
+        else:
+            platform_tools = self.platform_tools
+
         plugins: list[dict[str, Any]] | Unset | None
         if isinstance(self.plugins, Unset):
             plugins = UNSET
@@ -227,6 +250,8 @@ class AgentOverrideOutput:
         field_dict: dict[str, Any] = {}
 
         field_dict.update({})
+        if builtin_skills is not UNSET:
+            field_dict["builtin_skills"] = builtin_skills
         if client_tools is not UNSET:
             field_dict["client_tools"] = client_tools
         if connection_tools is not UNSET:
@@ -245,6 +270,8 @@ class AgentOverrideOutput:
             field_dict["model_settings"] = model_settings
         if output_spec is not UNSET:
             field_dict["output_spec"] = output_spec
+        if platform_tools is not UNSET:
+            field_dict["platform_tools"] = platform_tools
         if plugins is not UNSET:
             field_dict["plugins"] = plugins
         if retries is not UNSET:
@@ -276,12 +303,38 @@ class AgentOverrideOutput:
         from ..models.isolated_skill_sync import IsolatedSkillSync
         from ..models.media_understanding_selection import MediaUnderstandingSelection
         from ..models.output_spec import OutputSpec
+        from ..models.platform_selection import PlatformSelection
         from ..models.plugin_selection import PluginSelection
         from ..models.retry_override import RetryOverride
         from ..models.shared_skill_sync import SharedSkillSync
         from ..models.skill_selection import SkillSelection
 
         d = dict(src_dict)
+
+        def _parse_builtin_skills(data: object) -> list[Literal["platform-operations"]] | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, list):
+                    raise TypeError()
+                builtin_skills_type_0 = []
+                _builtin_skills_type_0 = data
+                for builtin_skills_type_0_item_data in _builtin_skills_type_0:
+                    builtin_skills_type_0_item = cast(Literal["platform-operations"], builtin_skills_type_0_item_data)
+                    if builtin_skills_type_0_item != "platform-operations":
+                        raise ValueError(
+                            f"builtin_skills_type_0_item must match const 'platform-operations', got '{builtin_skills_type_0_item}'"
+                        )
+                    builtin_skills_type_0.append(builtin_skills_type_0_item)
+
+                return builtin_skills_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(list[Literal["platform-operations"]] | Unset | None, data)
+
+        builtin_skills = _parse_builtin_skills(d.pop("builtin_skills", UNSET))
 
         def _parse_client_tools(data: object) -> list[ClientToolDefinition] | Unset | None:
             if data is None:
@@ -422,6 +475,23 @@ class AgentOverrideOutput:
 
         output_spec = _parse_output_spec(d.pop("output_spec", UNSET))
 
+        def _parse_platform_tools(data: object) -> PlatformSelection | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                platform_tools_type_0 = PlatformSelection.from_dict(data)
+
+                return platform_tools_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(PlatformSelection | Unset | None, data)
+
+        platform_tools = _parse_platform_tools(d.pop("platform_tools", UNSET))
+
         def _parse_plugins(data: object) -> list[PluginSelection] | Unset | None:
             if data is None:
                 return data
@@ -560,6 +630,7 @@ class AgentOverrideOutput:
         toolsets = _parse_toolsets(d.pop("toolsets", UNSET))
 
         agent_override_output = cls(
+            builtin_skills=builtin_skills,
             client_tools=client_tools,
             connection_tools=connection_tools,
             instructions=instructions,
@@ -569,6 +640,7 @@ class AgentOverrideOutput:
             model_characteristics=model_characteristics,
             model_settings=model_settings,
             output_spec=output_spec,
+            platform_tools=platform_tools,
             plugins=plugins,
             retries=retries,
             reviewer=reviewer,
