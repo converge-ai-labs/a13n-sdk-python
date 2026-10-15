@@ -148,11 +148,8 @@ def test_ordinal_paging_and_nullable_item_metadata_typing(tmp_path: Path) -> Non
         "    recent: wire.RunItems = (await client.runs('run').items.get(limit=1)).value\n"
         "    page: wire.RunItems = (await client.runs('run').items.get(before=7, limit=2)).value\n"
         "    await client.runs('run').items.get(after=0)\n"
-        "    baseline: bool = recent.baseline\n"
-        "    position: str | None = page.position\n"
+        "    complete: bool = recent.complete\n"
         "    ordinal: int = recent.items[0].ordinal\n"
-        "    if isinstance(recent.continuation, wire.DisplayContinuation):\n"
-        "        cut: wire.StreamPosition = recent.continuation.position\n"
         "    if frame.event_type == 'delta' and frame.data['item'] is not None:\n"
         "        item = frame.data['item']\n"
         "        assigned: int | None = item.get('ordinal')\n"
@@ -327,3 +324,48 @@ async def misuse(client: Client) -> None:
     report = run_pyright(source)
     assert report["returncode"] == 1
     assert len(report["generalDiagnostics"]) == 9
+
+
+def test_session_native_reader_and_frame_payload_typing(tmp_path: Path) -> None:
+    source = tmp_path / "session.py"
+    source.write_text(
+        "from a13n import Client, SessionFrame, SessionStream\n"
+        "from a13n.generated import models as wire\n"
+        "def consume(frame: SessionFrame) -> None:\n"
+        "    if frame.event_type == 'thread':\n"
+        "        thread: wire.ThreadView = frame.data.thread\n"
+        "        current: wire.RunView | None = frame.data.current_run\n"
+        "    elif frame.event_type == 'items':\n"
+        "        items: list[wire.Item] = frame.data.items\n"
+        "        continuation: wire.DisplayContinuation | None = frame.data.continuation\n"
+        "    elif frame.event_type == 'delta':\n"
+        "        sequence: int = frame.data.sequence\n"
+        "        print(frame.data.event.to_dict())\n"
+        "    else:\n"
+        "        run_id: str = frame.data.run_id\n"
+        "async def use(client: Client) -> None:\n"
+        "    async with client.api.sessions('ses').stream.get_stream() as response:\n"
+        "        print(response.status_code)\n"
+        "    async with SessionStream(client.api.sessions('ses')) as stream:\n"
+        "        async for frame in stream:\n"
+        "            consume(frame)\n"
+    )
+    report = run_pyright(source)
+    assert report["returncode"] == 0, report["generalDiagnostics"]
+
+
+def test_session_typing_rejects_cursor_reconnect_and_removed_readback_fields(tmp_path: Path) -> None:
+    source = tmp_path / "invalid_session.py"
+    source.write_text(
+        "from a13n import Client, SessionFrame, SessionStream\n"
+        "from a13n.generated import models as wire\n"
+        "def misuse(client: Client, frame: SessionFrame, items: wire.RunItems, run: wire.RunView, thread: wire.ThreadView) -> None:\n"
+        "    SessionStream(client.api.sessions('ses'), after='1-0')\n"
+        "    SessionStream(client.api.sessions('ses'), reconnect=True)\n"
+        "    print(frame.cursor)\n"
+        "    print(items.baseline, items.continuation, items.position, items.resume_after)\n"
+        "    print(run.display_position, thread.message_history)\n"
+    )
+    report = run_pyright(source)
+    assert report["returncode"] == 1
+    assert len(report["generalDiagnostics"]) >= 9

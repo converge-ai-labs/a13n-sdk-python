@@ -93,9 +93,43 @@ def prepare(document: dict) -> dict:
     return document
 
 
-def generate(document: dict, work: Path) -> Path:
+def with_session_models(document: dict, session: dict) -> dict:
+    """Project Session-only definitions into the existing generated model owner."""
+    document = json.loads(json.dumps(document))
+    schemas = document["components"]["schemas"]
+    definitions = session["$defs"]
+    names = {
+        name: name if name in schemas else name + "-Output" if name + "-Output" in schemas else name
+        for name in definitions
+    }
+
+    def project(value: object, *, annotations: bool = True) -> object:
+        if isinstance(value, dict):
+            return {
+                key: project(child, annotations=annotations)
+                for key, child in value.items()
+                if annotations or key not in {"title", "default"}
+            }
+        if isinstance(value, list):
+            return [project(child, annotations=annotations) for child in value]
+        if isinstance(value, str) and value.startswith("#/$defs/"):
+            return "#/components/schemas/" + names[value.removeprefix("#/$defs/")]
+        return value
+
+    for name, schema in definitions.items():
+        target = names[name]
+        if target in schemas:
+            if project(schema, annotations=False) != project(schemas[target], annotations=False):
+                raise ValueError(f"Session and OpenAPI disagree on shared model: {name}")
+        else:
+            schemas[target] = project(schema)
+    return document
+
+
+def generate(document: dict, work: Path, session: bytes | None = None) -> Path:
     source = work / "openapi.json"
-    source.write_text(json.dumps(prepare(document)))
+    models = with_session_models(document, json.loads(session)) if session is not None else document
+    source.write_text(json.dumps(prepare(models)))
     output = work / "output"
     run(
         "uv",
@@ -195,6 +229,9 @@ def generate(document: dict, work: Path) -> Path:
             )
         path.write_text(text)
     generate_resources(document, output)
+    if session is not None:
+        # The validator consumes the original schema, not the generator projection.
+        (output / "session-stream.schema.json").write_bytes(session)
     scoped_paths = sorted(
         path
         for path, operations in document["paths"].items()
@@ -252,7 +289,8 @@ def install(output: Path, target: Path) -> None:
 def main() -> None:
     document = json.loads((ROOT / "contract/openapi.json").read_text())
     with tempfile.TemporaryDirectory(prefix="a13n-codegen-") as temp:
-        output = generate(document, Path(temp))
+        session = (ROOT / "contract/session-stream.schema.json").read_bytes()
+        output = generate(document, Path(temp), session)
         install(output, TARGET)
 
 

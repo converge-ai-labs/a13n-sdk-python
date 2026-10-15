@@ -12,7 +12,6 @@ from ..models.thread_view_purpose import ThreadViewPurpose
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
-    from ..models.message_history_item import MessageHistoryItem
     from ..models.thread_view_labels import ThreadViewLabels
     from ..models.thread_view_mcp_headers import ThreadViewMcpHeaders
 
@@ -31,9 +30,6 @@ class ThreadView:
         labels (ThreadViewLabels):
         last_run_id (None | str):
         mcp_headers (ThreadViewMcpHeaders):
-        message_history (list[MessageHistoryItem]): Pydantic AI ModelMessage JSON objects, validated by the Service.
-            Imports completed user text, model text and closed tool-call/JSON-result exchanges; no instructions, media or
-            suspended execution. At most 256 messages and 256 KiB of normalized JSON.
         origin (ThreadViewOrigin):
         origin_run_id (None | str):
         origin_thread_id (None | str):
@@ -53,7 +49,6 @@ class ThreadView:
     labels: ThreadViewLabels
     last_run_id: str | None
     mcp_headers: ThreadViewMcpHeaders
-    message_history: list[MessageHistoryItem]
     origin: ThreadViewOrigin
     origin_run_id: str | None
     origin_thread_id: str | None
@@ -86,11 +81,6 @@ class ThreadView:
         last_run_id = self.last_run_id
 
         mcp_headers = self.mcp_headers.to_dict()
-
-        message_history = []
-        for componentsschemas_message_history_item_data in self.message_history:
-            componentsschemas_message_history_item = componentsschemas_message_history_item_data.to_dict()
-            message_history.append(componentsschemas_message_history_item)
 
         origin = self.origin.value
 
@@ -129,7 +119,6 @@ class ThreadView:
                 "labels": labels,
                 "last_run_id": last_run_id,
                 "mcp_headers": mcp_headers,
-                "message_history": message_history,
                 "origin": origin,
                 "origin_run_id": origin_run_id,
                 "origin_thread_id": origin_thread_id,
@@ -148,7 +137,6 @@ class ThreadView:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.message_history_item import MessageHistoryItem
         from ..models.thread_view_labels import ThreadViewLabels
         from ..models.thread_view_mcp_headers import ThreadViewMcpHeaders
 
@@ -190,15 +178,6 @@ class ThreadView:
         last_run_id = _parse_last_run_id(d.pop("last_run_id"))
 
         mcp_headers = ThreadViewMcpHeaders.from_dict(d.pop("mcp_headers"))
-
-        message_history = []
-        _message_history = d.pop("message_history")
-        for componentsschemas_message_history_item_data in _message_history:
-            componentsschemas_message_history_item = MessageHistoryItem.from_dict(
-                componentsschemas_message_history_item_data
-            )
-
-            message_history.append(componentsschemas_message_history_item)
 
         origin = ThreadViewOrigin(d.pop("origin"))
 
@@ -253,7 +232,6 @@ class ThreadView:
             labels=labels,
             last_run_id=last_run_id,
             mcp_headers=mcp_headers,
-            message_history=message_history,
             origin=origin,
             origin_run_id=origin_run_id,
             origin_thread_id=origin_thread_id,

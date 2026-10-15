@@ -425,12 +425,12 @@ def test_imported_history_preserves_nested_argument_and_result_object_order() ->
                 body = json.loads(request.content)
                 sent.extend(body["message_history"])
                 return httpx2.Response(201, json=submitted())
-            return httpx2.Response(200, json={**thread_view(), "message_history": history})
+            return httpx2.Response(200, json=thread_view())
 
         async with Client("https://service.example", transport=httpx2.MockTransport(handle)) as client:
             interaction = await client.agents("agt_1").start("next", message_history=history)
-            read = (await interaction.thread.get()).value.message_history
-            for values in [sent, [message.to_dict() for message in read]]:
+            assert "message_history" not in (await interaction.thread.get()).value.to_dict()
+            for values in [sent]:
                 for message, key in zip(values, ["args", "content"], strict=True):
                     value = message["parts"][0][key]
                     assert list(value) == ["z", "a"]

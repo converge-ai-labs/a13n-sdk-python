@@ -125,7 +125,7 @@ def test_disconnect_transport_fails_after_one_complete_data_event() -> None:
 def test_paged_display_acceptance_dispatches_native_windows_and_checks_coverage_locally() -> None:
     from a13n import Client
     from tests.test_interaction import entry_view, run_view, submitted
-    from tests.test_run_items import continuation, display_item
+    from tests.test_run_items import display_item
 
     async def scenario() -> None:
         queries: list[dict[str, str]] = []
@@ -153,18 +153,13 @@ def test_paged_display_acceptance_dispatches_native_windows_and_checks_coverage_
                         }
                     },
                 )
-            historical = "before" in query or "after" in query
             ordinals = [4] if "before" in query else [1] if "after" in query else [5, 6, 7]
             return httpx2.Response(
                 200,
                 json={
                     "run": run_view(status="completed"),
                     "items": [display_item(i) for i in ordinals],
-                    "baseline": not historical,
                     "complete": True,
-                    "continuation": None if historical else continuation(),
-                    "position": None if historical else "1-5",
-                    "resume_after": None,
                 },
             )
 
@@ -212,9 +207,7 @@ def test_failed_continuation_acceptance_dispatches_normal_message_with_checkpoin
                     json={
                         "run": view(2),
                         "items": [],
-                        "baseline": True,
                         "complete": True,
-                        "position": None,
                     },
                 )
             return httpx2.Response(200, json=view(int(request.url.path.rsplit("_", 1)[-1])))
@@ -234,20 +227,11 @@ def test_failed_continuation_acceptance_dispatches_normal_message_with_checkpoin
     asyncio.run(scenario())
 
 
-def test_historical_acceptance_rejects_a_false_live_baseline() -> None:
+def test_historical_acceptance_rejects_wrong_run_or_unsealed_display() -> None:
     from a13n.generated import models as wire
     from tests.test_interaction import run_view
 
-    historical = wire.RunItems.from_dict(
-        {
-            "run": run_view(status="completed"),
-            "items": [],
-            "baseline": False,
-            "complete": True,
-            "position": "1-5",
-            "continuation": None,
-            "resume_after": None,
-        }
-    )
-    with pytest.raises(RuntimeError, match="live coverage"):
-        service_acceptance._historical_window(historical, "run_1")
+    for run_id, complete in [("run_other", True), ("run_1", False)]:
+        historical = wire.RunItems.from_dict({"run": run_view(run_id=run_id), "items": [], "complete": complete})
+        with pytest.raises(RuntimeError, match="Run or seal"):
+            service_acceptance._historical_window(historical, "run_1")

@@ -23,7 +23,8 @@ main() {
   branch=sync/service-contract
   remote_git fetch origin '+refs/heads/main:refs/remotes/origin/main'
   previous=$(git show origin/main:contract/source.json | jq -er .commit)
-  if git -C "$upstream" merge-base --is-ancestor "$commit" "$previous"; then
+  if git -C "$upstream" merge-base --is-ancestor "$commit" "$previous" && \
+    { [[ "$commit" != "$previous" ]] || contract_input_selection_matches <(git show origin/main:contract/source.json); }; then
     echo 'Source is already accepted or older than the accepted pin'
     return
   fi
@@ -68,7 +69,7 @@ main() {
     return
   fi
   git -C "$upstream" merge-base --is-ancestor "$current" "$commit" || fail 'source diverges from the pending pin'
-  if [[ "$commit" != "$current" ]]; then
+  if [[ "$commit" != "$current" ]] || ! contract_input_selection_matches; then
     # A newer source revision alone must not churn a reviewed proposal or SDK CI.
     # Compare upstream inputs, not reviewer edits or source.json provenance.
     if ! contract_inputs_changed "$upstream" "$current" "$commit"; then
@@ -117,7 +118,7 @@ Pinned Service source: https://github.com/converge-ai-labs/agent-foundation/comm
 
 Changes since the accepted SDK pin: https://github.com/converge-ai-labs/agent-foundation/compare/$previous...$commit
 
-This rolling draft imports committed OpenAPI and thread-stream definitions, API conventions,
+This rolling draft imports committed OpenAPI, thread-stream and session-stream definitions, API conventions,
 and the Runs, Facts and Delivery, and API semantics, with source paths,
 and includes SDK-local HTTP generation. Full SDK CI runs while this PR is still a draft.
 Only changed contract inputs trigger this update; the source compare also provides implementation context.

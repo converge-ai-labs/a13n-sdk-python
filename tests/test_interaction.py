@@ -3,6 +3,7 @@ import json
 
 import httpx2
 import pytest
+from attrs import fields
 
 from a13n import (
     AgentOverride,
@@ -39,7 +40,6 @@ def thread_view(thread_id: str = "thr_1", workspace_id: str = "ws_1") -> dict:
         "labels": {},
         "last_run_id": None,
         "mcp_headers": {},
-        "message_history": [],
         "origin": "new",
         "origin_run_id": None,
         "origin_thread_id": None,
@@ -144,7 +144,7 @@ def test_new_thread_submission_and_replay_preserve_queue_disposition() -> None:
     asyncio.run(scenario())
 
 
-def test_imported_history_is_only_seeded_on_creation_and_preserved_on_readback() -> None:
+def test_imported_history_is_only_seeded_on_creation_and_absent_from_thread_readback() -> None:
     history = [
         {"kind": "request", "parts": [{"part_kind": "user-prompt", "content": "Earlier"}], "metadata": {"id": 1}},
         {
@@ -172,7 +172,6 @@ def test_imported_history_is_only_seeded_on_creation_and_preserved_on_readback()
             paths.append(request.url.path)
             if request.method == "GET":
                 view = thread_view()
-                view["message_history"] = history
                 return httpx2.Response(200, json=view)
             body = json.loads(request.content)
             if request.url.path == "/api/v1/threads":
@@ -185,7 +184,8 @@ def test_imported_history_is_only_seeded_on_creation_and_preserved_on_readback()
             agent = client.agents("agt_1")
             created = await agent.start("New", message_history=history, idempotency_key="create")
             readback = await created.thread.get()
-            assert [item.to_dict() for item in readback.value.message_history] == history
+            assert readback.value.id == created.thread.id
+            assert "message_history" not in readback.value.to_dict()
             await agent.send(created.thread.id, "Next", idempotency_key="follow-up")
             await client.runs(created.receipt.value.run.id).fork("Branch", agent_id="agt_1", idempotency_key="fork")
         assert paths == [
@@ -848,25 +848,16 @@ def test_result_cancellation_closes_owned_observation_without_remote_mutation() 
     asyncio.run(scenario())
 
 
-@pytest.mark.parametrize("resume_after", [None, "1700000000000-0"])
-def test_run_items_preserves_display_coverage_and_resume_hint(resume_after: str | None) -> None:
-    snapshot = {
-        "run": wire.RunView.from_dict(run_view()).to_dict(),
-        "items": [],
-        "complete": False,
-        "baseline": True,
-        "position": "1-5",
-        "resume_after": resume_after,
-    }
+def test_run_items_has_no_typed_stream_coverage() -> None:
+    snapshot = {"run": wire.RunView.from_dict(run_view()).to_dict(), "items": [], "complete": False}
     parsed = wire.RunItems.from_dict(snapshot)
-    assert parsed.position == "1-5" and parsed.resume_after == resume_after
     assert parsed.to_dict() == snapshot
-    del snapshot["resume_after"]
-    omitted_hint = wire.RunItems.from_dict(snapshot)
-    assert "resume_after" not in omitted_hint.to_dict()
+    assert not {"baseline", "continuation", "position", "resume_after"} & {
+        field.name for field in fields(wire.RunItems)
+    }
 
 
-def test_gap_recovery_is_explicit_readback_then_new_covered_stream() -> None:
+def test_gap_readback_does_not_derive_stream_coverage_and_caller_progress_remains_explicit() -> None:
     from a13n import ThreadStream
 
     async def scenario() -> None:
@@ -881,9 +872,6 @@ def test_gap_recovery_is_explicit_readback_then_new_covered_stream() -> None:
                         "run": run_view(),
                         "items": [],
                         "complete": False,
-                        "baseline": True,
-                        "position": "1-5",
-                        "resume_after": "500-0",
                     },
                 )
             assert request.url.path == "/api/v1/threads/thr_1/stream"
@@ -902,12 +890,13 @@ def test_gap_recovery_is_explicit_readback_then_new_covered_stream() -> None:
                 assert gap.event_type == "gap" and gap.data.get("position") == "1-5"
             assert len(requests) == 1  # Parser never read or silently merged a snapshot.
             snapshot = (await client.runs(gap.data["run_id"]).items.get()).value
-            assert snapshot.position is not None and isinstance(snapshot.resume_after, str)
+            assert snapshot.run.id == "run_1"
+            # Coordinates come from application-owned prior stream progress, never this Items read.
             async with ThreadStream(
                 client.threads("thr_1"),
                 run=snapshot.run.id,
-                position=snapshot.position,
-                after=snapshot.resume_after,
+                position="1-5",
+                after="500-0",
                 reconnect=False,
             ) as recovered:
                 boundary = await anext(recovered)
@@ -978,11 +967,7 @@ def test_historical_complete_window_does_not_seal_finite_interaction() -> None:
                     json={
                         "run": run_view(status="completed"),
                         "items": [],
-                        "baseline": False,
                         "complete": True,
-                        "position": None,
-                        "continuation": None,
-                        "resume_after": None,
                     },
                 )
             if request.url.path.endswith("/inbox/ent_1"):
@@ -996,7 +981,7 @@ def test_historical_complete_window_does_not_seal_finite_interaction() -> None:
         async with Client("https://service.example", transport=httpx2.MockTransport(handle)) as client:
             interaction = await client.agents("agt_1").start("Hello", idempotency_key="start")
             page = (await client.runs("run_1").items.get(before=2)).value
-            assert page.complete and not page.baseline and reads == 0
+            assert page.complete and reads == 0
             outcome = await interaction.result(poll_interval=0.001)
             assert outcome.status == "completed" and reads == 2
         assert all(not path.endswith("/stream") for _, path in methods)

@@ -83,12 +83,13 @@ async def continue_existing_chat(client: Client, agent_id: str) -> str:
     interaction = await client.agents(agent_id).start(
         "Is 11 prime?", message_history=history, idempotency_key=uuid4().hex
     )
+    assert interaction.thread is not None
     readback = await interaction.thread.get()
-    assert [message.to_dict() for message in readback.value.message_history] == history
+    assert readback.value.id == interaction.thread.id
     return interaction.thread.id
 ```
 
-The Service validates native history (completed text or closed tool-call/result exchanges), including its 256-message and 262144-byte limits. The SDK does not re-validate, translate, discard metadata or require Pydantic AI to be installed. The initial model context uses this seed once; later `send()` calls, resume and forks never submit it again. Import does not create historical Runs, inbox messages or usage. Preserve the same history and idempotency key if retrying the initial submission after an uncertain response.
+The Service validates native history (completed text or closed tool-call/result exchanges), including its 256-message and 262144-byte limits. The SDK does not re-validate, translate, discard metadata or require Pydantic AI to be installed. Thread readback returns Thread metadata, not the imported history; retain your source JSON when you need it. The initial model context uses this seed once; later `send()` calls, resume and forks never submit it again. Import does not create historical Runs, inbox messages or usage. Preserve the same history and idempotency key if retrying the initial submission after an uncertain response.
 
 ## Supply structured input
 

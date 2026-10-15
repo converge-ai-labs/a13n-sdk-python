@@ -122,6 +122,8 @@ from .delegation_context_policy_history import DelegationContextPolicyHistory
 from .delegation_context_policy_task_state import DelegationContextPolicyTaskState
 from .delivery import Delivery
 from .delivery_page import DeliveryPage
+from .delta import Delta
+from .delta_event import DeltaEvent
 from .deny import Deny
 from .display_continuation import DisplayContinuation
 from .display_continuation_memory_sources import DisplayContinuationMemorySources
@@ -159,6 +161,7 @@ from .fork import Fork
 from .fragment_state import FragmentState
 from .fragment_state_pending import FragmentStatePending
 from .frozen_memory_mount import FrozenMemoryMount
+from .gap import Gap
 from .git_hub_source import GitHubSource
 from .grant_create import GrantCreate
 from .grant_page import GrantPage
@@ -185,6 +188,8 @@ from .item import Item
 from .item_content import ItemContent
 from .item_content_refs import ItemContentRefs
 from .item_kind import ItemKind
+from .item_ref import ItemRef
+from .item_ref_failure_type_0 import ItemRefFailureType0
 from .item_state import ItemState
 from .json_part import JsonPart
 from .key_create import KeyCreate
@@ -379,6 +384,7 @@ from .run_options_input_labels import RunOptionsInputLabels
 from .run_options_output import RunOptionsOutput
 from .run_options_output_labels import RunOptionsOutputLabels
 from .run_page import RunPage
+from .run_snapshot import RunSnapshot
 from .run_status import RunStatus
 from .run_usage import RunUsage
 from .run_view import RunView
@@ -455,6 +461,7 @@ from .template_update import TemplateUpdate
 from .template_update_labels_type_0 import TemplateUpdateLabelsType0
 from .text_part import TextPart
 from .thread_page import ThreadPage
+from .thread_state import ThreadState
 from .thread_update import ThreadUpdate
 from .thread_update_labels_type_0 import ThreadUpdateLabelsType0
 from .thread_view import ThreadView
@@ -637,6 +644,8 @@ __all__ = (
     "DelegationContextPolicyTaskState",
     "Delivery",
     "DeliveryPage",
+    "Delta",
+    "DeltaEvent",
     "Deny",
     "DisplayContinuation",
     "DisplayContinuationMemorySources",
@@ -674,6 +683,7 @@ __all__ = (
     "FragmentState",
     "FragmentStatePending",
     "FrozenMemoryMount",
+    "Gap",
     "GitHubSource",
     "GrantCreate",
     "GrantPage",
@@ -700,6 +710,8 @@ __all__ = (
     "ItemContent",
     "ItemContentRefs",
     "ItemKind",
+    "ItemRef",
+    "ItemRefFailureType0",
     "ItemState",
     "JsonPart",
     "KeyCreate",
@@ -890,6 +902,7 @@ __all__ = (
     "RunOptionsOutput",
     "RunOptionsOutputLabels",
     "RunPage",
+    "RunSnapshot",
     "RunStatus",
     "RunUsage",
     "RunView",
@@ -966,6 +979,7 @@ __all__ = (
     "TemplateUpdateLabelsType0",
     "TextPart",
     "ThreadPage",
+    "ThreadState",
     "ThreadUpdate",
     "ThreadUpdateLabelsType0",
     "ThreadView",

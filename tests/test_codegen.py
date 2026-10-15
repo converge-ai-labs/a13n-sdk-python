@@ -95,7 +95,61 @@ def test_every_pinned_named_model_and_inline_schema_has_generated_coverage() -> 
             assert exported in wire.__all__, name
             named.add(name)
     assert named | inline == schemas.keys()
-    assert len(schemas) == 364
+    assert len(schemas) == 353
     for name in inline:
         reference = f"#/components/schemas/{name}"
         assert reference in json.dumps(document), name
+
+
+def test_session_only_models_share_native_types_without_changing_native_inventory() -> None:
+    from codegen.generate import with_session_models
+
+    document = json.loads((ROOT / "contract/openapi.json").read_text())
+    session = json.loads((ROOT / "contract/session-stream.schema.json").read_text())
+    augmented = with_session_models(document, session)
+    native = document["components"]["schemas"]
+    combined = augmented["components"]["schemas"]
+    assert len(native) == 353 and len(session["$defs"]) == 82
+    assert combined.keys() - native.keys() == {
+        "Delta",
+        "Gap",
+        "RunSnapshot",
+        "ThreadState",
+        "ItemRef",
+        "MemorySource",
+        "RecordSource",
+        "FileSource",
+        "DisplayContinuation",
+        "FragmentState",
+        "ObserverContinuation",
+        "StreamPosition",
+        "_Arguments",
+        "_Assembly",
+        "_ObserverState",
+        "_PartCursor",
+    }
+    assert combined["RunSnapshot"]["properties"]["items"]["items"] == {"$ref": "#/components/schemas/Item"}
+    assert combined["ThreadState"]["properties"]["thread"] == {"$ref": "#/components/schemas/ThreadView"}
+    assert combined["RunView"] == native["RunView"]
+    assert "continuation" not in native["RunItems"]["properties"]
+    assert "DisplayContinuation" not in native
+    broken = json.loads(json.dumps(session))
+    broken["$defs"]["ThreadView"]["required"].append("new_required_field")
+    import pytest
+
+    with pytest.raises(ValueError, match="shared model: ThreadView"):
+        with_session_models(document, broken)
+
+
+def test_full_pinned_generation_matches_committed_owner(tmp_path: Path) -> None:
+    document = json.loads((ROOT / "contract/openapi.json").read_text())
+    output = generate(document, tmp_path, (ROOT / "contract/session-stream.schema.json").read_bytes())
+
+    def files(root: Path) -> dict[str, bytes]:
+        return {
+            str(path.relative_to(root)): path.read_bytes()
+            for path in root.rglob("*")
+            if path.is_file() and "__pycache__" not in path.parts
+        }
+
+    assert files(output) == files(ROOT / "a13n/generated")
