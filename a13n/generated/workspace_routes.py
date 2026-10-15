@@ -123,6 +123,7 @@ WORKSPACE_PATHS = (
     re.compile("/api/v1/uploads\\Z"),
     re.compile("/api/v1/usage\\Z"),
     re.compile("/api/v1/usage/agents\\Z"),
+    re.compile("/api/v1/usage/context\\Z"),
     re.compile("/api/v1/usage/models\\Z"),
     re.compile("/api/v1/usage/overview\\Z"),
     re.compile("/api/v1/usage/records/[^/]+/metrics\\Z"),

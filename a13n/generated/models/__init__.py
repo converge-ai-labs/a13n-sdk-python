@@ -114,6 +114,7 @@ from .connector_config import ConnectorConfig
 from .connector_config_setup import ConnectorConfigSetup
 from .content_ref import ContentRef
 from .content_ref_media_type import ContentRefMediaType
+from .context_usage import ContextUsage
 from .created_subscription import CreatedSubscription
 from .credential_mode import CredentialMode
 from .daily_usage import DailyUsage
@@ -636,6 +637,7 @@ __all__ = (
     "ConnectorConfigSetup",
     "ContentRef",
     "ContentRefMediaType",
+    "ContextUsage",
     "CreatedSubscription",
     "CredentialMode",
     "DailyUsage",

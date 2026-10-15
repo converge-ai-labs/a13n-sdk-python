@@ -295,6 +295,7 @@ from .api.tenancy import (
     update_workspace_api_v1_workspaces_workspace_id_patch,
 )
 from .api.usage import (
+    context_usage_api_v1_usage_context_get,
     model_request_metrics_api_v1_usage_records_record_id_metrics_get,
     summarize_usage_api_v1_usage_get,
     usage_agents_api_v1_usage_agents_get,
@@ -5259,6 +5260,10 @@ class Usage(Resource):
         return UsageAgents(self._client, self._bindings)
 
     @property
+    def context(self) -> UsageContext:
+        return UsageContext(self._client, self._bindings)
+
+    @property
     def models(self) -> UsageModels:
         return UsageModels(self._client, self._bindings)
 
@@ -5324,6 +5329,25 @@ class UsageAgents(Resource):
                 start=start, end=end, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
             )
             for item in page.value.items
+        )
+
+
+class UsageContext(Resource):
+    """Bound Native resource: /usage / context."""
+
+    async def get(
+        self,
+        *,
+        thread_id: str | Unset | None = UNSET,
+        run_id: str | Unset | None = UNSET,
+        record_id: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.ContextUsage | None]:
+        """Context Usage. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: context_usage_api_v1_usage_context_get.asyncio_detailed(
+                client=client, thread_id=thread_id, run_id=run_id, record_id=record_id, x_workspace_id=x_workspace_id
+            )
         )
 
 
