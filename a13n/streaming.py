@@ -6,8 +6,9 @@ import asyncio
 import json
 import random
 import re
-from collections.abc import AsyncGenerator, AsyncIterator, Mapping
-from contextlib import AbstractAsyncContextManager
+from abc import ABC, abstractmethod
+from collections.abc import AsyncGenerator, AsyncIterator, Callable, Mapping
+from contextlib import AbstractAsyncContextManager, aclosing
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
@@ -135,31 +136,32 @@ class StreamResponse:
     request_id: str | None
 
 
-async def _lines(response: httpx2.Response, limit: int) -> AsyncIterator[bytes]:
+async def _lines(response: httpx2.Response, limit: int | None) -> AsyncGenerator[bytes]:
     pending = bytearray()
     skip_lf = False
-    async for chunk in response.aiter_bytes():
-        start = 0
-        for index, byte in enumerate(chunk):
-            if skip_lf:
-                skip_lf = False
-                if byte == 10:
-                    start = index + 1
+    async with aclosing(response.aiter_bytes()) as chunks:
+        async for chunk in chunks:
+            start = 0
+            for index, byte in enumerate(chunk):
+                if skip_lf:
+                    skip_lf = False
+                    if byte == 10:
+                        start = index + 1
+                        continue
+                if byte not in (10, 13):
                     continue
-            if byte not in (10, 13):
-                continue
-            pending.extend(chunk[start:index])
-            if len(pending) > limit:
+                pending.extend(chunk[start:index])
+                if limit is not None and len(pending) > limit:
+                    raise ProtocolError("SSE line exceeds the configured bound")
+                yield bytes(pending)
+                pending.clear()
+                start = index + 1
+                skip_lf = byte == 13
+            pending.extend(chunk[start:])
+            if limit is not None and len(pending) > limit:
                 raise ProtocolError("SSE line exceeds the configured bound")
-            yield bytes(pending)
-            pending.clear()
-            start = index + 1
-            skip_lf = byte == 13
-        pending.extend(chunk[start:])
-        if len(pending) > limit:
-            raise ProtocolError("SSE line exceeds the configured bound")
-    if pending:
-        raise ProtocolError("Thread stream ended with a truncated SSE line")
+        if pending:
+            raise ProtocolError("Stream ended with a truncated SSE line")
 
 
 def _memory_sources(value: Any) -> None:
@@ -269,62 +271,70 @@ def _frame(event_type: str, data: list[str], cursor: str | None) -> ThreadFrame:
         raise ProtocolError("Malformed Thread stream frame") from None
 
 
-async def _frames(response: httpx2.Response, limit: int) -> AsyncGenerator[ThreadFrame]:
+async def _events(response: httpx2.Response, limit: int | None) -> AsyncGenerator[tuple[str, list[str], str | None]]:
     data: list[str] = []
     event_type = ""
     cursor: str | None = None
     size = 0
     first = True
-    async for raw in _lines(response, limit):
-        try:
-            line = raw.decode("utf-8")
-        except UnicodeError:
-            raise ProtocolError("Invalid UTF-8 in Thread stream") from None
-        if first:
-            line = line.removeprefix("\ufeff")
-            first = False
-        size += len(raw) + 1
-        if size > limit:
-            raise ProtocolError("SSE frame exceeds the configured bound")
-        if not line:
-            if data:
-                yield _frame(event_type, data, cursor)
-            data, event_type, cursor, size = [], "", None, 0
-            continue
-        if line.startswith(":"):
-            continue
-        field, separator, value = line.partition(":")
-        if separator and value.startswith(" "):
-            value = value[1:]
-        if field == "data":
-            data.append(value)
-        elif field == "event":
-            event_type = value
-        elif field == "id":
-            cursor = value
-    if data or event_type or cursor is not None:
-        raise ProtocolError("Thread stream ended with a truncated SSE frame")
+    async with aclosing(_lines(response, limit)) as lines:
+        async for raw in lines:
+            try:
+                line = raw.decode("utf-8")
+            except UnicodeError:
+                raise ProtocolError("Invalid UTF-8 in SSE stream") from None
+            if first:
+                line = line.removeprefix("\ufeff")
+                first = False
+            size += len(raw) + 1
+            if limit is not None and size > limit:
+                raise ProtocolError("SSE frame exceeds the configured bound")
+            if not line:
+                if data or event_type or cursor is not None:
+                    yield event_type, data, cursor
+                data, event_type, cursor, size = [], "", None, 0
+                continue
+            if line.startswith(":"):
+                continue
+            field, separator, value = line.partition(":")
+            if separator and value.startswith(" "):
+                value = value[1:]
+            if field == "data":
+                data.append(value)
+            elif field == "event":
+                event_type = value
+            elif field == "id":
+                cursor = value
+        if data or event_type or cursor is not None:
+            raise ProtocolError("Stream ended with a truncated SSE frame")
+
+
+async def _frames(response: httpx2.Response, limit: int) -> AsyncGenerator[ThreadFrame]:
+    async with aclosing(_events(response, limit)) as events:
+        async for event_type, data, cursor in events:
+            yield _frame(event_type, data, cursor)
 
 
 async def _error(response: httpx2.Response, limit: int) -> ApiError:
     payload = bytearray()
-    async for chunk in response.aiter_bytes():
-        payload.extend(chunk)
-        if len(payload) > limit:
-            raise ProtocolError("Oversized stream error response")
-    try:
-        parsed = ErrorEnvelope.from_dict(json.loads(payload))
-    except (ValueError, TypeError, KeyError, AttributeError):
-        raise ProtocolError("Malformed stream error response") from None
-    error = parsed.error
-    return ApiError(
-        response.status_code,
-        error.code,
-        error.message,
-        error.details.to_dict(),
-        response.headers.get("x-request-id") or error.request_id,
-        response.headers.get("retry-after"),
-    )
+    async with aclosing(response.aiter_bytes()) as chunks:
+        async for chunk in chunks:
+            payload.extend(chunk)
+            if len(payload) > limit:
+                raise ProtocolError("Oversized stream error response")
+        try:
+            parsed = ErrorEnvelope.from_dict(json.loads(payload))
+        except (ValueError, TypeError, KeyError, AttributeError):
+            raise ProtocolError("Malformed stream error response") from None
+        error = parsed.error
+        return ApiError(
+            response.status_code,
+            error.code,
+            error.message,
+            error.details.to_dict(),
+            response.headers.get("x-request-id") or error.request_id,
+            response.headers.get("retry-after"),
+        )
 
 
 def _retry_after(value: str | None) -> float | None:
@@ -345,7 +355,124 @@ def _retry_after(value: str | None) -> float | None:
     return min(seconds, 30.0)
 
 
-class ThreadStream:
+class _StreamContext[FrameT](ABC):
+    """Shared single-reader transport lifetime, without cursor or reconnect policy."""
+
+    def __init__(self, resource: Resource, max_event_bytes: int) -> None:
+        if not isinstance(max_event_bytes, int) or isinstance(max_event_bytes, bool) or max_event_bytes <= 0:
+            raise ValueError("max_event_bytes must be a positive integer")
+        self._resource = resource
+        self._max_event_bytes = max_event_bytes
+        self._entered = False
+        self._closed = False
+        self._reading = False
+        self._response: StreamResponse | None = None
+        self._context: AbstractAsyncContextManager[httpx2.Response] | None = None
+        self._iterator: AsyncIterator[FrameT] | None = None
+        self._active_task: asyncio.Task[Any] | None = None
+        self._close_event = asyncio.Event()
+        self._active_done = asyncio.Event()
+        self._active_done.set()
+
+    @property
+    def response(self) -> StreamResponse | None:
+        return self._response
+
+    @property
+    def is_closed(self) -> bool:
+        return self._closed
+
+    async def __aenter__(self) -> Self:
+        if self._entered or self._closed:
+            raise RuntimeError(f"{type(self).__name__} is single-use")
+        self._entered = True
+        self._active_task = asyncio.current_task()
+        self._active_done.clear()
+        owner = None
+        try:
+            owner = self._resource._client._enter_io()
+            await self._attach_with_recovery()
+        except asyncio.CancelledError:
+            if self._close_event.is_set():
+                raise RuntimeError("Stream was closed during entry") from None
+            await self._finish()
+            raise
+        except BaseException:
+            await self._finish()
+            raise
+        finally:
+            self._resource._client._leave_io(owner)
+            self._active_task = None
+            self._active_done.set()
+        if self._closed:
+            raise RuntimeError("Stream was closed during entry")
+        return self
+
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
+        await self.aclose()
+
+    def __aiter__(self) -> Self:
+        return self
+
+    @abstractmethod
+    async def _attach_with_recovery(self) -> None:
+        """Open the connection using the concrete protocol's policy."""
+
+    async def _open_attachment(
+        self,
+        request: dict[str, Any],
+        decoder: Callable[[httpx2.Response, int], AsyncIterator[FrameT]],
+    ) -> None:
+        context = self._resource._client.stream(request)
+        try:
+            response = await context.__aenter__()
+        except httpx2.HTTPError:
+            raise TransportError("SSE stream transport failed") from None
+        self._context = context
+        if not 200 <= response.status_code < 300:
+            error = await _error(response, self._max_event_bytes)
+            await self._close_attachment()
+            raise error
+        if response.headers.get("content-type", "").split(";", 1)[0].strip().lower() != "text/event-stream":
+            await self._close_attachment()
+            raise ProtocolError("SSE stream response is not text/event-stream")
+        headers = MappingProxyType(httpx2.Headers(response.headers))
+        self._response = StreamResponse(response.status_code, headers, headers.get("x-request-id"))
+        self._iterator = decoder(response, self._max_event_bytes)
+
+    async def _close_attachment(self) -> None:
+        iterator, self._iterator = self._iterator, None
+        if isinstance(iterator, AsyncGenerator):
+            await iterator.aclose()
+        context, self._context = self._context, None
+        if context is not None:
+            await context.__aexit__(None, None, None)
+
+    async def _finish(self) -> None:
+        if self._closed:
+            return
+        self._closed = True
+        self._close_event.set()
+        await self._close_attachment()
+
+    async def aclose(self) -> None:
+        if self._closed:
+            return
+        self._closed = True
+        self._close_event.set()
+        active = self._active_task
+        if active is not None and active is not asyncio.current_task():
+            active.cancel()
+            await self._active_done.wait()
+        await self._close_attachment()
+
+
+class ThreadStream(_StreamContext[ThreadFrame]):
     """Single-use async context; attach/reconnect never mutates Service state."""
 
     def __init__(
@@ -367,8 +494,7 @@ class ThreadStream:
             raise ValueError("after must be a Native thread-stream entry ID")
         if not isinstance(max_reconnects, int) or isinstance(max_reconnects, bool) or max_reconnects < 0:
             raise ValueError("max_reconnects must be a non-negative integer")
-        if not isinstance(max_event_bytes, int) or isinstance(max_event_bytes, bool) or max_event_bytes <= 0:
-            raise ValueError("max_event_bytes must be a positive integer")
+        super().__init__(thread, max_event_bytes)
         self._thread = thread
         self._run = run
         self._position = position
@@ -377,71 +503,15 @@ class ThreadStream:
         self._last_received_cursor: str | None = None
         self._reconnect = reconnect and max_reconnects > 0
         self._max_reconnects = max_reconnects
-        self._max_event_bytes = max_event_bytes
         self._retries = 0
-        self._entered = False
-        self._closed = False
-        self._reading = False
-        self._response: StreamResponse | None = None
-        self._context: AbstractAsyncContextManager[httpx2.Response] | None = None
-        self._iterator: AsyncIterator[ThreadFrame] | None = None
-        self._active_task: asyncio.Task[Any] | None = None
-        self._close_event = asyncio.Event()
-        self._active_done = asyncio.Event()
-        self._active_done.set()
 
     @property
     def thread(self) -> Resource:
         return self._thread
 
     @property
-    def response(self) -> StreamResponse | None:
-        return self._response
-
-    @property
-    def is_closed(self) -> bool:
-        return self._closed
-
-    @property
     def last_received_cursor(self) -> str | None:
         return self._last_received_cursor
-
-    async def __aenter__(self) -> Self:
-        if self._entered:
-            raise RuntimeError("ThreadStream is single-use")
-        self._entered = True
-        self._active_task = asyncio.current_task()
-        self._active_done.clear()
-        owner = None
-        try:
-            owner = self._thread._client._enter_io()
-            await self._attach_with_recovery()
-        except asyncio.CancelledError:
-            if self._close_event.is_set():
-                raise RuntimeError("ThreadStream was closed during entry") from None
-            await self._finish()
-            raise
-        except BaseException:
-            await self._finish()
-            raise
-        finally:
-            self._thread._client._leave_io(owner)
-            self._active_task = None
-            self._active_done.set()
-        if self._closed:
-            raise RuntimeError("ThreadStream was closed during entry")
-        return self
-
-    async def __aexit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_value: BaseException | None,
-        traceback: TracebackType | None,
-    ) -> None:
-        await self.aclose()
-
-    def __aiter__(self) -> Self:
-        return self
 
     async def __anext__(self) -> ThreadFrame:
         if not self._entered:
@@ -521,22 +591,7 @@ class ThreadStream:
             position=self._position if self._position is not None else UNSET,
             last_event_id=self._acknowledged_cursor if self._acknowledged_cursor is not None else UNSET,
         )
-        context = self._thread._client.stream(request)
-        try:
-            response = await context.__aenter__()
-        except httpx2.HTTPError:
-            raise TransportError("Thread stream transport failed") from None
-        self._context = context
-        if not 200 <= response.status_code < 300:
-            error = await _error(response, self._max_event_bytes)
-            await self._close_attachment()
-            raise error
-        if response.headers.get("content-type", "").split(";", 1)[0].strip().lower() != "text/event-stream":
-            await self._close_attachment()
-            raise ProtocolError("Thread stream response is not text/event-stream")
-        headers = MappingProxyType(httpx2.Headers(response.headers))
-        self._response = StreamResponse(response.status_code, headers, headers.get("x-request-id"))
-        self._iterator = _frames(response, self._max_event_bytes)
+        await self._open_attachment(request, _frames)
 
     async def _recover(self, error: ApiError | TransportError) -> None:
         await self._close_attachment()
@@ -554,29 +609,3 @@ class ThreadStream:
             pass
         if self._closed:
             raise StopAsyncIteration
-
-    async def _close_attachment(self) -> None:
-        iterator, self._iterator = self._iterator, None
-        if isinstance(iterator, AsyncGenerator):
-            await iterator.aclose()
-        context, self._context = self._context, None
-        if context is not None:
-            await context.__aexit__(None, None, None)
-
-    async def _finish(self) -> None:
-        if self._closed:
-            return
-        self._closed = True
-        self._close_event.set()
-        await self._close_attachment()
-
-    async def aclose(self) -> None:
-        if self._closed:
-            return
-        self._closed = True
-        self._close_event.set()
-        active = self._active_task
-        if active is not None and active is not asyncio.current_task():
-            active.cancel()
-            await self._active_done.wait()
-        await self._close_attachment()

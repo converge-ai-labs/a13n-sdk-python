@@ -33,9 +33,9 @@ Call `display_outcome(await interaction.result())` inside your async application
 
 Items are a windowed display, not an unlimited archive. `complete` means the Run is sealed, **not** that the response includes all history. Every Item has a dense 1-based `ordinal`. A default `run.items.get(limit=200)` returns the newest limit plus the entire mutable tail, so it can return more than the requested limit. Check content omission/truncation flags separately; the SDK cannot reconstruct omitted content from progress events.
 
-To read earlier Items, explicitly request `run.items.get(before=first_ordinal, limit=200)`; to read forward, use `after=last_ordinal`. Bounds are exclusive, `before` >= 1, `after` >= 0, and the Service accepts at most 500 as the limit. Do not combine before and after. Each call makes one request; there is no automatic all-history loader. Historical windows have `baseline=False` and null `continuation`, `position`, and `resume_after`, even for a sealed Run. Keep them separate from live recovery coverage.
+To read earlier Items, explicitly request `run.items.get(before=first_ordinal, limit=200)`; to read forward, use `after=last_ordinal`. Bounds are exclusive, `before` >= 1, `after` >= 0, and the Service accepts at most 500 as the limit. Do not combine before and after. Each call makes one request; there is no automatic all-history loader. Every Items read returns only `run`, `items`, and `complete`; it establishes no stream coverage.
 
-Only a default read has `baseline=True`: it carries the shared normalization continuation and nullable committed coverage. Generated `DisplayContinuation`, `FragmentState`, `ObserverContinuation`, and `StreamPosition` represent that schema faithfully; they are parser continuation, not execution state. A UI that continues folding needs this state rather than inferring it from Items. The SDK provides no display reducer.
+Session `items` frames separately carry normalization continuation. Generated `DisplayContinuation`, `FragmentState`, `ObserverContinuation`, and `StreamPosition` preserve that protocol state. The SDK supplies typed payloads; the application owns presentation and state replacement.
 
 ## Add a live text preview
 
@@ -106,46 +106,55 @@ The Client's `timeout` setting is separate: it limits an ordinary HTTP request a
 
 Most applications should stay with Interaction. Advanced consumers can use the generated `client.api.threads(thread_id).stream.get_stream()` for the raw SSE response, or `ThreadStream` for protocol parsing and reconnect handling. That stream covers the Thread rather than one submitted message and requires explicit event/run and cursor handling. It is not a second high-level conversation mode.
 
-### Resume from a saved display, not only a cursor
+### Keep application progress explicit
 
-A default `RunItems` baseline has two different coordinates; a historical ordinal window supplies neither:
+`ThreadStream` accepts paired `run` and `position` only when your application already owns the corresponding display coverage. Its optional `after` is a separate applied Redis entry ID. Items readback no longer supplies either coordinate. Keep previously applied stream progress explicitly; do not derive positions from ordinals, a Run view, or an Items response.
 
-- `position` (`attempt-sequence`) describes the display's coverage. Send it with its **Run ID** as the paired `run` and `position` stream query parameters.
-- Optional `resume_after` is a covered Redis entry ID. Pass it as `after` on `ThreadStream` (or `last_event_id` on generated `get_stream()`). It is only a seeking hint, not display coverage.
-
-With the query pair, the Service uses a retained hint for direct seeking only when it matches the claimed Run and attempt, the active execution, and a covered sequence. Absent, expired or incompatible hints fall back to retained replay filtered by position. Absence alone is not a gap. Covered boundaries remain observable; an older-attempt claim receives `reset`. This is not a general rule that one cursor takes precedence over another: the [pinned stream contract](../contract/semantics/facts-and-delivery.md#the-thread-stream) owns the conditions.
-
-After receiving a `GapFrame`, explicitly close the old observation, read that exact Run's Items and build a **new** stream from the returned baseline. For example, call this helper after leaving the stream context that produced `gap`:
+After a gap, close the old observation and explicitly read the affected Run's Items to replace the provisional preview. This read alone cannot establish seamless replay coverage:
 
 ```python
-from a13n import Client, GapFrame, ThreadStream
+from a13n import Client, GapFrame
 
 
-async def observe_new_baseline(client: Client, thread_id: str, gap: GapFrame) -> None:
+async def read_after_gap(client: Client, gap: GapFrame) -> None:
     saved = (await client.runs(gap.data["run_id"]).items.get()).value
-    print("Gap target:", gap.data.get("position"), "Saved coverage:", saved.position)
-    print("Replace provisional preview with saved Items:", saved.to_dict())
-    if not saved.baseline or saved.complete or saved.position is None:
-        return  # Terminal baseline, or no committed coverage to claim yet.
-    hint = saved.resume_after if isinstance(saved.resume_after, str) else None
-    async with ThreadStream(
-        client.api.threads(thread_id),
-        run=saved.run.id,
-        position=saved.position,
-        after=hint,
-        reconnect=False,
-    ) as stream:
-        async for frame in stream:
-            print(frame.event_type, frame.data)
-            if frame.event_type in {"gap", "reset"}:
-                break  # Let the application decide whether and when to read again.
+    print("Replace preview with saved Items:", saved.to_dict())
+    print("Gap target:", gap.data.get("position"))
 ```
 
-A gap may name a missing range through `gap.data.get("position")`, or have no known target. A snapshot may still be behind that range; replacing a preview does **not** prove complete recovery. Keep the preview incomplete until your application can establish coverage, and check saved truncation/omission metadata. The SDK supplies neither a UI reducer nor an implicit readback loop.
+`ThreadStream` preserves its original query pair on automatic reconnects. Requesting the next frame acknowledges the previously yielded cursor-bearing frame in memory for `Last-Event-ID`; it does not update the query position. Serialize application processing before requesting another frame. Fixed original coverage can replay already-applied suffix events, so applications reconcile delivery against their own progress.
 
-`ThreadStream` preserves its original query pair on automatic reconnects. Only requesting the next frame acknowledges the previously yielded cursor-bearing frame in memory for `Last-Event-ID`; it does not update the query position. Serialize application processing before requesting the next frame, and explicitly start a new stream after adopting newer coverage. Fixed original coverage can replay already-applied suffix events on reconnect; neither attachment nor a Redis hint proves exactly-once or lossless delivery.
+## Observe a Session snapshot connection
 
-See the [streaming contract](../spec/03-observation-and-data-access.md) before building a protocol-level consumer. Finite Interaction still binds its exact consumed Run without implicitly claiming a display baseline.
+`SessionStream` is an advanced single-connection reader for the Session's Threads and live output. Each new instance starts with a fresh snapshot. It exposes four distinct frame classes with generated typed data: `SessionThreadFrame`, `SessionItemsFrame`, `SessionDeltaFrame`, and `SessionGapFrame`. These frames have no cursor; Session connections never send `Last-Event-ID`. Session snapshots have no default frame-size cap; set `max_event_bytes` to a positive integer when your application needs an explicit bound. HTTP error-body reads remain bounded.
+
+```python
+from a13n import Client, SessionStream
+
+
+async def observe_session(client: Client, session_id: str) -> None:
+    # Start a fresh display generation here; discard unfinished state left by
+    # any earlier connection. This context never reconnects in the background.
+    async with SessionStream(client.api.sessions(session_id)) as stream:
+        async for frame in stream:
+            if frame.event_type == "thread":
+                print("Replace Thread and pointed Runs:", frame.data.thread.id, frame.data.entries)
+            elif frame.event_type == "items":
+                print("Replace Run items from ordinal:", frame.data.run_id, frame.data.first)
+                print(frame.data.items, frame.data.continuation, frame.data.complete)
+            elif frame.event_type == "delta":
+                print("Provisional event:", frame.data.run_id, frame.data.event.to_dict())
+            else:
+                print("Wait for an items repair for:", frame.data.run_id)
+```
+
+A `thread` frame replaces the Thread, its current/last Run views and its ordered open inbox entries. An `items` frame replaces that Run's Items starting at `first`; earlier Items remain final. A `gap` holds that Run's deltas until a later Items base repairs it. Service owns sequencing and bases; the SDK adds no display reducer or fragment assembler. Sealed Runs missed while disconnected are read explicitly through Items. `RunView.display_position` and `ThreadView.message_history` are absent from current readback.
+
+The context boundary is the fresh-snapshot boundary: clean EOF ends iteration, transport failures raise `TransportError`, HTTP refusals retain `ApiError` status/request ID/Retry-After, and invalid known frames raise `ProtocolError` and close the response. Unknown event names are ignored before JSON decoding. Successful handshake metadata is available through `stream.response`. Exit, `aclose()`, cancellation and Client shutdown release local I/O without a remote command. Raw HTTP access remains `client.api.sessions(session_id).stream.get_stream()`.
+
+Applications that reconnect create a new `SessionStream` and replace unfinished display state before consuming its snapshot. The native reconnect policy retries after any connection end except invalid protocol frames and 4xx responses other than 429. Use full jitter below `min(30 seconds, 0.5 seconds * 2**n)`, honor `Retry-After` on 429/503, and reset the consecutive-failure counter only after a connection remains stable for 30 seconds. Keep this policy separate from ThreadStream's applied-cursor retry behavior.
+
+Finite Interaction remains the primary request/response workflow: it binds the consumed Entry's exact Run and terminates on that Run's completion or human wait. Opening a native Session reader does not change that lifecycle.
 
 ## Read a saved display value
 

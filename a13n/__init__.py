@@ -43,6 +43,14 @@ from .errors import (
 from .generated.models import Delivery, RunStatus
 from .generated.resources import Organization, Session, Workspace
 from .generated.types import UNSET, Unset
+from .session_streaming import (
+    SessionDeltaFrame,
+    SessionFrame,
+    SessionGapFrame,
+    SessionItemsFrame,
+    SessionStream,
+    SessionThreadFrame,
+)
 from .streaming import (
     BoundaryFrame,
     ChangedFrame,
@@ -92,6 +100,12 @@ __all__ = [
     "RunOutcome",
     "RunStatus",
     "Session",
+    "SessionDeltaFrame",
+    "SessionFrame",
+    "SessionGapFrame",
+    "SessionItemsFrame",
+    "SessionStream",
+    "SessionThreadFrame",
     "StreamResponse",
     "SubmissionError",
     "Submitted",

@@ -19,7 +19,18 @@ from uuid import uuid4
 
 import httpx2 as httpx
 
-from a13n import ApiError, Client, Interaction, Returned, Run, RunConfiguration, RunOptions, Submitted, ThreadStream
+from a13n import (
+    ApiError,
+    Client,
+    Interaction,
+    Returned,
+    Run,
+    RunConfiguration,
+    RunOptions,
+    SessionStream,
+    Submitted,
+    ThreadStream,
+)
 from a13n.generated import models as wire
 from a13n.generated.types import UNSET
 
@@ -139,13 +150,12 @@ async def _wait_run(run: Any, expected: wire.RunStatus) -> dict[str, Any]:
     if result.status != expected or result.evidence.value.sealed_at is None:
         raise RuntimeError(f"Run {run.id} sealed as {result.status}; expected {expected}")
     items = (await run.items.get()).value
-    if items.run.id != run.id or not items.complete or not items.baseline:
-        raise RuntimeError("Default Run display is not a sealed baseline for the exact Run")
+    if items.run.id != run.id or not items.complete:
+        raise RuntimeError("Default Run display is not a sealed display for the exact Run")
     return {
         "run_id": run.id,
         "status": str(result.status),
         "item_count": len(items.items),
-        "position": items.position,
     }
 
 
@@ -172,20 +182,6 @@ async def _disconnect_acceptance(base_url: str, token: str, ca_bundle: str, agen
                         break
         run = _accepted_run(submitted)
         final = await _wait_run(run, wire.RunStatus.COMPLETED)
-        saved = (await run.items.get()).value
-        if saved.run.id != run.id or saved.position is None:
-            raise RuntimeError("Saved display did not expose exact Run coverage for reattachment")
-        hint = saved.resume_after if isinstance(saved.resume_after, str) else None
-        async with ThreadStream(
-            submitted.thread, run=saved.run.id, position=saved.position, after=hint, reconnect=False
-        ) as attached:
-            if attached.response is None or attached.response.status_code != 200:
-                raise RuntimeError("Covered display reattachment did not complete its SSE handshake")
-        if transport.stream_queries[-1] != {"run": run.id, "position": saved.position}:
-            raise RuntimeError("Covered reattachment did not send paired Run/position query")
-        if transport.last_event_ids[-1] != hint:
-            raise RuntimeError("Covered reattachment did not forward the saved resume hint")
-        coverage = {"run_id": run.id, "position": saved.position, "resume_after": hint}
     if transport.disconnects != 1 or len(transport.last_event_ids) < 2:
         raise RuntimeError("Isolated transport did not prove one disconnect and reconnect")
     if not cursors or transport.last_event_ids[1] != cursors[0]:
@@ -198,7 +194,6 @@ async def _disconnect_acceptance(base_url: str, token: str, ca_bundle: str, agen
         "frame_count": len(frames),
         "disconnects": transport.disconnects,
         "reconnect_last_event_id": transport.last_event_ids[1],
-        "covered_reattach": coverage,
     }
 
 
@@ -301,16 +296,16 @@ async def _import_history(client: Client, agent: str) -> dict[str, Any]:
     assert initial.thread is not None
     first = await _wait_run(_accepted_run(initial), wire.RunStatus.COMPLETED)
     thread = (await initial.thread.get()).value
-    if [message.to_dict() for message in thread.message_history] != history:
-        raise RuntimeError("Imported model history readback lost submitted JSON or metadata")
+    if "message_history" in thread.to_dict():
+        raise RuntimeError("Thread readback unexpectedly exposes imported message history")
     next_message = await client.agents(agent).send(
         initial.thread.id, "Short follow-up response.", idempotency_key=_key("import-followup")
     )
     subsequent = await next_message.result(timeout=120.0, poll_interval=0.1)
     if subsequent.status != wire.RunStatus.COMPLETED:
         raise RuntimeError("Follow-up on imported Thread did not complete")
-    if [message.to_dict() for message in (await initial.thread.get()).value.message_history] != history:
-        raise RuntimeError("Follow-up changed initial imported model history")
+    if (await initial.thread.get()).value.id != initial.thread.id:
+        raise RuntimeError("Follow-up returned a different Thread")
     return {
         "source": {**_submission_evidence(initial), **first},
         "followup_run_id": subsequent.run.id,
@@ -350,13 +345,12 @@ async def _resume_and_fork(client: Client, agent: str, client_tool_agent: str) -
     ):
         raise RuntimeError("Finite Interaction did not expose exactly one pending client call")
     waiting_items = (await waiting_run.items.get()).value
-    if waiting_items.run.id != waiting_run.id or not waiting_items.complete or not waiting_items.baseline:
-        raise RuntimeError("Waiting Run display is not a sealed baseline for the exact Run")
+    if waiting_items.run.id != waiting_run.id or not waiting_items.complete:
+        raise RuntimeError("Waiting Run display is not a sealed display for the exact Run")
     waiting_final = {
         "run_id": waiting_run.id,
         "status": str(waiting_outcome.status),
         "item_count": len(waiting_items.items),
-        "position": waiting_items.position,
     }
     extra_input = "Additional context submitted atomically with the client tool result."
     resumed = await waiting_run.resume(
@@ -423,10 +417,8 @@ async def _failed_continuation_acceptance(client: Client, agent: str, failure_pr
 
 
 def _historical_window(saved: wire.RunItems, run_id: str) -> None:
-    if saved.run.id != run_id or saved.baseline or not saved.complete:
-        raise RuntimeError("Historical display window has incorrect Run or baseline/seal metadata")
-    if saved.continuation is not None or saved.position is not None or saved.resume_after is not None:
-        raise RuntimeError("Historical ordinal window incorrectly advertises live coverage")
+    if saved.run.id != run_id or not saved.complete:
+        raise RuntimeError("Historical display window has incorrect Run or seal metadata")
     ordinals = [item.ordinal for item in saved.items]
     if ordinals and ordinals != list(range(ordinals[0], ordinals[-1] + 1)):
         raise RuntimeError("Historical display ordinals are not dense and ordered")
@@ -441,13 +433,8 @@ async def _paged_display_acceptance(client: Client, agent: str) -> dict[str, Any
         raise RuntimeError("Paged display scenario did not complete")
     run = outcome.run
     recent = (await run.items.get(limit=1)).value
-    if recent.run.id != run.id or not recent.baseline or not recent.complete or not recent.items:
-        raise RuntimeError("Default recent read did not return its exact sealed baseline")
-    if recent.position is None or not isinstance(recent.continuation, wire.DisplayContinuation):
-        raise RuntimeError("Completed default display did not expose shared normalization continuation")
-    cut = recent.continuation.position
-    if recent.position != f"{cut.attempt}-{cut.sequence}" or recent.continuation.run_id != run.id:
-        raise RuntimeError("Default display continuation and coverage disagree")
+    if recent.run.id != run.id or not recent.complete or not recent.items:
+        raise RuntimeError("Default recent read did not return its exact sealed display")
     ordinals = [item.ordinal for item in recent.items]
     if ordinals != list(range(ordinals[0], ordinals[-1] + 1)):
         raise RuntimeError("Default display ordinals are not dense and ordered")
@@ -472,13 +459,55 @@ async def _paged_display_acceptance(client: Client, agent: str) -> dict[str, Any
     return {
         "run_id": run.id,
         "recent_ordinals": ordinals,
-        "baseline": recent.baseline,
         "complete": recent.complete,
-        "position": recent.position,
-        "next_ordinal": recent.continuation.next_ordinal,
         "earlier_ordinals": [item.ordinal for item in before.items],
         "first_ordinal": forward.items[0].ordinal,
         "invalid_windows_rejected": 4,
+    }
+
+
+async def _session_stream_acceptance(client: Client, agent: str) -> dict[str, Any]:
+    initial = await client.agents(agent).start(
+        "[slow] [long] Exercise fresh Session snapshots.", idempotency_key=_key("session-stream")
+    )
+    assert initial.receipt is not None and initial.thread is not None
+    assert isinstance(initial.receipt.value, wire.Submitted)
+    session_id = initial.receipt.value.thread.session_id
+    run = _accepted_run(initial)
+    snapshots: list[int] = []
+    deltas = 0
+    async with asyncio.timeout(120.0):
+        # Explicitly end the first connection after its initial base. The next
+        # context is a fresh snapshot, without Last-Event-ID or display handoff.
+        for connection in (1, 2):
+            saw_thread = False
+            async with SessionStream(client.api.sessions(session_id)) as stream:
+                if stream.response is None or stream.response.status_code != 200:
+                    raise RuntimeError("Session stream did not retain handshake metadata")
+                async for frame in stream:
+                    if frame.event_type == "thread" and frame.data.thread.id == initial.thread.id:
+                        saw_thread = True
+                    elif frame.event_type == "items" and frame.data.run_id == run.id:
+                        if not saw_thread:
+                            raise RuntimeError("Session Run base preceded its Thread state")
+                        snapshots.append(connection)
+                        if connection == 1 or frame.data.complete:
+                            break
+                    elif frame.event_type == "delta" and frame.data.run_id == run.id:
+                        if connection not in snapshots:
+                            raise RuntimeError("Session delta preceded its Run base")
+                        deltas += 1
+                else:
+                    raise RuntimeError("Session stream ended before its expected snapshot")
+    final = await _wait_run(run, wire.RunStatus.COMPLETED)
+    if snapshots.count(1) != 1 or 2 not in snapshots:
+        raise RuntimeError("Reopened Session stream did not restart from a fresh base")
+    return {
+        **final,
+        "session_id": session_id,
+        "connections": 2,
+        "snapshot_count": len(snapshots),
+        "delta_count": deltas,
     }
 
 
@@ -491,6 +520,7 @@ async def main() -> None:
     failure_prompt = _required("A13N_FAILURE_PROMPT")
     disconnect = await _disconnect_acceptance(base_url, token, ca_bundle, agent)
     async with Client(base_url, token, ca_bundle=ca_bundle, timeout=60.0) as client:
+        session_stream = await _session_stream_acceptance(client, agent)
         configuration = await _configuration_acceptance(client, agent)
         inbox_control = await _inbox_and_control(client, agent)
         imported_history = await _import_history(client, agent)
@@ -502,6 +532,7 @@ async def main() -> None:
             {
                 "evidence": "real-https-installed-sdk-native",
                 "disconnect": disconnect,
+                "session_stream": session_stream,
                 "configuration": configuration,
                 "inbox_control": inbox_control,
                 "imported_history": imported_history,

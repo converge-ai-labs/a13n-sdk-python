@@ -98,9 +98,6 @@ def test_saved_items_preserve_structured_result_parts_and_child_attribution() ->
                 json={
                     "run": run_view(status="completed"),
                     "complete": True,
-                    "baseline": True,
-                    "position": "1-2",
-                    "resume_after": None,
                     "items": [item],
                 },
             )

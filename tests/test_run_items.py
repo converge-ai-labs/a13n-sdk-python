@@ -65,21 +65,16 @@ def test_recursive_display_continuation_round_trip_and_nullable_coverage() -> No
     assert isinstance(parsed.observer, wire.ObserverContinuation)
     assert parsed.position.sequence == 5
     snapshot = {
-        "run": wire.RunView.from_dict(run_view()).to_dict(),
+        "thread_id": "thr_1",
+        "run_id": "run_1",
+        "first": 7,
         "items": [display_item(7)],
-        "baseline": True,
         "complete": False,
-        "position": "1-5",
         "continuation": value,
-        "resume_after": None,
     }
-    assert wire.RunItems.from_dict(snapshot).to_dict() == snapshot
-    snapshot.update(position=None, continuation=None)
-    assert wire.RunItems.from_dict(snapshot).to_dict() == snapshot
-    del snapshot["continuation"]
-    del snapshot["resume_after"]
-    assert wire.RunItems.from_dict(snapshot).continuation is UNSET
-    assert wire.RunItems.from_dict(snapshot).to_dict() == snapshot
+    assert wire.RunSnapshot.from_dict(snapshot).to_dict() == snapshot
+    snapshot["continuation"] = None
+    assert wire.RunSnapshot.from_dict(snapshot).to_dict() == snapshot
 
 
 def test_item_requires_ordinal() -> None:
@@ -90,7 +85,7 @@ def test_item_requires_ordinal() -> None:
 
 
 @pytest.mark.parametrize("status", ["running", "completed"])
-def test_baseline_tail_above_limit_and_historical_windows_are_native_single_requests(status: str) -> None:
+def test_recent_tail_above_limit_and_historical_windows_are_native_single_requests(status: str) -> None:
     async def scenario() -> None:
         queries: list[dict[str, str]] = []
 
@@ -98,7 +93,6 @@ def test_baseline_tail_above_limit_and_historical_windows_are_native_single_requ
             assert request.method == "GET" and request.url.path == "/api/v1/runs/run_1/items"
             query = dict(request.url.params)
             queries.append(query)
-            historical = "before" in query or "after" in query
             if "before" in query:
                 ordinals = [3, 4]
             elif "after" in query:
@@ -112,24 +106,19 @@ def test_baseline_tail_above_limit_and_historical_windows_are_native_single_requ
                     "items": [
                         display_item(i, state="in_progress" if status == "running" else "completed") for i in ordinals
                     ],
-                    "baseline": not historical,
                     "complete": status == "completed",
-                    "position": None if historical else "1-5",
-                    "continuation": None if historical else continuation(),
-                    "resume_after": None if historical else "500-0",
                 },
             )
 
         async with Client("https://service.example", transport=httpx2.MockTransport(handle)) as client:
             items = client.runs("run_1").items
             baseline = (await items.get(limit=1)).value
-            assert baseline.baseline and baseline.complete == (status == "completed") and len(baseline.items) == 3
+            assert baseline.complete == (status == "completed") and len(baseline.items) == 3
             assert baseline.items[0].ordinal == 5  # Even sealed does not mean all history loaded.
             assert baseline.items[0].state == ("in_progress" if status == "running" else "completed")
             assert baseline.items[0].content.to_dict()["subagentRunId"] == "child"
             for page in [(await items.get(before=5, limit=2)).value, (await items.get(after=0, limit=2)).value]:
-                assert not page.baseline and page.complete == (status == "completed")
-                assert page.position is page.continuation is page.resume_after is None
+                assert page.complete == (status == "completed")
             await items.get()
             await items.get(before=None, after=None)
         assert queries == [{"limit": "1"}, {"before": "5", "limit": "2"}, {"after": "0", "limit": "2"}, {}, {}]
@@ -167,14 +156,14 @@ def test_invalid_ordinal_queries_propagate_service_errors_without_replay(query: 
     asyncio.run(scenario())
 
 
-@pytest.mark.parametrize("position", [None, "1-5"])
-def test_run_display_position_nullable_and_run_items_baseline_required(position: str | None) -> None:
-    view = run_view()
-    view["display_position"] = position
-    parsed = wire.RunView.from_dict(view)
-    assert parsed.display_position == position and parsed.to_dict()["display_position"] == position
+def test_removed_readback_fields_are_not_generated_attributes() -> None:
+    from attrs import fields
+
+    assert "display_position" not in {field.name for field in fields(wire.RunView)}
+    assert "message_history" not in {field.name for field in fields(wire.ThreadView)}
+    assert {field.name for field in fields(wire.RunItems)} == {"run", "items", "complete", "additional_properties"}
     with pytest.raises(KeyError):
-        wire.RunItems.from_dict({"run": view, "items": [], "complete": False, "position": None})
+        wire.RunItems.from_dict({"run": run_view(), "items": []})
 
 
 def test_continuation_arguments_explicit_null_and_omission_are_distinct() -> None:

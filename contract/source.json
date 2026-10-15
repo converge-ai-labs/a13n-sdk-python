@@ -1,12 +1,15 @@
 {
   "repository": "converge-ai-labs/agent-foundation",
-  "commit": "1aea2c4d87ff8b7cc2e6eb43d4ae3cbe899b8d57",
+  "commit": "9e22fb915fe331933f484a9d2bdc25ceb92af781",
   "files": {
     "openapi.json": {
       "source_path": "proto/a13n-service/openapi.json"
     },
     "thread-stream.schema.json": {
       "source_path": "proto/a13n-service/thread-stream.schema.json"
+    },
+    "session-stream.schema.json": {
+      "source_path": "proto/a13n-service/session-stream.schema.json"
     },
     "semantics/api-conventions.md": {
       "source_path": "spec/api-conventions.md"

@@ -62,7 +62,7 @@ reject sync main
 reject sync "${initial:0:12}"
 reject sync '$(touch unsafe)'
 reject sync 0000000000000000000000000000000000000000
-sync "$initial"
+reject sync "$initial" # The new selected schema does not exist at this pin.
 diff -r "$sdk/contract" "$work/initial"
 
 rm "$upstream/spec/a13n-service/07-facts-and-delivery.md"
@@ -70,11 +70,13 @@ missing=$(commit_source 'Incomplete authority')
 reject sync "$missing"
 diff -r "$sdk/contract" "$work/initial"
 printf '# Facts and delivery\nCompleted facts are durable.\n' > "$upstream/spec/a13n-service/07-facts-and-delivery.md"
+# A newly selected schema is absent at the previous pin: compare and import it.
+printf '{"type":"object"}\n' > "$upstream/proto/a13n-service/session-stream.schema.json"
 complete=$(commit_source 'Complete authority')
 # The working tree is deliberately dirty: only committed bytes may be imported.
 printf 'uncommitted and invalid JSON' > "$upstream/proto/a13n-service/openapi.json"
 sync "$complete"
-[[ $(jq '.files | length' "$sdk/contract/source.json") == 6 ]]
+[[ $(jq '.files | length' "$sdk/contract/source.json") == 7 ]]
 for retired in notification-client.schema.json run-stream-event.schema.json fixtures/wire.json \
   semantics/native-streaming-and-notifications.md semantics/queued-submissions.md; do
   [[ ! -e "$sdk/contract/$retired" ]]
@@ -82,11 +84,17 @@ done
 for owned in README.md fixtures/local.txt semantics/local.md; do
   cmp "$sdk/contract/$owned" "$work/initial/$owned"
 done
-[[ -f "$sdk/contract/thread-stream.schema.json" ]]
+[[ -f "$sdk/contract/thread-stream.schema.json" && -f "$sdk/contract/session-stream.schema.json" ]]
 for name in runs facts-and-delivery api; do [[ -f "$sdk/contract/semantics/$name.md" ]]; done
 cmp "$sdk/contract/openapi.json" "$work/initial/openapi.json"
 [[ $(jq -r .commit "$sdk/contract/source.json") == "$complete" ]]
 cp -R "$sdk/contract" "$work/complete"
+# Same-SHA selection extension must import a previously unconsumed schema.
+rm "$sdk/contract/session-stream.schema.json"
+jq 'del(.files["session-stream.schema.json"])' "$sdk/contract/source.json" > "$work/old-selection.json"
+cp "$work/old-selection.json" "$sdk/contract/source.json"
+sync "$complete"
+diff -r "$sdk/contract" "$work/complete"
 reject sync "$initial"
 diff -r "$sdk/contract" "$work/complete"
 git -C "$upstream" restore proto/a13n-service/openapi.json
@@ -541,3 +549,24 @@ done < <(jq -r '.files[].source_path' "$sdk/contract/source.json")
 reject bash -c 'source "$1"; if contract_inputs_changed "$2" "$3" invalid; then exit 0; fi' \
   _ "$sdk/scripts/contract-inputs.sh" "$upstream" "$initial"
 echo 'Contract sync integration checks passed (offline Git and fake GitHub only).'
+
+# Extending selection at an already accepted SHA creates a real rolling update,
+# even though all upstream blobs at that SHA already exist and are unchanged.
+fresh
+git -C "$sdk" switch -q main
+jq 'del(.files["session-stream.schema.json"])' "$sdk/contract/source.json" > "$work/six-inputs.json"
+cp "$work/six-inputs.json" "$sdk/contract/source.json"
+rm "$sdk/contract/session-stream.schema.json"
+git -C "$sdk" add -A -- contract
+git -C "$sdk" commit -qm 'Fixture with six consumed inputs'
+git -C "$sdk" push -q origin main
+: > "$TEST_PR_STATE"
+export TEST_GENERATE_FAIL=false
+accepted=$(jq -r .commit "$sdk/contract/source.json")
+propose "$accepted"
+[[ $(git -C "$sdk" show HEAD:contract/source.json | jq '.files | length') == 7 ]]
+git -C "$sdk" show HEAD:contract/session-stream.schema.json > "$work/imported-session.json"
+git -C "$upstream" show "$accepted:proto/a13n-service/session-stream.schema.json" > "$work/expected-session.json"
+cmp "$work/imported-session.json" "$work/expected-session.json"
+[[ $(head) == $(git -C "$sdk" rev-parse HEAD) ]]
+echo 'Same-SHA rolling input extension checks passed.'
