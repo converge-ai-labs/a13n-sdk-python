@@ -217,6 +217,7 @@ from .api.runs import (
     run_image_api_v1_runs_run_id_images_image_id_get,
     run_items_api_v1_runs_run_id_items_get,
     run_lineage_api_v1_runs_run_id_lineage_get,
+    session_stream_api_v1_sessions_session_id_stream_get,
     submit_message_api_v1_threads_thread_id_inbox_post,
     thread_stream_api_v1_threads_thread_id_stream_get,
     update_run_api_v1_runs_run_id_patch,
@@ -3973,6 +3974,10 @@ class Session(Resource):
     def message_authors(self) -> SessionsSessionIdMessageAuthors:
         return SessionsSessionIdMessageAuthors(self._client, self._bindings)
 
+    @property
+    def stream(self) -> SessionsSessionIdStream:
+        return SessionsSessionIdStream(self._client, self._bindings)
+
 
 class SessionsSessionIdMessageAuthors(Resource):
     """Bound Native resource: /sessions / {session_id} / message-authors."""
@@ -3984,6 +3989,26 @@ class SessionsSessionIdMessageAuthors(Resource):
         return await self._call(
             lambda client: get_message_authors_api_v1_sessions_session_id_message_authors_get.asyncio_detailed(
                 client=client, session_id=self._bindings["session_id"], entry_id=entry_id, x_workspace_id=x_workspace_id
+            )
+        )
+
+
+class SessionsSessionIdStream(Resource):
+    """Bound Native resource: /sessions / {session_id} / stream."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[Any]:
+        """Session Stream. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: session_stream_api_v1_sessions_session_id_stream_get.asyncio_detailed(
+                client=client, session_id=self._bindings["session_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+    def get_stream(self, *, x_workspace_id: str | Unset | None = UNSET) -> AbstractAsyncContextManager[httpx2.Response]:
+        """Unbuffered response; caller checks status and consumes within the context."""
+        return self._stream(
+            session_stream_api_v1_sessions_session_id_stream_get.build_request(
+                session_id=self._bindings["session_id"], x_workspace_id=x_workspace_id
             )
         )
 

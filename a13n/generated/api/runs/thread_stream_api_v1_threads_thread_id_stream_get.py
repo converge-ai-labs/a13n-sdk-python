@@ -94,8 +94,10 @@ def sync_detailed(
 ) -> Response[Any | ErrorEnvelope]:
     """Thread Stream
 
-     Live output of the thread's runs over SSE: `delta` and `boundary` frames with `changed`, `reset`,
+     Live output of one thread's runs over SSE: `delta` and `boundary` frames with `changed`, `reset`,
     `gap`.
+    Resumes from `Last-Event-ID` or a run's `position`; the session stream suits clients that do not
+    track them.
 
     Args:
         thread_id (str):
@@ -140,8 +142,10 @@ def sync(
 ) -> Any | ErrorEnvelope | None:
     """Thread Stream
 
-     Live output of the thread's runs over SSE: `delta` and `boundary` frames with `changed`, `reset`,
+     Live output of one thread's runs over SSE: `delta` and `boundary` frames with `changed`, `reset`,
     `gap`.
+    Resumes from `Last-Event-ID` or a run's `position`; the session stream suits clients that do not
+    track them.
 
     Args:
         thread_id (str):
@@ -181,8 +185,10 @@ async def asyncio_detailed(
 ) -> Response[Any | ErrorEnvelope]:
     """Thread Stream
 
-     Live output of the thread's runs over SSE: `delta` and `boundary` frames with `changed`, `reset`,
+     Live output of one thread's runs over SSE: `delta` and `boundary` frames with `changed`, `reset`,
     `gap`.
+    Resumes from `Last-Event-ID` or a run's `position`; the session stream suits clients that do not
+    track them.
 
     Args:
         thread_id (str):
@@ -225,8 +231,10 @@ async def asyncio(
 ) -> Any | ErrorEnvelope | None:
     """Thread Stream
 
-     Live output of the thread's runs over SSE: `delta` and `boundary` frames with `changed`, `reset`,
+     Live output of one thread's runs over SSE: `delta` and `boundary` frames with `changed`, `reset`,
     `gap`.
+    Resumes from `Last-Event-ID` or a run's `position`; the session stream suits clients that do not
+    track them.
 
     Args:
         thread_id (str):

@@ -48,9 +48,6 @@ from .any_change_trigger import AnyChangeTrigger
 from .api_key import ApiKey
 from .api_key_page import ApiKeyPage
 from .approve import Approve
-from .arguments import Arguments
-from .arguments_event_type_0 import ArgumentsEventType0
-from .assembly import Assembly
 from .assessment import Assessment
 from .asset import Asset
 from .asset_create import AssetCreate
@@ -123,9 +120,6 @@ from .delegation_context_policy_task_state import DelegationContextPolicyTaskSta
 from .delivery import Delivery
 from .delivery_page import DeliveryPage
 from .deny import Deny
-from .display_continuation import DisplayContinuation
-from .display_continuation_memory_sources import DisplayContinuationMemorySources
-from .display_continuation_response_groups import DisplayContinuationResponseGroups
 from .email_change_confirm import EmailChangeConfirm
 from .entry_page import EntryPage
 from .entry_status import EntryStatus
@@ -150,14 +144,11 @@ from .evidence import Evidence
 from .external_target_create import ExternalTargetCreate
 from .failed import Failed
 from .failure import Failure
-from .file_source import FileSource
 from .finding import Finding
 from .finding_create import FindingCreate
 from .finding_page import FindingPage
 from .finding_update import FindingUpdate
 from .fork import Fork
-from .fragment_state import FragmentState
-from .fragment_state_pending import FragmentStatePending
 from .frozen_memory_mount import FrozenMemoryMount
 from .git_hub_source import GitHubSource
 from .grant_create import GrantCreate
@@ -237,9 +228,6 @@ from .memory_revision_detail import MemoryRevisionDetail
 from .memory_revision_detail_op import MemoryRevisionDetailOp
 from .memory_revision_op import MemoryRevisionOp
 from .memory_revision_page import MemoryRevisionPage
-from .memory_source import MemorySource
-from .memory_source_kind import MemorySourceKind
-from .memory_source_status import MemorySourceStatus
 from .memory_space import MemorySpace
 from .memory_space_create import MemorySpaceCreate
 from .memory_space_create_labels import MemorySpaceCreateLabels
@@ -286,11 +274,6 @@ from .new_thread import NewThread
 from .o_auth_grant import OAuthGrant
 from .o_auth_redirect import OAuthRedirect
 from .o_auth_settings import OAuthSettings
-from .observer_continuation import ObserverContinuation
-from .observer_state import ObserverState
-from .observer_state_children import ObserverStateChildren
-from .observer_state_parts import ObserverStateParts
-from .observer_state_threads import ObserverStateThreads
 from .operation_kind import OperationKind
 from .organization import Organization
 from .organization_page import OrganizationPage
@@ -302,8 +285,6 @@ from .output_spec_schema_type_0 import OutputSpecSchemaType0
 from .output_variant import OutputVariant
 from .output_variant_resources import OutputVariantResources
 from .output_variant_schema import OutputVariantSchema
-from .part_cursor import PartCursor
-from .part_cursor_kind import PartCursorKind
 from .password_change import PasswordChange
 from .password_reset import PasswordReset
 from .password_reset_confirm import PasswordResetConfirm
@@ -354,7 +335,6 @@ from .provider_update import ProviderUpdate
 from .provider_update_config_type_0 import ProviderUpdateConfigType0
 from .provider_update_credential_type_0 import ProviderUpdateCredentialType0
 from .provider_update_extra_headers import ProviderUpdateExtraHeaders
-from .record_source import RecordSource
 from .resume import Resume
 from .resume_approvals import ResumeApprovals
 from .resume_calls import ResumeCalls
@@ -433,7 +413,6 @@ from .span_page import SpanPage
 from .span_resource_attributes import SpanResourceAttributes
 from .span_status import SpanStatus
 from .span_usage import SpanUsage
-from .stream_position import StreamPosition
 from .subagent_override_input import SubagentOverrideInput
 from .subagent_override_output import SubagentOverrideOutput
 from .subagent_selection_input import SubagentSelectionInput
@@ -563,9 +542,6 @@ __all__ = (
     "ApiKey",
     "ApiKeyPage",
     "Approve",
-    "Arguments",
-    "ArgumentsEventType0",
-    "Assembly",
     "Assessment",
     "Asset",
     "AssetCreate",
@@ -638,9 +614,6 @@ __all__ = (
     "Delivery",
     "DeliveryPage",
     "Deny",
-    "DisplayContinuation",
-    "DisplayContinuationMemorySources",
-    "DisplayContinuationResponseGroups",
     "EmailChangeConfirm",
     "EntryPage",
     "EntryStatus",
@@ -665,14 +638,11 @@ __all__ = (
     "ExternalTargetCreate",
     "Failed",
     "Failure",
-    "FileSource",
     "Finding",
     "FindingCreate",
     "FindingPage",
     "FindingUpdate",
     "Fork",
-    "FragmentState",
-    "FragmentStatePending",
     "FrozenMemoryMount",
     "GitHubSource",
     "GrantCreate",
@@ -750,9 +720,6 @@ __all__ = (
     "MemoryRevisionDetailOp",
     "MemoryRevisionOp",
     "MemoryRevisionPage",
-    "MemorySource",
-    "MemorySourceKind",
-    "MemorySourceStatus",
     "MemorySpace",
     "MemorySpaceCreate",
     "MemorySpaceCreateLabels",
@@ -799,11 +766,6 @@ __all__ = (
     "OAuthGrant",
     "OAuthRedirect",
     "OAuthSettings",
-    "ObserverContinuation",
-    "ObserverState",
-    "ObserverStateChildren",
-    "ObserverStateParts",
-    "ObserverStateThreads",
     "OperationKind",
     "Organization",
     "OrganizationPage",
@@ -815,8 +777,6 @@ __all__ = (
     "OutputVariant",
     "OutputVariantResources",
     "OutputVariantSchema",
-    "PartCursor",
-    "PartCursorKind",
     "PasswordChange",
     "PasswordReset",
     "PasswordResetConfirm",
@@ -865,7 +825,6 @@ __all__ = (
     "ProviderUpdateConfigType0",
     "ProviderUpdateCredentialType0",
     "ProviderUpdateExtraHeaders",
-    "RecordSource",
     "Resume",
     "ResumeApprovals",
     "ResumeCalls",
@@ -944,7 +903,6 @@ __all__ = (
     "SpanResourceAttributes",
     "SpanStatus",
     "SpanUsage",
-    "StreamPosition",
     "SubagentOverrideInput",
     "SubagentOverrideOutput",
     "SubagentSelectionInput",

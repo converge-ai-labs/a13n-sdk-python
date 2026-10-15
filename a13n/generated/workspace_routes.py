@@ -88,6 +88,7 @@ WORKSPACE_PATHS = (
     re.compile("/api/v1/sessions\\Z"),
     re.compile("/api/v1/sessions/[^/]+\\Z"),
     re.compile("/api/v1/sessions/[^/]+/message\\-authors\\Z"),
+    re.compile("/api/v1/sessions/[^/]+/stream\\Z"),
     re.compile("/api/v1/skills\\Z"),
     re.compile("/api/v1/skills/validate\\Z"),
     re.compile("/api/v1/skills/[^/]+\\Z"),

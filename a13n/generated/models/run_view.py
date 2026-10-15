@@ -68,7 +68,6 @@ class RunView:
         version (int):
         wait_reason (None | WaitReason):
         workspace_id (str):
-        display_position (None | str | Unset):
         input_ (None | RunViewInputType0 | Unset):
     """
 
@@ -105,7 +104,6 @@ class RunView:
     version: int
     wait_reason: WaitReason | None
     workspace_id: str
-    display_position: str | Unset | None = UNSET
     input_: RunViewInputType0 | Unset | None = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -231,12 +229,6 @@ class RunView:
 
         workspace_id = self.workspace_id
 
-        display_position: str | Unset | None
-        if isinstance(self.display_position, Unset):
-            display_position = UNSET
-        else:
-            display_position = self.display_position
-
         input_: dict[str, Any] | Unset | None
         if isinstance(self.input_, Unset):
             input_ = UNSET
@@ -284,8 +276,6 @@ class RunView:
                 "workspace_id": workspace_id,
             }
         )
-        if display_position is not UNSET:
-            field_dict["display_position"] = display_position
         if input_ is not UNSET:
             field_dict["input"] = input_
 
@@ -528,15 +518,6 @@ class RunView:
 
         workspace_id = d.pop("workspace_id")
 
-        def _parse_display_position(data: object) -> str | Unset | None:
-            if data is None:
-                return data
-            if isinstance(data, Unset):
-                return data
-            return cast(str | Unset | None, data)
-
-        display_position = _parse_display_position(d.pop("display_position", UNSET))
-
         def _parse_input_(data: object) -> RunViewInputType0 | Unset | None:
             if data is None:
                 return data
@@ -588,7 +569,6 @@ class RunView:
             version=version,
             wait_reason=wait_reason,
             workspace_id=workspace_id,
-            display_position=display_position,
             input_=input_,
         )
 
