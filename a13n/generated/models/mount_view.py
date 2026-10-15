@@ -1,10 +1,16 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any, TypeVar, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
+
+from ..types import UNSET, Unset
+
+if TYPE_CHECKING:
+    from ..models.environment_permission_set_output import EnvironmentPermissionSetOutput
+
 
 T = TypeVar("T", bound="MountView")
 
@@ -16,11 +22,13 @@ class MountView:
         environment_id (str):
         name (str):
         working_directory (None | str):
+        permission_ceiling (EnvironmentPermissionSetOutput | Unset):
     """
 
     environment_id: str
     name: str
     working_directory: str | None
+    permission_ceiling: EnvironmentPermissionSetOutput | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -31,6 +39,10 @@ class MountView:
         working_directory: str | None
         working_directory = self.working_directory
 
+        permission_ceiling: dict[str, Any] | Unset = UNSET
+        if not isinstance(self.permission_ceiling, Unset):
+            permission_ceiling = self.permission_ceiling.to_dict()
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -40,11 +52,15 @@ class MountView:
                 "working_directory": working_directory,
             }
         )
+        if permission_ceiling is not UNSET:
+            field_dict["permission_ceiling"] = permission_ceiling
 
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.environment_permission_set_output import EnvironmentPermissionSetOutput
+
         d = dict(src_dict)
         environment_id = d.pop("environment_id")
 
@@ -57,10 +73,18 @@ class MountView:
 
         working_directory = _parse_working_directory(d.pop("working_directory"))
 
+        _permission_ceiling = d.pop("permission_ceiling", UNSET)
+        permission_ceiling: EnvironmentPermissionSetOutput | Unset
+        if isinstance(_permission_ceiling, Unset):
+            permission_ceiling = UNSET
+        else:
+            permission_ceiling = EnvironmentPermissionSetOutput.from_dict(_permission_ceiling)
+
         mount_view = cls(
             environment_id=environment_id,
             name=name,
             working_directory=working_directory,
+            permission_ceiling=permission_ceiling,
         )
 
         mount_view.additional_properties = d

@@ -82,7 +82,7 @@ def sync_detailed(
 ) -> Response[ErrorEnvelope | Provider]:
     """Update web provider
 
-     A `config` change must also replace or remove a stored credential: it never follows a new endpoint.
+     Omitted credentials and extra headers keep their saved values, including when `config` changes.
 
     Args:
         provider_id (str):
@@ -125,7 +125,7 @@ def sync(
 ) -> ErrorEnvelope | Provider | None:
     """Update web provider
 
-     A `config` change must also replace or remove a stored credential: it never follows a new endpoint.
+     Omitted credentials and extra headers keep their saved values, including when `config` changes.
 
     Args:
         provider_id (str):
@@ -163,7 +163,7 @@ async def asyncio_detailed(
 ) -> Response[ErrorEnvelope | Provider]:
     """Update web provider
 
-     A `config` change must also replace or remove a stored credential: it never follows a new endpoint.
+     Omitted credentials and extra headers keep their saved values, including when `config` changes.
 
     Args:
         provider_id (str):
@@ -204,7 +204,7 @@ async def asyncio(
 ) -> ErrorEnvelope | Provider | None:
     """Update web provider
 
-     A `config` change must also replace or remove a stored credential: it never follows a new endpoint.
+     Omitted credentials and extra headers keep their saved values, including when `config` changes.
 
     Args:
         provider_id (str):

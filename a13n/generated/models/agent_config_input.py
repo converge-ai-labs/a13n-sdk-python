@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Literal, TypeVar, cast
 
 from attrs import define as _attrs_define
 
@@ -20,8 +20,10 @@ if TYPE_CHECKING:
     from ..models.media_understanding_selection import MediaUnderstandingSelection
     from ..models.memory_mount import MemoryMount
     from ..models.output_spec import OutputSpec
+    from ..models.platform_selection import PlatformSelection
     from ..models.plugin_selection import PluginSelection
     from ..models.retry_config import RetryConfig
+    from ..models.session_memory_settings import SessionMemorySettings
     from ..models.shared_skill_sync import SharedSkillSync
     from ..models.skill_selection import SkillSelection
 
@@ -34,6 +36,7 @@ class AgentConfigInput:
     """
     Attributes:
         model (str):
+        builtin_skills (list[Literal['platform-operations']] | Unset):
         client_tools (list[ClientToolDefinition] | Unset):
         connection_tools (list[ConnectionSelection] | Unset):
         default_environment_template_id (None | str | Unset):
@@ -41,11 +44,15 @@ class AgentConfigInput:
         lazy_environment (bool | Unset):
         media_understanding (MediaUnderstandingSelection | Unset): The model, by key, describing each media kind a model
             cannot read; a kind without one is unavailable.
+        memory (SessionMemorySettings | Unset): Participation and complete Space selection; policy belongs to each
+            Space.
         memory_mounts (list[MemoryMount] | Unset):
         model_characteristics (AgentModelCharacteristics | Unset): The agent's context policy, layered over what the
             model declares.
         model_settings (AgentConfigInputModelSettings | Unset):
         output_spec (None | OutputSpec | Unset):
+        platform_tools (PlatformSelection | Unset): Platform MCP groups selected independently of local operating
+            instructions.
         plugins (list[PluginSelection] | Unset):
         retries (None | RetryConfig | Unset):
         reviewer (AgentReviewer | None | Unset):
@@ -58,16 +65,19 @@ class AgentConfigInput:
     """
 
     model: str
+    builtin_skills: list[Literal["platform-operations"]] | Unset = UNSET
     client_tools: list[ClientToolDefinition] | Unset = UNSET
     connection_tools: list[ConnectionSelection] | Unset = UNSET
     default_environment_template_id: str | Unset | None = UNSET
     instructions: str | Unset = UNSET
     lazy_environment: bool | Unset = UNSET
     media_understanding: MediaUnderstandingSelection | Unset = UNSET
+    memory: SessionMemorySettings | Unset = UNSET
     memory_mounts: list[MemoryMount] | Unset = UNSET
     model_characteristics: AgentModelCharacteristics | Unset = UNSET
     model_settings: AgentConfigInputModelSettings | Unset = UNSET
     output_spec: OutputSpec | Unset | None = UNSET
+    platform_tools: PlatformSelection | Unset = UNSET
     plugins: list[PluginSelection] | Unset = UNSET
     retries: RetryConfig | Unset | None = UNSET
     reviewer: AgentReviewer | Unset | None = UNSET
@@ -85,6 +95,10 @@ class AgentConfigInput:
         from ..models.shared_skill_sync import SharedSkillSync
 
         model = self.model
+
+        builtin_skills: list[Literal["platform-operations"]] | Unset = UNSET
+        if not isinstance(self.builtin_skills, Unset):
+            builtin_skills = self.builtin_skills
 
         client_tools: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.client_tools, Unset):
@@ -114,6 +128,10 @@ class AgentConfigInput:
         if not isinstance(self.media_understanding, Unset):
             media_understanding = self.media_understanding.to_dict()
 
+        memory: dict[str, Any] | Unset = UNSET
+        if not isinstance(self.memory, Unset):
+            memory = self.memory.to_dict()
+
         memory_mounts: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.memory_mounts, Unset):
             memory_mounts = []
@@ -136,6 +154,10 @@ class AgentConfigInput:
             output_spec = self.output_spec.to_dict()
         else:
             output_spec = self.output_spec
+
+        platform_tools: dict[str, Any] | Unset = UNSET
+        if not isinstance(self.platform_tools, Unset):
+            platform_tools = self.platform_tools.to_dict()
 
         plugins: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.plugins, Unset):
@@ -196,6 +218,8 @@ class AgentConfigInput:
                 "model": model,
             }
         )
+        if builtin_skills is not UNSET:
+            field_dict["builtin_skills"] = builtin_skills
         if client_tools is not UNSET:
             field_dict["client_tools"] = client_tools
         if connection_tools is not UNSET:
@@ -208,6 +232,8 @@ class AgentConfigInput:
             field_dict["lazy_environment"] = lazy_environment
         if media_understanding is not UNSET:
             field_dict["media_understanding"] = media_understanding
+        if memory is not UNSET:
+            field_dict["memory"] = memory
         if memory_mounts is not UNSET:
             field_dict["memory_mounts"] = memory_mounts
         if model_characteristics is not UNSET:
@@ -216,6 +242,8 @@ class AgentConfigInput:
             field_dict["model_settings"] = model_settings
         if output_spec is not UNSET:
             field_dict["output_spec"] = output_spec
+        if platform_tools is not UNSET:
+            field_dict["platform_tools"] = platform_tools
         if plugins is not UNSET:
             field_dict["plugins"] = plugins
         if retries is not UNSET:
@@ -250,13 +278,27 @@ class AgentConfigInput:
         from ..models.media_understanding_selection import MediaUnderstandingSelection
         from ..models.memory_mount import MemoryMount
         from ..models.output_spec import OutputSpec
+        from ..models.platform_selection import PlatformSelection
         from ..models.plugin_selection import PluginSelection
         from ..models.retry_config import RetryConfig
+        from ..models.session_memory_settings import SessionMemorySettings
         from ..models.shared_skill_sync import SharedSkillSync
         from ..models.skill_selection import SkillSelection
 
         d = dict(src_dict)
         model = d.pop("model")
+
+        _builtin_skills = d.pop("builtin_skills", UNSET)
+        builtin_skills: list[Literal["platform-operations"]] | Unset = UNSET
+        if _builtin_skills is not UNSET:
+            builtin_skills = []
+            for builtin_skills_item_data in _builtin_skills:
+                builtin_skills_item = cast(Literal["platform-operations"], builtin_skills_item_data)
+                if builtin_skills_item != "platform-operations":
+                    raise ValueError(
+                        f"builtin_skills_item must match const 'platform-operations', got '{builtin_skills_item}'"
+                    )
+                builtin_skills.append(builtin_skills_item)
 
         _client_tools = d.pop("client_tools", UNSET)
         client_tools: list[ClientToolDefinition] | Unset = UNSET
@@ -298,6 +340,13 @@ class AgentConfigInput:
         else:
             media_understanding = MediaUnderstandingSelection.from_dict(_media_understanding)
 
+        _memory = d.pop("memory", UNSET)
+        memory: SessionMemorySettings | Unset
+        if isinstance(_memory, Unset):
+            memory = UNSET
+        else:
+            memory = SessionMemorySettings.from_dict(_memory)
+
         _memory_mounts = d.pop("memory_mounts", UNSET)
         memory_mounts: list[MemoryMount] | Unset = UNSET
         if _memory_mounts is not UNSET:
@@ -337,6 +386,13 @@ class AgentConfigInput:
             return cast(OutputSpec | Unset | None, data)
 
         output_spec = _parse_output_spec(d.pop("output_spec", UNSET))
+
+        _platform_tools = d.pop("platform_tools", UNSET)
+        platform_tools: PlatformSelection | Unset
+        if isinstance(_platform_tools, Unset):
+            platform_tools = UNSET
+        else:
+            platform_tools = PlatformSelection.from_dict(_platform_tools)
 
         _plugins = d.pop("plugins", UNSET)
         plugins: list[PluginSelection] | Unset = UNSET
@@ -434,16 +490,19 @@ class AgentConfigInput:
 
         agent_config_input = cls(
             model=model,
+            builtin_skills=builtin_skills,
             client_tools=client_tools,
             connection_tools=connection_tools,
             default_environment_template_id=default_environment_template_id,
             instructions=instructions,
             lazy_environment=lazy_environment,
             media_understanding=media_understanding,
+            memory=memory,
             memory_mounts=memory_mounts,
             model_characteristics=model_characteristics,
             model_settings=model_settings,
             output_spec=output_spec,
+            platform_tools=platform_tools,
             plugins=plugins,
             retries=retries,
             reviewer=reviewer,

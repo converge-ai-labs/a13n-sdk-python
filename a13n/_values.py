@@ -88,6 +88,7 @@ class RunConfiguration(_Value):
 class AgentOverride(_Value):
     """All selectable overrides; nested schema objects use native JSON mappings."""
 
+    builtin_skills: list[Literal["platform-operations"]] | Unset | None = UNSET
     client_tools: list[dict[str, JsonValue]] | Unset | None = UNSET
     connection_tools: list[dict[str, JsonValue]] | Unset | None = UNSET
     instructions: str | Unset | None = UNSET
@@ -97,6 +98,7 @@ class AgentOverride(_Value):
     model_characteristics: Mapping[str, JsonValue] | Unset | None = UNSET
     model_settings: Mapping[str, JsonValue] | Unset | None = UNSET
     output_spec: Mapping[str, JsonValue] | Unset | None = UNSET
+    platform_tools: Mapping[str, JsonValue] | Unset | None = UNSET
     plugins: list[dict[str, JsonValue]] | Unset | None = UNSET
     retries: Mapping[str, JsonValue] | Unset | None = UNSET
     reviewer: Mapping[str, JsonValue] | Unset | None = UNSET
@@ -127,6 +129,7 @@ class MountCreate(_Value):
     name: str
     environment_id: str
     working_directory: str | Unset | None = UNSET
+    permission_ceiling: Mapping[str, JsonValue] | Unset = UNSET
 
 
 @dataclass(frozen=True)

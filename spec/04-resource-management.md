@@ -31,6 +31,22 @@ Discovery returns `ProviderModel` choices, preserving the original `slug` and `d
 
 Service's default skill policy is shared publication (`mode=shared`, `overwrite=true`, `cleanup=false`); opt-in isolated policy uses `mode=isolated`, `cache_count=128`. A Run override replaces the whole block, and omitted members use that mode's native defaults. Shared overwrite/cleanup acts on mutable conventional skill names; isolated packages use digest directories and a soft count budget, with zero disabling trimming. The SDK preserves the policy and performs no publication, cache management or migration.
 
+`AgentOverride.builtin_skills` selects instance-local instructions independently of `platform_tools`, whose native `PlatformSelection` chooses MCP groups and read/write permissions. The SDK preserves omission, null and empty selections without granting tenant authority or installing local tools. `PresetKind` distinguishes Composer, Finding and memory-organizer presets; presets use ordinary Agent revisions and Runs.
+
+## Computer and Environment Authority
+
+`MountCreate.permission_ceiling` forwards a native JSON permission set; omission preserves the Service's file/execution defaults, not Computer authority. An explicit empty `operations` list remains empty. Thread `environments(name).update(body=MountUpdate(...), if_match=...)` replaces the desired ceiling under the Thread ETag; already accepted Runs retain their frozen ceiling. The SDK neither provisions a desktop nor infers actions from a toolset name.
+
+`client.api.environments(id).computer.check()` is one explicit readiness probe, not startup, screenshot capture or input. Its `checked`, `unsupported` and `not_ready` results preserve exact actions and readiness flags. Provider failures remain errors. Actual Computer use requires the Agent's toolset, explicit mount actions and provider readiness; a check is not a permission grant.
+
+Environment Provider `references.get()` returns counts and bounded reference samples; `delete(if_match=...)` remains a conditional mutation that Service may refuse while referenced. Private provider configuration is write-only at the Service boundary. Public readback is not a credential backup, and the SDK does not recover omitted private values or copy them from request objects into responses.
+
+## Execution Readback and Usage
+
+`client.api.runs.list(...)`, `runs(id).agent.get()` and `runs(id).attempts(attempt_id).get()` retain native scope, paging and HTTP evidence. `RunAgent` separates the frozen revision from the configuration with that Run's override applied. Referenced Models, Connections and templates remain live; the SDK does not fabricate an immutable resolved dependency graph.
+
+`usage.records(record_id).metrics.get()` reads Service-derived request timing. Nullable metrics remain null when unavailable and zero remains a measured zero. `UsageSummary` requires both aggregate `models` and per-Run `runs`; each `ModelUsage` requires nullable first-chunk and output-speed fields. No client-side timestamp formula replaces missing metrics, and usage still does not prove billing settlement.
+
 ## Findings and Message Authors
 
 `client.api.finding_agent()` prepares the ordinary builtin Finding Agent; `preset_kind=finding` distinguishes it from Composer. `client.api.finding_analyses` exposes one-page/lazy reads and explicit keyed creation of an Analysis backed by an ordinary Run. Analysis is diagnostic selection evidence, not a separate execution lifecycle or proof of complete review. `client.api.findings` exposes declared list/create/get/update operations with native category, severity, assessment, evidence, pagination and conditional-update metadata. Service owns evidence authorization and validation; the SDK performs no trace inference or automatic analysis.
@@ -48,3 +64,11 @@ Flat workspace `client.api.memories` exposes metadata, file content and history,
 File content is JSON text, not Asset binary transfer. File paths may contain directory separators and Unicode; references encode selectors once. File replacement, deletion and moves require the current file ETag; Memory metadata changes and deletion use the Memory ETag. Revisions bind an integer sequence. Restore undoes that change by writing its previous content; restoring a creation removes the file. It requires the current file ETag when that path exists and may return a null file state. History purge selects a path, not a revision sequence.
 
 Records expose collection reads, creation, POST-body search, replacement and deletion, without an item GET, ETag, or PATCH. A `write_unconfirmed` conflict is an uncertain provider outcome, not permission to replay the mutation. Thread memory mount mutations use the Thread ETag, and their responses retain that ETag. New Thread and Fork bodies accept mounts; the Run view reports the frozen accepted mounts, not later Thread changes. Agent configuration may declare default mounts. Model `extra_body` and `extra_headers` are full generated mappings, preserving `{}` as an explicit clear under the Service's Model/Agent/Run replacement rules; no SDK-side provider inference is performed. The pinned OpenAPI and referenced Service specifications own schemas and validation rules.
+
+### Memory Spaces and Session Selection
+
+`client.api.memory_spaces` exposes Space CRUD, organization status, explicit organization requests, organization Run pages and attached Session pages. A Space owns one managed file Memory; its `memory_id` uses existing file/revision APIs but is not a standalone mount or independently deletable store. Space configuration uses its own ETag. Disabling preserves data and bindings; deletion may be refused while Sessions or unsealed frozen Runs reference it.
+
+Native Agent defaults and Session `memory` settings select named `SpaceBinding` values. Omission retains unresolved/inherited choices; an explicit `spaces` list replaces the selection, including `[]`. First accepted business execution settles unresolved Session fields under Service authority. Later Agent edits and forks do not replace that settled selection. The SDK forwards these native settings without choosing business scopes or running an organization scheduler.
+
+Run readback retains legacy `MemoryMount` and host-resolved `FrozenMemoryMount` values. Presence of `roots` or `space_id` selects the frozen typed value, including empty roots and null Space identity. These host-owned fields are not added to authored `MemoryMount` request constructors. Organization uses ordinary Runs with `purpose=memory_organization`; accepted work is not completed organization. Service owns isolated roots, timing/change triggers, execution authority and failure evidence.

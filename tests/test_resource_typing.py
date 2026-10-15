@@ -267,3 +267,63 @@ def test_provenance_and_override_typing_rejects_invalid_native_shapes(tmp_path: 
     report = run_pyright(source)
     assert report["returncode"] == 1
     assert len(report["generalDiagnostics"]) == 4
+
+
+def test_shared_memory_computer_and_execution_typing(tmp_path: Path) -> None:
+    source = tmp_path / "shared.py"
+    source.write_text("""from a13n import Client, AgentOverride, MountCreate, MemoryMount, RunOptions
+from a13n.generated import models as wire
+async def use(client: Client) -> None:
+    options = RunOptions(overrides=AgentOverride(builtin_skills=['platform-operations'], platform_tools={'groups': ['execution']}))
+    mount = MountCreate('work', 'env', permission_ceiling={'operations': []})
+    created: wire.MemorySpace = (await client.api.memory_spaces.create(body=wire.MemorySpaceCreate(name='Notes'))).value
+    space = client.api.memory_spaces(created.id)
+    page: wire.MemorySpacePage = (await client.api.memory_spaces.list(enabled=False)).value
+    await space.get()
+    await space.update(body=wire.MemorySpaceUpdate(enabled=False), if_match='"v1"')
+    status: wire.SpaceOrganizationStatus = (await space.organization.get()).value
+    accepted: wire.SpaceOrganizationStatus = (await space.organizations.create()).value
+    history: wire.RunPage = (await space.organizations.list()).value
+    sessions: wire.SessionPage = (await space.sessions.list()).value
+    await space.delete(if_match='"v1"')
+    selection = wire.SessionMemorySettings(enabled=True, spaces=[wire.SpaceBinding(name='notes', space_id=created.id)])
+    await client.api.sessions.create(body=wire.SessionCreate(memory=selection))
+    await client.api.sessions('session').update(body=wire.SessionUpdate(labels=None, memory=selection), if_match='"v1"')
+    runs: wire.RunPage = (await client.api.runs.list(thread_id='thread')).value
+    executed: wire.RunAgent = (await client.api.runs('run').agent.get()).value
+    attempt: wire.AttemptView = (await client.api.runs('run').attempts('attempt').get()).value
+    image = await client.api.runs('run').images('image').get()
+    async with client.api.runs('run').images('image').get_stream() as response:
+        data: bytes = await response.aread()
+    changed: wire.MountView = (await client.api.threads('thread').environments('work').update(body=wire.MountUpdate(permission_ceiling=wire.EnvironmentPermissionSetInput(operations=[wire.EnvironmentAction.ENVIRONMENT_COMPUTER_OBSERVE])), if_match='"v1"')).value
+    check: wire.ComputerCheck = (await client.api.environments('env').computer.check()).value
+    refs: wire.EnvironmentProviderReferences = (await client.api.environment_providers('provider').references.get()).value
+    await client.api.environment_providers('provider').delete(if_match='"v1"')
+    metrics: wire.ModelRequestMetrics = (await client.api.usage.records('record').metrics.get()).value
+    speed: float | None = metrics.output_tokens_per_second
+    view = (await client.api.runs('run').get()).value
+    for memory in view.memory_mounts:
+        if isinstance(memory, wire.FrozenMemoryMount):
+            print(memory.roots, memory.space_id)
+""")
+    report = run_pyright(source)
+    assert report["returncode"] == 0, report["generalDiagnostics"]
+
+
+def test_shared_memory_and_host_only_fields_negative_typing(tmp_path: Path) -> None:
+    source = tmp_path / "invalid_shared.py"
+    source.write_text("""from a13n import Client, AgentOverride, MountCreate, MemoryMount
+from a13n.generated import models as wire
+async def misuse(client: Client) -> None:
+    MountCreate('work', 'env', permission_ceiling=None)
+    MemoryMount('notes', 'mem', 'read', roots=[])
+    AgentOverride(builtin_skills=['unsupported'])
+    wire.SpaceBinding(name='notes', memory_id='mem')
+    wire.EnvironmentPermissionSetInput(operations=['computer.*'])
+    wire.ModelRequestMetrics()
+    await client.api.memory_spaces('space').organizations.create(body={})
+    await client.api.runs('run').images('image').get(body={})
+""")
+    report = run_pyright(source)
+    assert report["returncode"] == 1
+    assert len(report["generalDiagnostics"]) == 9

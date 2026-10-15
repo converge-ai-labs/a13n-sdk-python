@@ -107,6 +107,33 @@ async def ask_with_notes(client: Client, agent_id: str, memory_id: str) -> RunOu
 
 The mount name is the name exposed to the Agent; it is not the Memory's resource ID. Use write access only when the task should allow the Agent to modify that Memory. A Run retains the mount snapshot accepted when it starts: changing a Thread's mounts later does not rewrite the running execution's snapshot.
 
+## Share notes through a Memory Space
+
+A Memory Space owns one file Memory and lets your application select reusable scopes for a Session. Create a Space, then bind its ID when creating the Session:
+
+```python
+from a13n import Client
+from a13n.generated import models as wire
+
+
+async def create_shared_notes_session(client: Client) -> wire.SessionView:
+    space = await client.api.memory_spaces.create(body=wire.MemorySpaceCreate(name="Project notes"))
+    selected = wire.SessionMemorySettings(
+        enabled=True,
+        spaces=[wire.SpaceBinding(name="project", space_id=space.value.id, access=wire.MemoryAccess.READ)],
+    )
+    session = await client.api.sessions.create(body=wire.SessionCreate(memory=selected))
+    return session.value
+```
+
+Pass the returned Session ID as `session_id` to `client.agents(agent_id).start(...)`. Space creation and Session selection are separate requests; retain the Space ID if Session creation fails. Edit the backing files through `client.api.memories(space.memory_id).files`, but do not mount that managed Memory directly or delete it independently of its Space.
+
+Session `memory.spaces=[]` explicitly clears the selection; omission is not an empty selection. Agent memory defaults settle unresolved fields at the first accepted business Run. Later Agent edits do not replace a settled Session's choices. Update an existing Session through `sessions(id).update(..., if_match=session_etag)` rather than changing its Python object.
+
+Read `space.organization.get()` for status, `space.organizations.list()` for ordinary organization Runs, and `space.sessions.list()` for bindings. `space.organizations.create()` requests organization; acceptance is not completion. Configure the native `OrganizationPolicy` with a usable model before enabling scheduled work. Service owns change thresholds, timing, isolated organization roots and authorization; the SDK runs no local scheduler. Disabling a Space preserves its files and bindings. Deletion needs its ETag and may fail while Sessions or unsealed Runs reference it.
+
+A Run's `FrozenMemoryMount` readback includes host-resolved `roots` and optional nullable `space_id`. Inspect those fields on the generated response; do not send them in `MemoryMount` requests.
+
 ## Update a note without losing another writer's changes
 
 Read the file, make an application-level edit, and submit the ETag from that read:

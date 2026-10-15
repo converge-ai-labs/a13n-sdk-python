@@ -71,8 +71,17 @@ def prepare(document: dict) -> dict:
             if not isinstance(operation, dict) or "responses" not in operation:
                 continue
             for response in operation["responses"].values():
-                if isinstance(response, dict) and response.get("content", {}).get("*/*"):
-                    response["content"]["application/octet-stream"] = response["content"].pop("*/*")
+                if not isinstance(response, dict):
+                    continue
+                content = response.get("content", {})
+                if content.get("*/*"):
+                    content["application/octet-stream"] = content.pop("*/*")
+                if content and all(
+                    entry.get("schema") == {"type": "string", "format": "binary"} for entry in content.values()
+                ):
+                    # All declared representations are raw bytes. Response headers
+                    # retain the actual media type; the parser needs one File shape.
+                    response["content"] = {"application/octet-stream": next(iter(content.values()))}
             request = operation.get("requestBody", {})
             content = request.get("content", {})
             if len(content) > 1 and all(
@@ -128,6 +137,15 @@ def generate(document: dict, work: Path) -> Path:
         text = text.replace("@_attrs_define\n", "@_attrs_define(repr=False)\n").replace(
             "@define\n", "@define(repr=False)\n"
         )
+        if path.name == "run_view.py":
+            # The union's legacy request-shaped member accepts unknown keys.
+            # Prefer the frozen response member when the host supplied its fields.
+            text = text.replace(
+                "memory_mounts_item_type_0 = MemoryMount.from_dict(data)",
+                'if "roots" in data or "space_id" in data:\n'
+                "                        raise TypeError()\n"
+                "                    memory_mounts_item_type_0 = MemoryMount.from_dict(data)",
+            )
         if path.stem in binary_media:
             media = binary_media[path.stem]
             text = text.replace(

@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
-from ..models.agent_preset_kind_type_0 import AgentPresetKindType0
 from ..models.agent_source import AgentSource
+from ..models.preset_kind import PresetKind
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
@@ -37,7 +37,7 @@ class Agent:
         updated_by_id (str):
         version (int):
         workspace_id (str):
-        preset_kind (AgentPresetKindType0 | None | Unset):
+        preset_kind (None | PresetKind | Unset):
     """
 
     archived_at: datetime.datetime | None
@@ -55,7 +55,7 @@ class Agent:
     updated_by_id: str
     version: int
     workspace_id: str
-    preset_kind: AgentPresetKindType0 | Unset | None = UNSET
+    preset_kind: PresetKind | Unset | None = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -98,7 +98,7 @@ class Agent:
         preset_kind: str | Unset | None
         if isinstance(self.preset_kind, Unset):
             preset_kind = UNSET
-        elif isinstance(self.preset_kind, AgentPresetKindType0):
+        elif isinstance(self.preset_kind, PresetKind):
             preset_kind = self.preset_kind.value
         else:
             preset_kind = self.preset_kind
@@ -188,7 +188,7 @@ class Agent:
 
         workspace_id = d.pop("workspace_id")
 
-        def _parse_preset_kind(data: object) -> AgentPresetKindType0 | Unset | None:
+        def _parse_preset_kind(data: object) -> PresetKind | Unset | None:
             if data is None:
                 return data
             if isinstance(data, Unset):
@@ -196,12 +196,12 @@ class Agent:
             try:
                 if not isinstance(data, str):
                     raise TypeError()
-                preset_kind_type_0 = AgentPresetKindType0(data)
+                preset_kind_type_0 = PresetKind(data)
 
                 return preset_kind_type_0
             except (TypeError, ValueError, AttributeError, KeyError):
                 pass
-            return cast(AgentPresetKindType0 | Unset | None, data)
+            return cast(PresetKind | Unset | None, data)
 
         preset_kind = _parse_preset_kind(d.pop("preset_kind", UNSET))
 

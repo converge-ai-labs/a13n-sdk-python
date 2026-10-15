@@ -7,7 +7,7 @@ from ...client import AuthenticatedClient, Client
 from ...models.agent_page import AgentPage
 from ...models.agent_source import AgentSource
 from ...models.error_envelope import ErrorEnvelope
-from ...models.list_agents_api_v1_agents_get_preset_kind_type_0 import ListAgentsApiV1AgentsGetPresetKindType0
+from ...models.preset_kind import PresetKind
 from ...types import UNSET, Response, Unset
 
 
@@ -17,7 +17,7 @@ def build_request(
     q: str | Unset | None = UNSET,
     archived: bool | Unset | None = UNSET,
     source: AgentSource | Unset | None = UNSET,
-    preset_kind: ListAgentsApiV1AgentsGetPresetKindType0 | Unset | None = UNSET,
+    preset_kind: PresetKind | Unset | None = UNSET,
     skill_id: str | Unset | None = UNSET,
     skill_revision_id: str | Unset | None = UNSET,
     limit: int | Unset = UNSET,
@@ -66,7 +66,7 @@ def build_request(
     json_preset_kind: str | Unset | None
     if isinstance(preset_kind, Unset):
         json_preset_kind = UNSET
-    elif isinstance(preset_kind, ListAgentsApiV1AgentsGetPresetKindType0):
+    elif isinstance(preset_kind, PresetKind):
         json_preset_kind = preset_kind.value
     else:
         json_preset_kind = preset_kind
@@ -146,7 +146,7 @@ def sync_detailed(
     q: str | Unset | None = UNSET,
     archived: bool | Unset | None = UNSET,
     source: AgentSource | Unset | None = UNSET,
-    preset_kind: ListAgentsApiV1AgentsGetPresetKindType0 | Unset | None = UNSET,
+    preset_kind: PresetKind | Unset | None = UNSET,
     skill_id: str | Unset | None = UNSET,
     skill_revision_id: str | Unset | None = UNSET,
     limit: int | Unset = UNSET,
@@ -165,7 +165,7 @@ def sync_detailed(
         q (None | str | Unset):
         archived (bool | None | Unset):
         source (AgentSource | None | Unset):
-        preset_kind (ListAgentsApiV1AgentsGetPresetKindType0 | None | Unset):
+        preset_kind (None | PresetKind | Unset):
         skill_id (None | str | Unset):
         skill_revision_id (None | str | Unset):
         limit (int | Unset):
@@ -209,7 +209,7 @@ def sync(
     q: str | Unset | None = UNSET,
     archived: bool | Unset | None = UNSET,
     source: AgentSource | Unset | None = UNSET,
-    preset_kind: ListAgentsApiV1AgentsGetPresetKindType0 | Unset | None = UNSET,
+    preset_kind: PresetKind | Unset | None = UNSET,
     skill_id: str | Unset | None = UNSET,
     skill_revision_id: str | Unset | None = UNSET,
     limit: int | Unset = UNSET,
@@ -228,7 +228,7 @@ def sync(
         q (None | str | Unset):
         archived (bool | None | Unset):
         source (AgentSource | None | Unset):
-        preset_kind (ListAgentsApiV1AgentsGetPresetKindType0 | None | Unset):
+        preset_kind (None | PresetKind | Unset):
         skill_id (None | str | Unset):
         skill_revision_id (None | str | Unset):
         limit (int | Unset):
@@ -267,7 +267,7 @@ async def asyncio_detailed(
     q: str | Unset | None = UNSET,
     archived: bool | Unset | None = UNSET,
     source: AgentSource | Unset | None = UNSET,
-    preset_kind: ListAgentsApiV1AgentsGetPresetKindType0 | Unset | None = UNSET,
+    preset_kind: PresetKind | Unset | None = UNSET,
     skill_id: str | Unset | None = UNSET,
     skill_revision_id: str | Unset | None = UNSET,
     limit: int | Unset = UNSET,
@@ -286,7 +286,7 @@ async def asyncio_detailed(
         q (None | str | Unset):
         archived (bool | None | Unset):
         source (AgentSource | None | Unset):
-        preset_kind (ListAgentsApiV1AgentsGetPresetKindType0 | None | Unset):
+        preset_kind (None | PresetKind | Unset):
         skill_id (None | str | Unset):
         skill_revision_id (None | str | Unset):
         limit (int | Unset):
@@ -328,7 +328,7 @@ async def asyncio(
     q: str | Unset | None = UNSET,
     archived: bool | Unset | None = UNSET,
     source: AgentSource | Unset | None = UNSET,
-    preset_kind: ListAgentsApiV1AgentsGetPresetKindType0 | Unset | None = UNSET,
+    preset_kind: PresetKind | Unset | None = UNSET,
     skill_id: str | Unset | None = UNSET,
     skill_revision_id: str | Unset | None = UNSET,
     limit: int | Unset = UNSET,
@@ -347,7 +347,7 @@ async def asyncio(
         q (None | str | Unset):
         archived (bool | None | Unset):
         source (AgentSource | None | Unset):
-        preset_kind (ListAgentsApiV1AgentsGetPresetKindType0 | None | Unset):
+        preset_kind (None | PresetKind | Unset):
         skill_id (None | str | Unset):
         skill_revision_id (None | str | Unset):
         limit (int | Unset):

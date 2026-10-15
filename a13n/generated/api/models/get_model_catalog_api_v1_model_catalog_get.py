@@ -6,14 +6,37 @@ import httpx2 as httpx
 from ...client import AuthenticatedClient, Client
 from ...models.error_envelope import ErrorEnvelope
 from ...models.model_catalog import ModelCatalog
-from ...types import Response
+from ...types import UNSET, Response, Unset
 
 
-def build_request() -> dict[str, Any]:
+def build_request(
+    *,
+    provider: str | Unset | None = UNSET,
+    model: str | Unset | None = UNSET,
+) -> dict[str, Any]:
+
+    params: dict[str, Any] = {}
+
+    json_provider: str | Unset | None
+    if isinstance(provider, Unset):
+        json_provider = UNSET
+    else:
+        json_provider = provider
+    params["provider"] = json_provider
+
+    json_model: str | Unset | None
+    if isinstance(model, Unset):
+        json_model = UNSET
+    else:
+        json_model = model
+    params["model"] = json_model
+
+    params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
 
     _kwargs: dict[str, Any] = {
         "method": "get",
         "url": "/api/v1/model-catalog",
+        "params": params,
     }
 
     return _kwargs
@@ -24,6 +47,11 @@ def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Res
         response_200 = ModelCatalog.from_dict(response.json())
 
         return response_200
+
+    if response.status_code == 400:
+        response_400 = ErrorEnvelope.from_dict(response.json())
+
+        return response_400
 
     response_default = ErrorEnvelope.from_dict(response.json())
 
@@ -49,10 +77,23 @@ def _build_response(
 def sync_detailed(
     *,
     client: AuthenticatedClient,
+    provider: str | Unset | None = UNSET,
+    model: str | Unset | None = UNSET,
 ) -> Response[ErrorEnvelope | ModelCatalog]:
     """Get Model Catalog
 
-     The models.dev models the registered model provider types serve, for any signed-in principal.
+     Read public model metadata and prices. Filter by provider and model to avoid a large full-catalog
+    response.
+
+    Both filters match exactly and combine with AND; omitted filters leave that dimension unrestricted.
+    No match returns empty items with the catalog status. Refreshes always fetch the full catalog when
+    due.
+    Copy the selected item's characteristics, pricing and ref into model config, pricing and catalog_ref
+    when saving.
+
+    Args:
+        provider (None | str | Unset): Exact catalog channel ID, such as openrouter.
+        model (None | str | Unset): Exact, case-sensitive model ID within the catalog channel.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -62,7 +103,10 @@ def sync_detailed(
         Response[ErrorEnvelope | ModelCatalog]
     """
 
-    kwargs = build_request()
+    kwargs = build_request(
+        provider=provider,
+        model=model,
+    )
 
     response = client.get_httpx_client().request(
         **kwargs,
@@ -74,10 +118,23 @@ def sync_detailed(
 def sync(
     *,
     client: AuthenticatedClient,
+    provider: str | Unset | None = UNSET,
+    model: str | Unset | None = UNSET,
 ) -> ErrorEnvelope | ModelCatalog | None:
     """Get Model Catalog
 
-     The models.dev models the registered model provider types serve, for any signed-in principal.
+     Read public model metadata and prices. Filter by provider and model to avoid a large full-catalog
+    response.
+
+    Both filters match exactly and combine with AND; omitted filters leave that dimension unrestricted.
+    No match returns empty items with the catalog status. Refreshes always fetch the full catalog when
+    due.
+    Copy the selected item's characteristics, pricing and ref into model config, pricing and catalog_ref
+    when saving.
+
+    Args:
+        provider (None | str | Unset): Exact catalog channel ID, such as openrouter.
+        model (None | str | Unset): Exact, case-sensitive model ID within the catalog channel.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -89,16 +146,31 @@ def sync(
 
     return sync_detailed(
         client=client,
+        provider=provider,
+        model=model,
     ).parsed
 
 
 async def asyncio_detailed(
     *,
     client: AuthenticatedClient,
+    provider: str | Unset | None = UNSET,
+    model: str | Unset | None = UNSET,
 ) -> Response[ErrorEnvelope | ModelCatalog]:
     """Get Model Catalog
 
-     The models.dev models the registered model provider types serve, for any signed-in principal.
+     Read public model metadata and prices. Filter by provider and model to avoid a large full-catalog
+    response.
+
+    Both filters match exactly and combine with AND; omitted filters leave that dimension unrestricted.
+    No match returns empty items with the catalog status. Refreshes always fetch the full catalog when
+    due.
+    Copy the selected item's characteristics, pricing and ref into model config, pricing and catalog_ref
+    when saving.
+
+    Args:
+        provider (None | str | Unset): Exact catalog channel ID, such as openrouter.
+        model (None | str | Unset): Exact, case-sensitive model ID within the catalog channel.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -108,7 +180,10 @@ async def asyncio_detailed(
         Response[ErrorEnvelope | ModelCatalog]
     """
 
-    kwargs = build_request()
+    kwargs = build_request(
+        provider=provider,
+        model=model,
+    )
 
     response = await client.get_async_httpx_client().request(**kwargs)
 
@@ -118,10 +193,23 @@ async def asyncio_detailed(
 async def asyncio(
     *,
     client: AuthenticatedClient,
+    provider: str | Unset | None = UNSET,
+    model: str | Unset | None = UNSET,
 ) -> ErrorEnvelope | ModelCatalog | None:
     """Get Model Catalog
 
-     The models.dev models the registered model provider types serve, for any signed-in principal.
+     Read public model metadata and prices. Filter by provider and model to avoid a large full-catalog
+    response.
+
+    Both filters match exactly and combine with AND; omitted filters leave that dimension unrestricted.
+    No match returns empty items with the catalog status. Refreshes always fetch the full catalog when
+    due.
+    Copy the selected item's characteristics, pricing and ref into model config, pricing and catalog_ref
+    when saving.
+
+    Args:
+        provider (None | str | Unset): Exact catalog channel ID, such as openrouter.
+        model (None | str | Unset): Exact, case-sensitive model ID within the catalog channel.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -134,5 +222,7 @@ async def asyncio(
     return (
         await asyncio_detailed(
             client=client,
+            provider=provider,
+            model=model,
         )
     ).parsed

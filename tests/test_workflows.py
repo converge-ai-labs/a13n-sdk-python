@@ -85,6 +85,7 @@ def test_parts_and_all_options_cross_one_generated_transport() -> None:
 
 def test_all_non_null_override_fields_remain_selectable_without_wire_import() -> None:
     values = {
+        "builtin_skills": ["platform-operations"],
         "client_tools": [{"name": "lookup", "description": "find", "parameters_json_schema": {"type": "object"}}],
         "connection_tools": [],
         "instructions": "",
@@ -94,6 +95,7 @@ def test_all_non_null_override_fields_remain_selectable_without_wire_import() ->
         "model_characteristics": {},
         "model_settings": {"extra_body": {"false": False, "zero": 0, "null": None}},
         "output_spec": {"schema": {"type": "object"}},
+        "platform_tools": {"groups": [], "read_permission": "deny", "write_permission": "ask"},
         "plugins": [],
         "retries": {},
         "reviewer": {"model": "review-model"},

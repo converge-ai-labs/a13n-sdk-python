@@ -109,17 +109,12 @@
           "preset_kind": {
             "anyOf": [
               {
-                "enum": [
-                  "composer",
-                  "finding"
-                ],
-                "type": "string"
+                "$ref": "#/components/schemas/PresetKind"
               },
               {
                 "type": "null"
               }
-            ],
-            "title": "Preset Kind"
+            ]
           },
           "source": {
             "$ref": "#/components/schemas/AgentSource"
@@ -165,6 +160,16 @@
       "AgentConfig-Input": {
         "additionalProperties": false,
         "properties": {
+          "builtin_skills": {
+            "default": [],
+            "items": {
+              "const": "platform-operations",
+              "type": "string"
+            },
+            "title": "Builtin Skills",
+            "type": "array",
+            "uniqueItems": true
+          },
           "client_tools": {
             "default": [],
             "items": {
@@ -210,6 +215,9 @@
           "media_understanding": {
             "$ref": "#/components/schemas/MediaUnderstandingSelection"
           },
+          "memory": {
+            "$ref": "#/components/schemas/SessionMemorySettings"
+          },
           "memory_mounts": {
             "default": [],
             "items": {
@@ -243,6 +251,9 @@
                 "type": "null"
               }
             ]
+          },
+          "platform_tools": {
+            "$ref": "#/components/schemas/PlatformSelection"
           },
           "plugins": {
             "default": [],
@@ -344,6 +355,16 @@
       "AgentConfig-Output": {
         "additionalProperties": false,
         "properties": {
+          "builtin_skills": {
+            "default": [],
+            "items": {
+              "const": "platform-operations",
+              "type": "string"
+            },
+            "title": "Builtin Skills",
+            "type": "array",
+            "uniqueItems": true
+          },
           "client_tools": {
             "default": [],
             "items": {
@@ -389,6 +410,9 @@
           "media_understanding": {
             "$ref": "#/components/schemas/MediaUnderstandingSelection"
           },
+          "memory": {
+            "$ref": "#/components/schemas/SessionMemorySettings"
+          },
           "memory_mounts": {
             "default": [],
             "items": {
@@ -422,6 +446,9 @@
                 "type": "null"
               }
             ]
+          },
+          "platform_tools": {
+            "$ref": "#/components/schemas/PlatformSelection"
           },
           "plugins": {
             "default": [],
@@ -653,6 +680,22 @@
         "additionalProperties": false,
         "description": "What one run changes of its revision's configuration; an omitted or null field keeps the revision's.\n\n`toolsets` replaces whole toolsets; `retries` and each subagent edge replace the fields they set, and a null\nedge removes it; every other field replaces the revision's value.",
         "properties": {
+          "builtin_skills": {
+            "anyOf": [
+              {
+                "items": {
+                  "const": "platform-operations",
+                  "type": "string"
+                },
+                "type": "array",
+                "uniqueItems": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Builtin Skills"
+          },
           "client_tools": {
             "anyOf": [
               {
@@ -756,6 +799,16 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/OutputSpec"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "platform_tools": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PlatformSelection"
               },
               {
                 "type": "null"
@@ -886,6 +939,22 @@
         "additionalProperties": false,
         "description": "What one run changes of its revision's configuration; an omitted or null field keeps the revision's.\n\n`toolsets` replaces whole toolsets; `retries` and each subagent edge replace the fields they set, and a null\nedge removes it; every other field replaces the revision's value.",
         "properties": {
+          "builtin_skills": {
+            "anyOf": [
+              {
+                "items": {
+                  "const": "platform-operations",
+                  "type": "string"
+                },
+                "type": "array",
+                "uniqueItems": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Builtin Skills"
+          },
           "client_tools": {
             "anyOf": [
               {
@@ -989,6 +1058,16 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/OutputSpec"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "platform_tools": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PlatformSelection"
               },
               {
                 "type": "null"
@@ -1674,6 +1753,19 @@
           "next_cursor"
         ],
         "title": "AnalysisPage",
+        "type": "object"
+      },
+      "AnyChangeTrigger": {
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "const": "any_change",
+            "default": "any_change",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "title": "AnyChangeTrigger",
         "type": "object"
       },
       "ApiKey": {
@@ -2748,6 +2840,28 @@
         ],
         "type": "string"
       },
+      "ChangeCountTrigger": {
+        "additionalProperties": false,
+        "properties": {
+          "count": {
+            "maximum": 1000000.0,
+            "minimum": 1.0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "type": {
+            "const": "change_count",
+            "default": "change_count",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "count"
+        ],
+        "title": "ChangeCountTrigger",
+        "type": "object"
+      },
       "ChildEnvironmentPolicy": {
         "additionalProperties": false,
         "description": "What a child run mounts: no environment, the parent's, or a new one from `template_id`.",
@@ -2848,6 +2962,47 @@
           "parameters_json_schema"
         ],
         "title": "ClientToolDefinition",
+        "type": "object"
+      },
+      "ComputerCheck": {
+        "description": "A point-in-time capability probe, not an Agent or mount permission grant.",
+        "properties": {
+          "display_count": {
+            "default": 0,
+            "title": "Display Count",
+            "type": "integer"
+          },
+          "input_ready": {
+            "default": false,
+            "title": "Input Ready",
+            "type": "boolean"
+          },
+          "observe_ready": {
+            "default": false,
+            "title": "Observe Ready",
+            "type": "boolean"
+          },
+          "operations": {
+            "items": {
+              "$ref": "#/components/schemas/EnvironmentAction"
+            },
+            "title": "Operations",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "checked",
+              "unsupported",
+              "not_ready"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "ComputerCheck",
         "type": "object"
       },
       "Connection": {
@@ -4105,6 +4260,52 @@
         "title": "EntryView",
         "type": "object"
       },
+      "EnvironmentAction": {
+        "description": "Exact authorization values in the locked first-party catalog.",
+        "enum": [
+          "environment.file.stat",
+          "environment.file.read_text",
+          "environment.file.read_bytes",
+          "environment.file.write_text",
+          "environment.file.patch_text",
+          "environment.file.list",
+          "environment.file.query",
+          "environment.file.search_text",
+          "environment.file.mkdir",
+          "environment.file.move",
+          "environment.file.remove",
+          "environment.file.write_bytes",
+          "environment.file.copy_source",
+          "environment.file.copy_destination",
+          "environment.shell.exec",
+          "environment.process.list",
+          "environment.process.start",
+          "environment.process.inspect",
+          "environment.process.read_output",
+          "environment.process.write_stdin",
+          "environment.process.close_stdin",
+          "environment.process.signal",
+          "environment.process.wait",
+          "environment.process.kill",
+          "environment.process.release",
+          "environment.output.read",
+          "environment.output.release",
+          "environment.port.inspect",
+          "environment.port.wait",
+          "environment.state.export",
+          "environment.state.restore",
+          "environment.computer.describe",
+          "environment.computer.observe",
+          "environment.computer.click",
+          "environment.computer.move",
+          "environment.computer.drag",
+          "environment.computer.scroll",
+          "environment.computer.type_text",
+          "environment.computer.press_keys"
+        ],
+        "title": "EnvironmentAction",
+        "type": "string"
+      },
       "EnvironmentFailure": {
         "additionalProperties": false,
         "description": "The last error of the outstanding operation or, on a ready instance, of its last renewal.\n\n`unknown` means the call may have taken effect: only the same operation may continue. `permanent` failures\nrefuse new mounts and acceptance until the cause is fixed or the instance is deleted; `environment_lost` means\nthe provider no longer has the sandbox.",
@@ -4163,6 +4364,44 @@
             "title": "Name",
             "type": "string"
           },
+          "permission_ceiling": {
+            "$ref": "#/components/schemas/EnvironmentPermissionSet-Output",
+            "default": {
+              "operations": [
+                "environment.file.copy_destination",
+                "environment.file.copy_source",
+                "environment.file.list",
+                "environment.file.mkdir",
+                "environment.file.move",
+                "environment.file.patch_text",
+                "environment.file.query",
+                "environment.file.read_bytes",
+                "environment.file.read_text",
+                "environment.file.remove",
+                "environment.file.search_text",
+                "environment.file.stat",
+                "environment.file.write_bytes",
+                "environment.file.write_text",
+                "environment.output.read",
+                "environment.output.release",
+                "environment.port.inspect",
+                "environment.port.wait",
+                "environment.process.close_stdin",
+                "environment.process.inspect",
+                "environment.process.kill",
+                "environment.process.list",
+                "environment.process.read_output",
+                "environment.process.release",
+                "environment.process.signal",
+                "environment.process.start",
+                "environment.process.wait",
+                "environment.process.write_stdin",
+                "environment.shell.exec",
+                "environment.state.export",
+                "environment.state.restore"
+              ]
+            }
+          },
           "working_directory": {
             "anyOf": [
               {
@@ -4208,6 +4447,68 @@
           "next_cursor"
         ],
         "title": "EnvironmentPage",
+        "type": "object"
+      },
+      "EnvironmentPermissionSet-Input": {
+        "properties": {
+          "operations": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/EnvironmentAction"
+            },
+            "title": "Operations",
+            "type": "array",
+            "uniqueItems": true
+          }
+        },
+        "title": "EnvironmentPermissionSet",
+        "type": "object"
+      },
+      "EnvironmentPermissionSet-Output": {
+        "properties": {
+          "operations": {
+            "items": {
+              "$ref": "#/components/schemas/EnvironmentAction"
+            },
+            "title": "Operations",
+            "type": "array"
+          }
+        },
+        "title": "EnvironmentPermissionSet",
+        "type": "object"
+      },
+      "EnvironmentProviderReferences": {
+        "properties": {
+          "environment_count": {
+            "title": "Environment Count",
+            "type": "integer"
+          },
+          "environments": {
+            "items": {
+              "$ref": "#/components/schemas/ProviderReference"
+            },
+            "title": "Environments",
+            "type": "array"
+          },
+          "template_count": {
+            "title": "Template Count",
+            "type": "integer"
+          },
+          "templates": {
+            "items": {
+              "$ref": "#/components/schemas/ProviderReference"
+            },
+            "title": "Templates",
+            "type": "array"
+          }
+        },
+        "required": [
+          "template_count",
+          "templates",
+          "environment_count",
+          "environments"
+        ],
+        "title": "EnvironmentProviderReferences",
         "type": "object"
       },
       "EnvironmentUpdate": {
@@ -5023,6 +5324,57 @@
           }
         },
         "title": "FragmentState",
+        "type": "object"
+      },
+      "FrozenMemoryMount": {
+        "additionalProperties": false,
+        "description": "Host-resolved Space identity and roots, never accepted from a mount request.",
+        "properties": {
+          "access": {
+            "$ref": "#/components/schemas/MemoryAccess"
+          },
+          "memory_id": {
+            "maxLength": 41,
+            "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+            "title": "Memory Id",
+            "type": "string"
+          },
+          "name": {
+            "pattern": "^[a-z][a-z0-9-]{0,62}$",
+            "title": "Name",
+            "type": "string"
+          },
+          "recall": {
+            "default": true,
+            "title": "Recall",
+            "type": "boolean"
+          },
+          "roots": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Roots",
+            "type": "array"
+          },
+          "space_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Space Id"
+          }
+        },
+        "required": [
+          "name",
+          "memory_id",
+          "access"
+        ],
+        "title": "FrozenMemoryMount",
         "type": "object"
       },
       "GitHubSource": {
@@ -7534,6 +7886,334 @@
         "title": "MemorySource",
         "type": "object"
       },
+      "MemorySpace": {
+        "properties": {
+          "always_load": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Always Load",
+            "type": "array"
+          },
+          "content_bytes": {
+            "title": "Content Bytes",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by_id": {
+            "title": "Created By Id",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "file_count": {
+            "title": "File Count",
+            "type": "integer"
+          },
+          "guide": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guide"
+          },
+          "history_bytes": {
+            "title": "History Bytes",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "labels": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Labels",
+            "type": "object"
+          },
+          "memory_id": {
+            "title": "Memory Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "organization": {
+            "$ref": "#/components/schemas/OrganizationPolicy"
+          },
+          "organization_id": {
+            "title": "Organization Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "updated_by_id": {
+            "title": "Updated By Id",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "workspace_id": {
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "organization_id",
+          "workspace_id",
+          "name",
+          "description",
+          "labels",
+          "enabled",
+          "organization",
+          "memory_id",
+          "guide",
+          "always_load",
+          "file_count",
+          "content_bytes",
+          "history_bytes",
+          "version",
+          "created_by_id",
+          "updated_by_id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "MemorySpace",
+        "type": "object"
+      },
+      "MemorySpaceCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "always_load": {
+            "default": [
+              "global/MEMORY.md"
+            ],
+            "items": {
+              "maxLength": 1024,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 64,
+            "title": "Always Load",
+            "type": "array"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 2048,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "enabled": {
+            "default": true,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "guide": {
+            "anyOf": [
+              {
+                "maxLength": 65536,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guide"
+          },
+          "labels": {
+            "additionalProperties": {
+              "maxLength": 128,
+              "type": "string"
+            },
+            "maxProperties": 32,
+            "propertyNames": {
+              "maxLength": 128,
+              "minLength": 1
+            },
+            "title": "Labels",
+            "type": "object"
+          },
+          "name": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "organization": {
+            "$ref": "#/components/schemas/OrganizationPolicy"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "MemorySpaceCreate",
+        "type": "object"
+      },
+      "MemorySpacePage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/MemorySpace"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "MemorySpacePage",
+        "type": "object"
+      },
+      "MemorySpaceUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "always_load": {
+            "anyOf": [
+              {
+                "items": {
+                  "maxLength": 1024,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Always Load"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 2048,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enabled"
+          },
+          "guide": {
+            "anyOf": [
+              {
+                "maxLength": 65536,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guide"
+          },
+          "labels": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "maxLength": 128,
+                  "type": "string"
+                },
+                "maxProperties": 32,
+                "propertyNames": {
+                  "maxLength": 128,
+                  "minLength": 1
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Labels"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "organization": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OrganizationPolicy"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "title": "MemorySpaceUpdate",
+        "type": "object"
+      },
       "MemoryUpdate": {
         "additionalProperties": false,
         "description": "Fields left out stay unchanged; `description: null` clears it and `guide: null` inherits the default.",
@@ -8477,6 +9157,51 @@
         "title": "ModelPricingEntry",
         "type": "object"
       },
+      "ModelRequestMetrics": {
+        "description": "Derived from the current model contribution.",
+        "properties": {
+          "output_tokens_per_second": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Tokens Per Second"
+          },
+          "request_duration_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request Duration Seconds"
+          },
+          "time_to_first_chunk_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time To First Chunk Seconds"
+          }
+        },
+        "required": [
+          "time_to_first_chunk_seconds",
+          "request_duration_seconds",
+          "output_tokens_per_second"
+        ],
+        "title": "ModelRequestMetrics",
+        "type": "object"
+      },
       "ModelUpdate": {
         "additionalProperties": false,
         "properties": {
@@ -8552,6 +9277,17 @@
       },
       "ModelUsage": {
         "properties": {
+          "average_time_to_first_chunk_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average Time To First Chunk Seconds"
+          },
           "cache_read_tokens": {
             "title": "Cache Read Tokens",
             "type": "integer"
@@ -8591,6 +9327,17 @@
             "title": "Output Tokens",
             "type": "integer"
           },
+          "output_tokens_per_second": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Tokens Per Second"
+          },
           "requests": {
             "title": "Requests",
             "type": "integer"
@@ -8603,7 +9350,9 @@
           "output_tokens",
           "cache_read_tokens",
           "cache_write_tokens",
-          "cost"
+          "cost",
+          "average_time_to_first_chunk_seconds",
+          "output_tokens_per_second"
         ],
         "title": "ModelUsage",
         "type": "object"
@@ -8686,6 +9435,44 @@
             "title": "Name",
             "type": "string"
           },
+          "permission_ceiling": {
+            "$ref": "#/components/schemas/EnvironmentPermissionSet-Input",
+            "default": {
+              "operations": [
+                "environment.file.copy_destination",
+                "environment.file.copy_source",
+                "environment.file.list",
+                "environment.file.mkdir",
+                "environment.file.move",
+                "environment.file.patch_text",
+                "environment.file.query",
+                "environment.file.read_bytes",
+                "environment.file.read_text",
+                "environment.file.remove",
+                "environment.file.search_text",
+                "environment.file.stat",
+                "environment.file.write_bytes",
+                "environment.file.write_text",
+                "environment.output.read",
+                "environment.output.release",
+                "environment.port.inspect",
+                "environment.port.wait",
+                "environment.process.close_stdin",
+                "environment.process.inspect",
+                "environment.process.kill",
+                "environment.process.list",
+                "environment.process.read_output",
+                "environment.process.release",
+                "environment.process.signal",
+                "environment.process.start",
+                "environment.process.wait",
+                "environment.process.write_stdin",
+                "environment.shell.exec",
+                "environment.state.export",
+                "environment.state.restore"
+              ]
+            }
+          },
           "working_directory": {
             "anyOf": [
               {
@@ -8732,6 +9519,19 @@
         "title": "MountPage",
         "type": "object"
       },
+      "MountUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "permission_ceiling": {
+            "$ref": "#/components/schemas/EnvironmentPermissionSet-Input"
+          }
+        },
+        "required": [
+          "permission_ceiling"
+        ],
+        "title": "MountUpdate",
+        "type": "object"
+      },
       "MountView": {
         "properties": {
           "environment_id": {
@@ -8741,6 +9541,44 @@
           "name": {
             "title": "Name",
             "type": "string"
+          },
+          "permission_ceiling": {
+            "$ref": "#/components/schemas/EnvironmentPermissionSet-Output",
+            "default": {
+              "operations": [
+                "environment.file.copy_destination",
+                "environment.file.copy_source",
+                "environment.file.list",
+                "environment.file.mkdir",
+                "environment.file.move",
+                "environment.file.patch_text",
+                "environment.file.query",
+                "environment.file.read_bytes",
+                "environment.file.read_text",
+                "environment.file.remove",
+                "environment.file.search_text",
+                "environment.file.stat",
+                "environment.file.write_bytes",
+                "environment.file.write_text",
+                "environment.output.read",
+                "environment.output.release",
+                "environment.port.inspect",
+                "environment.port.wait",
+                "environment.process.close_stdin",
+                "environment.process.inspect",
+                "environment.process.kill",
+                "environment.process.list",
+                "environment.process.read_output",
+                "environment.process.release",
+                "environment.process.signal",
+                "environment.process.start",
+                "environment.process.wait",
+                "environment.process.write_stdin",
+                "environment.shell.exec",
+                "environment.state.export",
+                "environment.state.restore"
+              ]
+            }
           },
           "working_directory": {
             "anyOf": [
@@ -9021,6 +9859,62 @@
           "next_cursor"
         ],
         "title": "OrganizationPage",
+        "type": "object"
+      },
+      "OrganizationPolicy": {
+        "additionalProperties": false,
+        "properties": {
+          "check_interval_seconds": {
+            "default": 10,
+            "maximum": 86400.0,
+            "minimum": 10.0,
+            "title": "Check Interval Seconds",
+            "type": "integer"
+          },
+          "cooldown_seconds": {
+            "default": 300,
+            "maximum": 604800.0,
+            "minimum": 0.0,
+            "title": "Cooldown Seconds",
+            "type": "integer"
+          },
+          "enabled": {
+            "default": false,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z0-9][a-z0-9.-]{0,127}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "trigger": {
+            "discriminator": {
+              "mapping": {
+                "any_change": "#/components/schemas/AnyChangeTrigger",
+                "change_count": "#/components/schemas/ChangeCountTrigger"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AnyChangeTrigger"
+              },
+              {
+                "$ref": "#/components/schemas/ChangeCountTrigger"
+              }
+            ],
+            "title": "Trigger"
+          }
+        },
+        "title": "OrganizationPolicy",
         "type": "object"
       },
       "OrganizationUpdate": {
@@ -9324,6 +10218,55 @@
         "title": "PendingCall",
         "type": "object"
       },
+      "PlatformGroup": {
+        "enum": [
+          "agents",
+          "models",
+          "connections",
+          "skills",
+          "environment_templates",
+          "providers",
+          "execution"
+        ],
+        "type": "string"
+      },
+      "PlatformSelection": {
+        "additionalProperties": false,
+        "description": "Platform MCP groups selected independently of local operating instructions.",
+        "properties": {
+          "groups": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/PlatformGroup"
+            },
+            "title": "Groups",
+            "type": "array",
+            "uniqueItems": true
+          },
+          "read_permission": {
+            "default": "allow",
+            "enum": [
+              "allow",
+              "ask",
+              "deny"
+            ],
+            "title": "Read Permission",
+            "type": "string"
+          },
+          "write_permission": {
+            "default": "ask",
+            "enum": [
+              "allow",
+              "ask",
+              "deny"
+            ],
+            "title": "Write Permission",
+            "type": "string"
+          }
+        },
+        "title": "PlatformSelection",
+        "type": "object"
+      },
       "PluginSelection": {
         "additionalProperties": false,
         "description": "One instance of a Harness plugin factory the deployment installed.",
@@ -9358,6 +10301,14 @@
           "execution",
           "recovery",
           "answer"
+        ],
+        "type": "string"
+      },
+      "PresetKind": {
+        "enum": [
+          "composer",
+          "finding",
+          "memory_organizer"
         ],
         "type": "string"
       },
@@ -9948,6 +10899,29 @@
           "next_cursor"
         ],
         "title": "ProviderPage",
+        "type": "object"
+      },
+      "ProviderReference": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "status"
+        ],
+        "title": "ProviderReference",
         "type": "object"
       },
       "ProviderTest": {
@@ -10579,6 +11553,23 @@
         "title": "RevokedConnection",
         "type": "object"
       },
+      "RunAgent": {
+        "description": "The agent a run executes: its frozen revision, and that revision's configuration with the run's override\napplied. Models, connections and templates the configuration names stay live.",
+        "properties": {
+          "config": {
+            "$ref": "#/components/schemas/AgentConfig-Output"
+          },
+          "revision": {
+            "$ref": "#/components/schemas/AgentRevision"
+          }
+        },
+        "required": [
+          "revision",
+          "config"
+        ],
+        "title": "RunAgent",
+        "type": "object"
+      },
       "RunConfiguration-Input": {
         "additionalProperties": false,
         "description": "An accepted snapshot, independent of Agent definitions and Capability configuration.\n\nConsumers explicitly opt into namespaced extensions and own their validation.\nExtension lookups return detached values, not mutable shared state.",
@@ -10925,6 +11916,32 @@
         ],
         "type": "string"
       },
+      "RunUsage": {
+        "properties": {
+          "models": {
+            "items": {
+              "$ref": "#/components/schemas/ModelUsage"
+            },
+            "title": "Models",
+            "type": "array"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "thread_id": {
+            "title": "Thread Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "thread_id",
+          "models"
+        ],
+        "title": "RunUsage",
+        "type": "object"
+      },
       "RunView": {
         "properties": {
           "agent_id": {
@@ -11029,7 +12046,14 @@
           },
           "memory_mounts": {
             "items": {
-              "$ref": "#/components/schemas/MemoryMount"
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/MemoryMount"
+                },
+                {
+                  "$ref": "#/components/schemas/FrozenMemoryMount"
+                }
+              ]
             },
             "title": "Memory Mounts",
             "type": "array"
@@ -11450,9 +12474,41 @@
             },
             "title": "Labels",
             "type": "object"
+          },
+          "memory": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SessionMemorySettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "title": "SessionCreate",
+        "type": "object"
+      },
+      "SessionMemorySettings": {
+        "additionalProperties": false,
+        "description": "Participation and complete Space selection; policy belongs to each Space.",
+        "properties": {
+          "enabled": {
+            "default": false,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "spaces": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/SpaceBinding"
+            },
+            "maxItems": 32,
+            "title": "Spaces",
+            "type": "array"
+          }
+        },
+        "title": "SessionMemorySettings",
         "type": "object"
       },
       "SessionPage": {
@@ -11566,22 +12622,36 @@
         "additionalProperties": false,
         "properties": {
           "labels": {
-            "additionalProperties": {
-              "maxLength": 128,
-              "type": "string"
-            },
-            "maxProperties": 32,
-            "propertyNames": {
-              "maxLength": 128,
-              "minLength": 1
-            },
-            "title": "Labels",
-            "type": "object"
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "maxLength": 128,
+                  "type": "string"
+                },
+                "maxProperties": 32,
+                "propertyNames": {
+                  "maxLength": 128,
+                  "minLength": 1
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Labels"
+          },
+          "memory": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SessionMemorySettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
-        "required": [
-          "labels"
-        ],
         "title": "SessionUpdate",
         "type": "object"
       },
@@ -11618,6 +12688,9 @@
             ],
             "title": "Last Run Id"
           },
+          "memory": {
+            "$ref": "#/components/schemas/SessionMemorySettings"
+          },
           "preview": {
             "anyOf": [
               {
@@ -11627,6 +12700,15 @@
                 "type": "null"
               }
             ]
+          },
+          "purpose": {
+            "default": "conversation",
+            "enum": [
+              "conversation",
+              "memory_organization"
+            ],
+            "title": "Purpose",
+            "type": "string"
           },
           "run_count": {
             "default": 0,
@@ -12259,6 +13341,110 @@
           "source"
         ],
         "title": "SkillValidate",
+        "type": "object"
+      },
+      "SpaceBinding": {
+        "additionalProperties": false,
+        "description": "A named Space selected by the App or inherited from Agent defaults.",
+        "properties": {
+          "access": {
+            "$ref": "#/components/schemas/MemoryAccess",
+            "default": "write"
+          },
+          "name": {
+            "pattern": "^[a-z][a-z0-9-]{0,62}$",
+            "title": "Name",
+            "type": "string"
+          },
+          "space_id": {
+            "maxLength": 41,
+            "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+            "title": "Space Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "space_id"
+        ],
+        "title": "SpaceBinding",
+        "type": "object"
+      },
+      "SpaceOrganizationStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "active_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active Run Id"
+          },
+          "due_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due At"
+          },
+          "failure": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Failure"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "history_gap": {
+            "default": false,
+            "title": "History Gap",
+            "type": "boolean"
+          },
+          "last_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Run Id"
+          },
+          "pending": {
+            "default": false,
+            "title": "Pending",
+            "type": "boolean"
+          },
+          "processed_seq": {
+            "default": 0,
+            "title": "Processed Seq",
+            "type": "integer"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
+          }
+        },
+        "title": "SpaceOrganizationStatus",
         "type": "object"
       },
       "Span": {
@@ -13642,6 +14828,15 @@
             ],
             "title": "Origin Tool Call Id"
           },
+          "purpose": {
+            "default": "conversation",
+            "enum": [
+              "conversation",
+              "memory_organization"
+            ],
+            "title": "Purpose",
+            "type": "string"
+          },
           "session_id": {
             "title": "Session Id",
             "type": "string"
@@ -14045,6 +15240,7 @@
         "enum": [
           "files",
           "shell",
+          "computer",
           "web",
           "memory",
           "assets",
@@ -14487,10 +15683,18 @@
             },
             "title": "Models",
             "type": "array"
+          },
+          "runs": {
+            "items": {
+              "$ref": "#/components/schemas/RunUsage"
+            },
+            "title": "Runs",
+            "type": "array"
           }
         },
         "required": [
-          "models"
+          "models",
+          "runs"
         ],
         "title": "UsageSummary",
         "type": "object"
@@ -15121,11 +16325,7 @@
             "schema": {
               "anyOf": [
                 {
-                  "enum": [
-                    "composer",
-                    "finding"
-                  ],
-                  "type": "string"
+                  "$ref": "#/components/schemas/PresetKind"
                 },
                 {
                   "type": "null"
@@ -15247,7 +16447,11 @@
         "tags": [
           "agents"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "agents"
+        }
       },
       "post": {
         "operationId": "create_agent_api_v1_agents_post",
@@ -15314,7 +16518,11 @@
         "tags": [
           "agents"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "write",
+          "group": "agents"
+        }
       }
     },
     "/api/v1/agents/validate": {
@@ -15377,7 +16585,11 @@
         "tags": [
           "agents"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "agents"
+        }
       }
     },
     "/api/v1/agents/{agent_id}": {
@@ -15444,7 +16656,11 @@
         "tags": [
           "agents"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "agents"
+        }
       },
       "patch": {
         "operationId": "update_agent_api_v1_agents__agent_id__patch",
@@ -15539,7 +16755,11 @@
         "tags": [
           "agents"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "write",
+          "group": "agents"
+        }
       }
     },
     "/api/v1/agents/{agent_id}/archive": {
@@ -15626,7 +16846,11 @@
         "tags": [
           "agents"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "write",
+          "group": "agents"
+        }
       }
     },
     "/api/v1/agents/{agent_id}/avatar": {
@@ -15975,7 +17199,11 @@
         "tags": [
           "agents"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "write",
+          "group": "agents"
+        }
       }
     },
     "/api/v1/agents/{agent_id}/revisions": {
@@ -16070,7 +17298,11 @@
         "tags": [
           "agents"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "agents"
+        }
       },
       "post": {
         "description": "A configuration that validates to the default revision's creates nothing and returns that revision.",
@@ -16166,7 +17398,11 @@
         "tags": [
           "agents"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "write",
+          "group": "agents"
+        }
       }
     },
     "/api/v1/agents/{agent_id}/revisions/{revision_id}": {
@@ -16242,7 +17478,11 @@
         "tags": [
           "agents"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "agents"
+        }
       }
     },
     "/api/v1/agents/{agent_id}/revisions/{revision_id}/set-default": {
@@ -16338,7 +17578,11 @@
         "tags": [
           "agents"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "write",
+          "group": "agents"
+        }
       }
     },
     "/api/v1/agents/{agent_id}/unarchive": {
@@ -16425,7 +17669,11 @@
         "tags": [
           "agents"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "write",
+          "group": "agents"
+        }
       }
     },
     "/api/v1/assets": {
@@ -17141,7 +18389,11 @@
         "tags": [
           "connections"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "connections"
+        }
       },
       "post": {
         "operationId": "create_connection_api_v1_connections_post",
@@ -17208,7 +18460,11 @@
         "tags": [
           "connections"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "write",
+          "group": "connections"
+        }
       }
     },
     "/api/v1/connections/callback": {
@@ -17420,7 +18676,11 @@
         "tags": [
           "connections"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "connections"
+        }
       },
       "patch": {
         "operationId": "update_connection_api_v1_connections__connection_id__patch",
@@ -17515,7 +18775,11 @@
         "tags": [
           "connections"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "write",
+          "group": "connections"
+        }
       }
     },
     "/api/v1/connections/{connection_id}/authorize": {
@@ -17699,7 +18963,11 @@
         "tags": [
           "connections"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "write",
+          "group": "connections"
+        }
       }
     },
     "/api/v1/connections/{connection_id}/test": {
@@ -17767,7 +19035,11 @@
         "tags": [
           "connections"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "write",
+          "group": "connections"
+        }
       }
     },
     "/api/v1/connections/{connection_id}/tools": {
@@ -17834,7 +19106,11 @@
         "tags": [
           "connections"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "connections"
+        }
       }
     },
     "/api/v1/connector-providers": {
@@ -17920,7 +19196,11 @@
         "tags": [
           "providers"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "providers"
+        }
       },
       "post": {
         "operationId": "create_provider_api_v1_connector_providers_post",
@@ -18054,10 +19334,14 @@
         "tags": [
           "providers"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "providers"
+        }
       },
       "patch": {
-        "description": "A `config` change must also replace or remove a stored credential: it never follows a new endpoint.",
+        "description": "Omitted credentials and extra headers keep their saved values, including when `config` changes.",
         "operationId": "update_provider_api_v1_connector_providers__provider_id__patch",
         "parameters": [
           {
@@ -18272,7 +19556,11 @@
         "tags": [
           "connections"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "connections"
+        }
       }
     },
     "/api/v1/connector-providers/{provider_id}/apps/{app}": {
@@ -18348,7 +19636,11 @@
         "tags": [
           "connections"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "connections"
+        }
       }
     },
     "/api/v1/connector-providers/{provider_id}/apps/{app}/actions": {
@@ -18424,7 +19716,11 @@
         "tags": [
           "connections"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "connections"
+        }
       }
     },
     "/api/v1/connector-providers/{provider_id}/test": {
@@ -18578,7 +19874,11 @@
         "tags": [
           "providers"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "providers"
+        }
       },
       "post": {
         "operationId": "create_provider_api_v1_environment_providers_post",
@@ -18649,6 +19949,84 @@
       }
     },
     "/api/v1/environment-providers/{provider_id}": {
+      "delete": {
+        "operationId": "delete_environment_provider_api_v1_environment_providers__provider_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "provider_id",
+            "required": true,
+            "schema": {
+              "title": "Provider Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The resource's ETag: `\"{id}:{version}\"` of its current view, `\"{key}:{version}\"` for a model",
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The resource's ETag: `\"{id}:{version}\"` of its current view, `\"{key}:{version}\"` for a model",
+              "title": "If-Match"
+            }
+          },
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "csrf": [],
+            "loginSession": []
+          }
+        ],
+        "summary": "Delete Environment Provider",
+        "tags": [
+          "providers"
+        ],
+        "x-a13n-mcp": true
+      },
       "get": {
         "operationId": "get_provider_api_v1_environment_providers__provider_id__get",
         "parameters": [
@@ -18712,10 +20090,14 @@
         "tags": [
           "providers"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "providers"
+        }
       },
       "patch": {
-        "description": "A `config` change must also replace or remove a stored credential: it never follows a new endpoint.",
+        "description": "Omitted credentials and extra headers keep their saved values, including when `config` changes.",
         "operationId": "update_provider_api_v1_environment_providers__provider_id__patch",
         "parameters": [
           {
@@ -18805,6 +20187,73 @@
           }
         ],
         "summary": "Update environment provider",
+        "tags": [
+          "providers"
+        ],
+        "x-a13n-mcp": true
+      }
+    },
+    "/api/v1/environment-providers/{provider_id}/references": {
+      "get": {
+        "operationId": "environment_provider_references_api_v1_environment_providers__provider_id__references_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "provider_id",
+            "required": true,
+            "schema": {
+              "title": "Provider Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnvironmentProviderReferences"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "loginSession": []
+          }
+        ],
+        "summary": "Environment Provider References",
         "tags": [
           "providers"
         ],
@@ -18981,7 +20430,11 @@
         "tags": [
           "environments"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "environment_templates"
+        }
       },
       "post": {
         "operationId": "create_template_api_v1_environment_templates_post",
@@ -19048,7 +20501,11 @@
         "tags": [
           "environments"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "write",
+          "group": "environment_templates"
+        }
       }
     },
     "/api/v1/environment-templates/{template_id}": {
@@ -19115,7 +20572,11 @@
         "tags": [
           "environments"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "environment_templates"
+        }
       },
       "patch": {
         "operationId": "update_template_api_v1_environment_templates__template_id__patch",
@@ -19210,7 +20671,11 @@
         "tags": [
           "environments"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "write",
+          "group": "environment_templates"
+        }
       }
     },
     "/api/v1/environments": {
@@ -19639,6 +21104,75 @@
         "x-a13n-mcp": true
       }
     },
+    "/api/v1/environments/{environment_id}/computer/check": {
+      "post": {
+        "description": "Probe desktop readiness without capturing the screen, sending input or starting the instance.",
+        "operationId": "check_computer_api_v1_environments__environment_id__computer_check_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "environment_id",
+            "required": true,
+            "schema": {
+              "title": "Environment Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComputerCheck"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "csrf": [],
+            "loginSession": []
+          }
+        ],
+        "summary": "Check Computer",
+        "tags": [
+          "environments"
+        ],
+        "x-a13n-mcp": true
+      }
+    },
     "/api/v1/environments/{environment_id}/stop": {
       "post": {
         "operationId": "stop_environment_api_v1_environments__environment_id__stop_post",
@@ -19867,7 +21401,11 @@
         "tags": [
           "findings"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "execution"
+        }
       },
       "post": {
         "operationId": "start_analysis_api_v1_finding_analyses_post",
@@ -20111,7 +21649,11 @@
         "tags": [
           "findings"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "execution"
+        }
       },
       "post": {
         "operationId": "create_finding_api_v1_findings_post",
@@ -20244,7 +21786,11 @@
         "tags": [
           "findings"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "execution"
+        }
       },
       "patch": {
         "operationId": "update_finding_api_v1_findings__finding_id__patch",
@@ -20471,7 +22017,11 @@
         "tags": [
           "connections"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "connections"
+        }
       }
     },
     "/api/v1/media-understanding-defaults": {
@@ -20529,7 +22079,11 @@
         "tags": [
           "models"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "models"
+        }
       },
       "put": {
         "description": "Replaces all three kinds; each model must declare it understands its kind. Requires workspace admin.",
@@ -22624,7 +24178,7 @@
         "x-a13n-mcp": true
       },
       "patch": {
-        "description": "A `config` change must also replace or remove a stored credential: it never follows a new endpoint.",
+        "description": "Omitted credentials and extra headers keep their saved values, including when `config` changes.",
         "operationId": "update_provider_api_v1_memory_providers__provider_id__patch",
         "parameters": [
           {
@@ -22788,10 +24342,801 @@
         "x-a13n-mcp": true
       }
     },
+    "/api/v1/memory-spaces": {
+      "get": {
+        "operationId": "list_spaces_api_v1_memory_spaces_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "label",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Label"
+            }
+          },
+          {
+            "in": "query",
+            "name": "enabled",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Enabled"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemorySpacePage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "loginSession": []
+          }
+        ],
+        "summary": "List Spaces",
+        "tags": [
+          "memory spaces"
+        ],
+        "x-a13n-mcp": true
+      },
+      "post": {
+        "operationId": "create_space_api_v1_memory_spaces_post",
+        "parameters": [
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MemorySpaceCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemorySpace"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "csrf": [],
+            "loginSession": []
+          }
+        ],
+        "summary": "Create Space",
+        "tags": [
+          "memory spaces"
+        ],
+        "x-a13n-mcp": true
+      }
+    },
+    "/api/v1/memory-spaces/{space_id}": {
+      "delete": {
+        "operationId": "delete_space_api_v1_memory_spaces__space_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "space_id",
+            "required": true,
+            "schema": {
+              "title": "Space Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The resource's ETag: `\"{id}:{version}\"` of its current view, `\"{key}:{version}\"` for a model",
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The resource's ETag: `\"{id}:{version}\"` of its current view, `\"{key}:{version}\"` for a model",
+              "title": "If-Match"
+            }
+          },
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "csrf": [],
+            "loginSession": []
+          }
+        ],
+        "summary": "Delete Space",
+        "tags": [
+          "memory spaces"
+        ],
+        "x-a13n-mcp": true
+      },
+      "get": {
+        "operationId": "get_space_api_v1_memory_spaces__space_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "space_id",
+            "required": true,
+            "schema": {
+              "title": "Space Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemorySpace"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "loginSession": []
+          }
+        ],
+        "summary": "Get Space",
+        "tags": [
+          "memory spaces"
+        ],
+        "x-a13n-mcp": true
+      },
+      "patch": {
+        "operationId": "update_space_api_v1_memory_spaces__space_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "space_id",
+            "required": true,
+            "schema": {
+              "title": "Space Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The resource's ETag: `\"{id}:{version}\"` of its current view, `\"{key}:{version}\"` for a model",
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The resource's ETag: `\"{id}:{version}\"` of its current view, `\"{key}:{version}\"` for a model",
+              "title": "If-Match"
+            }
+          },
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MemorySpaceUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemorySpace"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "csrf": [],
+            "loginSession": []
+          }
+        ],
+        "summary": "Update Space",
+        "tags": [
+          "memory spaces"
+        ],
+        "x-a13n-mcp": true
+      }
+    },
+    "/api/v1/memory-spaces/{space_id}/organization": {
+      "get": {
+        "operationId": "get_space_organization_api_v1_memory_spaces__space_id__organization_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "space_id",
+            "required": true,
+            "schema": {
+              "title": "Space Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpaceOrganizationStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "loginSession": []
+          }
+        ],
+        "summary": "Get Space Organization",
+        "tags": [
+          "memory spaces"
+        ],
+        "x-a13n-mcp": true
+      }
+    },
+    "/api/v1/memory-spaces/{space_id}/organizations": {
+      "get": {
+        "operationId": "list_space_organizations_api_v1_memory_spaces__space_id__organizations_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "space_id",
+            "required": true,
+            "schema": {
+              "title": "Space Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "loginSession": []
+          }
+        ],
+        "summary": "List Space Organizations",
+        "tags": [
+          "memory spaces"
+        ],
+        "x-a13n-mcp": true
+      },
+      "post": {
+        "operationId": "organize_space_api_v1_memory_spaces__space_id__organizations_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "space_id",
+            "required": true,
+            "schema": {
+              "title": "Space Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpaceOrganizationStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "csrf": [],
+            "loginSession": []
+          }
+        ],
+        "summary": "Organize Space",
+        "tags": [
+          "memory spaces"
+        ]
+      }
+    },
+    "/api/v1/memory-spaces/{space_id}/sessions": {
+      "get": {
+        "operationId": "list_space_sessions_api_v1_memory_spaces__space_id__sessions_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "space_id",
+            "required": true,
+            "schema": {
+              "title": "Space Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "loginSession": []
+          }
+        ],
+        "summary": "List Space Sessions",
+        "tags": [
+          "memory spaces"
+        ],
+        "x-a13n-mcp": true
+      }
+    },
     "/api/v1/model-catalog": {
       "get": {
-        "description": "The models.dev models the registered model provider types serve, for any signed-in principal.",
+        "description": "Read public model metadata and prices. Filter by provider and model to avoid a large full-catalog response.\n\nBoth filters match exactly and combine with AND; omitted filters leave that dimension unrestricted.\nNo match returns empty items with the catalog status. Refreshes always fetch the full catalog when due.\nCopy the selected item's characteristics, pricing and ref into model config, pricing and catalog_ref when saving.",
         "operationId": "get_model_catalog_api_v1_model_catalog_get",
+        "parameters": [
+          {
+            "description": "Exact catalog channel ID, such as openrouter.",
+            "in": "query",
+            "name": "provider",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[a-z0-9][a-z0-9_-]{0,127}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Exact catalog channel ID, such as openrouter.",
+              "title": "Provider"
+            }
+          },
+          {
+            "description": "Exact, case-sensitive model ID within the catalog channel.",
+            "in": "query",
+            "name": "model",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 256,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Exact, case-sensitive model ID within the catalog channel.",
+              "title": "Model"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -22802,6 +25147,9 @@
               }
             },
             "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
           },
           "default": {
             "$ref": "#/components/responses/Error"
@@ -22819,7 +25167,11 @@
         "tags": [
           "models"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "models"
+        }
       }
     },
     "/api/v1/model-providers": {
@@ -22905,7 +25257,11 @@
         "tags": [
           "providers"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "providers"
+        }
       },
       "post": {
         "operationId": "create_provider_api_v1_model_providers_post",
@@ -23039,10 +25395,14 @@
         "tags": [
           "providers"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "providers"
+        }
       },
       "patch": {
-        "description": "A `config` change must also replace or remove a stored credential: it never follows a new endpoint.",
+        "description": "Omitted credentials and extra headers keep their saved values, including when `config` changes.",
         "operationId": "update_provider_api_v1_model_providers__provider_id__patch",
         "parameters": [
           {
@@ -23491,7 +25851,11 @@
         "tags": [
           "providers"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "providers"
+        }
       }
     },
     "/api/v1/model-providers/{provider_id}/test": {
@@ -23645,7 +26009,11 @@
         "tags": [
           "models"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "models"
+        }
       },
       "post": {
         "description": "Needs `write` on the workspace and on the model's provider, whose credential the model spends.",
@@ -23713,7 +26081,11 @@
         "tags": [
           "models"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "write",
+          "group": "models"
+        }
       }
     },
     "/api/v1/models/{key}": {
@@ -23780,7 +26152,11 @@
         "tags": [
           "models"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "models"
+        }
       },
       "patch": {
         "description": "A configuration change also needs `write` on the model's provider.",
@@ -23876,7 +26252,11 @@
         "tags": [
           "models"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "write",
+          "group": "models"
+        }
       }
     },
     "/api/v1/organizations": {
@@ -25147,6 +27527,226 @@
         "x-a13n-mcp": true
       }
     },
+    "/api/v1/runs": {
+      "get": {
+        "operationId": "list_runs_api_v1_runs_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "agent_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Agent Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "session_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Session Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "thread_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Thread Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "principal_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Principal Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "accepted",
+                    "running",
+                    "waiting",
+                    "completed",
+                    "failed",
+                    "cancelled"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "created_after",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Created After"
+            }
+          },
+          {
+            "in": "query",
+            "name": "created_before",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Created Before"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "loginSession": []
+          }
+        ],
+        "summary": "List Runs",
+        "tags": [
+          "runs"
+        ],
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "execution"
+        }
+      }
+    },
     "/api/v1/runs/{run_id}": {
       "get": {
         "operationId": "get_run_api_v1_runs__run_id__get",
@@ -25210,7 +27810,12 @@
         "summary": "Get Run",
         "tags": [
           "runs"
-        ]
+        ],
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "execution"
+        }
       },
       "patch": {
         "description": "Labels only.",
@@ -25308,6 +27913,78 @@
         ]
       }
     },
+    "/api/v1/runs/{run_id}/agent": {
+      "get": {
+        "description": "The agent configuration the run executes: its revision with the run's override applied.",
+        "operationId": "run_agent_api_v1_runs__run_id__agent_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunAgent"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "loginSession": []
+          }
+        ],
+        "summary": "Run Agent",
+        "tags": [
+          "runs"
+        ],
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "execution"
+        }
+      }
+    },
     "/api/v1/runs/{run_id}/attempts": {
       "get": {
         "operationId": "run_attempts_api_v1_runs__run_id__attempts_get",
@@ -25371,7 +28048,92 @@
         "summary": "Run Attempts",
         "tags": [
           "runs"
-        ]
+        ],
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "execution"
+        }
+      }
+    },
+    "/api/v1/runs/{run_id}/attempts/{attempt_id}": {
+      "get": {
+        "operationId": "get_attempt_api_v1_runs__run_id__attempts__attempt_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "attempt_id",
+            "required": true,
+            "schema": {
+              "title": "Attempt Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttemptView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "loginSession": []
+          }
+        ],
+        "summary": "Get Attempt",
+        "tags": [
+          "runs"
+        ],
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "execution"
+        }
       }
     },
     "/api/v1/runs/{run_id}/attempts/{attempt_id}/trace": {
@@ -25476,7 +28238,11 @@
         "tags": [
           "runs"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "execution"
+        }
       }
     },
     "/api/v1/runs/{run_id}/contents/{content_id}": {
@@ -25552,7 +28318,12 @@
         "summary": "Run Content",
         "tags": [
           "runs"
-        ]
+        ],
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "execution"
+        }
       }
     },
     "/api/v1/runs/{run_id}/fork": {
@@ -25650,6 +28421,89 @@
           }
         ],
         "summary": "Fork Run",
+        "tags": [
+          "runs"
+        ]
+      }
+    },
+    "/api/v1/runs/{run_id}/images/{image_id}": {
+      "get": {
+        "description": "Read a retained screenshot from committed Run history. Binary media is not an MCP query endpoint.",
+        "operationId": "run_image_api_v1_runs__run_id__images__image_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "image_id",
+            "required": true,
+            "schema": {
+              "title": "Image Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "image/jpeg": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "loginSession": []
+          }
+        ],
+        "summary": "Run Image",
         "tags": [
           "runs"
         ]
@@ -25836,7 +28690,12 @@
         "summary": "Run Items",
         "tags": [
           "runs"
-        ]
+        ],
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "execution"
+        }
       }
     },
     "/api/v1/runs/{run_id}/lineage": {
@@ -25919,7 +28778,12 @@
         "summary": "Run Lineage",
         "tags": [
           "runs"
-        ]
+        ],
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "execution"
+        }
       }
     },
     "/api/v1/runs/{run_id}/resume": {
@@ -26216,7 +29080,12 @@
         "summary": "List Sessions",
         "tags": [
           "runs"
-        ]
+        ],
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "execution"
+        }
       },
       "post": {
         "operationId": "create_session_api_v1_sessions_post",
@@ -26348,7 +29217,12 @@
         "summary": "Get Session",
         "tags": [
           "runs"
-        ]
+        ],
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "execution"
+        }
       },
       "patch": {
         "operationId": "update_session_api_v1_sessions__session_id__patch",
@@ -26524,7 +29398,12 @@
         "summary": "Get Message Authors",
         "tags": [
           "runs"
-        ]
+        ],
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "execution"
+        }
       }
     },
     "/api/v1/skills": {
@@ -26684,7 +29563,11 @@
         "tags": [
           "skills"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "skills"
+        }
       },
       "post": {
         "operationId": "create_skill_api_v1_skills_post",
@@ -26751,7 +29634,11 @@
         "tags": [
           "skills"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "write",
+          "group": "skills"
+        }
       }
     },
     "/api/v1/skills/validate": {
@@ -26821,7 +29708,11 @@
         "tags": [
           "skills"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "skills"
+        }
       }
     },
     "/api/v1/skills/{skill_id}": {
@@ -26888,7 +29779,11 @@
         "tags": [
           "skills"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "skills"
+        }
       },
       "patch": {
         "description": "Name, description and labels; an archived skill changes only by unarchiving.",
@@ -26984,7 +29879,11 @@
         "tags": [
           "skills"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "write",
+          "group": "skills"
+        }
       }
     },
     "/api/v1/skills/{skill_id}/archive": {
@@ -27072,7 +29971,11 @@
         "tags": [
           "skills"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "write",
+          "group": "skills"
+        }
       }
     },
     "/api/v1/skills/{skill_id}/revisions": {
@@ -27167,7 +30070,11 @@
         "tags": [
           "skills"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "skills"
+        }
       },
       "post": {
         "description": "A package whose manifest equals the default revision's creates nothing and returns that revision.",
@@ -27263,7 +30170,11 @@
         "tags": [
           "skills"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "write",
+          "group": "skills"
+        }
       }
     },
     "/api/v1/skills/{skill_id}/revisions/{revision_id}": {
@@ -27339,7 +30250,11 @@
         "tags": [
           "skills"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "skills"
+        }
       }
     },
     "/api/v1/skills/{skill_id}/revisions/{revision_id}/content": {
@@ -27598,7 +30513,11 @@
         "tags": [
           "skills"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "write",
+          "group": "skills"
+        }
       }
     },
     "/api/v1/skills/{skill_id}/unarchive": {
@@ -27685,7 +30604,11 @@
         "tags": [
           "skills"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "write",
+          "group": "skills"
+        }
       }
     },
     "/api/v1/subscriptions": {
@@ -28371,7 +31294,12 @@
         "summary": "List Threads",
         "tags": [
           "runs"
-        ]
+        ],
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "execution"
+        }
       },
       "post": {
         "description": "Create a thread (and its session unless one is named) with its first message.",
@@ -28526,7 +31454,12 @@
         "summary": "Get Thread",
         "tags": [
           "runs"
-        ]
+        ],
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "execution"
+        }
       },
       "patch": {
         "operationId": "update_thread_api_v1_threads__thread_id__patch",
@@ -28958,6 +31891,110 @@
           "environments"
         ],
         "x-a13n-mcp": true
+      },
+      "patch": {
+        "operationId": "update_mount_api_v1_threads__thread_id__environments__name__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "thread_id",
+            "required": true,
+            "schema": {
+              "title": "Thread Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "title": "Name",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The resource's ETag: `\"{id}:{version}\"` of its current view, `\"{key}:{version}\"` for a model",
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The resource's ETag: `\"{id}:{version}\"` of its current view, `\"{key}:{version}\"` for a model",
+              "title": "If-Match"
+            }
+          },
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MountUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MountView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "csrf": [],
+            "loginSession": []
+          }
+        ],
+        "summary": "Update Mount",
+        "tags": [
+          "environments"
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/threads/{thread_id}/inbox": {
@@ -29071,7 +32108,12 @@
         "summary": "List Inbox",
         "tags": [
           "runs"
-        ]
+        ],
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "execution"
+        }
       },
       "post": {
         "description": "Append a message; it starts a run at once when the thread can accept it, or steers the active run.",
@@ -29435,7 +32477,12 @@
         "summary": "Get Entry",
         "tags": [
           "runs"
-        ]
+        ],
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "execution"
+        }
       },
       "patch": {
         "operationId": "edit_entry_api_v1_threads__thread_id__inbox__entry_id__patch",
@@ -29984,7 +33031,12 @@
         "summary": "List Thread Runs",
         "tags": [
           "runs"
-        ]
+        ],
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "execution"
+        }
       }
     },
     "/api/v1/threads/{thread_id}/stream": {
@@ -30155,7 +33207,11 @@
         "tags": [
           "agents"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "agents"
+        }
       }
     },
     "/api/v1/trace-backend": {
@@ -30214,7 +33270,11 @@
         "tags": [
           "runs"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "execution"
+        }
       }
     },
     "/api/v1/traces": {
@@ -30410,7 +33470,11 @@
         "tags": [
           "runs"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "execution"
+        }
       }
     },
     "/api/v1/traces/{trace_id}": {
@@ -30479,7 +33543,11 @@
         "tags": [
           "runs"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "execution"
+        }
       }
     },
     "/api/v1/traces/{trace_id}/spans": {
@@ -30576,7 +33644,11 @@
         "tags": [
           "runs"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "execution"
+        }
       }
     },
     "/api/v1/uploads": {
@@ -30802,7 +33874,8 @@
         "summary": "Summarize Usage",
         "tags": [
           "usage"
-        ]
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/usage/agents": {
@@ -31103,6 +34176,73 @@
         "tags": [
           "usage"
         ]
+      }
+    },
+    "/api/v1/usage/records/{record_id}/metrics": {
+      "get": {
+        "operationId": "model_request_metrics_api_v1_usage_records__record_id__metrics_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "record_id",
+            "required": true,
+            "schema": {
+              "title": "Record Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 41,
+                  "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The workspace ID a login session acts in; required with a login session. An API key acts in its own workspace and needs none; naming another is forbidden.",
+              "title": "X-Workspace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelRequestMetrics"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "loginSession": []
+          }
+        ],
+        "summary": "Model Request Metrics",
+        "tags": [
+          "usage"
+        ],
+        "x-a13n-mcp": true
       }
     },
     "/api/v1/users/me": {
@@ -31934,7 +35074,11 @@
         "tags": [
           "providers"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "providers"
+        }
       },
       "post": {
         "operationId": "create_provider_api_v1_web_providers_post",
@@ -32068,10 +35212,14 @@
         "tags": [
           "providers"
         ],
-        "x-a13n-mcp": true
+        "x-a13n-mcp": true,
+        "x-a13n-platform": {
+          "effect": "read",
+          "group": "providers"
+        }
       },
       "patch": {
-        "description": "A `config` change must also replace or remove a stored credential: it never follows a new endpoint.",
+        "description": "Omitted credentials and extra headers keep their saved values, including when `config` changes.",
         "operationId": "update_provider_api_v1_web_providers__provider_id__patch",
         "parameters": [
           {

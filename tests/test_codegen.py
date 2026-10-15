@@ -20,6 +20,9 @@ def test_adapter_preserves_pinned_contract_and_normalizes_generator_only_shapes(
     image = "/api/v1/workspaces/{workspace_id}/icon"
     assert set(document["paths"][image]["put"]["requestBody"]["content"]) == {"image/jpeg", "image/png", "image/webp"}
     assert set(adapted["paths"][image]["put"]["requestBody"]["content"]) == {"application/octet-stream"}
+    retained = "/api/v1/runs/{run_id}/images/{image_id}"
+    assert set(document["paths"][retained]["get"]["responses"]["200"]["content"]) == {"image/jpeg", "image/png"}
+    assert set(adapted["paths"][retained]["get"]["responses"]["200"]["content"]) == {"application/octet-stream"}
 
 
 def test_default_response_and_property_named_default_are_not_annotations() -> None:
@@ -92,7 +95,7 @@ def test_every_pinned_named_model_and_inline_schema_has_generated_coverage() -> 
             assert exported in wire.__all__, name
             named.add(name)
     assert named | inline == schemas.keys()
-    assert len(schemas) == 340
+    assert len(schemas) == 364
     for name in inline:
         reference = f"#/components/schemas/{name}"
         assert reference in json.dumps(document), name

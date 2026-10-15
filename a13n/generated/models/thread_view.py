@@ -8,6 +8,8 @@ from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
 from ..models.thread_view_origin import ThreadViewOrigin
+from ..models.thread_view_purpose import ThreadViewPurpose
+from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.message_history_item import MessageHistoryItem
@@ -41,6 +43,7 @@ class ThreadView:
         updated_at (datetime.datetime):
         version (int):
         workspace_id (str):
+        purpose (ThreadViewPurpose | Unset):
     """
 
     archived_at: datetime.datetime | None
@@ -60,6 +63,7 @@ class ThreadView:
     updated_at: datetime.datetime
     version: int
     workspace_id: str
+    purpose: ThreadViewPurpose | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -110,6 +114,10 @@ class ThreadView:
 
         workspace_id = self.workspace_id
 
+        purpose: str | Unset = UNSET
+        if not isinstance(self.purpose, Unset):
+            purpose = self.purpose.value
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -133,6 +141,8 @@ class ThreadView:
                 "workspace_id": workspace_id,
             }
         )
+        if purpose is not UNSET:
+            field_dict["purpose"] = purpose
 
         return field_dict
 
@@ -228,6 +238,13 @@ class ThreadView:
 
         workspace_id = d.pop("workspace_id")
 
+        _purpose = d.pop("purpose", UNSET)
+        purpose: ThreadViewPurpose | Unset
+        if isinstance(_purpose, Unset):
+            purpose = UNSET
+        else:
+            purpose = ThreadViewPurpose(_purpose)
+
         thread_view = cls(
             archived_at=archived_at,
             created_at=created_at,
@@ -246,6 +263,7 @@ class ThreadView:
             updated_at=updated_at,
             version=version,
             workspace_id=workspace_id,
+            purpose=purpose,
         )
 
         thread_view.additional_properties = d
