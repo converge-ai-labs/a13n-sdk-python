@@ -17,6 +17,7 @@ from ..types import UNSET, Unset
 if TYPE_CHECKING:
     from ..models.environment_mount import EnvironmentMount
     from ..models.failure import Failure
+    from ..models.frozen_memory_mount import FrozenMemoryMount
     from ..models.memory_mount import MemoryMount
     from ..models.pending import Pending
     from ..models.resume import Resume
@@ -45,7 +46,7 @@ class RunView:
         labels (RunViewLabels):
         lineage (Lineage):
         max_attempts (int):
-        memory_mounts (list[MemoryMount]):
+        memory_mounts (list[FrozenMemoryMount | MemoryMount]):
         options (RunOptionsOutput): What a message may choose for the run it starts. A steer joins a run with the
             defaults or equal options.
         output (Any | None):
@@ -83,7 +84,7 @@ class RunView:
     labels: RunViewLabels
     lineage: Lineage
     max_attempts: int
-    memory_mounts: list[MemoryMount]
+    memory_mounts: list[FrozenMemoryMount | MemoryMount]
     options: RunOptionsOutput
     output: Any | None
     parent_run_id: str | None
@@ -110,6 +111,7 @@ class RunView:
 
     def to_dict(self) -> dict[str, Any]:
         from ..models.failure import Failure
+        from ..models.memory_mount import MemoryMount
         from ..models.pending import Pending
         from ..models.resume import Resume
         from ..models.run_view_input_type_0 import RunViewInputType0
@@ -153,7 +155,12 @@ class RunView:
 
         memory_mounts = []
         for memory_mounts_item_data in self.memory_mounts:
-            memory_mounts_item = memory_mounts_item_data.to_dict()
+            memory_mounts_item: dict[str, Any]
+            if isinstance(memory_mounts_item_data, MemoryMount):
+                memory_mounts_item = memory_mounts_item_data.to_dict()
+            else:
+                memory_mounts_item = memory_mounts_item_data.to_dict()
+
             memory_mounts.append(memory_mounts_item)
 
         options = self.options.to_dict()
@@ -288,6 +295,7 @@ class RunView:
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.environment_mount import EnvironmentMount
         from ..models.failure import Failure
+        from ..models.frozen_memory_mount import FrozenMemoryMount
         from ..models.memory_mount import MemoryMount
         from ..models.pending import Pending
         from ..models.resume import Resume
@@ -360,7 +368,25 @@ class RunView:
         memory_mounts = []
         _memory_mounts = d.pop("memory_mounts")
         for memory_mounts_item_data in _memory_mounts:
-            memory_mounts_item = MemoryMount.from_dict(memory_mounts_item_data)
+
+            def _parse_memory_mounts_item(data: object) -> FrozenMemoryMount | MemoryMount:
+                try:
+                    if not isinstance(data, dict):
+                        raise TypeError()
+                    if "roots" in data or "space_id" in data:
+                        raise TypeError()
+                    memory_mounts_item_type_0 = MemoryMount.from_dict(data)
+
+                    return memory_mounts_item_type_0
+                except (TypeError, ValueError, AttributeError, KeyError):
+                    pass
+                if not isinstance(data, dict):
+                    raise TypeError()
+                memory_mounts_item_type_1 = FrozenMemoryMount.from_dict(data)
+
+                return memory_mounts_item_type_1
+
+            memory_mounts_item = _parse_memory_mounts_item(memory_mounts_item_data)
 
             memory_mounts.append(memory_mounts_item)
 

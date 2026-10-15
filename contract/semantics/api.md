@@ -10,7 +10,7 @@ Resource routes are served by the `all` and `control` roles; the `worker` role s
 
 `/api/v1/mcp/` serves Streamable HTTP MCP on API-serving roles. It is an alternate transport for workspace resource management and read-only execution queries, not an execution engine or an arbitrary HTTP proxy. The original HTTP operations retain ownership of authentication, authorization, validation, audit, preconditions, pagination and trace redaction.
 
-The assembled application's OpenAPI admits operations individually through `x-a13n-mcp: true`. Admission covers JSON workspace resource operations, including resources that reference existing upload IDs, environment management, read-only Session, Thread, inbox, Run, Attempt, display-content and trace lookup, and the scoped usage summary (`GET /usage`). Agent execution/submission/resume/cancellation/waiting, live output/SSE, file transfers and binary content, organization/member/permission administration, and browser login/OAuth authorization flows remain outside this surface. Findings list/detail and Analysis history are admitted read-only JSON queries. Finding submission/review and analysis start/preset preparation remain direct HTTP operations. Distribution routes follow the same explicit admission and JSON constraints. Unmarked operations stay absent; invalid admitted operations and tool-name collisions fail assembly. Generated tool names are deterministic for their operation IDs, independent of route traversal order. Arguments cannot redirect dispatch to a different operation.
+The assembled application's OpenAPI admits operations individually through `x-a13n-mcp: true`. Admission covers JSON workspace resource operations, including resources that reference existing upload IDs, environment management, read-only Session, Thread, inbox, Run, Attempt, display-content and trace lookup, the scoped usage summary (`GET /usage`), and per-record model request metrics (`GET /usage/records/{record_id}/metrics`). Agent execution/submission/resume/cancellation/waiting, live output/SSE, file transfers and binary content, organization/member/permission administration, and browser login/OAuth authorization flows remain outside this surface. Findings list/detail and Analysis history are admitted read-only JSON queries. Finding submission/review and analysis start/preset preparation remain direct HTTP operations. Distribution routes follow the same explicit admission and JSON constraints. Unmarked operations stay absent; invalid admitted operations and tool-name collisions fail assembly. Generated tool names are deterministic for their operation IDs, independent of route traversal order. Arguments cannot redirect dispatch to a different operation.
 
 Discovery and invocation require a Bearer credential: the selected Distribution authenticator supplies external workspace credentials; the application validates [Run platform credentials](03-tenancy.md#run-platform-credentials) for internal Agents. Both yield a workspace-confined principal. Browser cookies are not used. An explicit `X-Workspace-ID` must agree with confinement. Credentials and workspace selection are connection context, not tool arguments. Each generated call forwards the caller's credential to the original HTTP application, which authorizes again; neither identities nor cookies are shared across invocations. The transport supplies no additional approval authority.
 
@@ -299,6 +299,8 @@ Paths are relative to `/api/v1` unless they start at the root. `{org}` is an org
 | `/runs/{run}/resume`                  | POST               | [05](05-runs.md#waiting-interrupt-and-fork)      |
 | `/runs/{run}/items`                   | GET                | [05](05-runs.md#reads)                           |
 | `/runs/{run}/contents/{content}`      | GET                | [05](05-runs.md#reads)                           |
+| `/runs/{run}/images/{image}`          | GET                | [05](05-runs.md#reads)                           |
+| `/runs/{run}/agent`                   | GET                | [05](05-runs.md#reads)                           |
 | `/runs/{run}/lineage`                 | GET                | [05](05-runs.md#reads)                           |
 | `/runs/{run}/attempts`                | GET                | [05](05-runs.md#reads)                           |
 | `/runs/{run}/attempts/{attempt}`      | GET                | [05](05-runs.md#reads)                           |
@@ -313,9 +315,17 @@ Paths are relative to `/api/v1` unless they start at the root. `{org}` is an org
 | `/environments/{environment}`           | GET, PATCH, DELETE | [06](06-environments.md#stop-start-and-delete), [external targets](06-environments.md#external-targets) |
 | `/environments/{environment}/stop`      | POST               | [06](06-environments.md#stop-start-and-delete)                                                          |
 | `/threads/{thread}/environments`        | GET, POST          | [06](06-environments.md#mounts)                                                                         |
-| `/threads/{thread}/environments/{name}` | DELETE             | [06](06-environments.md#mounts)                                                                         |
+| `/threads/{thread}/environments/{name}` | PATCH, DELETE      | [06](06-environments.md#mounts)                                                                         |
 
 ### Memories
+
+| Path                                   | Methods            | Owner                                     |
+| -------------------------------------- | ------------------ | ----------------------------------------- |
+| `/memory-spaces`                       | GET, POST          | [11](11-memory.md#memory-spaces)          |
+| `/memory-spaces/{space}`               | GET, PATCH, DELETE | [11](11-memory.md#memory-spaces)          |
+| `/memory-spaces/{space}/organization`  | GET                | [11](11-memory.md#organization-lifecycle) |
+| `/memory-spaces/{space}/organizations` | GET, POST          | [11](11-memory.md#organization-lifecycle) |
+| `/memory-spaces/{space}/sessions`      | GET                | [11](11-memory.md#organization-lifecycle) |
 
 | Path                                         | Methods            | Owner                                                |
 | -------------------------------------------- | ------------------ | ---------------------------------------------------- |
@@ -343,6 +353,7 @@ A file `{path}` is the file's path in the memory, with its `/` separators. A fil
 | `/usage/agents`                        | GET     | [07](07-facts-and-delivery.md#workspace-usage-analysis) |
 | `/usage/models`                        | GET     | [07](07-facts-and-delivery.md#workspace-usage-analysis) |
 | `/usage`                               | GET     | [07](07-facts-and-delivery.md#usage-records)            |
+| `/usage/records/{record_id}/metrics`   | GET     | [07](07-facts-and-delivery.md#usage-records)            |
 | `/runs/{run}/attempts/{attempt}/trace` | GET     | [07](07-facts-and-delivery.md#trace-query)              |
 | `/traces`                              | GET     | [07](07-facts-and-delivery.md#trace-query)              |
 | `/traces/{trace}`                      | GET     | [07](07-facts-and-delivery.md#trace-query)              |

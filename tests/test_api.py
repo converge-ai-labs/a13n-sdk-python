@@ -24,6 +24,7 @@ FAMILIES = {
     "media_understanding_defaults",
     "memories",
     "memory_providers",
+    "memory_spaces",
     "model_catalog",
     "model_providers",
     "models",

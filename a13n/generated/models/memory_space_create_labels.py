@@ -6,11 +6,11 @@ from typing import Any, TypeVar
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
-T = TypeVar("T", bound="SessionUpdateLabels")
+T = TypeVar("T", bound="MemorySpaceCreateLabels")
 
 
 @_attrs_define(repr=False)
-class SessionUpdateLabels:
+class MemorySpaceCreateLabels:
     additional_properties: dict[str, str] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -23,10 +23,10 @@ class SessionUpdateLabels:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        session_update_labels = cls()
+        memory_space_create_labels = cls()
 
-        session_update_labels.additional_properties = d
-        return session_update_labels
+        memory_space_create_labels.additional_properties = d
+        return memory_space_create_labels
 
     @property
     def additional_keys(self) -> list[str]:

@@ -168,4 +168,6 @@ async def load_saved_text(client: Client, run_id: str) -> None:
 
 Each request returns the whole saved value as `RunContent`, including native JSON false, zero, null or empty containers. Service checks the reference belongs to the Run's committed display and returns `Cache-Control: no-store`; superseded, private or other-Run references are `not_found`, and missing/damaged objects are `unavailable`. The value may itself be truncated. Finite observation and bounded text preview do not fetch references or synthesize expanded history.
 
+Retained Computer screenshots use separate opaque image references (`id`, `media_type`, `size_bytes`), not `RunContent` values or inline base64. Read them through `client.api.runs(run_id).images(image_id).get()` or `.get_stream()`; [execution inspection](resources.md#inspect-execution-retained-images-and-timing) shows the buffered call. The original JPEG/PNG bytes and Content-Type are retained. A read captures no new pixels and fails if the image does not belong to the Run's committed history. Neither the stream nor `text_stream()` automatically downloads images.
+
 [Back to the guide](README.md) · [Next: waiting and tools](waiting-and-tools.md)

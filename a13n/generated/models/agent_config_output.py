@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     from ..models.platform_selection import PlatformSelection
     from ..models.plugin_selection import PluginSelection
     from ..models.retry_config import RetryConfig
+    from ..models.session_memory_settings import SessionMemorySettings
     from ..models.shared_skill_sync import SharedSkillSync
     from ..models.skill_selection import SkillSelection
 
@@ -43,6 +44,8 @@ class AgentConfigOutput:
         lazy_environment (bool | Unset):
         media_understanding (MediaUnderstandingSelection | Unset): The model, by key, describing each media kind a model
             cannot read; a kind without one is unavailable.
+        memory (SessionMemorySettings | Unset): Participation and complete Space selection; policy belongs to each
+            Space.
         memory_mounts (list[MemoryMount] | Unset):
         model_characteristics (AgentModelCharacteristics | Unset): The agent's context policy, layered over what the
             model declares.
@@ -69,6 +72,7 @@ class AgentConfigOutput:
     instructions: str | Unset = UNSET
     lazy_environment: bool | Unset = UNSET
     media_understanding: MediaUnderstandingSelection | Unset = UNSET
+    memory: SessionMemorySettings | Unset = UNSET
     memory_mounts: list[MemoryMount] | Unset = UNSET
     model_characteristics: AgentModelCharacteristics | Unset = UNSET
     model_settings: AgentConfigOutputModelSettings | Unset = UNSET
@@ -123,6 +127,10 @@ class AgentConfigOutput:
         media_understanding: dict[str, Any] | Unset = UNSET
         if not isinstance(self.media_understanding, Unset):
             media_understanding = self.media_understanding.to_dict()
+
+        memory: dict[str, Any] | Unset = UNSET
+        if not isinstance(self.memory, Unset):
+            memory = self.memory.to_dict()
 
         memory_mounts: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.memory_mounts, Unset):
@@ -224,6 +232,8 @@ class AgentConfigOutput:
             field_dict["lazy_environment"] = lazy_environment
         if media_understanding is not UNSET:
             field_dict["media_understanding"] = media_understanding
+        if memory is not UNSET:
+            field_dict["memory"] = memory
         if memory_mounts is not UNSET:
             field_dict["memory_mounts"] = memory_mounts
         if model_characteristics is not UNSET:
@@ -271,6 +281,7 @@ class AgentConfigOutput:
         from ..models.platform_selection import PlatformSelection
         from ..models.plugin_selection import PluginSelection
         from ..models.retry_config import RetryConfig
+        from ..models.session_memory_settings import SessionMemorySettings
         from ..models.shared_skill_sync import SharedSkillSync
         from ..models.skill_selection import SkillSelection
 
@@ -328,6 +339,13 @@ class AgentConfigOutput:
             media_understanding = UNSET
         else:
             media_understanding = MediaUnderstandingSelection.from_dict(_media_understanding)
+
+        _memory = d.pop("memory", UNSET)
+        memory: SessionMemorySettings | Unset
+        if isinstance(_memory, Unset):
+            memory = UNSET
+        else:
+            memory = SessionMemorySettings.from_dict(_memory)
 
         _memory_mounts = d.pop("memory_mounts", UNSET)
         memory_mounts: list[MemoryMount] | Unset = UNSET
@@ -479,6 +497,7 @@ class AgentConfigOutput:
             instructions=instructions,
             lazy_environment=lazy_environment,
             media_understanding=media_understanding,
+            memory=memory,
             memory_mounts=memory_mounts,
             model_characteristics=model_characteristics,
             model_settings=model_settings,

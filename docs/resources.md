@@ -268,6 +268,74 @@ Follow the returned `method`: `manual_callback` accepts a pasted callback throug
 
 `await provider.authorization.delete(...)` clears local Provider tokens and reports external revocation separately through nullable `revocation_confirmed`. Treat unknown exchange/revocation outcomes as reported facts, not permission to replay mutations. Hosted callback setup and issuer approval are operator responsibilities.
 
+## Select platform tools independently of instructions
+
+`AgentOverride` also accepts native `builtin_skills` and `platform_tools` selections:
+
+```python
+from a13n import AgentOverride, RunOptions
+
+platform_options = RunOptions(
+    overrides=AgentOverride(
+        builtin_skills=["platform-operations"],
+        platform_tools={"groups": ["execution", "models"], "read_permission": "allow", "write_permission": "ask"},
+    )
+)
+```
+
+Use these options with the ordinary Agent workflow. An empty selection is explicit; omission inherits native policy, while permitted null remains null. Instructions do not enable MCP groups or grant tenant permissions. `ToolsetKey.COMPUTER` selects a separate native toolset, not a platform group.
+
+## Check a desktop and restrict a desired mount
+
+```python
+from a13n import Client
+from a13n.generated import models as wire
+
+
+async def restrict_mount(client: Client, thread_id: str, mount_name: str) -> wire.MountView:
+    thread = client.api.threads(thread_id)
+    current = await thread.get()
+    updated = await thread.environments(mount_name).update(
+        body=wire.MountUpdate(permission_ceiling=wire.EnvironmentPermissionSetInput(operations=[])),
+        if_match=current.etag,
+    )
+    return updated.value
+
+
+async def check_desktop(client: Client, environment_id: str) -> wire.ComputerCheck:
+    return (await client.api.environments(environment_id).computer.check()).value
+```
+
+The check does not start an instance, capture pixels or send input. `not_ready` differs from `unsupported`, and provider failures remain errors. Computer use needs an enabled Agent toolset, explicit mount actions and a capable ready provider. Omitted `MountCreate.permission_ceiling` retains file/execution defaults and grants no Computer actions; `{ "operations": [] }` explicitly removes those mount operations. A Thread ceiling update affects future Runs, not accepted frozen mounts, and still requires the Thread ETag.
+
+Environment Provider `references.get()` reports counts and bounded reference samples. `delete(if_match=...)` may fail while references remain. Private provider configuration is write-only: a public read is not a backup of connection credentials. Provider PATCH preserves omitted credentials and header values even when `config` changes. Credentials replace as a whole and null removes them; Provider `extra_headers` updates per name, so omitted names and `{}` retain saved headers. This differs from Model/Agent whole-object `extra_headers` replacement. Public readback reports credential presence and header names, not their private values. Keep private input in the Provider HTTP request, not Composer tool arguments or Run resume answers; saving a Provider and resuming a Run are independent operations.
+
+## Inspect execution, retained images, and timing
+
+```python
+from a13n import Client
+from a13n.generated import models as wire
+
+
+async def executed_agent(client: Client, run_id: str) -> wire.RunAgent:
+    return (await client.api.runs(run_id).agent.get()).value
+
+
+async def read_retained_image(client: Client, run_id: str, image_id: str) -> tuple[bytes, str]:
+    image = await client.api.runs(run_id).images(image_id).get()
+    return image.content, image.headers["content-type"]
+
+
+async def request_metrics(client: Client, record_id: str) -> wire.ModelRequestMetrics:
+    return (await client.api.usage.records(record_id).metrics.get()).value
+```
+
+`RunAgent.revision` identifies the frozen revision; `config` adds that Run's overrides. Models, Connections and templates named by the config remain live. Use `client.api.runs.list(...)` for native filtered pages and `runs(id).attempts(attempt_id).get()` for one attempt; neither query changes execution.
+
+Read retained image IDs explicitly from committed history. JPEG and PNG bytes retain their actual Content-Type; this call does not capture a new screenshot. For large images use `.get_stream()` and check status before consuming bytes, as in [Asset downloads](files-and-memory.md#download-without-buffering-the-whole-file). Observation never auto-fetches image references.
+
+Timing is derived by Service, not recomputed by the SDK. `None` means no eligible timing, not zero; zero output on a measured positive-duration request can have zero speed. `UsageSummary` now includes required `runs` with per-Run model totals, and `ModelUsage` includes required nullable `average_time_to_first_chunk_seconds` and `output_tokens_per_second`. Older hand-built response fixtures must supply these fields; do not replace missing facts with zeros.
+
 ## Choose the right level
 
 | Task                                               | Preferred entry point                                                  |
