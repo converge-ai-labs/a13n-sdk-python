@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
+from ..models.view_cause import ViewCause
+
 if TYPE_CHECKING:
     from ..models.view_outcome_type_0 import ViewOutcomeType0
 
@@ -18,6 +20,7 @@ T = TypeVar("T", bound="View")
 class View:
     """
     Attributes:
+        cause (ViewCause):
         controller_id (None | str):
         deadline (datetime.datetime):
         environment_id (str):
@@ -30,9 +33,10 @@ class View:
         reason (str):
         run_id (str):
         state (str):
-        tool_call_id (str):
+        tool_call_id (None | str):
     """
 
+    cause: ViewCause
     controller_id: str | None
     deadline: datetime.datetime
     environment_id: str
@@ -45,11 +49,13 @@ class View:
     reason: str
     run_id: str
     state: str
-    tool_call_id: str
+    tool_call_id: str | None
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         from ..models.view_outcome_type_0 import ViewOutcomeType0
+
+        cause = self.cause.value
 
         controller_id: str | None
         controller_id = self.controller_id
@@ -85,12 +91,14 @@ class View:
 
         state = self.state
 
+        tool_call_id: str | None
         tool_call_id = self.tool_call_id
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
+                "cause": cause,
                 "controller_id": controller_id,
                 "deadline": deadline,
                 "environment_id": environment_id,
@@ -114,6 +122,7 @@ class View:
         from ..models.view_outcome_type_0 import ViewOutcomeType0
 
         d = dict(src_dict)
+        cause = ViewCause(d.pop("cause"))
 
         def _parse_controller_id(data: object) -> str | None:
             if data is None:
@@ -175,9 +184,15 @@ class View:
 
         state = d.pop("state")
 
-        tool_call_id = d.pop("tool_call_id")
+        def _parse_tool_call_id(data: object) -> str | None:
+            if data is None:
+                return data
+            return cast(str | None, data)
+
+        tool_call_id = _parse_tool_call_id(d.pop("tool_call_id"))
 
         view = cls(
+            cause=cause,
             controller_id=controller_id,
             deadline=deadline,
             environment_id=environment_id,

@@ -366,6 +366,7 @@ from .provider_update_config_type_0 import ProviderUpdateConfigType0
 from .provider_update_credential_type_0 import ProviderUpdateCredentialType0
 from .provider_update_extra_headers import ProviderUpdateExtraHeaders
 from .record_source import RecordSource
+from .request import Request
 from .resume import Resume
 from .resume_approvals import ResumeApprovals
 from .resume_calls import ResumeCalls
@@ -517,6 +518,7 @@ from .verb import Verb
 from .video_input_policy import VideoInputPolicy
 from .video_url_type import VideoUrlType
 from .view import View
+from .view_cause import ViewCause
 from .view_outcome_type_0 import ViewOutcomeType0
 from .wait_reason import WaitReason
 from .web_operation import WebOperation
@@ -892,6 +894,7 @@ __all__ = (
     "ProviderUpdateCredentialType0",
     "ProviderUpdateExtraHeaders",
     "RecordSource",
+    "Request",
     "Resume",
     "ResumeApprovals",
     "ResumeCalls",
@@ -1043,6 +1046,7 @@ __all__ = (
     "VideoInputPolicy",
     "VideoUrlType",
     "View",
+    "ViewCause",
     "ViewOutcomeType0",
     "WaitReason",
     "WebOperation",
