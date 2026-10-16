@@ -79,6 +79,13 @@ from .api.connections import (
     update_connection_api_v1_connections_connection_id_patch,
 )
 from .api.default import health_healthz_get, ready_readyz_get
+from .api.desktop_assistance import (
+    complete_assistance_api_v1_desktop_assistance_assistance_id_complete_post,
+    control_desktop_api_v1_desktop_assistance_assistance_id_control_post,
+    disconnect_desktop_api_v1_desktop_assistance_assistance_id_disconnect_post,
+    get_assistance_api_v1_runs_run_id_desktop_assistance_call_id_get,
+    view_desktop_api_v1_desktop_assistance_assistance_id_view_post,
+)
 from .api.environments import (
     add_mount_api_v1_threads_thread_id_environments_post,
     check_computer_api_v1_environments_environment_id_computer_check_post,
@@ -335,6 +342,10 @@ class ServiceResources(Resource):
     @property
     def connector_providers(self) -> ConnectorProviders:
         return ConnectorProviders(self._client, self._bindings)
+
+    @property
+    def desktop_assistance(self) -> DesktopAssistance:
+        return DesktopAssistance(self._client, self._bindings)
 
     @property
     def environment_providers(self) -> EnvironmentProviders:
@@ -1366,6 +1377,61 @@ class ConnectorProvidersProviderIdAppsAppActions(Resource):
                 client=client,
                 provider_id=self._bindings["provider_id"],
                 app=self._bindings["app"],
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+
+class DesktopAssistance(Resource):
+    """Bound Native resource: /desktop-assistance."""
+
+    def __call__(self, assistance_id: str) -> DesktopAssistanceAssistanceId:
+        return DesktopAssistanceAssistanceId(self._client, self._bind("assistance_id", assistance_id))
+
+
+class DesktopAssistanceAssistanceId(Resource):
+    """Bound Native resource: /desktop-assistance / {assistance_id}."""
+
+    async def complete(self, *, body: wire.Completion, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.View]:
+        """Complete Assistance. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: complete_assistance_api_v1_desktop_assistance_assistance_id_complete_post.asyncio_detailed(
+                client=client, assistance_id=self._bindings["assistance_id"], body=body, x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def control(
+        self, *, body: wire.Control, renew: bool | Unset = UNSET, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.Access]:
+        """Control Desktop. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: control_desktop_api_v1_desktop_assistance_assistance_id_control_post.asyncio_detailed(
+                client=client,
+                assistance_id=self._bindings["assistance_id"],
+                body=body,
+                renew=renew,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    async def disconnect(self, *, body: wire.Control, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.View]:
+        """Disconnect Desktop. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: disconnect_desktop_api_v1_desktop_assistance_assistance_id_disconnect_post.asyncio_detailed(
+                client=client, assistance_id=self._bindings["assistance_id"], body=body, x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def view(
+        self, *, body: wire.Control, renew: bool | Unset = UNSET, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.Access]:
+        """View Desktop. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: view_desktop_api_v1_desktop_assistance_assistance_id_view_post.asyncio_detailed(
+                client=client,
+                assistance_id=self._bindings["assistance_id"],
+                body=body,
+                renew=renew,
                 x_workspace_id=x_workspace_id,
             )
         )
@@ -3573,6 +3639,10 @@ class Run(Resource):
     def contents(self) -> RunsRunIdContents:
         return RunsRunIdContents(self._client, self._bindings)
 
+    @property
+    def desktop_assistance(self) -> RunsRunIdDesktopAssistance:
+        return RunsRunIdDesktopAssistance(self._client, self._bindings)
+
     async def fork(
         self, *, body: wire.Fork, idempotency_key: str, x_workspace_id: str | Unset | None = UNSET
     ) -> Result[wire.Submitted]:
@@ -3736,6 +3806,28 @@ class RunsRunIdContentsContentId(Resource):
                 client=client,
                 run_id=self._bindings["run_id"],
                 content_id=self._bindings["content_id"],
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+
+class RunsRunIdDesktopAssistance(Resource):
+    """Bound Native resource: /runs / {run_id} / desktop-assistance."""
+
+    def __call__(self, call_id: str) -> RunsRunIdDesktopAssistanceCallId:
+        return RunsRunIdDesktopAssistanceCallId(self._client, self._bind("call_id", call_id))
+
+
+class RunsRunIdDesktopAssistanceCallId(Resource):
+    """Bound Native resource: /runs / {run_id} / desktop-assistance / {call_id}."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.View]:
+        """Get Assistance. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_assistance_api_v1_runs_run_id_desktop_assistance_call_id_get.asyncio_detailed(
+                client=client,
+                run_id=self._bindings["run_id"],
+                call_id=self._bindings["call_id"],
                 x_workspace_id=x_workspace_id,
             )
         )
