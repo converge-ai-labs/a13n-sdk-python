@@ -293,6 +293,8 @@ from .mount_create import MountCreate
 from .mount_page import MountPage
 from .mount_update import MountUpdate
 from .mount_view import MountView
+from .native_tool_search_config import NativeToolSearchConfig
+from .native_tool_search_config_strategy_type_0 import NativeToolSearchConfigStrategyType0
 from .new_thread import NewThread
 from .o_auth_grant import OAuthGrant
 from .o_auth_redirect import OAuthRedirect
@@ -365,6 +367,7 @@ from .provider_update import ProviderUpdate
 from .provider_update_config_type_0 import ProviderUpdateConfigType0
 from .provider_update_credential_type_0 import ProviderUpdateCredentialType0
 from .provider_update_extra_headers import ProviderUpdateExtraHeaders
+from .proxy_tool_search_config import ProxyToolSearchConfig
 from .record_source import RecordSource
 from .request import Request
 from .resume import Resume
@@ -486,14 +489,13 @@ from .tool_info_input_schema import ToolInfoInputSchema
 from .tool_info_output_schema_type_0 import ToolInfoOutputSchemaType0
 from .tool_page import ToolPage
 from .tool_permission_mode import ToolPermissionMode
-from .tool_proxy import ToolProxy
-from .tool_proxy_config import ToolProxyConfig
-from .tool_proxy_group import ToolProxyGroup
-from .tool_proxy_groups import ToolProxyGroups
 from .tool_resource_selector import ToolResourceSelector
 from .tool_review_rule import ToolReviewRule
 from .tool_review_rule_on_flagged_type_0 import ToolReviewRuleOnFlaggedType0
 from .tool_risk_level import ToolRiskLevel
+from .tool_search import ToolSearch
+from .tool_search_group import ToolSearchGroup
+from .tool_search_groups import ToolSearchGroups
 from .tool_selection import ToolSelection
 from .tool_selection_config import ToolSelectionConfig
 from .toolset_catalog import ToolsetCatalog
@@ -827,6 +829,8 @@ __all__ = (
     "MountPage",
     "MountUpdate",
     "MountView",
+    "NativeToolSearchConfig",
+    "NativeToolSearchConfigStrategyType0",
     "NewThread",
     "OAuthGrant",
     "OAuthRedirect",
@@ -897,6 +901,7 @@ __all__ = (
     "ProviderUpdateConfigType0",
     "ProviderUpdateCredentialType0",
     "ProviderUpdateExtraHeaders",
+    "ProxyToolSearchConfig",
     "RecordSource",
     "Request",
     "Resume",
@@ -1018,14 +1023,13 @@ __all__ = (
     "ToolInfoOutputSchemaType0",
     "ToolPage",
     "ToolPermissionMode",
-    "ToolProxy",
-    "ToolProxyConfig",
-    "ToolProxyGroup",
-    "ToolProxyGroups",
     "ToolResourceSelector",
     "ToolReviewRule",
     "ToolReviewRuleOnFlaggedType0",
     "ToolRiskLevel",
+    "ToolSearch",
+    "ToolSearchGroup",
+    "ToolSearchGroups",
     "ToolSelection",
     "ToolSelectionConfig",
     "ToolsetCatalog",

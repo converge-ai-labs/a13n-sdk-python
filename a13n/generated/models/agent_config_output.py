@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from ..models.session_memory_settings import SessionMemorySettings
     from ..models.shared_skill_sync import SharedSkillSync
     from ..models.skill_selection import SkillSelection
-    from ..models.tool_proxy import ToolProxy
+    from ..models.tool_search import ToolSearch
 
 
 T = TypeVar("T", bound="AgentConfigOutput")
@@ -61,7 +61,7 @@ class AgentConfigOutput:
         skills (list[SkillSelection] | Unset):
         subagent_mode (AgentConfigOutputSubagentMode | Unset):
         subagents (AgentConfigOutputSubagents | Unset):
-        tool_proxy (None | ToolProxy | Unset):
+        tool_search (None | ToolSearch | Unset):
         toolsets (AgentConfigOutputToolsets | Unset):
         user_questions (bool | Unset):
     """
@@ -87,7 +87,7 @@ class AgentConfigOutput:
     skills: list[SkillSelection] | Unset = UNSET
     subagent_mode: AgentConfigOutputSubagentMode | Unset = UNSET
     subagents: AgentConfigOutputSubagents | Unset = UNSET
-    tool_proxy: ToolProxy | Unset | None = UNSET
+    tool_search: ToolSearch | Unset | None = UNSET
     toolsets: AgentConfigOutputToolsets | Unset = UNSET
     user_questions: bool | Unset = UNSET
 
@@ -96,7 +96,7 @@ class AgentConfigOutput:
         from ..models.output_spec import OutputSpec
         from ..models.retry_config import RetryConfig
         from ..models.shared_skill_sync import SharedSkillSync
-        from ..models.tool_proxy import ToolProxy
+        from ..models.tool_search import ToolSearch
 
         model = self.model
 
@@ -209,13 +209,13 @@ class AgentConfigOutput:
         if not isinstance(self.subagents, Unset):
             subagents = self.subagents.to_dict()
 
-        tool_proxy: dict[str, Any] | Unset | None
-        if isinstance(self.tool_proxy, Unset):
-            tool_proxy = UNSET
-        elif isinstance(self.tool_proxy, ToolProxy):
-            tool_proxy = self.tool_proxy.to_dict()
+        tool_search: dict[str, Any] | Unset | None
+        if isinstance(self.tool_search, Unset):
+            tool_search = UNSET
+        elif isinstance(self.tool_search, ToolSearch):
+            tool_search = self.tool_search.to_dict()
         else:
-            tool_proxy = self.tool_proxy
+            tool_search = self.tool_search
 
         toolsets: dict[str, Any] | Unset = UNSET
         if not isinstance(self.toolsets, Unset):
@@ -270,8 +270,8 @@ class AgentConfigOutput:
             field_dict["subagent_mode"] = subagent_mode
         if subagents is not UNSET:
             field_dict["subagents"] = subagents
-        if tool_proxy is not UNSET:
-            field_dict["tool_proxy"] = tool_proxy
+        if tool_search is not UNSET:
+            field_dict["tool_search"] = tool_search
         if toolsets is not UNSET:
             field_dict["toolsets"] = toolsets
         if user_questions is not UNSET:
@@ -298,7 +298,7 @@ class AgentConfigOutput:
         from ..models.session_memory_settings import SessionMemorySettings
         from ..models.shared_skill_sync import SharedSkillSync
         from ..models.skill_selection import SkillSelection
-        from ..models.tool_proxy import ToolProxy
+        from ..models.tool_search import ToolSearch
 
         d = dict(src_dict)
         model = d.pop("model")
@@ -494,7 +494,7 @@ class AgentConfigOutput:
         else:
             subagents = AgentConfigOutputSubagents.from_dict(_subagents)
 
-        def _parse_tool_proxy(data: object) -> ToolProxy | Unset | None:
+        def _parse_tool_search(data: object) -> ToolSearch | Unset | None:
             if data is None:
                 return data
             if isinstance(data, Unset):
@@ -502,14 +502,14 @@ class AgentConfigOutput:
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
-                tool_proxy_type_0 = ToolProxy.from_dict(data)
+                tool_search_type_0 = ToolSearch.from_dict(data)
 
-                return tool_proxy_type_0
+                return tool_search_type_0
             except (TypeError, ValueError, AttributeError, KeyError):
                 pass
-            return cast(ToolProxy | Unset | None, data)
+            return cast(ToolSearch | Unset | None, data)
 
-        tool_proxy = _parse_tool_proxy(d.pop("tool_proxy", UNSET))
+        tool_search = _parse_tool_search(d.pop("tool_search", UNSET))
 
         _toolsets = d.pop("toolsets", UNSET)
         toolsets: AgentConfigOutputToolsets | Unset
@@ -542,7 +542,7 @@ class AgentConfigOutput:
             skills=skills,
             subagent_mode=subagent_mode,
             subagents=subagents,
-            tool_proxy=tool_proxy,
+            tool_search=tool_search,
             toolsets=toolsets,
             user_questions=user_questions,
         )

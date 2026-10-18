@@ -7,11 +7,11 @@ from attrs import define as _attrs_define
 
 from ..types import UNSET, Unset
 
-T = TypeVar("T", bound="ToolProxyGroup")
+T = TypeVar("T", bound="ToolSearchGroup")
 
 
 @_attrs_define(repr=False)
-class ToolProxyGroup:
+class ToolSearchGroup:
     """
     Attributes:
         description (str):
@@ -65,11 +65,11 @@ class ToolProxyGroup:
 
         plugins = cast(list[str], d.pop("plugins", UNSET))
 
-        tool_proxy_group = cls(
+        tool_search_group = cls(
             description=description,
             connections=connections,
             platform=platform,
             plugins=plugins,
         )
 
-        return tool_proxy_group
+        return tool_search_group
