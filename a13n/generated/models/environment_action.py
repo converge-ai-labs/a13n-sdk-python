@@ -10,6 +10,7 @@ class EnvironmentAction(StrEnum):
     ENVIRONMENT_COMPUTER_PRESS_KEYS = "environment.computer.press_keys"
     ENVIRONMENT_COMPUTER_SCROLL = "environment.computer.scroll"
     ENVIRONMENT_COMPUTER_TYPE_TEXT = "environment.computer.type_text"
+    ENVIRONMENT_COMPUTER_ZOOM = "environment.computer.zoom"
     ENVIRONMENT_FILE_COPY_DESTINATION = "environment.file.copy_destination"
     ENVIRONMENT_FILE_COPY_SOURCE = "environment.file.copy_source"
     ENVIRONMENT_FILE_LIST = "environment.file.list"
