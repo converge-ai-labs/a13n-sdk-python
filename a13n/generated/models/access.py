@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, TypeVar
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
+from ..._validation import validate_model
 from ..models.access_mode import AccessMode
 
 if TYPE_CHECKING:
@@ -56,10 +57,12 @@ class Access:
             }
         )
 
+        validate_model("Access", field_dict)
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        validate_model("Access", src_dict)
         from ..models.view import View
 
         d = dict(src_dict)

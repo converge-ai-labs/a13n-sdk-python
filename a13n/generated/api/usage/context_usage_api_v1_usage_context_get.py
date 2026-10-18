@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Any, cast
+from typing import Any
 
 import httpx2 as httpx
 
@@ -71,7 +71,7 @@ def _parse_response(
                 return response_200_type_0
             except (TypeError, ValueError, AttributeError, KeyError):
                 pass
-            return cast(ContextUsage | None, data)
+            raise ValueError("Invalid nullable model value")
 
         response_200 = _parse_response_200(response.json())
 

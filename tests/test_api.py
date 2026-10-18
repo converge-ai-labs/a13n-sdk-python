@@ -14,6 +14,7 @@ FAMILIES = {
     "auth",
     "connections",
     "connector_providers",
+    "desktop_assistance",
     "environment_providers",
     "environment_templates",
     "environments",

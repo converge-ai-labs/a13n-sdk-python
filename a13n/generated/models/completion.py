@@ -5,6 +5,7 @@ from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 
+from ..._validation import validate_model
 from ..models.completion_outcome import CompletionOutcome
 from ..types import UNSET, Unset
 
@@ -50,10 +51,12 @@ class Completion:
         if outcome is not UNSET:
             field_dict["outcome"] = outcome
 
+        validate_model("Completion", field_dict)
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        validate_model("Completion", src_dict)
         d = dict(src_dict)
         epoch = d.pop("epoch")
 

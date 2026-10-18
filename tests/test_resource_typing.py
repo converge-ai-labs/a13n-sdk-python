@@ -369,3 +369,53 @@ def test_session_typing_rejects_cursor_reconnect_and_removed_readback_fields(tmp
     report = run_pyright(source)
     assert report["returncode"] == 1
     assert len(report["generalDiagnostics"]) >= 9
+
+
+def test_desktop_tool_search_context_typing(tmp_path: Path) -> None:
+    source = tmp_path / "desktop.py"
+    source.write_text(
+        "from a13n import Client, AgentOverride, RunOptions, Unset\n"
+        "from a13n.generated import models as wire\n"
+        "async def use(client: Client) -> None:\n"
+        "    search = wire.ToolSearch(config=wire.NativeToolSearchConfig(mode='native', strategy=None),\n"
+        "        groups=wire.ToolSearchGroups())\n"
+        "    config = wire.AgentConfigInput(model='model', tool_search=search)\n"
+        "    proxy = wire.ToolSearch(config=wire.ProxyToolSearchConfig(mode='proxy', max_results=0))\n"
+        "    options = RunOptions(overrides=AgentOverride(tool_search=proxy))\n"
+        "    usage: wire.ContextUsage | None = (await client.api.usage.context.get(record_id='record')).value\n"
+        "    if usage is not None:\n"
+        "        window: int | None = usage.context_window_tokens\n"
+        "    view: wire.View | None = (await client.api.runs('run').desktop_control.get()).value\n"
+        "    opened: wire.View = (await client.api.runs('run').desktop_control.create(\n"
+        "        body=wire.Request(mount='computer', reason='Finish sign in'))).value\n"
+        "    access: wire.Access = (await client.api.desktop_assistance(opened.id).view(\n"
+        "        body=wire.Control(session_id='browser_session_token_1234', epoch=0))).value\n"
+        "    await client.api.desktop_assistance(opened.id).complete(\n"
+        "        body=wire.Completion(session_id='browser_session_token_1234', epoch=opened.epoch))\n"
+        "    outcome = await client.runs('run').observe().result()\n"
+        "    if outcome.pending is not None:\n"
+        "        desktop: str | Unset | None = outcome.pending.desktop_control_id\n"
+        "    successor = await outcome.run.resume({})\n"
+    )
+    report = run_pyright(source)
+    assert report["returncode"] == 0, report["generalDiagnostics"]
+
+
+def test_desktop_tool_search_context_typing_rejects_mixed_shapes_and_unchecked_null(tmp_path: Path) -> None:
+    source = tmp_path / "invalid_desktop.py"
+    source.write_text(
+        "from a13n import Client, AgentOverride\n"
+        "from a13n.generated import models as wire\n"
+        "async def misuse(client: Client) -> None:\n"
+        "    wire.NativeToolSearchConfig(mode='proxy')\n"
+        "    wire.NativeToolSearchConfig(mode='native', search_name='mixed')\n"
+        "    wire.NativeToolSearchConfig(mode='native', strategy='invalid')\n"
+        "    wire.ProxyToolSearchConfig(mode='proxy', strategy='bm25')\n"
+        "    AgentOverride(tool_search='json string')\n"
+        "    wire.Control(session_id='browser_session_token_1234', epoch='0')\n"
+        "    usage = (await client.api.usage.context.get(run_id='run')).value\n"
+        "    print(usage.run_id)\n"
+    )
+    report = run_pyright(source)
+    assert report["returncode"] == 1
+    assert len(report["generalDiagnostics"]) == 7, report["generalDiagnostics"]

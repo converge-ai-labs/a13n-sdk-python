@@ -5,6 +5,7 @@ from typing import Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 
+from ..._validation import validate_model
 from ..types import UNSET, Unset
 
 T = TypeVar("T", bound="ToolSearchGroup")
@@ -52,10 +53,12 @@ class ToolSearchGroup:
         if plugins is not UNSET:
             field_dict["plugins"] = plugins
 
+        validate_model("ToolSearchGroup", field_dict)
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        validate_model("ToolSearchGroup", src_dict)
         d = dict(src_dict)
         description = d.pop("description")
 

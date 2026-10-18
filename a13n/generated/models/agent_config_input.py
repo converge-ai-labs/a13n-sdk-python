@@ -507,7 +507,7 @@ class AgentConfigInput:
                 return tool_search_type_0
             except (TypeError, ValueError, AttributeError, KeyError):
                 pass
-            return cast(ToolSearch | Unset | None, data)
+            raise ValueError("Invalid nullable model value")
 
         tool_search = _parse_tool_search(d.pop("tool_search", UNSET))
 

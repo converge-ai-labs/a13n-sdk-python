@@ -5,6 +5,8 @@ from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 
+from ..._validation import validate_model
+
 T = TypeVar("T", bound="Request")
 
 
@@ -33,10 +35,12 @@ class Request:
             }
         )
 
+        validate_model("Request", field_dict)
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        validate_model("Request", src_dict)
         d = dict(src_dict)
         mount = d.pop("mount")
 

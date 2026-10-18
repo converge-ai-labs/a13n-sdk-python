@@ -5,6 +5,7 @@ from typing import Any, Literal, TypeVar, cast
 
 from attrs import define as _attrs_define
 
+from ..._validation import validate_model
 from ..models.native_tool_search_config_strategy_type_0 import NativeToolSearchConfigStrategyType0
 from ..types import UNSET, Unset
 
@@ -44,10 +45,12 @@ class NativeToolSearchConfig:
         if strategy is not UNSET:
             field_dict["strategy"] = strategy
 
+        validate_model("NativeToolSearchConfig", field_dict)
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        validate_model("NativeToolSearchConfig", src_dict)
         d = dict(src_dict)
         mode = cast(Literal["native"], d.pop("mode"))
         if mode != "native":

@@ -83,7 +83,9 @@ def test_parts_and_all_options_cross_one_generated_transport() -> None:
     asyncio.run(scenario())
 
 
-def test_all_non_null_override_fields_remain_selectable_without_wire_import() -> None:
+def test_all_non_null_override_fields_remain_selectable_with_canonical_wire_values() -> None:
+    from a13n.generated import models as wire
+
     values = {
         "builtin_skills": ["platform-operations"],
         "client_tools": [{"name": "lookup", "description": "find", "parameters_json_schema": {"type": "object"}}],
@@ -102,12 +104,13 @@ def test_all_non_null_override_fields_remain_selectable_without_wire_import() ->
         "skill_sync": {"mode": "isolated", "cache_count": 0},
         "skills": [],
         "subagents": {},
+        "tool_search": wire.ToolSearch(config=wire.NativeToolSearchConfig(mode="native")),
         "toolsets": {},
     }
     assert set(values) == {field.name for field in fields(AgentOverride)}
     options = RunOptions(overrides=AgentOverride(**values))
     # The generated adapter, not an alternate authored schema validator, owns serialization.
-    assert options.into_wire().to_dict()["overrides"] == values
+    assert options.into_wire().to_dict()["overrides"] == {**values, "tool_search": values["tool_search"].to_dict()}
 
 
 @pytest.mark.parametrize("output", ["", False, 0, None, [], {}, {"nested": [False, None, 0]}])

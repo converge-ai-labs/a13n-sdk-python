@@ -189,3 +189,36 @@ def test_session_workspace_scope_respects_service_base_path_prefix() -> None:
         ]
 
     asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("prefix", ["/代理/native", "/%E4%BB%A3%E7%90%86/native"])
+def test_session_scope_matches_encoded_prefix_and_bound_selectors_without_overriding_explicit_scope(
+    prefix: str,
+) -> None:
+    async def scenario() -> None:
+        seen = []
+
+        def handle(request):
+            seen.append(request)
+            if request.url.path.endswith("/desktop-control"):
+                return httpx2.Response(200, content=b"null", headers={"Content-Type": "application/json"})
+            return httpx2.Response(200, json={"items": [], "next_cursor": None})
+
+        async with Client.session(
+            "https://service.example" + prefix,
+            origin="https://service.example",
+            workspace_id="ws_default",
+            transport=httpx2.MockTransport(handle),
+        ) as client:
+            control = client.api.runs("run /?#%计划").desktop_control
+            await control.get()
+            await control.get(x_workspace_id="ws_explicit")
+            await client.api.organizations.list()
+        assert len(seen) == 3
+        encoded = "/%E4%BB%A3%E7%90%86/native/api/v1/runs/run%20%2F%3F%23%25%E8%AE%A1%E5%88%92/desktop-control"
+        assert seen[0].url.raw_path.decode() == encoded
+        assert seen[0].headers["x-workspace-id"] == "ws_default"
+        assert seen[1].headers["x-workspace-id"] == "ws_explicit"
+        assert "x-workspace-id" not in seen[2].headers
+
+    asyncio.run(scenario())

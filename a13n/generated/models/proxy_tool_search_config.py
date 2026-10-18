@@ -5,6 +5,7 @@ from typing import Any, Literal, TypeVar, cast
 
 from attrs import define as _attrs_define
 
+from ..._validation import validate_model
 from ..types import UNSET, Unset
 
 T = TypeVar("T", bound="ProxyToolSearchConfig")
@@ -55,10 +56,12 @@ class ProxyToolSearchConfig:
         if search_name is not UNSET:
             field_dict["search_name"] = search_name
 
+        validate_model("ProxyToolSearchConfig", field_dict)
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        validate_model("ProxyToolSearchConfig", src_dict)
         d = dict(src_dict)
         mode = cast(Literal["proxy"], d.pop("mode"))
         if mode != "proxy":

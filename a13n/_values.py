@@ -28,7 +28,7 @@ class _Value:
 
 
 def _json(value: Any) -> Any:
-    if isinstance(value, _Value):
+    if isinstance(value, (_Value, wire.ToolSearch)):
         return value.to_dict()
     if isinstance(value, Mapping):
         return {key: _json(item) for key, item in value.items()}
@@ -106,6 +106,7 @@ class AgentOverride(_Value):
     skills: list[dict[str, JsonValue]] | Unset | None = UNSET
     subagents: Mapping[str, JsonValue] | Unset | None = UNSET
     toolsets: Mapping[str, JsonValue] | Unset | None = UNSET
+    tool_search: wire.ToolSearch | Unset | None = UNSET
 
 
 @dataclass(frozen=True)
@@ -188,12 +189,14 @@ class PendingRequest:
 class Pending:
     approvals: tuple[PendingRequest, ...]
     calls: tuple[PendingRequest, ...]
+    desktop_control_id: str | Unset | None = UNSET
 
     @classmethod
     def from_wire(cls, value: wire.Pending) -> Pending:
         return cls(
             tuple(PendingRequest.from_wire(item) for item in value.approvals),
             tuple(PendingRequest.from_wire(item) for item in value.calls),
+            value.desktop_control_id,
         )
 
 

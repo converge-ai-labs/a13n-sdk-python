@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
+from ..._validation import validate_model
 from ..models.view_cause import ViewCause
 
 if TYPE_CHECKING:
@@ -115,10 +116,12 @@ class View:
             }
         )
 
+        validate_model("View", field_dict)
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        validate_model("View", src_dict)
         from ..models.view_outcome_type_0 import ViewOutcomeType0
 
         d = dict(src_dict)

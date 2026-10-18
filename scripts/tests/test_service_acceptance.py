@@ -235,3 +235,78 @@ def test_historical_acceptance_rejects_wrong_run_or_unsealed_display() -> None:
         historical = wire.RunItems.from_dict({"run": run_view(run_id=run_id), "items": [], "complete": complete})
         with pytest.raises(RuntimeError, match="Run or seal"):
             service_acceptance._historical_window(historical, "run_1")
+
+
+def test_desktop_discovery_context_acceptance_uses_native_sdk_boundaries_locally() -> None:
+    import json
+
+    from a13n import Client
+    from tests.test_catchup import AGENT
+    from tests.test_desktop_tool_search_context import CONTEXT
+    from tests.test_interaction import NOW, entry_view, run_view, submitted
+
+    async def scenario() -> None:
+        stored = []
+        seen = []
+
+        def handle(request):
+            seen.append(request)
+            path = request.url.path
+            if path == "/api/v1/agents":
+                stored.append(json.loads(request.content)["config"])
+                return httpx2.Response(201, json={**AGENT, "default_revision_id": "rev_1"})
+            if "/revisions/" in path:
+                return httpx2.Response(
+                    200,
+                    json={
+                        "id": "rev_1",
+                        "agent_id": "agt_1",
+                        "number": 1,
+                        "config": stored[-1],
+                        "digest": "digest",
+                        "note": None,
+                        "created_by_id": "usr_1",
+                        "created_at": NOW,
+                    },
+                )
+            if path == "/api/v1/threads":
+                return httpx2.Response(201, json=submitted())
+            if "/inbox/" in path:
+                return httpx2.Response(200, json={**entry_view(status="consumed"), "assigned_run_id": "run_failed"})
+            if path == "/api/v1/runs/run_failed":
+                return httpx2.Response(200, json=run_view("run_failed", status="failed"))
+            missing = "run_" + "0" * 24
+            status = 404 if missing in str(request.url) else 400
+            if path.endswith("/desktop-control") and missing not in path:
+                return httpx2.Response(200, content=b"null")
+            if path == "/api/v1/runs/run_1":
+                return httpx2.Response(200, json=run_view())
+            if path == "/api/v1/usage/context":
+                if request.url.params.get("run_id") == "run_failed":
+                    return httpx2.Response(200, content=b"null")
+                if len(request.url.params) == 1 and missing not in str(request.url):
+                    return httpx2.Response(200, json={**CONTEXT, "output_tokens": 0})
+            return httpx2.Response(
+                status,
+                json={
+                    "error": {
+                        "code": "invalid_argument" if status == 400 else "not_found",
+                        "message": "Rejected",
+                        "details": {},
+                        "request_id": "reject",
+                    }
+                },
+            )
+
+        async with Client("https://service.example", transport=httpx2.MockTransport(handle)) as client:
+            evidence = await service_acceptance._desktop_discovery_context_acceptance(
+                client, "agt_1", "model", "rec_1", "failure"
+            )
+        assert evidence["selectors_equal"] == 3 and evidence["absent_desktop_null"]
+        assert evidence["failed_context_null"] == "run_failed"
+        assert len(evidence["stored_discovery_agents"]) == 4
+        assert evidence["invalid_variants_rejected_locally"] == 4
+        assert len(stored) == 4 and all(config["tool_search"]["groups"] == {} for config in stored)
+        assert not any("/desktop-assistance/" in request.url.path for request in seen)
+
+    asyncio.run(scenario())

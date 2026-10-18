@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 
+from ..._validation import validate_model
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
@@ -51,10 +52,12 @@ class ToolSearch:
         if groups is not UNSET:
             field_dict["groups"] = groups
 
+        validate_model("ToolSearch", field_dict)
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        validate_model("ToolSearch", src_dict)
         from ..models.native_tool_search_config import NativeToolSearchConfig
         from ..models.proxy_tool_search_config import ProxyToolSearchConfig
         from ..models.tool_search_groups import ToolSearchGroups

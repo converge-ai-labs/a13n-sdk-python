@@ -30,6 +30,8 @@ Each instance is a fresh-snapshot boundary. It sends no cursor or Last-Event-ID 
 
 The receiver replaces Thread and pointed-Run views on `thread`, replaces Run Items from ordinal `first` on `items`, and holds a gapped Run's deltas until its next Items base. The continuation is protocol state, not an SDK-owned UI reducer. Before another connection, the application discards unfinished state from the prior connection. Runs sealed while disconnected require explicit historical Items reads. Thread cursors and Items ordinals cannot resume a Session stream.
 
+A `thread` snapshot preserves `wait_reason=desktop_control` and `pending.desktop_control_id` on its pointed Run. A fresh attachment to a sealed Run yields only Thread state; historical Items require an explicit Run Items read. Desktop waiting grants no access lease and creates no automatic resume or successor-follow behavior.
+
 Caller-owned reconnect follows the pinned native policy: reconnect after any end except invalid frames or 4xx other than 429; full jitter below `min(30s, 0.5s * 2**n)`, honor Retry-After on 429/503, reset consecutive failures only after 30s stable connection. Finite Interaction continues using its exact Run and Thread stream; Session observation introduces no implicit successor-follow workflow.
 
 ## Text Preview

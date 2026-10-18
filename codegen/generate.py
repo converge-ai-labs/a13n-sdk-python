@@ -20,6 +20,98 @@ ROOT = Path(__file__).resolve().parents[1]
 CONFIG = ROOT / "codegen"
 TARGET = ROOT / "a13n/generated"
 
+# These new public boundaries need the schema's discriminators, strict object
+# shapes and nullable required fields, beyond the generator's permissive casts.
+VALIDATED_MODELS = frozenset(
+    {
+        "ToolSearch",
+        "NativeToolSearchConfig",
+        "ProxyToolSearchConfig",
+        "ToolSearchGroup",
+        "ContextUsage",
+        "Access",
+        "Control",
+        "Completion",
+        "Request",
+        "View",
+    }
+)
+
+
+def validation_schema(document: dict) -> dict:
+    """Retain exact reachable schemas, without copying the full HTTP document."""
+    source = document["components"]["schemas"]
+    selected = {}
+    pending = sorted(VALIDATED_MODELS & source.keys())
+    while pending:
+        name = pending.pop()
+        if name in selected:
+            continue
+        selected[name] = source[name]
+
+        def references(value: object) -> None:
+            if isinstance(value, dict):
+                ref = value.get("$ref")
+                if isinstance(ref, str) and ref.startswith("#/components/schemas/"):
+                    pending.append(ref.removeprefix("#/components/schemas/"))
+                for child in value.values():
+                    references(child)
+            elif isinstance(value, list):
+                for child in value:
+                    references(child)
+
+        references(source[name])
+    return {"components": {"schemas": selected}}
+
+
+def strict_wire_boundaries(text: str) -> str:
+    """Attach pinned validation and reject failed nullable model alternatives."""
+    tree = ast.parse(text)
+    lines = text.splitlines(keepends=True)
+    edits: list[tuple[int, int, list[str]]] = []
+    needs_validation = False
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef) and node.name in VALIDATED_MODELS:
+            needs_validation = True
+            for method in node.body:
+                if not isinstance(method, ast.FunctionDef):
+                    continue
+                if method.name == "from_dict":
+                    start = method.body[0].lineno - 1
+                    edits.append((start, start, [f'        validate_model("{node.name}", src_dict)\n']))
+                elif method.name == "to_dict":
+                    for statement in method.body:
+                        if isinstance(statement, ast.Return):
+                            start = statement.lineno - 1
+                            edits.append((start, start, [f'        validate_model("{node.name}", field_dict)\n']))
+        if not isinstance(node, ast.FunctionDef) or not node.name.startswith("_parse_"):
+            continue
+        last = node.body[-1]
+        if not (
+            isinstance(last, ast.Return)
+            and isinstance(last.value, ast.Call)
+            and isinstance(last.value.func, ast.Name)
+            and last.value.func.id == "cast"
+            and last.value.args
+            and any(isinstance(part, ast.Name) and part.id in VALIDATED_MODELS for part in ast.walk(last.value.args[0]))
+        ):
+            continue
+        indent = " " * last.col_offset
+        edits.append(
+            (
+                last.lineno - 1,
+                last.end_lineno or last.lineno,
+                [f'{indent}raise ValueError("Invalid nullable model value")\n'],
+            )
+        )
+    for start, end, replacement in sorted(edits, reverse=True):
+        lines[start:end] = replacement
+    text = "".join(lines)
+    if needs_validation:
+        header = "from __future__ import annotations\n"
+        text = text.replace(header, header + "\nfrom ..._validation import validate_model\n", 1)
+    return text
+
 
 def run(*args: str, cwd: Path = ROOT) -> None:
     subprocess.run(args, cwd=cwd, check=True)
@@ -198,6 +290,7 @@ def generate(document: dict, work: Path, session: bytes | None = None) -> Path:
             # httpx constructs a fresh multipart boundary. The generator's
             # literal +++ header does not match the serialized file body.
             text = text.replace('    headers["Content-Type"] = "multipart/form-data; boundary=+++"\n', "")
+        text = strict_wire_boundaries(text)
         text = text.replace("_get_kwargs", "build_request")
         # Classify failures at the response parser, not around request building,
         # so invalid local inputs retain their original exception and no I/O claim.
@@ -229,6 +322,7 @@ def generate(document: dict, work: Path, session: bytes | None = None) -> Path:
             )
         path.write_text(text)
     generate_resources(document, output)
+    (output / "validation.schema.json").write_text(json.dumps(validation_schema(document), indent=2) + "\n")
     if session is not None:
         # The validator consumes the original schema, not the generator projection.
         (output / "session-stream.schema.json").write_bytes(session)

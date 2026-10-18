@@ -132,7 +132,7 @@ async def detailed_review(client: Client, agent_id: str, model_key: str, plan: s
     return await interaction.result()
 ```
 
-`AgentOverride` exposes every selectable field: builtin_skills, client_tools, connection_tools, instructions, lazy_environment, media_understanding, model, model_characteristics, model_settings, output_spec, platform_tools, plugins, retries, reviewer, skill_sync, skills, subagents and toolsets. Nested schema objects are native JSON mappings, for example `skills=[{"skill_id": skill_id}]` or `output_spec={"schema": {"type": "object"}}`. This avoids a second generated-model hierarchy. Provider-specific settings must be supported by the chosen provider; the SDK does not translate provider options.
+`AgentOverride` exposes every selectable field: builtin_skills, client_tools, connection_tools, instructions, lazy_environment, media_understanding, model, model_characteristics, model_settings, output_spec, platform_tools, plugins, retries, reviewer, skill_sync, skills, subagents, tool_search and toolsets. `tool_search` uses the generated typed configuration shown below. Other nested schema objects are native JSON mappings, for example `skills=[{"skill_id": skill_id}]` or `output_spec={"schema": {"type": "object"}}`. This avoids a second generated-model hierarchy. Provider-specific settings must be supported by the chosen provider; the SDK does not translate provider options.
 
 Public `UNSET` preserves omission. Nullable fields accept `None`, and empty lists/mappings remain explicit. `RunConfiguration(allowed_hosts=None)` is unrestricted; `allowed_hosts=[]` denies native URL access. `RunOptions(configuration=RunConfiguration())` sends an explicit empty snapshot. No adapter inserts defaults or merges policy.
 
@@ -148,6 +148,44 @@ For `model_settings.extra_body` and `extra_headers`, an explicit object replaces
 Public `MountCreate(name, environment_id, working_directory=UNSET, permission_ceiling=UNSET)` and `MemoryMount(name, memory_id, access, recall=UNSET)` cover initial mounts; `mcp_headers` is a native mapping. The full management request types remain in [generated models](../a13n/generated/models). Ordinary conversations use `start()` and `send()`.
 
 A Session also owns native [Memory Space selection](files-and-memory.md#share-notes-through-a-memory-space). Creating or updating `SessionMemorySettings` is separate from selecting an existing Thread. The Service settles unresolved Agent memory defaults on the first accepted business Run; a later Agent edit does not rewrite the Session selection.
+
+## Select tool discovery for an execution
+
+Use the same generated hierarchy for saved `AgentConfigInput.tool_search` and an authored Run override. Native mode delegates discovery to a supporting model provider; proxy mode exposes the selected tools through Harness's proxy surface:
+
+```python
+from a13n import AgentOverride, Client, RunOptions
+from a13n.generated import models as wire
+
+
+def native_discovery() -> wire.ToolSearch:
+    return wire.ToolSearch(
+        config=wire.NativeToolSearchConfig(mode="native", strategy=None),
+        groups=wire.ToolSearchGroups(),
+    )
+
+
+async def start_with_discovery(client: Client, agent_id: str) -> str:
+    interaction = await client.agents(agent_id).start(
+        "Use the available tools to inspect the project.",
+        options=RunOptions(overrides=AgentOverride(tool_search=native_discovery())),
+    )
+    assert interaction.entry is not None
+    return interaction.entry.id
+
+
+def grouped_proxy() -> wire.ToolSearch:
+    return wire.ToolSearch(
+        config=wire.ProxyToolSearchConfig(mode="proxy", search_name="find_tools", max_results=10),
+        groups=wire.ToolSearchGroups.from_dict(
+            {
+                "project": {"description": "Project tools", "plugins": ["project_tools"], "platform": False},
+            }
+        ),
+    )
+```
+
+Native `strategy` may be omitted, null (provider default), `bm25`, or `regex`. Proxy and native fields cannot be mixed; invalid forms fail at the wire boundary. Groups describe already-selected connection/plugin/platform sources and grant no additional access. `groups={}` disables grouping; omitted groups use native defaults. A non-null Run override replaces the **whole** block. Omitted or null `tool_search` retains the revision configuration, rather than clearing it. The SDK preserves these distinctions and performs no discovery or provider fallback itself.
 
 ## Next
 
