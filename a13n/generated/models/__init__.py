@@ -486,6 +486,10 @@ from .tool_info_input_schema import ToolInfoInputSchema
 from .tool_info_output_schema_type_0 import ToolInfoOutputSchemaType0
 from .tool_page import ToolPage
 from .tool_permission_mode import ToolPermissionMode
+from .tool_proxy import ToolProxy
+from .tool_proxy_config import ToolProxyConfig
+from .tool_proxy_group import ToolProxyGroup
+from .tool_proxy_groups import ToolProxyGroups
 from .tool_resource_selector import ToolResourceSelector
 from .tool_review_rule import ToolReviewRule
 from .tool_review_rule_on_flagged_type_0 import ToolReviewRuleOnFlaggedType0
@@ -1014,6 +1018,10 @@ __all__ = (
     "ToolInfoOutputSchemaType0",
     "ToolPage",
     "ToolPermissionMode",
+    "ToolProxy",
+    "ToolProxyConfig",
+    "ToolProxyGroup",
+    "ToolProxyGroups",
     "ToolResourceSelector",
     "ToolReviewRule",
     "ToolReviewRuleOnFlaggedType0",

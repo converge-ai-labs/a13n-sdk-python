@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     from ..models.retry_override import RetryOverride
     from ..models.shared_skill_sync import SharedSkillSync
     from ..models.skill_selection import SkillSelection
+    from ..models.tool_proxy import ToolProxy
 
 
 T = TypeVar("T", bound="AgentOverrideOutput")
@@ -53,6 +54,7 @@ class AgentOverrideOutput:
             skill_sync (IsolatedSkillSync | None | SharedSkillSync | Unset):
             skills (list[SkillSelection] | None | Unset):
             subagents (AgentOverrideOutputSubagentsType0 | None | Unset):
+            tool_proxy (None | ToolProxy | Unset):
             toolsets (AgentOverrideOutputToolsetsType0 | None | Unset):
     """
 
@@ -73,6 +75,7 @@ class AgentOverrideOutput:
     skill_sync: IsolatedSkillSync | SharedSkillSync | Unset | None = UNSET
     skills: list[SkillSelection] | Unset | None = UNSET
     subagents: AgentOverrideOutputSubagentsType0 | Unset | None = UNSET
+    tool_proxy: ToolProxy | Unset | None = UNSET
     toolsets: AgentOverrideOutputToolsetsType0 | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
@@ -89,6 +92,7 @@ class AgentOverrideOutput:
         from ..models.platform_selection import PlatformSelection
         from ..models.retry_override import RetryOverride
         from ..models.shared_skill_sync import SharedSkillSync
+        from ..models.tool_proxy import ToolProxy
 
         builtin_skills: list[Literal["platform-operations"]] | Unset | None
         if isinstance(self.builtin_skills, Unset):
@@ -239,6 +243,14 @@ class AgentOverrideOutput:
         else:
             subagents = self.subagents
 
+        tool_proxy: dict[str, Any] | Unset | None
+        if isinstance(self.tool_proxy, Unset):
+            tool_proxy = UNSET
+        elif isinstance(self.tool_proxy, ToolProxy):
+            tool_proxy = self.tool_proxy.to_dict()
+        else:
+            tool_proxy = self.tool_proxy
+
         toolsets: dict[str, Any] | Unset | None
         if isinstance(self.toolsets, Unset):
             toolsets = UNSET
@@ -284,6 +296,8 @@ class AgentOverrideOutput:
             field_dict["skills"] = skills
         if subagents is not UNSET:
             field_dict["subagents"] = subagents
+        if tool_proxy is not UNSET:
+            field_dict["tool_proxy"] = tool_proxy
         if toolsets is not UNSET:
             field_dict["toolsets"] = toolsets
 
@@ -308,6 +322,7 @@ class AgentOverrideOutput:
         from ..models.retry_override import RetryOverride
         from ..models.shared_skill_sync import SharedSkillSync
         from ..models.skill_selection import SkillSelection
+        from ..models.tool_proxy import ToolProxy
 
         d = dict(src_dict)
 
@@ -612,6 +627,23 @@ class AgentOverrideOutput:
 
         subagents = _parse_subagents(d.pop("subagents", UNSET))
 
+        def _parse_tool_proxy(data: object) -> ToolProxy | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                tool_proxy_type_0 = ToolProxy.from_dict(data)
+
+                return tool_proxy_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(ToolProxy | Unset | None, data)
+
+        tool_proxy = _parse_tool_proxy(d.pop("tool_proxy", UNSET))
+
         def _parse_toolsets(data: object) -> AgentOverrideOutputToolsetsType0 | Unset | None:
             if data is None:
                 return data
@@ -647,6 +679,7 @@ class AgentOverrideOutput:
             skill_sync=skill_sync,
             skills=skills,
             subagents=subagents,
+            tool_proxy=tool_proxy,
             toolsets=toolsets,
         )
 
