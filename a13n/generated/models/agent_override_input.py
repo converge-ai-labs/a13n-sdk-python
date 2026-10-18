@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     from ..models.retry_override import RetryOverride
     from ..models.shared_skill_sync import SharedSkillSync
     from ..models.skill_selection import SkillSelection
+    from ..models.tool_search import ToolSearch
 
 
 T = TypeVar("T", bound="AgentOverrideInput")
@@ -53,6 +54,7 @@ class AgentOverrideInput:
             skill_sync (IsolatedSkillSync | None | SharedSkillSync | Unset):
             skills (list[SkillSelection] | None | Unset):
             subagents (AgentOverrideInputSubagentsType0 | None | Unset):
+            tool_search (None | ToolSearch | Unset):
             toolsets (AgentOverrideInputToolsetsType0 | None | Unset):
     """
 
@@ -73,6 +75,7 @@ class AgentOverrideInput:
     skill_sync: IsolatedSkillSync | SharedSkillSync | Unset | None = UNSET
     skills: list[SkillSelection] | Unset | None = UNSET
     subagents: AgentOverrideInputSubagentsType0 | Unset | None = UNSET
+    tool_search: ToolSearch | Unset | None = UNSET
     toolsets: AgentOverrideInputToolsetsType0 | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
@@ -89,6 +92,7 @@ class AgentOverrideInput:
         from ..models.platform_selection import PlatformSelection
         from ..models.retry_override import RetryOverride
         from ..models.shared_skill_sync import SharedSkillSync
+        from ..models.tool_search import ToolSearch
 
         builtin_skills: list[Literal["platform-operations"]] | Unset | None
         if isinstance(self.builtin_skills, Unset):
@@ -239,6 +243,14 @@ class AgentOverrideInput:
         else:
             subagents = self.subagents
 
+        tool_search: dict[str, Any] | Unset | None
+        if isinstance(self.tool_search, Unset):
+            tool_search = UNSET
+        elif isinstance(self.tool_search, ToolSearch):
+            tool_search = self.tool_search.to_dict()
+        else:
+            tool_search = self.tool_search
+
         toolsets: dict[str, Any] | Unset | None
         if isinstance(self.toolsets, Unset):
             toolsets = UNSET
@@ -284,6 +296,8 @@ class AgentOverrideInput:
             field_dict["skills"] = skills
         if subagents is not UNSET:
             field_dict["subagents"] = subagents
+        if tool_search is not UNSET:
+            field_dict["tool_search"] = tool_search
         if toolsets is not UNSET:
             field_dict["toolsets"] = toolsets
 
@@ -308,6 +322,7 @@ class AgentOverrideInput:
         from ..models.retry_override import RetryOverride
         from ..models.shared_skill_sync import SharedSkillSync
         from ..models.skill_selection import SkillSelection
+        from ..models.tool_search import ToolSearch
 
         d = dict(src_dict)
 
@@ -612,6 +627,23 @@ class AgentOverrideInput:
 
         subagents = _parse_subagents(d.pop("subagents", UNSET))
 
+        def _parse_tool_search(data: object) -> ToolSearch | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                tool_search_type_0 = ToolSearch.from_dict(data)
+
+                return tool_search_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            raise ValueError("Invalid nullable model value")
+
+        tool_search = _parse_tool_search(d.pop("tool_search", UNSET))
+
         def _parse_toolsets(data: object) -> AgentOverrideInputToolsetsType0 | Unset | None:
             if data is None:
                 return data
@@ -647,6 +679,7 @@ class AgentOverrideInput:
             skill_sync=skill_sync,
             skills=skills,
             subagents=subagents,
+            tool_search=tool_search,
             toolsets=toolsets,
         )
 

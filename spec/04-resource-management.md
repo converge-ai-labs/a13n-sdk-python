@@ -41,11 +41,25 @@ Service's default skill policy is shared publication (`mode=shared`, `overwrite=
 
 Environment Provider `references.get()` returns counts and bounded reference samples; `delete(if_match=...)` remains a conditional mutation that Service may refuse while referenced. Private provider configuration is write-only at the Service boundary. Public readback is not a credential backup, and the SDK does not recover omitted private values or copy them from request objects into responses.
 
+## Tool Discovery Configuration
+
+Agent revisions and Run overrides expose generated `ToolSearch(config=..., groups=...)`. `config` discriminates strict `NativeToolSearchConfig(mode="native", strategy=...)` and `ProxyToolSearchConfig(mode="proxy", ...)` shapes; mixed properties and unknown modes fail at serialization/deserialization. Native strategy may be omitted, null, `bm25` or `regex`. Groups map names to `ToolSearchGroup` descriptions and selected connection/plugin/platform sources. Selection grants no new source authority. The Service/Harness owns discovery execution and provider support.
+
+Omitted or null `tool_search` retains revision configuration; an explicit block replaces the whole block, without recursive merging. Omitted config/groups retains its native defaults; `groups={}` disables grouping. The SDK preserves omitted members, explicit null and empty maps and adds no provider fallback.
+
+## Desktop Assistance and User Control
+
+The native graph exposes `runs(id).desktop_assistance(call_id).get()`, nullable `runs(id).desktop_control.get()`, and explicit `desktop_control.create(body=Request(...))`. The shared `desktop_assistance(id)` resource exposes `view`, `request_control`, `control`, `disconnect`, and `complete`. Opening user control creates a viewing context, not an execution reservation. Requesting control reserves/suspends under Service authority and may return preparing before a grant. Access requires ordinary workspace/Run access, current execution authority, the frozen mount and matching provider generation; the SDK neither supplies nor bypasses these checks.
+
+`Control` and `Completion` use a 20–72-character browser-session token and a nonnegative epoch. Their `session_id` is not a Service Session resource ID. Metadata `View` contains no access secret; `Access` preserves the no-store WebSocket URL/password and expiry from an explicit grant. Applications keep these short-lived credentials private. Disconnect revokes the caller's browser session without answering a deferred call; completion revokes access, confirms held-input cleanup and persists its outcome. [Interaction control](02-interaction-and-control.md#desktop-waiting-and-control) owns the separate explicit resume boundary.
+
 ## Execution Readback and Usage
 
 `client.api.runs.list(...)`, `runs(id).agent.get()` and `runs(id).attempts(attempt_id).get()` retain native scope, paging and HTTP evidence. `RunAgent` separates the frozen revision from the configuration with that Run's override applied. Referenced Models, Connections and templates remain live; the SDK does not fabricate an immutable resolved dependency graph.
 
 `usage.records(record_id).metrics.get()` reads Service-derived request timing. Nullable metrics remain null when unavailable and zero remains a measured zero. `UsageSummary` requires both aggregate `models` and per-Run `runs`; each `ModelUsage` requires nullable first-chunk and output-speed fields. No client-side timestamp formula replaces missing metrics, and usage still does not prove billing settlement.
+
+`usage.context.get(thread_id=..., run_id=..., record_id=...)` forwards selectors for Service's exactly-one validation. Success is `ContextUsage | None`: no completed contribution is HTTP 200 JSON null, not a fabricated empty model. A model requires Run/record identity and nullable `input_tokens`, `output_tokens`, and `context_window_tokens`; zero remains zero. Thread/Run scope selects the latest completed main-agent contribution; record scope reads the exact contribution, including attributed children. Capacity uses current Model configuration and the applicable frozen Run Agent override. This is neither aggregate usage nor pending prompt estimation. The SDK computes no ratio or token total.
 
 ## Findings and Message Authors
 

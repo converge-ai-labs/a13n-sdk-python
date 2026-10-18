@@ -1,7 +1,8 @@
 """Installed-SDK acceptance against an existing, disposable Native Service.
 
 Requires A13N_SERVICE_URL, A13N_API_TOKEN, A13N_AGENT,
-A13N_CLIENT_TOOL_AGENT, A13N_FAILURE_PROMPT and A13N_CA_BUNDLE.
+A13N_CLIENT_TOOL_AGENT, A13N_FAILURE_PROMPT, A13N_CA_BUNDLE,
+A13N_MODEL_RECORD and A13N_MODEL_KEY.
 A13N_FAILURE_PROMPT is a disposable fixture's latest-input-only failure trigger,
 not a Service API capability. All HTTP requests use verified TLS;
 this script neither provisions credentials nor resets Service state. Its output
@@ -511,6 +512,112 @@ async def _session_stream_acceptance(client: Client, agent: str) -> dict[str, An
     }
 
 
+async def _desktop_discovery_context_acceptance(
+    client: Client,
+    agent: str,
+    model_key: str,
+    record_id: str,
+    failure_prompt: str,
+) -> dict[str, Any]:
+    context_result = await client.api.usage.context.get(record_id=record_id)
+    context = context_result.value
+    if context is None or context.input_tokens is None or context.output_tokens is None:
+        raise RuntimeError("Fixture model record has no reported usage")
+    if context.context_window_tokens is not None:
+        raise RuntimeError("Fixture capacity was expected to remain null")
+    run = (await client.api.runs(context.run_id).get()).value
+    for query in ({"run_id": run.id}, {"thread_id": run.thread_id}):
+        result = await client.api.usage.context.get(**query)
+        if result.value is None or result.value.to_dict() != context.to_dict():
+            raise RuntimeError("Context selectors disagree")
+    for query in ({}, {"run_id": run.id, "record_id": record_id}):
+        try:
+            await client.api.usage.context.get(**query)
+        except ApiError as error:
+            if error.status != 400:
+                raise
+        else:
+            raise RuntimeError("Service accepted invalid context selector coverage")
+    missing = "run_" + "0" * 24
+    for read in (
+        lambda: client.api.usage.context.get(run_id=missing),
+        lambda: client.api.runs(missing).desktop_control.get(),
+    ):
+        try:
+            await read()
+        except ApiError as error:
+            if error.status != 404:
+                raise
+        else:
+            raise RuntimeError("Missing native scope was accepted")
+    absent = await client.api.runs(run.id).desktop_control.get()
+    if absent.value is not None or absent.status_code != 200:
+        raise RuntimeError("Absent desktop control did not remain successful null")
+    failed = await client.agents(agent).start(failure_prompt, idempotency_key=_key("context-null"))
+    outcome = await failed.result(timeout=120.0, poll_interval=0.1)
+    if outcome.status != "failed":
+        raise RuntimeError("Fixture failure prompt did not fail")
+    empty = await client.api.usage.context.get(run_id=outcome.run_id)
+    if empty.value is not None or empty.status_code != 200:
+        raise RuntimeError("Run without completed contribution did not remain successful null")
+    stored = []
+    for configuration in [
+        wire.ProxyToolSearchConfig(
+            mode="proxy", search_name="find_grouped_tools", call_name="invoke_grouped_tool", max_results=7
+        ),
+        wire.NativeToolSearchConfig(mode="native"),
+        wire.NativeToolSearchConfig(mode="native", strategy=None),
+        wire.NativeToolSearchConfig(mode="native", strategy=wire.NativeToolSearchConfigStrategyType0.REGEX),
+    ]:
+        search = wire.ToolSearch(config=configuration, groups=wire.ToolSearchGroups())
+        created = await client.api.agents.create(
+            body=wire.AgentCreate(
+                name="SDK typed tool discovery",
+                config=wire.AgentConfigInput(model=model_key, tool_search=search),
+            )
+        )
+        if not isinstance(created.value.default_revision_id, str):
+            raise RuntimeError("Created Agent has no default revision")
+        revision = (await client.api.agents(created.value.id).revisions(created.value.default_revision_id).get()).value
+        saved = revision.config.tool_search
+        if (
+            not isinstance(saved, wire.ToolSearch)
+            or not isinstance(saved.groups, wire.ToolSearchGroups)
+            or saved.groups.to_dict() != {}
+        ):
+            raise RuntimeError("Stored discovery group selection changed")
+        if not isinstance(saved.config, (wire.NativeToolSearchConfig, wire.ProxyToolSearchConfig)):
+            raise RuntimeError("Stored discovery config is missing")
+        actual = saved.config.to_dict()
+        if any(actual.get(key) != value for key, value in configuration.to_dict().items()):
+            raise RuntimeError("Stored discovery configuration changed")
+        stored.append(created.value.id)
+    rejected = 0
+    for invalid in [
+        {"mode": "native", "max_results": 7},
+        {"mode": "proxy", "strategy": "regex"},
+        {"mode": "native", "strategy": "invalid"},
+        {"strategy": "regex"},
+    ]:
+        try:
+            wire.ToolSearch.from_dict({"config": invalid})
+        except ValueError:
+            rejected += 1
+        else:
+            raise RuntimeError("SDK accepted an invalid discovery variant")
+    return {
+        "record_id": context.record_id,
+        "run_id": run.id,
+        "selectors_equal": 3,
+        "capacity_null": True,
+        "failed_context_null": outcome.run_id,
+        "absent_desktop_null": True,
+        "stored_discovery_agents": stored,
+        "invalid_variants_rejected_locally": rejected,
+        "desktop_provider_execution": "not exercised",
+    }
+
+
 async def main() -> None:
     base_url = _required("A13N_SERVICE_URL")
     token = _required("A13N_API_TOKEN")
@@ -527,6 +634,13 @@ async def main() -> None:
         successors = await _resume_and_fork(client, agent, client_tool_agent)
         paged_display = await _paged_display_acceptance(client, agent)
         failed_continuation = await _failed_continuation_acceptance(client, agent, failure_prompt)
+        desktop_discovery_context = await _desktop_discovery_context_acceptance(
+            client,
+            agent,
+            _required("A13N_MODEL_KEY"),
+            _required("A13N_MODEL_RECORD"),
+            failure_prompt,
+        )
     print(
         json.dumps(
             {
@@ -539,6 +653,7 @@ async def main() -> None:
                 "successors": successors,
                 "paged_display": paged_display,
                 "failed_continuation": failed_continuation,
+                "desktop_discovery_context": desktop_discovery_context,
             },
             sort_keys=True,
         )

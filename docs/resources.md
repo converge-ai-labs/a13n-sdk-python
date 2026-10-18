@@ -336,6 +336,25 @@ Read retained image IDs explicitly from committed history. JPEG and PNG bytes re
 
 Timing is derived by Service, not recomputed by the SDK. `None` means no eligible timing, not zero; zero output on a measured positive-duration request can have zero speed. `UsageSummary` now includes required `runs` with per-Run model totals, and `ModelUsage` includes required nullable `average_time_to_first_chunk_seconds` and `output_tokens_per_second`. Older hand-built response fixtures must supply these fields; do not replace missing facts with zeros.
 
+## Read latest-generation context usage
+
+```python
+from a13n import Client
+from a13n.generated import models as wire
+
+
+async def latest_context(client: Client, run_id: str) -> wire.ContextUsage | None:
+    result = await client.api.usage.context.get(run_id=run_id)
+    usage = result.value
+    if usage is None:
+        print("No completed model contribution", result.request_id)
+    else:
+        print(usage.run_id, usage.record_id, usage.input_tokens, usage.output_tokens, usage.context_window_tokens)
+    return usage
+```
+
+Supply **exactly one** of `thread_id`, `run_id`, or `record_id`; Service validates the selection. Thread/Run scope selects the latest completed main-agent model contribution, not aggregate usage or an estimate of the next prompt. Record scope reads that exact contribution, including an attributed child record. HTTP 200 JSON null means no eligible contribution for the selected Thread/Run; missing scopes or records remain errors. All three token/window fields are required but nullable: unavailable stays `None`, and measured zero stays zero. Capacity reflects the current configured window with the Run's applicable frozen Agent override; the SDK invents no occupancy ratio or total. Read `.status_code`, `.request_id` and `.content` on the Result when retaining evidence.
+
 ## Choose the right level
 
 | Task                                               | Preferred entry point                                                  |

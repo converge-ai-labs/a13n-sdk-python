@@ -86,6 +86,7 @@ def test_every_pinned_named_model_and_inline_schema_has_generated_coverage() -> 
         "Part",
         "ToolCallId",
         "ToolPermissionSetting",
+        "ToolSearchConfig",
     }
     named = set()
     for name, schema in schemas.items():
@@ -95,7 +96,7 @@ def test_every_pinned_named_model_and_inline_schema_has_generated_coverage() -> 
             assert exported in wire.__all__, name
             named.add(name)
     assert named | inline == schemas.keys()
-    assert len(schemas) == 353
+    assert len(schemas) == 364
     for name in inline:
         reference = f"#/components/schemas/{name}"
         assert reference in json.dumps(document), name
@@ -109,7 +110,7 @@ def test_session_only_models_share_native_types_without_changing_native_inventor
     augmented = with_session_models(document, session)
     native = document["components"]["schemas"]
     combined = augmented["components"]["schemas"]
-    assert len(native) == 353 and len(session["$defs"]) == 82
+    assert len(native) == 364 and len(session["$defs"]) == 87
     assert combined.keys() - native.keys() == {
         "Delta",
         "Gap",
@@ -153,3 +154,26 @@ def test_full_pinned_generation_matches_committed_owner(tmp_path: Path) -> None:
         }
 
     assert files(output) == files(ROOT / "a13n/generated")
+
+
+def test_boundary_validation_bundle_is_exact_reachable_pinned_subset() -> None:
+    from codegen.generate import VALIDATED_MODELS, validation_schema
+
+    document = json.loads((ROOT / "contract/openapi.json").read_text())
+    source = document["components"]["schemas"]
+    selected = validation_schema(document)["components"]["schemas"]
+    assert set(selected) == VALIDATED_MODELS | {"ToolSearchConfig"}
+    assert selected == {name: source[name] for name in selected}
+    assert "AgentConfig-Input" not in selected  # Existing unrelated models retain their own codecs.
+    assert json.loads((ROOT / "a13n/generated/validation.schema.json").read_text()) == validation_schema(document)
+
+
+def test_boundary_adapter_rejects_only_selected_nullable_model_fallthrough() -> None:
+    from codegen.generate import strict_wire_boundaries
+
+    selected = "def _parse_value(data):\n    if data is None:\n        return data\n    return cast(ContextUsage | None, data)\n"
+    result = strict_wire_boundaries(selected)
+    assert "return data" in result
+    assert 'raise ValueError("Invalid nullable model value")' in result
+    unrelated = selected.replace("ContextUsage", "OldModel")
+    assert strict_wire_boundaries(unrelated) == unrelated

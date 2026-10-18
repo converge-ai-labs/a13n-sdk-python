@@ -48,7 +48,8 @@ class _ManagedAuth(httpx2.Auth):
         elif self.mode == "session":
             assert self.origin is not None
             request.headers["Origin"] = self.origin
-            path = request.url.path
+            # Match route templates before decoding bound resource segments.
+            path = request.url.raw_path.split(b"?", 1)[0].decode("ascii")
             if self.path_prefix:
                 path = path[len(self.path_prefix) :] if path.startswith(self.path_prefix + "/") else ""
             if self.workspace_id is not None and any(pattern.fullmatch(path) for pattern in WORKSPACE_PATHS):
@@ -135,7 +136,7 @@ class Client:
         if timeout <= 0:
             raise ValueError("timeout must be positive")
         self._timeout = timeout
-        auth.path_prefix = url.path.rstrip("/")
+        auth.path_prefix = httpx2.URL(base_url).raw_path.split(b"?", 1)[0].decode("ascii").rstrip("/")
         self._auth = auth
         self._tasks: dict[asyncio.Task[Any], int] = {}
         self._io_changed = asyncio.Event()
