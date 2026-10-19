@@ -3704,6 +3704,7 @@ class Runs(Resource):
     async def list(
         self,
         *,
+        text_query: str | Unset | None = UNSET,
         agent_id: str | Unset | None = UNSET,
         session_id: str | Unset | None = UNSET,
         thread_id: str | Unset | None = UNSET,
@@ -3720,6 +3721,7 @@ class Runs(Resource):
         return await self._call(
             lambda client: list_runs_api_v1_runs_get.asyncio_detailed(
                 client=client,
+                text_query=text_query,
                 agent_id=agent_id,
                 session_id=session_id,
                 thread_id=thread_id,
@@ -4159,6 +4161,7 @@ class Sessions(Resource):
     async def list(
         self,
         *,
+        text_query: str | Unset | None = UNSET,
         q: str | Unset | None = UNSET,
         agent_id: str | Unset | None = UNSET,
         status: list[wire.RunStatus] | Unset = UNSET,
@@ -4174,6 +4177,7 @@ class Sessions(Resource):
         return await self._call(
             lambda client: list_sessions_api_v1_sessions_get.asyncio_detailed(
                 client=client,
+                text_query=text_query,
                 q=q,
                 agent_id=agent_id,
                 status=status,
@@ -4190,6 +4194,7 @@ class Sessions(Resource):
     def pages(
         self,
         *,
+        text_query: str | Unset | None = UNSET,
         q: str | Unset | None = UNSET,
         agent_id: str | Unset | None = UNSET,
         status: list[wire.RunStatus] | Unset = UNSET,
@@ -4207,6 +4212,7 @@ class Sessions(Resource):
         label = label.copy() if isinstance(label, list) else label
         return pages(
             lambda next_cursor: self.list(
+                text_query=text_query,
                 q=q,
                 agent_id=agent_id,
                 status=status,
@@ -4225,6 +4231,7 @@ class Sessions(Resource):
     def iter(
         self,
         *,
+        text_query: str | Unset | None = UNSET,
         q: str | Unset | None = UNSET,
         agent_id: str | Unset | None = UNSET,
         status: list[wire.RunStatus] | Unset = UNSET,
@@ -4240,6 +4247,7 @@ class Sessions(Resource):
         return (
             item
             async for page in self.pages(
+                text_query=text_query,
                 q=q,
                 agent_id=agent_id,
                 status=status,
@@ -4849,6 +4857,7 @@ class Threads(Resource):
         self,
         *,
         session_id: str | Unset | None = UNSET,
+        text_query: str | Unset | None = UNSET,
         label: list[str] | Unset | None = UNSET,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
@@ -4859,6 +4868,7 @@ class Threads(Resource):
             lambda client: list_threads_api_v1_threads_get.asyncio_detailed(
                 client=client,
                 session_id=session_id,
+                text_query=text_query,
                 label=label,
                 limit=limit,
                 cursor=cursor,
@@ -4870,6 +4880,7 @@ class Threads(Resource):
         self,
         *,
         session_id: str | Unset | None = UNSET,
+        text_query: str | Unset | None = UNSET,
         label: list[str] | Unset | None = UNSET,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
@@ -4879,7 +4890,12 @@ class Threads(Resource):
         label = label.copy() if isinstance(label, list) else label
         return pages(
             lambda next_cursor: self.list(
-                session_id=session_id, label=label, limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor
+                session_id=session_id,
+                text_query=text_query,
+                label=label,
+                limit=limit,
+                x_workspace_id=x_workspace_id,
+                cursor=next_cursor,
             ),
             lambda value: value.next_cursor,
             cursor,
@@ -4889,6 +4905,7 @@ class Threads(Resource):
         self,
         *,
         session_id: str | Unset | None = UNSET,
+        text_query: str | Unset | None = UNSET,
         label: list[str] | Unset | None = UNSET,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
@@ -4898,7 +4915,12 @@ class Threads(Resource):
         return (
             item
             async for page in self.pages(
-                session_id=session_id, label=label, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
+                session_id=session_id,
+                text_query=text_query,
+                label=label,
+                limit=limit,
+                cursor=cursor,
+                x_workspace_id=x_workspace_id,
             )
             for item in page.value.items
         )

@@ -15,6 +15,7 @@ from ...types import UNSET, Response, Unset
 
 def build_request(
     *,
+    text_query: str | Unset | None = UNSET,
     agent_id: str | Unset | None = UNSET,
     session_id: str | Unset | None = UNSET,
     thread_id: str | Unset | None = UNSET,
@@ -32,6 +33,13 @@ def build_request(
         headers["X-Workspace-ID"] = x_workspace_id
 
     params: dict[str, Any] = {}
+
+    json_text_query: str | Unset | None
+    if isinstance(text_query, Unset):
+        json_text_query = UNSET
+    else:
+        json_text_query = text_query
+    params["text_query"] = json_text_query
 
     json_agent_id: str | Unset | None
     if isinstance(agent_id, Unset):
@@ -173,6 +181,7 @@ def _build_response(
 def sync_detailed(
     *,
     client: AuthenticatedClient,
+    text_query: str | Unset | None = UNSET,
     agent_id: str | Unset | None = UNSET,
     session_id: str | Unset | None = UNSET,
     thread_id: str | Unset | None = UNSET,
@@ -188,6 +197,8 @@ def sync_detailed(
     """List Runs
 
     Args:
+        text_query (None | str | Unset): All search terms must match one run's retained
+            user/assistant text
         agent_id (None | str | Unset):
         session_id (None | str | Unset):
         thread_id (None | str | Unset):
@@ -211,6 +222,7 @@ def sync_detailed(
     """
 
     kwargs = build_request(
+        text_query=text_query,
         agent_id=agent_id,
         session_id=session_id,
         thread_id=thread_id,
@@ -234,6 +246,7 @@ def sync_detailed(
 def sync(
     *,
     client: AuthenticatedClient,
+    text_query: str | Unset | None = UNSET,
     agent_id: str | Unset | None = UNSET,
     session_id: str | Unset | None = UNSET,
     thread_id: str | Unset | None = UNSET,
@@ -249,6 +262,8 @@ def sync(
     """List Runs
 
     Args:
+        text_query (None | str | Unset): All search terms must match one run's retained
+            user/assistant text
         agent_id (None | str | Unset):
         session_id (None | str | Unset):
         thread_id (None | str | Unset):
@@ -273,6 +288,7 @@ def sync(
 
     return sync_detailed(
         client=client,
+        text_query=text_query,
         agent_id=agent_id,
         session_id=session_id,
         thread_id=thread_id,
@@ -290,6 +306,7 @@ def sync(
 async def asyncio_detailed(
     *,
     client: AuthenticatedClient,
+    text_query: str | Unset | None = UNSET,
     agent_id: str | Unset | None = UNSET,
     session_id: str | Unset | None = UNSET,
     thread_id: str | Unset | None = UNSET,
@@ -305,6 +322,8 @@ async def asyncio_detailed(
     """List Runs
 
     Args:
+        text_query (None | str | Unset): All search terms must match one run's retained
+            user/assistant text
         agent_id (None | str | Unset):
         session_id (None | str | Unset):
         thread_id (None | str | Unset):
@@ -328,6 +347,7 @@ async def asyncio_detailed(
     """
 
     kwargs = build_request(
+        text_query=text_query,
         agent_id=agent_id,
         session_id=session_id,
         thread_id=thread_id,
@@ -349,6 +369,7 @@ async def asyncio_detailed(
 async def asyncio(
     *,
     client: AuthenticatedClient,
+    text_query: str | Unset | None = UNSET,
     agent_id: str | Unset | None = UNSET,
     session_id: str | Unset | None = UNSET,
     thread_id: str | Unset | None = UNSET,
@@ -364,6 +385,8 @@ async def asyncio(
     """List Runs
 
     Args:
+        text_query (None | str | Unset): All search terms must match one run's retained
+            user/assistant text
         agent_id (None | str | Unset):
         session_id (None | str | Unset):
         thread_id (None | str | Unset):
@@ -389,6 +412,7 @@ async def asyncio(
     return (
         await asyncio_detailed(
             client=client,
+            text_query=text_query,
             agent_id=agent_id,
             session_id=session_id,
             thread_id=thread_id,

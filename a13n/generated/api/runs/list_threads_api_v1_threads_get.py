@@ -12,6 +12,7 @@ from ...types import UNSET, Response, Unset
 def build_request(
     *,
     session_id: str | Unset | None = UNSET,
+    text_query: str | Unset | None = UNSET,
     label: list[str] | Unset | None = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
@@ -29,6 +30,13 @@ def build_request(
     else:
         json_session_id = session_id
     params["session_id"] = json_session_id
+
+    json_text_query: str | Unset | None
+    if isinstance(text_query, Unset):
+        json_text_query = UNSET
+    else:
+        json_text_query = text_query
+    params["text_query"] = json_text_query
 
     json_label: list[str] | Unset | None
     if isinstance(label, Unset):
@@ -97,6 +105,7 @@ def sync_detailed(
     *,
     client: AuthenticatedClient,
     session_id: str | Unset | None = UNSET,
+    text_query: str | Unset | None = UNSET,
     label: list[str] | Unset | None = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
@@ -106,6 +115,7 @@ def sync_detailed(
 
     Args:
         session_id (None | str | Unset):
+        text_query (None | str | Unset):
         label (list[str] | None | Unset):
         limit (int | Unset):
         cursor (None | str | Unset):
@@ -123,6 +133,7 @@ def sync_detailed(
 
     kwargs = build_request(
         session_id=session_id,
+        text_query=text_query,
         label=label,
         limit=limit,
         cursor=cursor,
@@ -140,6 +151,7 @@ def sync(
     *,
     client: AuthenticatedClient,
     session_id: str | Unset | None = UNSET,
+    text_query: str | Unset | None = UNSET,
     label: list[str] | Unset | None = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
@@ -149,6 +161,7 @@ def sync(
 
     Args:
         session_id (None | str | Unset):
+        text_query (None | str | Unset):
         label (list[str] | None | Unset):
         limit (int | Unset):
         cursor (None | str | Unset):
@@ -167,6 +180,7 @@ def sync(
     return sync_detailed(
         client=client,
         session_id=session_id,
+        text_query=text_query,
         label=label,
         limit=limit,
         cursor=cursor,
@@ -178,6 +192,7 @@ async def asyncio_detailed(
     *,
     client: AuthenticatedClient,
     session_id: str | Unset | None = UNSET,
+    text_query: str | Unset | None = UNSET,
     label: list[str] | Unset | None = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
@@ -187,6 +202,7 @@ async def asyncio_detailed(
 
     Args:
         session_id (None | str | Unset):
+        text_query (None | str | Unset):
         label (list[str] | None | Unset):
         limit (int | Unset):
         cursor (None | str | Unset):
@@ -204,6 +220,7 @@ async def asyncio_detailed(
 
     kwargs = build_request(
         session_id=session_id,
+        text_query=text_query,
         label=label,
         limit=limit,
         cursor=cursor,
@@ -219,6 +236,7 @@ async def asyncio(
     *,
     client: AuthenticatedClient,
     session_id: str | Unset | None = UNSET,
+    text_query: str | Unset | None = UNSET,
     label: list[str] | Unset | None = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
@@ -228,6 +246,7 @@ async def asyncio(
 
     Args:
         session_id (None | str | Unset):
+        text_query (None | str | Unset):
         label (list[str] | None | Unset):
         limit (int | Unset):
         cursor (None | str | Unset):
@@ -247,6 +266,7 @@ async def asyncio(
         await asyncio_detailed(
             client=client,
             session_id=session_id,
+            text_query=text_query,
             label=label,
             limit=limit,
             cursor=cursor,
