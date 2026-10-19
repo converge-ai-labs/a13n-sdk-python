@@ -7,13 +7,16 @@ import httpx2 as httpx
 from ...client import AuthenticatedClient, Client
 from ...models.agent_revision_page import AgentRevisionPage
 from ...models.error_envelope import ErrorEnvelope
+from ...models.read_view import ReadView
+from ...models.revision_summary_page import RevisionSummaryPage
 from ...types import UNSET, Response, Unset
 
 
 def build_request(
     agent_id: str,
     *,
-    limit: int | Unset = UNSET,
+    view: ReadView | Unset = UNSET,
+    limit: int | Unset | None = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> dict[str, Any]:
@@ -23,7 +26,18 @@ def build_request(
 
     params: dict[str, Any] = {}
 
-    params["limit"] = limit
+    json_view: str | Unset = UNSET
+    if not isinstance(view, Unset):
+        json_view = view.value
+
+    params["view"] = json_view
+
+    json_limit: int | Unset | None
+    if isinstance(limit, Unset):
+        json_limit = UNSET
+    else:
+        json_limit = limit
+    params["limit"] = json_limit
 
     json_cursor: str | Unset | None
     if isinstance(cursor, Unset):
@@ -48,9 +62,25 @@ def build_request(
 
 def _parse_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> AgentRevisionPage | ErrorEnvelope:
+) -> AgentRevisionPage | RevisionSummaryPage | ErrorEnvelope:
     if response.status_code == 200:
-        response_200 = AgentRevisionPage.from_dict(response.json())
+
+        def _parse_response_200(data: object) -> AgentRevisionPage | RevisionSummaryPage:
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                response_200_type_0 = AgentRevisionPage.from_dict(data)
+
+                return response_200_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            if not isinstance(data, dict):
+                raise TypeError()
+            response_200_type_1 = RevisionSummaryPage.from_dict(data)
+
+            return response_200_type_1
+
+        response_200 = _parse_response_200(response.json())
 
         return response_200
 
@@ -66,7 +96,7 @@ def _parse_response(
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[AgentRevisionPage | ErrorEnvelope]:
+) -> Response[AgentRevisionPage | RevisionSummaryPage | ErrorEnvelope]:
     from ....errors import ProtocolError
 
     try:
@@ -84,15 +114,17 @@ def sync_detailed(
     agent_id: str,
     *,
     client: AuthenticatedClient,
-    limit: int | Unset = UNSET,
+    view: ReadView | Unset = UNSET,
+    limit: int | Unset | None = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
-) -> Response[AgentRevisionPage | ErrorEnvelope]:
+) -> Response[AgentRevisionPage | RevisionSummaryPage | ErrorEnvelope]:
     """List Revisions
 
     Args:
         agent_id (str):
-        limit (int | Unset):
+        view (ReadView | Unset):
+        limit (int | None | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
@@ -103,11 +135,12 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[AgentRevisionPage | ErrorEnvelope]
+        Response[AgentRevisionPage | RevisionSummaryPage | ErrorEnvelope]
     """
 
     kwargs = build_request(
         agent_id=agent_id,
+        view=view,
         limit=limit,
         cursor=cursor,
         x_workspace_id=x_workspace_id,
@@ -124,15 +157,17 @@ def sync(
     agent_id: str,
     *,
     client: AuthenticatedClient,
-    limit: int | Unset = UNSET,
+    view: ReadView | Unset = UNSET,
+    limit: int | Unset | None = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
-) -> AgentRevisionPage | ErrorEnvelope | None:
+) -> AgentRevisionPage | RevisionSummaryPage | ErrorEnvelope | None:
     """List Revisions
 
     Args:
         agent_id (str):
-        limit (int | Unset):
+        view (ReadView | Unset):
+        limit (int | None | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
@@ -143,12 +178,13 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        AgentRevisionPage | ErrorEnvelope
+        AgentRevisionPage | RevisionSummaryPage | ErrorEnvelope
     """
 
     return sync_detailed(
         agent_id=agent_id,
         client=client,
+        view=view,
         limit=limit,
         cursor=cursor,
         x_workspace_id=x_workspace_id,
@@ -159,15 +195,17 @@ async def asyncio_detailed(
     agent_id: str,
     *,
     client: AuthenticatedClient,
-    limit: int | Unset = UNSET,
+    view: ReadView | Unset = UNSET,
+    limit: int | Unset | None = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
-) -> Response[AgentRevisionPage | ErrorEnvelope]:
+) -> Response[AgentRevisionPage | RevisionSummaryPage | ErrorEnvelope]:
     """List Revisions
 
     Args:
         agent_id (str):
-        limit (int | Unset):
+        view (ReadView | Unset):
+        limit (int | None | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
@@ -178,11 +216,12 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[AgentRevisionPage | ErrorEnvelope]
+        Response[AgentRevisionPage | RevisionSummaryPage | ErrorEnvelope]
     """
 
     kwargs = build_request(
         agent_id=agent_id,
+        view=view,
         limit=limit,
         cursor=cursor,
         x_workspace_id=x_workspace_id,
@@ -197,15 +236,17 @@ async def asyncio(
     agent_id: str,
     *,
     client: AuthenticatedClient,
-    limit: int | Unset = UNSET,
+    view: ReadView | Unset = UNSET,
+    limit: int | Unset | None = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
-) -> AgentRevisionPage | ErrorEnvelope | None:
+) -> AgentRevisionPage | RevisionSummaryPage | ErrorEnvelope | None:
     """List Revisions
 
     Args:
         agent_id (str):
-        limit (int | Unset):
+        view (ReadView | Unset):
+        limit (int | None | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
@@ -216,13 +257,14 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        AgentRevisionPage | ErrorEnvelope
+        AgentRevisionPage | RevisionSummaryPage | ErrorEnvelope
     """
 
     return (
         await asyncio_detailed(
             agent_id=agent_id,
             client=client,
+            view=view,
             limit=limit,
             cursor=cursor,
             x_workspace_id=x_workspace_id,

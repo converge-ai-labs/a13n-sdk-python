@@ -6,7 +6,12 @@ import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
 from ...models.error_envelope import ErrorEnvelope
+from ...models.list_attempt_spans_api_v1_runs_run_id_attempts_attempt_id_trace_get_status_type_0 import (
+    ListAttemptSpansApiV1RunsRunIdAttemptsAttemptIdTraceGetStatusType0,
+)
+from ...models.read_view import ReadView
 from ...models.span_page import SpanPage
+from ...models.span_read_page import SpanReadPage
 from ...types import UNSET, Response, Unset
 
 
@@ -14,7 +19,11 @@ def build_request(
     run_id: str,
     attempt_id: str,
     *,
-    limit: int | Unset = UNSET,
+    view: ReadView | Unset = UNSET,
+    status: ListAttemptSpansApiV1RunsRunIdAttemptsAttemptIdTraceGetStatusType0 | Unset | None = UNSET,
+    kind: str | Unset | None = UNSET,
+    tool_name: str | Unset | None = UNSET,
+    limit: int | Unset | None = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> dict[str, Any]:
@@ -24,7 +33,41 @@ def build_request(
 
     params: dict[str, Any] = {}
 
-    params["limit"] = limit
+    json_view: str | Unset = UNSET
+    if not isinstance(view, Unset):
+        json_view = view.value
+
+    params["view"] = json_view
+
+    json_status: str | Unset | None
+    if isinstance(status, Unset):
+        json_status = UNSET
+    elif isinstance(status, ListAttemptSpansApiV1RunsRunIdAttemptsAttemptIdTraceGetStatusType0):
+        json_status = status.value
+    else:
+        json_status = status
+    params["status"] = json_status
+
+    json_kind: str | Unset | None
+    if isinstance(kind, Unset):
+        json_kind = UNSET
+    else:
+        json_kind = kind
+    params["kind"] = json_kind
+
+    json_tool_name: str | Unset | None
+    if isinstance(tool_name, Unset):
+        json_tool_name = UNSET
+    else:
+        json_tool_name = tool_name
+    params["tool_name"] = json_tool_name
+
+    json_limit: int | Unset | None
+    if isinstance(limit, Unset):
+        json_limit = UNSET
+    else:
+        json_limit = limit
+    params["limit"] = json_limit
 
     json_cursor: str | Unset | None
     if isinstance(cursor, Unset):
@@ -48,9 +91,27 @@ def build_request(
     return _kwargs
 
 
-def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> ErrorEnvelope | SpanPage:
+def _parse_response(
+    *, client: AuthenticatedClient | Client, response: httpx.Response
+) -> ErrorEnvelope | SpanPage | SpanReadPage:
     if response.status_code == 200:
-        response_200 = SpanPage.from_dict(response.json())
+
+        def _parse_response_200(data: object) -> SpanPage | SpanReadPage:
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                response_200_type_0 = SpanPage.from_dict(data)
+
+                return response_200_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            if not isinstance(data, dict):
+                raise TypeError()
+            response_200_type_1 = SpanReadPage.from_dict(data)
+
+            return response_200_type_1
+
+        response_200 = _parse_response_200(response.json())
 
         return response_200
 
@@ -66,7 +127,7 @@ def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Res
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[ErrorEnvelope | SpanPage]:
+) -> Response[ErrorEnvelope | SpanPage | SpanReadPage]:
     from ....errors import ProtocolError
 
     try:
@@ -85,10 +146,14 @@ def sync_detailed(
     attempt_id: str,
     *,
     client: AuthenticatedClient,
-    limit: int | Unset = UNSET,
+    view: ReadView | Unset = UNSET,
+    status: ListAttemptSpansApiV1RunsRunIdAttemptsAttemptIdTraceGetStatusType0 | Unset | None = UNSET,
+    kind: str | Unset | None = UNSET,
+    tool_name: str | Unset | None = UNSET,
+    limit: int | Unset | None = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
-) -> Response[ErrorEnvelope | SpanPage]:
+) -> Response[ErrorEnvelope | SpanPage | SpanReadPage]:
     """List Attempt Spans
 
      The attempt's spans, including its inline child runs.
@@ -96,7 +161,12 @@ def sync_detailed(
     Args:
         run_id (str):
         attempt_id (str):
-        limit (int | Unset):
+        view (ReadView | Unset):
+        status (ListAttemptSpansApiV1RunsRunIdAttemptsAttemptIdTraceGetStatusType0 | None |
+            Unset):
+        kind (None | str | Unset):
+        tool_name (None | str | Unset):
+        limit (int | None | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
@@ -107,12 +177,16 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorEnvelope | SpanPage]
+        Response[ErrorEnvelope | SpanPage | SpanReadPage]
     """
 
     kwargs = build_request(
         run_id=run_id,
         attempt_id=attempt_id,
+        view=view,
+        status=status,
+        kind=kind,
+        tool_name=tool_name,
         limit=limit,
         cursor=cursor,
         x_workspace_id=x_workspace_id,
@@ -130,10 +204,14 @@ def sync(
     attempt_id: str,
     *,
     client: AuthenticatedClient,
-    limit: int | Unset = UNSET,
+    view: ReadView | Unset = UNSET,
+    status: ListAttemptSpansApiV1RunsRunIdAttemptsAttemptIdTraceGetStatusType0 | Unset | None = UNSET,
+    kind: str | Unset | None = UNSET,
+    tool_name: str | Unset | None = UNSET,
+    limit: int | Unset | None = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
-) -> ErrorEnvelope | SpanPage | None:
+) -> ErrorEnvelope | SpanPage | SpanReadPage | None:
     """List Attempt Spans
 
      The attempt's spans, including its inline child runs.
@@ -141,7 +219,12 @@ def sync(
     Args:
         run_id (str):
         attempt_id (str):
-        limit (int | Unset):
+        view (ReadView | Unset):
+        status (ListAttemptSpansApiV1RunsRunIdAttemptsAttemptIdTraceGetStatusType0 | None |
+            Unset):
+        kind (None | str | Unset):
+        tool_name (None | str | Unset):
+        limit (int | None | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
@@ -152,13 +235,17 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorEnvelope | SpanPage
+        ErrorEnvelope | SpanPage | SpanReadPage
     """
 
     return sync_detailed(
         run_id=run_id,
         attempt_id=attempt_id,
         client=client,
+        view=view,
+        status=status,
+        kind=kind,
+        tool_name=tool_name,
         limit=limit,
         cursor=cursor,
         x_workspace_id=x_workspace_id,
@@ -170,10 +257,14 @@ async def asyncio_detailed(
     attempt_id: str,
     *,
     client: AuthenticatedClient,
-    limit: int | Unset = UNSET,
+    view: ReadView | Unset = UNSET,
+    status: ListAttemptSpansApiV1RunsRunIdAttemptsAttemptIdTraceGetStatusType0 | Unset | None = UNSET,
+    kind: str | Unset | None = UNSET,
+    tool_name: str | Unset | None = UNSET,
+    limit: int | Unset | None = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
-) -> Response[ErrorEnvelope | SpanPage]:
+) -> Response[ErrorEnvelope | SpanPage | SpanReadPage]:
     """List Attempt Spans
 
      The attempt's spans, including its inline child runs.
@@ -181,7 +272,12 @@ async def asyncio_detailed(
     Args:
         run_id (str):
         attempt_id (str):
-        limit (int | Unset):
+        view (ReadView | Unset):
+        status (ListAttemptSpansApiV1RunsRunIdAttemptsAttemptIdTraceGetStatusType0 | None |
+            Unset):
+        kind (None | str | Unset):
+        tool_name (None | str | Unset):
+        limit (int | None | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
@@ -192,12 +288,16 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorEnvelope | SpanPage]
+        Response[ErrorEnvelope | SpanPage | SpanReadPage]
     """
 
     kwargs = build_request(
         run_id=run_id,
         attempt_id=attempt_id,
+        view=view,
+        status=status,
+        kind=kind,
+        tool_name=tool_name,
         limit=limit,
         cursor=cursor,
         x_workspace_id=x_workspace_id,
@@ -213,10 +313,14 @@ async def asyncio(
     attempt_id: str,
     *,
     client: AuthenticatedClient,
-    limit: int | Unset = UNSET,
+    view: ReadView | Unset = UNSET,
+    status: ListAttemptSpansApiV1RunsRunIdAttemptsAttemptIdTraceGetStatusType0 | Unset | None = UNSET,
+    kind: str | Unset | None = UNSET,
+    tool_name: str | Unset | None = UNSET,
+    limit: int | Unset | None = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
-) -> ErrorEnvelope | SpanPage | None:
+) -> ErrorEnvelope | SpanPage | SpanReadPage | None:
     """List Attempt Spans
 
      The attempt's spans, including its inline child runs.
@@ -224,7 +328,12 @@ async def asyncio(
     Args:
         run_id (str):
         attempt_id (str):
-        limit (int | Unset):
+        view (ReadView | Unset):
+        status (ListAttemptSpansApiV1RunsRunIdAttemptsAttemptIdTraceGetStatusType0 | None |
+            Unset):
+        kind (None | str | Unset):
+        tool_name (None | str | Unset):
+        limit (int | None | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
@@ -235,7 +344,7 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorEnvelope | SpanPage
+        ErrorEnvelope | SpanPage | SpanReadPage
     """
 
     return (
@@ -243,6 +352,10 @@ async def asyncio(
             run_id=run_id,
             attempt_id=attempt_id,
             client=client,
+            view=view,
+            status=status,
+            kind=kind,
+            tool_name=tool_name,
             limit=limit,
             cursor=cursor,
             x_workspace_id=x_workspace_id,

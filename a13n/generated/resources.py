@@ -13,13 +13,16 @@ from .._resources import Resource, Result, pages
 from . import models as wire
 from .api.agents import (
     archive_agent_api_v1_agents_agent_id_archive_post,
+    compare_revisions_api_v1_agents_agent_id_revisions_revision_id_compare_get,
     create_agent_api_v1_agents_post,
     create_revision_api_v1_agents_agent_id_revisions_post,
+    define_toolsets_api_v1_toolsets_definitions_get,
     delete_avatar_api_v1_agents_agent_id_avatar_delete,
     duplicate_agent_api_v1_agents_agent_id_duplicate_post,
     get_agent_api_v1_agents_agent_id_get,
     get_avatar_api_v1_agents_agent_id_avatar_get,
     get_revision_api_v1_agents_agent_id_revisions_revision_id_get,
+    index_toolsets_api_v1_toolsets_index_get,
     list_agents_api_v1_agents_get,
     list_revisions_api_v1_agents_agent_id_revisions_get,
     list_toolsets_api_v1_toolsets_get,
@@ -66,9 +69,13 @@ from .api.connections import (
     authorize_connection_api_v1_connections_connection_id_authorize_post,
     complete_authorization_api_v1_connections_callback_get,
     create_connection_api_v1_connections_post,
+    define_connection_tools_api_v1_connections_connection_id_tools_definitions_get,
+    define_connector_actions_api_v1_connector_providers_provider_id_apps_app_actions_definitions_get,
     get_app_api_v1_connector_providers_provider_id_apps_app_get,
     get_connection_api_v1_connections_connection_id_get,
     get_redirect_uri_api_v1_connections_redirect_uri_get,
+    index_connection_tools_api_v1_connections_connection_id_tools_index_get,
+    index_connector_actions_api_v1_connector_providers_provider_id_apps_app_actions_index_get,
     list_actions_api_v1_connector_providers_provider_id_apps_app_actions_get,
     list_apps_api_v1_connector_providers_provider_id_apps_get,
     list_connections_api_v1_connections_get,
@@ -219,6 +226,8 @@ from .api.runs import (
     list_threads_api_v1_threads_get,
     list_trace_spans_api_v1_traces_trace_id_spans_get,
     list_traces_api_v1_traces_get,
+    read_item_content_api_v1_runs_run_id_items_item_id_content_get,
+    read_span_content_api_v1_traces_trace_id_spans_span_id_content_get,
     reorder_inbox_api_v1_threads_thread_id_inbox_order_put,
     resume_run_api_v1_runs_run_id_resume_post,
     run_agent_api_v1_runs_run_id_agent_get,
@@ -720,47 +729,21 @@ class AgentsAgentIdRevisions(Resource):
     async def list(
         self,
         *,
-        limit: int | Unset = UNSET,
+        view: wire.ReadView | Unset = UNSET,
+        limit: int | Unset | None = UNSET,
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
-    ) -> Result[wire.AgentRevisionPage]:
+    ) -> Result[wire.AgentRevisionPage | wire.RevisionSummaryPage]:
         """List Revisions. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: list_revisions_api_v1_agents_agent_id_revisions_get.asyncio_detailed(
                 client=client,
                 agent_id=self._bindings["agent_id"],
+                view=view,
                 limit=limit,
                 cursor=cursor,
                 x_workspace_id=x_workspace_id,
             )
-        )
-
-    def pages(
-        self,
-        *,
-        limit: int | Unset = UNSET,
-        cursor: str | Unset | None = UNSET,
-        x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[Result[wire.AgentRevisionPage]]:
-        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
-        return pages(
-            lambda next_cursor: self.list(limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor),
-            lambda value: value.next_cursor,
-            cursor,
-        )
-
-    def iter(
-        self,
-        *,
-        limit: int | Unset = UNSET,
-        cursor: str | Unset | None = UNSET,
-        x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[wire.AgentRevision]:
-        """Yield ordinary wire values lazily with a filter snapshot and server order."""
-        return (
-            item
-            async for page in self.pages(limit=limit, cursor=cursor, x_workspace_id=x_workspace_id)
-            for item in page.value.items
         )
 
     async def create(
@@ -788,16 +771,36 @@ class AgentsAgentIdRevisions(Resource):
 class AgentsAgentIdRevisionsRevisionId(Resource):
     """Bound Native resource: /agents / {agent_id} / revisions / {revision_id}."""
 
-    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.AgentRevision]:
+    async def get(
+        self,
+        *,
+        view: wire.ReadView | Unset = UNSET,
+        section: wire.ConfigSection | Unset | None = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.AgentRevision | wire.RevisionSummary | wire.TextRead]:
         """Get Revision. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: get_revision_api_v1_agents_agent_id_revisions_revision_id_get.asyncio_detailed(
                 client=client,
                 agent_id=self._bindings["agent_id"],
                 revision_id=self._bindings["revision_id"],
+                view=view,
+                section=section,
+                offset=offset,
+                limit=limit,
+                version=version,
+                query=query,
                 x_workspace_id=x_workspace_id,
             )
         )
+
+    @property
+    def compare(self) -> AgentsAgentIdRevisionsRevisionIdCompare:
+        return AgentsAgentIdRevisionsRevisionIdCompare(self._client, self._bindings)
 
     async def set_default(
         self, *, if_match: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
@@ -809,6 +812,37 @@ class AgentsAgentIdRevisionsRevisionId(Resource):
                 agent_id=self._bindings["agent_id"],
                 revision_id=self._bindings["revision_id"],
                 if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+
+class AgentsAgentIdRevisionsRevisionIdCompare(Resource):
+    """Bound Native resource: /agents / {agent_id} / revisions / {revision_id} / compare."""
+
+    async def get(
+        self,
+        *,
+        base_revision_id: str,
+        section: wire.CompareRevisionsApiV1AgentsAgentIdRevisionsRevisionIdCompareGetSection | Unset = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.TextRead]:
+        """Compare Revisions. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: compare_revisions_api_v1_agents_agent_id_revisions_revision_id_compare_get.asyncio_detailed(
+                client=client,
+                agent_id=self._bindings["agent_id"],
+                revision_id=self._bindings["revision_id"],
+                base_revision_id=base_revision_id,
+                section=section,
+                offset=offset,
+                limit=limit,
+                version=version,
+                query=query,
                 x_workspace_id=x_workspace_id,
             )
         )
@@ -1184,6 +1218,68 @@ class ConnectionsConnectionIdTools(Resource):
             )
         )
 
+    @property
+    def definitions(self) -> ConnectionsConnectionIdToolsDefinitions:
+        return ConnectionsConnectionIdToolsDefinitions(self._client, self._bindings)
+
+    @property
+    def index(self) -> ConnectionsConnectionIdToolsIndex:
+        return ConnectionsConnectionIdToolsIndex(self._client, self._bindings)
+
+
+class ConnectionsConnectionIdToolsDefinitions(Resource):
+    """Bound Native resource: /connections / {connection_id} / tools / definitions."""
+
+    async def get(
+        self,
+        *,
+        name: list[str],
+        offset: int | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.Definitions | wire.TextRead]:
+        """Define Connection Tools. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: (
+                define_connection_tools_api_v1_connections_connection_id_tools_definitions_get.asyncio_detailed(
+                    client=client,
+                    connection_id=self._bindings["connection_id"],
+                    name=name,
+                    offset=offset,
+                    limit=limit,
+                    version=version,
+                    query=query,
+                    x_workspace_id=x_workspace_id,
+                )
+            )
+        )
+
+
+class ConnectionsConnectionIdToolsIndex(Resource):
+    """Bound Native resource: /connections / {connection_id} / tools / index."""
+
+    async def get(
+        self,
+        *,
+        query: str | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.CatalogIndex]:
+        """Index Connection Tools. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: index_connection_tools_api_v1_connections_connection_id_tools_index_get.asyncio_detailed(
+                client=client,
+                connection_id=self._bindings["connection_id"],
+                query=query,
+                limit=limit,
+                cursor=cursor,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
 
 class ConnectorProviders(Resource):
     """Bound Native resource: /connector-providers."""
@@ -1381,6 +1477,72 @@ class ConnectorProvidersProviderIdAppsAppActions(Resource):
                 provider_id=self._bindings["provider_id"],
                 app=self._bindings["app"],
                 x_workspace_id=x_workspace_id,
+            )
+        )
+
+    @property
+    def definitions(self) -> ConnectorProvidersProviderIdAppsAppActionsDefinitions:
+        return ConnectorProvidersProviderIdAppsAppActionsDefinitions(self._client, self._bindings)
+
+    @property
+    def index(self) -> ConnectorProvidersProviderIdAppsAppActionsIndex:
+        return ConnectorProvidersProviderIdAppsAppActionsIndex(self._client, self._bindings)
+
+
+class ConnectorProvidersProviderIdAppsAppActionsDefinitions(Resource):
+    """Bound Native resource: /connector-providers / {provider_id} / apps / {app} / actions / definitions."""
+
+    async def get(
+        self,
+        *,
+        name: list[str],
+        offset: int | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.Definitions | wire.TextRead]:
+        """Define Connector Actions. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: (
+                define_connector_actions_api_v1_connector_providers_provider_id_apps_app_actions_definitions_get.asyncio_detailed(
+                    client=client,
+                    provider_id=self._bindings["provider_id"],
+                    app=self._bindings["app"],
+                    name=name,
+                    offset=offset,
+                    limit=limit,
+                    version=version,
+                    query=query,
+                    x_workspace_id=x_workspace_id,
+                )
+            )
+        )
+
+
+class ConnectorProvidersProviderIdAppsAppActionsIndex(Resource):
+    """Bound Native resource: /connector-providers / {provider_id} / apps / {app} / actions / index."""
+
+    async def get(
+        self,
+        *,
+        query: str | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.CatalogIndex]:
+        """Index Connector Actions. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: (
+                index_connector_actions_api_v1_connector_providers_provider_id_apps_app_actions_index_get.asyncio_detailed(
+                    client=client,
+                    provider_id=self._bindings["provider_id"],
+                    app=self._bindings["app"],
+                    query=query,
+                    limit=limit,
+                    cursor=cursor,
+                    x_workspace_id=x_workspace_id,
+                )
             )
         )
 
@@ -2883,13 +3045,36 @@ class MemorySpacesSpaceIdSessions(Resource):
 class ModelCatalog(Resource):
     """Bound Native resource: /model-catalog."""
 
-    async def get(
-        self, *, provider: str | Unset | None = UNSET, model: str | Unset | None = UNSET
-    ) -> Result[wire.ModelCatalog]:
+    async def list(
+        self,
+        *,
+        provider: str | Unset | None = UNSET,
+        model: str | Unset | None = UNSET,
+        view: wire.ReadView | Unset = UNSET,
+        query: str | Unset | None = UNSET,
+        capability: str | Unset | None = UNSET,
+        limit: int | Unset | None = UNSET,
+        cursor: str | Unset | None = UNSET,
+        section: wire.GetModelCatalogApiV1ModelCatalogGetSectionType0 | Unset | None = UNSET,
+        offset: int | Unset = UNSET,
+        text_limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+    ) -> Result[wire.ModelCatalog | wire.ModelCatalogPage | wire.TextRead]:
         """Get Model Catalog. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: get_model_catalog_api_v1_model_catalog_get.asyncio_detailed(
-                client=client, provider=provider, model=model
+                client=client,
+                provider=provider,
+                model=model,
+                view=view,
+                query=query,
+                capability=capability,
+                limit=limit,
+                cursor=cursor,
+                section=section,
+                offset=offset,
+                text_limit=text_limit,
+                version=version,
             )
         )
 
@@ -3526,10 +3711,11 @@ class Runs(Resource):
         status: wire.ListRunsApiV1RunsGetStatusType0 | Unset | None = UNSET,
         created_after: datetime.datetime | Unset | None = UNSET,
         created_before: datetime.datetime | Unset | None = UNSET,
-        limit: int | Unset = UNSET,
+        view: wire.ListRunsApiV1RunsGetView | Unset = UNSET,
+        limit: int | Unset | None = UNSET,
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
-    ) -> Result[wire.RunPage]:
+    ) -> Result[wire.RunPage | wire.RunSummaryPage]:
         """List Runs. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: list_runs_api_v1_runs_get.asyncio_detailed(
@@ -3541,74 +3727,11 @@ class Runs(Resource):
                 status=status,
                 created_after=created_after,
                 created_before=created_before,
+                view=view,
                 limit=limit,
                 cursor=cursor,
                 x_workspace_id=x_workspace_id,
             )
-        )
-
-    def pages(
-        self,
-        *,
-        agent_id: str | Unset | None = UNSET,
-        session_id: str | Unset | None = UNSET,
-        thread_id: str | Unset | None = UNSET,
-        principal_id: str | Unset | None = UNSET,
-        status: wire.ListRunsApiV1RunsGetStatusType0 | Unset | None = UNSET,
-        created_after: datetime.datetime | Unset | None = UNSET,
-        created_before: datetime.datetime | Unset | None = UNSET,
-        limit: int | Unset = UNSET,
-        cursor: str | Unset | None = UNSET,
-        x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[Result[wire.RunPage]]:
-        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
-        return pages(
-            lambda next_cursor: self.list(
-                agent_id=agent_id,
-                session_id=session_id,
-                thread_id=thread_id,
-                principal_id=principal_id,
-                status=status,
-                created_after=created_after,
-                created_before=created_before,
-                limit=limit,
-                x_workspace_id=x_workspace_id,
-                cursor=next_cursor,
-            ),
-            lambda value: value.next_cursor,
-            cursor,
-        )
-
-    def iter(
-        self,
-        *,
-        agent_id: str | Unset | None = UNSET,
-        session_id: str | Unset | None = UNSET,
-        thread_id: str | Unset | None = UNSET,
-        principal_id: str | Unset | None = UNSET,
-        status: wire.ListRunsApiV1RunsGetStatusType0 | Unset | None = UNSET,
-        created_after: datetime.datetime | Unset | None = UNSET,
-        created_before: datetime.datetime | Unset | None = UNSET,
-        limit: int | Unset = UNSET,
-        cursor: str | Unset | None = UNSET,
-        x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[wire.RunView]:
-        """Yield ordinary wire values lazily with a filter snapshot and server order."""
-        return (
-            item
-            async for page in self.pages(
-                agent_id=agent_id,
-                session_id=session_id,
-                thread_id=thread_id,
-                principal_id=principal_id,
-                status=status,
-                created_after=created_after,
-                created_before=created_before,
-                limit=limit,
-                cursor=cursor,
-                x_workspace_id=x_workspace_id,
-            )
-            for item in page.value.items
         )
 
     def __call__(self, run_id: str) -> Run:
@@ -3618,11 +3741,29 @@ class Runs(Resource):
 class Run(Resource):
     """Bound Native resource: /runs / {run_id}."""
 
-    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.RunView]:
+    async def get(
+        self,
+        *,
+        view: wire.ReadView | Unset = UNSET,
+        section: wire.GetRunApiV1RunsRunIdGetSectionType0 | Unset | None = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.RunSummary | wire.RunView | wire.TextRead]:
         """Get Run. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: get_run_api_v1_runs_run_id_get.asyncio_detailed(
-                client=client, run_id=self._bindings["run_id"], x_workspace_id=x_workspace_id
+                client=client,
+                run_id=self._bindings["run_id"],
+                view=view,
+                section=section,
+                offset=offset,
+                limit=limit,
+                version=version,
+                query=query,
+                x_workspace_id=x_workspace_id,
             )
         )
 
@@ -3712,11 +3853,31 @@ class Run(Resource):
 class RunsRunIdAgent(Resource):
     """Bound Native resource: /runs / {run_id} / agent."""
 
-    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.RunAgent]:
+    async def get(
+        self,
+        *,
+        view: wire.ReadView | Unset = UNSET,
+        section: wire.RunAgentApiV1RunsRunIdAgentGetSectionType0 | Unset | None = UNSET,
+        part: wire.RunAgentApiV1RunsRunIdAgentGetPart | Unset = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.RunAgent | wire.RunAgentSummary | wire.TextRead]:
         """Run Agent. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: run_agent_api_v1_runs_run_id_agent_get.asyncio_detailed(
-                client=client, run_id=self._bindings["run_id"], x_workspace_id=x_workspace_id
+                client=client,
+                run_id=self._bindings["run_id"],
+                view=view,
+                section=section,
+                part=part,
+                offset=offset,
+                limit=limit,
+                version=version,
+                query=query,
+                x_workspace_id=x_workspace_id,
             )
         )
 
@@ -3761,48 +3922,28 @@ class RunsRunIdAttemptsAttemptIdTrace(Resource):
     async def list(
         self,
         *,
-        limit: int | Unset = UNSET,
+        view: wire.ReadView | Unset = UNSET,
+        status: wire.ListAttemptSpansApiV1RunsRunIdAttemptsAttemptIdTraceGetStatusType0 | Unset | None = UNSET,
+        kind: str | Unset | None = UNSET,
+        tool_name: str | Unset | None = UNSET,
+        limit: int | Unset | None = UNSET,
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
-    ) -> Result[wire.SpanPage]:
+    ) -> Result[wire.SpanPage | wire.SpanReadPage]:
         """List Attempt Spans. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: list_attempt_spans_api_v1_runs_run_id_attempts_attempt_id_trace_get.asyncio_detailed(
                 client=client,
                 run_id=self._bindings["run_id"],
                 attempt_id=self._bindings["attempt_id"],
+                view=view,
+                status=status,
+                kind=kind,
+                tool_name=tool_name,
                 limit=limit,
                 cursor=cursor,
                 x_workspace_id=x_workspace_id,
             )
-        )
-
-    def pages(
-        self,
-        *,
-        limit: int | Unset = UNSET,
-        cursor: str | Unset | None = UNSET,
-        x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[Result[wire.SpanPage]]:
-        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
-        return pages(
-            lambda next_cursor: self.list(limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor),
-            lambda value: value.next_cursor,
-            cursor,
-        )
-
-    def iter(
-        self,
-        *,
-        limit: int | Unset = UNSET,
-        cursor: str | Unset | None = UNSET,
-        x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[wire.Span]:
-        """Yield ordinary wire values lazily with a filter snapshot and server order."""
-        return (
-            item
-            async for page in self.pages(limit=limit, cursor=cursor, x_workspace_id=x_workspace_id)
-            for item in page.value.items
         )
 
 
@@ -3816,13 +3957,27 @@ class RunsRunIdContents(Resource):
 class RunsRunIdContentsContentId(Resource):
     """Bound Native resource: /runs / {run_id} / contents / {content_id}."""
 
-    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.RunContent]:
+    async def get(
+        self,
+        *,
+        view: wire.ReadView | Unset = UNSET,
+        offset: int | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.ContentSummary | wire.RunContent | wire.TextRead]:
         """Run Content. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: run_content_api_v1_runs_run_id_contents_content_id_get.asyncio_detailed(
                 client=client,
                 run_id=self._bindings["run_id"],
                 content_id=self._bindings["content_id"],
+                view=view,
+                offset=offset,
+                limit=limit,
+                version=version,
+                query=query,
                 x_workspace_id=x_workspace_id,
             )
         )
@@ -3903,14 +4058,18 @@ class RunsRunIdImagesImageId(Resource):
 class RunsRunIdItems(Resource):
     """Bound Native resource: /runs / {run_id} / items."""
 
-    async def get(
+    async def list(
         self,
         *,
         before: int | Unset | None = UNSET,
         after: int | Unset | None = UNSET,
-        limit: int | Unset = UNSET,
+        limit: int | Unset | None = UNSET,
+        view: wire.ReadView | Unset = UNSET,
+        kind: wire.ItemKind | Unset | None = UNSET,
+        state: wire.ItemState | Unset | None = UNSET,
+        tool_name: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
-    ) -> Result[wire.RunItems]:
+    ) -> Result[wire.ItemPage | wire.RunItems]:
         """Run Items. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: run_items_api_v1_runs_run_id_items_get.asyncio_detailed(
@@ -3919,6 +4078,52 @@ class RunsRunIdItems(Resource):
                 before=before,
                 after=after,
                 limit=limit,
+                view=view,
+                kind=kind,
+                state=state,
+                tool_name=tool_name,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    def __call__(self, item_id: str) -> RunsRunIdItemsItemId:
+        return RunsRunIdItemsItemId(self._client, self._bind("item_id", item_id))
+
+
+class RunsRunIdItemsItemId(Resource):
+    """Bound Native resource: /runs / {run_id} / items / {item_id}."""
+
+    @property
+    def content(self) -> RunsRunIdItemsItemIdContent:
+        return RunsRunIdItemsItemIdContent(self._client, self._bindings)
+
+
+class RunsRunIdItemsItemIdContent(Resource):
+    """Bound Native resource: /runs / {run_id} / items / {item_id} / content."""
+
+    async def get(
+        self,
+        *,
+        ordinal: int,
+        field: wire.ReadItemContentApiV1RunsRunIdItemsItemIdContentGetField | Unset = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.TextRead]:
+        """Read Item Content. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: read_item_content_api_v1_runs_run_id_items_item_id_content_get.asyncio_detailed(
+                client=client,
+                run_id=self._bindings["run_id"],
+                item_id=self._bindings["item_id"],
+                ordinal=ordinal,
+                field=field,
+                offset=offset,
+                limit=limit,
+                version=version,
+                query=query,
                 x_workspace_id=x_workspace_id,
             )
         )
@@ -3928,31 +4133,23 @@ class RunsRunIdLineage(Resource):
     """Bound Native resource: /runs / {run_id} / lineage."""
 
     async def list(
-        self, *, cursor: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
-    ) -> Result[wire.RunPage]:
+        self,
+        *,
+        cursor: str | Unset | None = UNSET,
+        view: wire.ReadView | Unset = UNSET,
+        limit: int | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.RunPage | wire.RunSummaryPage]:
         """Run Lineage. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: run_lineage_api_v1_runs_run_id_lineage_get.asyncio_detailed(
-                client=client, run_id=self._bindings["run_id"], cursor=cursor, x_workspace_id=x_workspace_id
+                client=client,
+                run_id=self._bindings["run_id"],
+                cursor=cursor,
+                view=view,
+                limit=limit,
+                x_workspace_id=x_workspace_id,
             )
-        )
-
-    def pages(
-        self, *, cursor: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
-    ) -> AsyncIterator[Result[wire.RunPage]]:
-        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
-        return pages(
-            lambda next_cursor: self.list(x_workspace_id=x_workspace_id, cursor=next_cursor),
-            lambda value: value.next_cursor,
-            cursor,
-        )
-
-    def iter(
-        self, *, cursor: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
-    ) -> AsyncIterator[wire.RunView]:
-        """Yield ordinary wire values lazily with a filter snapshot and server order."""
-        return (
-            item async for page in self.pages(cursor=cursor, x_workspace_id=x_workspace_id) for item in page.value.items
         )
 
 
@@ -4857,53 +5054,24 @@ class ThreadsThreadIdInbox(Resource):
         self,
         *,
         status: list[wire.EntryStatus] | Unset | None = UNSET,
-        limit: int | Unset = UNSET,
+        view: wire.ReadView | Unset = UNSET,
+        kind: wire.ListInboxApiV1ThreadsThreadIdInboxGetKindType0 | Unset | None = UNSET,
+        limit: int | Unset | None = UNSET,
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
-    ) -> Result[wire.EntryPage]:
+    ) -> Result[wire.EntryPage | wire.EntrySummaryPage]:
         """List Inbox. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: list_inbox_api_v1_threads_thread_id_inbox_get.asyncio_detailed(
                 client=client,
                 thread_id=self._bindings["thread_id"],
                 status=status,
+                view=view,
+                kind=kind,
                 limit=limit,
                 cursor=cursor,
                 x_workspace_id=x_workspace_id,
             )
-        )
-
-    def pages(
-        self,
-        *,
-        status: list[wire.EntryStatus] | Unset | None = UNSET,
-        limit: int | Unset = UNSET,
-        cursor: str | Unset | None = UNSET,
-        x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[Result[wire.EntryPage]]:
-        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
-        status = status.copy() if isinstance(status, list) else status
-        return pages(
-            lambda next_cursor: self.list(
-                status=status, limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor
-            ),
-            lambda value: value.next_cursor,
-            cursor,
-        )
-
-    def iter(
-        self,
-        *,
-        status: list[wire.EntryStatus] | Unset | None = UNSET,
-        limit: int | Unset = UNSET,
-        cursor: str | Unset | None = UNSET,
-        x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[wire.EntryView]:
-        """Yield ordinary wire values lazily with a filter snapshot and server order."""
-        return (
-            item
-            async for page in self.pages(status=status, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id)
-            for item in page.value.items
         )
 
     async def create(
@@ -4963,13 +5131,29 @@ class InboxEntry(Resource):
             )
         )
 
-    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.EntryView]:
+    async def get(
+        self,
+        *,
+        view: wire.ReadView | Unset = UNSET,
+        section: wire.GetEntryApiV1ThreadsThreadIdInboxEntryIdGetSectionType0 | Unset | None = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.EntrySummary | wire.EntryView | wire.TextRead]:
         """Get Entry. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: get_entry_api_v1_threads_thread_id_inbox_entry_id_get.asyncio_detailed(
                 client=client,
                 thread_id=self._bindings["thread_id"],
                 entry_id=self._bindings["entry_id"],
+                view=view,
+                section=section,
+                offset=offset,
+                limit=limit,
+                version=version,
+                query=query,
                 x_workspace_id=x_workspace_id,
             )
         )
@@ -5070,47 +5254,21 @@ class ThreadsThreadIdRuns(Resource):
     async def list(
         self,
         *,
-        limit: int | Unset = UNSET,
+        view: wire.ReadView | Unset = UNSET,
+        limit: int | Unset | None = UNSET,
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
-    ) -> Result[wire.RunPage]:
+    ) -> Result[wire.RunPage | wire.RunSummaryPage]:
         """List Thread Runs. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: list_thread_runs_api_v1_threads_thread_id_runs_get.asyncio_detailed(
                 client=client,
                 thread_id=self._bindings["thread_id"],
+                view=view,
                 limit=limit,
                 cursor=cursor,
                 x_workspace_id=x_workspace_id,
             )
-        )
-
-    def pages(
-        self,
-        *,
-        limit: int | Unset = UNSET,
-        cursor: str | Unset | None = UNSET,
-        x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[Result[wire.RunPage]]:
-        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
-        return pages(
-            lambda next_cursor: self.list(limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor),
-            lambda value: value.next_cursor,
-            cursor,
-        )
-
-    def iter(
-        self,
-        *,
-        limit: int | Unset = UNSET,
-        cursor: str | Unset | None = UNSET,
-        x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[wire.RunView]:
-        """Yield ordinary wire values lazily with a filter snapshot and server order."""
-        return (
-            item
-            async for page in self.pages(limit=limit, cursor=cursor, x_workspace_id=x_workspace_id)
-            for item in page.value.items
         )
 
 
@@ -5168,6 +5326,60 @@ class Toolsets(Resource):
             )
         )
 
+    @property
+    def definitions(self) -> ToolsetsDefinitions:
+        return ToolsetsDefinitions(self._client, self._bindings)
+
+    @property
+    def index(self) -> ToolsetsIndex:
+        return ToolsetsIndex(self._client, self._bindings)
+
+
+class ToolsetsDefinitions(Resource):
+    """Bound Native resource: /toolsets / definitions."""
+
+    async def get(
+        self,
+        *,
+        name: list[str],
+        offset: int | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.Definitions | wire.TextRead]:
+        """Define Toolsets. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: define_toolsets_api_v1_toolsets_definitions_get.asyncio_detailed(
+                client=client,
+                name=name,
+                offset=offset,
+                limit=limit,
+                version=version,
+                query=query,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+
+class ToolsetsIndex(Resource):
+    """Bound Native resource: /toolsets / index."""
+
+    async def get(
+        self,
+        *,
+        query: str | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.CatalogIndex]:
+        """Index Toolsets. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: index_toolsets_api_v1_toolsets_index_get.asyncio_detailed(
+                client=client, query=query, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
+            )
+        )
+
 
 class TraceBackend(Resource):
     """Bound Native resource: /trace-backend."""
@@ -5193,10 +5405,14 @@ class Traces(Resource):
         attribute: list[str] | Unset | None = UNSET,
         started_after: datetime.datetime | Unset | None = UNSET,
         started_before: datetime.datetime | Unset | None = UNSET,
-        limit: int | Unset = UNSET,
+        view: wire.ReadView | Unset = UNSET,
+        status: wire.ListTracesApiV1TracesGetStatusType0 | Unset | None = UNSET,
+        kind: str | Unset | None = UNSET,
+        tool_name: str | Unset | None = UNSET,
+        limit: int | Unset | None = UNSET,
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
-    ) -> Result[wire.SpanPage]:
+    ) -> Result[wire.SpanPage | wire.SpanReadPage]:
         """List Traces. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: list_traces_api_v1_traces_get.asyncio_detailed(
@@ -5207,71 +5423,14 @@ class Traces(Resource):
                 attribute=attribute,
                 started_after=started_after,
                 started_before=started_before,
+                view=view,
+                status=status,
+                kind=kind,
+                tool_name=tool_name,
                 limit=limit,
                 cursor=cursor,
                 x_workspace_id=x_workspace_id,
             )
-        )
-
-    def pages(
-        self,
-        *,
-        session_id: str | Unset | None = UNSET,
-        thread_id: str | Unset | None = UNSET,
-        run_id: str | Unset | None = UNSET,
-        attribute: list[str] | Unset | None = UNSET,
-        started_after: datetime.datetime | Unset | None = UNSET,
-        started_before: datetime.datetime | Unset | None = UNSET,
-        limit: int | Unset = UNSET,
-        cursor: str | Unset | None = UNSET,
-        x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[Result[wire.SpanPage]]:
-        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
-        attribute = attribute.copy() if isinstance(attribute, list) else attribute
-        return pages(
-            lambda next_cursor: self.list(
-                session_id=session_id,
-                thread_id=thread_id,
-                run_id=run_id,
-                attribute=attribute,
-                started_after=started_after,
-                started_before=started_before,
-                limit=limit,
-                x_workspace_id=x_workspace_id,
-                cursor=next_cursor,
-            ),
-            lambda value: value.next_cursor,
-            cursor,
-        )
-
-    def iter(
-        self,
-        *,
-        session_id: str | Unset | None = UNSET,
-        thread_id: str | Unset | None = UNSET,
-        run_id: str | Unset | None = UNSET,
-        attribute: list[str] | Unset | None = UNSET,
-        started_after: datetime.datetime | Unset | None = UNSET,
-        started_before: datetime.datetime | Unset | None = UNSET,
-        limit: int | Unset = UNSET,
-        cursor: str | Unset | None = UNSET,
-        x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[wire.Span]:
-        """Yield ordinary wire values lazily with a filter snapshot and server order."""
-        return (
-            item
-            async for page in self.pages(
-                session_id=session_id,
-                thread_id=thread_id,
-                run_id=run_id,
-                attribute=attribute,
-                started_after=started_after,
-                started_before=started_before,
-                limit=limit,
-                cursor=cursor,
-                x_workspace_id=x_workspace_id,
-            )
-            for item in page.value.items
         )
 
     def __call__(self, trace_id: str) -> TracesTraceId:
@@ -5281,11 +5440,29 @@ class Traces(Resource):
 class TracesTraceId(Resource):
     """Bound Native resource: /traces / {trace_id}."""
 
-    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Span]:
+    async def get(
+        self,
+        *,
+        view: wire.ReadView | Unset = UNSET,
+        section: wire.GetTraceApiV1TracesTraceIdGetSectionType0 | Unset | None = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.Span | wire.SpanSummary | wire.TextRead]:
         """Get Trace. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: get_trace_api_v1_traces_trace_id_get.asyncio_detailed(
-                client=client, trace_id=self._bindings["trace_id"], x_workspace_id=x_workspace_id
+                client=client,
+                trace_id=self._bindings["trace_id"],
+                view=view,
+                section=section,
+                offset=offset,
+                limit=limit,
+                version=version,
+                query=query,
+                x_workspace_id=x_workspace_id,
             )
         )
 
@@ -5300,17 +5477,67 @@ class TracesTraceIdSpans(Resource):
     async def list(
         self,
         *,
-        limit: int | Unset = UNSET,
+        view: wire.ReadView | Unset = UNSET,
+        status: wire.ListTraceSpansApiV1TracesTraceIdSpansGetStatusType0 | Unset | None = UNSET,
+        kind: str | Unset | None = UNSET,
+        tool_name: str | Unset | None = UNSET,
+        limit: int | Unset | None = UNSET,
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
-    ) -> Result[wire.SpanPage]:
+    ) -> Result[wire.SpanPage | wire.SpanReadPage]:
         """List Trace Spans. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: list_trace_spans_api_v1_traces_trace_id_spans_get.asyncio_detailed(
                 client=client,
                 trace_id=self._bindings["trace_id"],
+                view=view,
+                status=status,
+                kind=kind,
+                tool_name=tool_name,
                 limit=limit,
                 cursor=cursor,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    def __call__(self, span_id: str) -> TracesTraceIdSpansSpanId:
+        return TracesTraceIdSpansSpanId(self._client, self._bind("span_id", span_id))
+
+
+class TracesTraceIdSpansSpanId(Resource):
+    """Bound Native resource: /traces / {trace_id} / spans / {span_id}."""
+
+    @property
+    def content(self) -> TracesTraceIdSpansSpanIdContent:
+        return TracesTraceIdSpansSpanIdContent(self._client, self._bindings)
+
+
+class TracesTraceIdSpansSpanIdContent(Resource):
+    """Bound Native resource: /traces / {trace_id} / spans / {span_id} / content."""
+
+    async def list(
+        self,
+        *,
+        section: wire.ReadSpanContentApiV1TracesTraceIdSpansSpanIdContentGetSection | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.SpanContentPage]:
+        """Read Span Content. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: read_span_content_api_v1_traces_trace_id_spans_span_id_content_get.asyncio_detailed(
+                client=client,
+                trace_id=self._bindings["trace_id"],
+                span_id=self._bindings["span_id"],
+                section=section,
+                cursor=cursor,
+                offset=offset,
+                limit=limit,
+                version=version,
+                query=query,
                 x_workspace_id=x_workspace_id,
             )
         )
@@ -5318,13 +5545,25 @@ class TracesTraceIdSpans(Resource):
     def pages(
         self,
         *,
-        limit: int | Unset = UNSET,
+        section: wire.ReadSpanContentApiV1TracesTraceIdSpansSpanIdContentGetSection | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[Result[wire.SpanPage]]:
+    ) -> AsyncIterator[Result[wire.SpanContentPage]]:
         """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
-            lambda next_cursor: self.list(limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor),
+            lambda next_cursor: self.list(
+                section=section,
+                offset=offset,
+                limit=limit,
+                version=version,
+                query=query,
+                x_workspace_id=x_workspace_id,
+                cursor=next_cursor,
+            ),
             lambda value: value.next_cursor,
             cursor,
         )
@@ -5332,14 +5571,26 @@ class TracesTraceIdSpans(Resource):
     def iter(
         self,
         *,
-        limit: int | Unset = UNSET,
+        section: wire.ReadSpanContentApiV1TracesTraceIdSpansSpanIdContentGetSection | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[wire.Span]:
+    ) -> AsyncIterator[wire.TextRead]:
         """Yield ordinary wire values lazily with a filter snapshot and server order."""
         return (
             item
-            async for page in self.pages(limit=limit, cursor=cursor, x_workspace_id=x_workspace_id)
+            async for page in self.pages(
+                section=section,
+                cursor=cursor,
+                offset=offset,
+                limit=limit,
+                version=version,
+                query=query,
+                x_workspace_id=x_workspace_id,
+            )
             for item in page.value.items
         )
 

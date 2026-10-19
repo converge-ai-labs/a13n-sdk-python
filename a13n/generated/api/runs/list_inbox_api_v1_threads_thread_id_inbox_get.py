@@ -7,7 +7,12 @@ import httpx2 as httpx
 from ...client import AuthenticatedClient, Client
 from ...models.entry_page import EntryPage
 from ...models.entry_status import EntryStatus
+from ...models.entry_summary_page import EntrySummaryPage
 from ...models.error_envelope import ErrorEnvelope
+from ...models.list_inbox_api_v1_threads_thread_id_inbox_get_kind_type_0 import (
+    ListInboxApiV1ThreadsThreadIdInboxGetKindType0,
+)
+from ...models.read_view import ReadView
 from ...types import UNSET, Response, Unset
 
 
@@ -15,7 +20,9 @@ def build_request(
     thread_id: str,
     *,
     status: list[EntryStatus] | Unset | None = UNSET,
-    limit: int | Unset = UNSET,
+    view: ReadView | Unset = UNSET,
+    kind: ListInboxApiV1ThreadsThreadIdInboxGetKindType0 | Unset | None = UNSET,
+    limit: int | Unset | None = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> dict[str, Any]:
@@ -38,7 +45,27 @@ def build_request(
         json_status = status
     params["status"] = json_status
 
-    params["limit"] = limit
+    json_view: str | Unset = UNSET
+    if not isinstance(view, Unset):
+        json_view = view.value
+
+    params["view"] = json_view
+
+    json_kind: str | Unset | None
+    if isinstance(kind, Unset):
+        json_kind = UNSET
+    elif isinstance(kind, ListInboxApiV1ThreadsThreadIdInboxGetKindType0):
+        json_kind = kind.value
+    else:
+        json_kind = kind
+    params["kind"] = json_kind
+
+    json_limit: int | Unset | None
+    if isinstance(limit, Unset):
+        json_limit = UNSET
+    else:
+        json_limit = limit
+    params["limit"] = json_limit
 
     json_cursor: str | Unset | None
     if isinstance(cursor, Unset):
@@ -61,9 +88,27 @@ def build_request(
     return _kwargs
 
 
-def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> EntryPage | ErrorEnvelope:
+def _parse_response(
+    *, client: AuthenticatedClient | Client, response: httpx.Response
+) -> EntryPage | EntrySummaryPage | ErrorEnvelope:
     if response.status_code == 200:
-        response_200 = EntryPage.from_dict(response.json())
+
+        def _parse_response_200(data: object) -> EntryPage | EntrySummaryPage:
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                response_200_type_0 = EntryPage.from_dict(data)
+
+                return response_200_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            if not isinstance(data, dict):
+                raise TypeError()
+            response_200_type_1 = EntrySummaryPage.from_dict(data)
+
+            return response_200_type_1
+
+        response_200 = _parse_response_200(response.json())
 
         return response_200
 
@@ -79,7 +124,7 @@ def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Res
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[EntryPage | ErrorEnvelope]:
+) -> Response[EntryPage | EntrySummaryPage | ErrorEnvelope]:
     from ....errors import ProtocolError
 
     try:
@@ -98,10 +143,12 @@ def sync_detailed(
     *,
     client: AuthenticatedClient,
     status: list[EntryStatus] | Unset | None = UNSET,
-    limit: int | Unset = UNSET,
+    view: ReadView | Unset = UNSET,
+    kind: ListInboxApiV1ThreadsThreadIdInboxGetKindType0 | Unset | None = UNSET,
+    limit: int | Unset | None = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
-) -> Response[EntryPage | ErrorEnvelope]:
+) -> Response[EntryPage | EntrySummaryPage | ErrorEnvelope]:
     """List Inbox
 
      In inbox order.
@@ -109,7 +156,9 @@ def sync_detailed(
     Args:
         thread_id (str):
         status (list[EntryStatus] | None | Unset):
-        limit (int | Unset):
+        view (ReadView | Unset):
+        kind (ListInboxApiV1ThreadsThreadIdInboxGetKindType0 | None | Unset):
+        limit (int | None | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
@@ -120,12 +169,14 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[EntryPage | ErrorEnvelope]
+        Response[EntryPage | EntrySummaryPage | ErrorEnvelope]
     """
 
     kwargs = build_request(
         thread_id=thread_id,
         status=status,
+        view=view,
+        kind=kind,
         limit=limit,
         cursor=cursor,
         x_workspace_id=x_workspace_id,
@@ -143,10 +194,12 @@ def sync(
     *,
     client: AuthenticatedClient,
     status: list[EntryStatus] | Unset | None = UNSET,
-    limit: int | Unset = UNSET,
+    view: ReadView | Unset = UNSET,
+    kind: ListInboxApiV1ThreadsThreadIdInboxGetKindType0 | Unset | None = UNSET,
+    limit: int | Unset | None = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
-) -> EntryPage | ErrorEnvelope | None:
+) -> EntryPage | EntrySummaryPage | ErrorEnvelope | None:
     """List Inbox
 
      In inbox order.
@@ -154,7 +207,9 @@ def sync(
     Args:
         thread_id (str):
         status (list[EntryStatus] | None | Unset):
-        limit (int | Unset):
+        view (ReadView | Unset):
+        kind (ListInboxApiV1ThreadsThreadIdInboxGetKindType0 | None | Unset):
+        limit (int | None | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
@@ -165,13 +220,15 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        EntryPage | ErrorEnvelope
+        EntryPage | EntrySummaryPage | ErrorEnvelope
     """
 
     return sync_detailed(
         thread_id=thread_id,
         client=client,
         status=status,
+        view=view,
+        kind=kind,
         limit=limit,
         cursor=cursor,
         x_workspace_id=x_workspace_id,
@@ -183,10 +240,12 @@ async def asyncio_detailed(
     *,
     client: AuthenticatedClient,
     status: list[EntryStatus] | Unset | None = UNSET,
-    limit: int | Unset = UNSET,
+    view: ReadView | Unset = UNSET,
+    kind: ListInboxApiV1ThreadsThreadIdInboxGetKindType0 | Unset | None = UNSET,
+    limit: int | Unset | None = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
-) -> Response[EntryPage | ErrorEnvelope]:
+) -> Response[EntryPage | EntrySummaryPage | ErrorEnvelope]:
     """List Inbox
 
      In inbox order.
@@ -194,7 +253,9 @@ async def asyncio_detailed(
     Args:
         thread_id (str):
         status (list[EntryStatus] | None | Unset):
-        limit (int | Unset):
+        view (ReadView | Unset):
+        kind (ListInboxApiV1ThreadsThreadIdInboxGetKindType0 | None | Unset):
+        limit (int | None | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
@@ -205,12 +266,14 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[EntryPage | ErrorEnvelope]
+        Response[EntryPage | EntrySummaryPage | ErrorEnvelope]
     """
 
     kwargs = build_request(
         thread_id=thread_id,
         status=status,
+        view=view,
+        kind=kind,
         limit=limit,
         cursor=cursor,
         x_workspace_id=x_workspace_id,
@@ -226,10 +289,12 @@ async def asyncio(
     *,
     client: AuthenticatedClient,
     status: list[EntryStatus] | Unset | None = UNSET,
-    limit: int | Unset = UNSET,
+    view: ReadView | Unset = UNSET,
+    kind: ListInboxApiV1ThreadsThreadIdInboxGetKindType0 | Unset | None = UNSET,
+    limit: int | Unset | None = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
-) -> EntryPage | ErrorEnvelope | None:
+) -> EntryPage | EntrySummaryPage | ErrorEnvelope | None:
     """List Inbox
 
      In inbox order.
@@ -237,7 +302,9 @@ async def asyncio(
     Args:
         thread_id (str):
         status (list[EntryStatus] | None | Unset):
-        limit (int | Unset):
+        view (ReadView | Unset):
+        kind (ListInboxApiV1ThreadsThreadIdInboxGetKindType0 | None | Unset):
+        limit (int | None | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
@@ -248,7 +315,7 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        EntryPage | ErrorEnvelope
+        EntryPage | EntrySummaryPage | ErrorEnvelope
     """
 
     return (
@@ -256,6 +323,8 @@ async def asyncio(
             thread_id=thread_id,
             client=client,
             status=status,
+            view=view,
+            kind=kind,
             limit=limit,
             cursor=cursor,
             x_workspace_id=x_workspace_id,

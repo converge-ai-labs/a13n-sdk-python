@@ -7,7 +7,9 @@ import httpx2 as httpx
 from ...client import AuthenticatedClient, Client
 from ...models.error_envelope import ErrorEnvelope
 from ...models.list_runs_api_v1_runs_get_status_type_0 import ListRunsApiV1RunsGetStatusType0
+from ...models.list_runs_api_v1_runs_get_view import ListRunsApiV1RunsGetView
 from ...models.run_page import RunPage
+from ...models.run_summary_page import RunSummaryPage
 from ...types import UNSET, Response, Unset
 
 
@@ -20,7 +22,8 @@ def build_request(
     status: ListRunsApiV1RunsGetStatusType0 | Unset | None = UNSET,
     created_after: datetime.datetime | Unset | None = UNSET,
     created_before: datetime.datetime | Unset | None = UNSET,
-    limit: int | Unset = UNSET,
+    view: ListRunsApiV1RunsGetView | Unset = UNSET,
+    limit: int | Unset | None = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> dict[str, Any]:
@@ -85,7 +88,18 @@ def build_request(
         json_created_before = created_before
     params["created_before"] = json_created_before
 
-    params["limit"] = limit
+    json_view: str | Unset = UNSET
+    if not isinstance(view, Unset):
+        json_view = view.value
+
+    params["view"] = json_view
+
+    json_limit: int | Unset | None
+    if isinstance(limit, Unset):
+        json_limit = UNSET
+    else:
+        json_limit = limit
+    params["limit"] = json_limit
 
     json_cursor: str | Unset | None
     if isinstance(cursor, Unset):
@@ -106,9 +120,27 @@ def build_request(
     return _kwargs
 
 
-def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> ErrorEnvelope | RunPage:
+def _parse_response(
+    *, client: AuthenticatedClient | Client, response: httpx.Response
+) -> ErrorEnvelope | RunPage | RunSummaryPage:
     if response.status_code == 200:
-        response_200 = RunPage.from_dict(response.json())
+
+        def _parse_response_200(data: object) -> RunPage | RunSummaryPage:
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                response_200_type_0 = RunPage.from_dict(data)
+
+                return response_200_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            if not isinstance(data, dict):
+                raise TypeError()
+            response_200_type_1 = RunSummaryPage.from_dict(data)
+
+            return response_200_type_1
+
+        response_200 = _parse_response_200(response.json())
 
         return response_200
 
@@ -124,7 +156,7 @@ def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Res
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[ErrorEnvelope | RunPage]:
+) -> Response[ErrorEnvelope | RunPage | RunSummaryPage]:
     from ....errors import ProtocolError
 
     try:
@@ -148,10 +180,11 @@ def sync_detailed(
     status: ListRunsApiV1RunsGetStatusType0 | Unset | None = UNSET,
     created_after: datetime.datetime | Unset | None = UNSET,
     created_before: datetime.datetime | Unset | None = UNSET,
-    limit: int | Unset = UNSET,
+    view: ListRunsApiV1RunsGetView | Unset = UNSET,
+    limit: int | Unset | None = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
-) -> Response[ErrorEnvelope | RunPage]:
+) -> Response[ErrorEnvelope | RunPage | RunSummaryPage]:
     """List Runs
 
     Args:
@@ -162,7 +195,8 @@ def sync_detailed(
         status (ListRunsApiV1RunsGetStatusType0 | None | Unset):
         created_after (datetime.datetime | None | Unset):
         created_before (datetime.datetime | None | Unset):
-        limit (int | Unset):
+        view (ListRunsApiV1RunsGetView | Unset):
+        limit (int | None | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
@@ -173,7 +207,7 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorEnvelope | RunPage]
+        Response[ErrorEnvelope | RunPage | RunSummaryPage]
     """
 
     kwargs = build_request(
@@ -184,6 +218,7 @@ def sync_detailed(
         status=status,
         created_after=created_after,
         created_before=created_before,
+        view=view,
         limit=limit,
         cursor=cursor,
         x_workspace_id=x_workspace_id,
@@ -206,10 +241,11 @@ def sync(
     status: ListRunsApiV1RunsGetStatusType0 | Unset | None = UNSET,
     created_after: datetime.datetime | Unset | None = UNSET,
     created_before: datetime.datetime | Unset | None = UNSET,
-    limit: int | Unset = UNSET,
+    view: ListRunsApiV1RunsGetView | Unset = UNSET,
+    limit: int | Unset | None = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
-) -> ErrorEnvelope | RunPage | None:
+) -> ErrorEnvelope | RunPage | RunSummaryPage | None:
     """List Runs
 
     Args:
@@ -220,7 +256,8 @@ def sync(
         status (ListRunsApiV1RunsGetStatusType0 | None | Unset):
         created_after (datetime.datetime | None | Unset):
         created_before (datetime.datetime | None | Unset):
-        limit (int | Unset):
+        view (ListRunsApiV1RunsGetView | Unset):
+        limit (int | None | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
@@ -231,7 +268,7 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorEnvelope | RunPage
+        ErrorEnvelope | RunPage | RunSummaryPage
     """
 
     return sync_detailed(
@@ -243,6 +280,7 @@ def sync(
         status=status,
         created_after=created_after,
         created_before=created_before,
+        view=view,
         limit=limit,
         cursor=cursor,
         x_workspace_id=x_workspace_id,
@@ -259,10 +297,11 @@ async def asyncio_detailed(
     status: ListRunsApiV1RunsGetStatusType0 | Unset | None = UNSET,
     created_after: datetime.datetime | Unset | None = UNSET,
     created_before: datetime.datetime | Unset | None = UNSET,
-    limit: int | Unset = UNSET,
+    view: ListRunsApiV1RunsGetView | Unset = UNSET,
+    limit: int | Unset | None = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
-) -> Response[ErrorEnvelope | RunPage]:
+) -> Response[ErrorEnvelope | RunPage | RunSummaryPage]:
     """List Runs
 
     Args:
@@ -273,7 +312,8 @@ async def asyncio_detailed(
         status (ListRunsApiV1RunsGetStatusType0 | None | Unset):
         created_after (datetime.datetime | None | Unset):
         created_before (datetime.datetime | None | Unset):
-        limit (int | Unset):
+        view (ListRunsApiV1RunsGetView | Unset):
+        limit (int | None | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
@@ -284,7 +324,7 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorEnvelope | RunPage]
+        Response[ErrorEnvelope | RunPage | RunSummaryPage]
     """
 
     kwargs = build_request(
@@ -295,6 +335,7 @@ async def asyncio_detailed(
         status=status,
         created_after=created_after,
         created_before=created_before,
+        view=view,
         limit=limit,
         cursor=cursor,
         x_workspace_id=x_workspace_id,
@@ -315,10 +356,11 @@ async def asyncio(
     status: ListRunsApiV1RunsGetStatusType0 | Unset | None = UNSET,
     created_after: datetime.datetime | Unset | None = UNSET,
     created_before: datetime.datetime | Unset | None = UNSET,
-    limit: int | Unset = UNSET,
+    view: ListRunsApiV1RunsGetView | Unset = UNSET,
+    limit: int | Unset | None = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
-) -> ErrorEnvelope | RunPage | None:
+) -> ErrorEnvelope | RunPage | RunSummaryPage | None:
     """List Runs
 
     Args:
@@ -329,7 +371,8 @@ async def asyncio(
         status (ListRunsApiV1RunsGetStatusType0 | None | Unset):
         created_after (datetime.datetime | None | Unset):
         created_before (datetime.datetime | None | Unset):
-        limit (int | Unset):
+        view (ListRunsApiV1RunsGetView | Unset):
+        limit (int | None | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
@@ -340,7 +383,7 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorEnvelope | RunPage
+        ErrorEnvelope | RunPage | RunSummaryPage
     """
 
     return (
@@ -353,6 +396,7 @@ async def asyncio(
             status=status,
             created_after=created_after,
             created_before=created_before,
+            view=view,
             limit=limit,
             cursor=cursor,
             x_workspace_id=x_workspace_id,

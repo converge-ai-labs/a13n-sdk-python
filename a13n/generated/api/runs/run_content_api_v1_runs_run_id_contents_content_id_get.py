@@ -5,8 +5,11 @@ from urllib.parse import quote
 import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
+from ...models.content_summary import ContentSummary
 from ...models.error_envelope import ErrorEnvelope
+from ...models.read_view import ReadView
 from ...models.run_content import RunContent
+from ...models.text_read import TextRead
 from ...types import UNSET, Response, Unset
 
 
@@ -14,11 +17,49 @@ def build_request(
     run_id: str,
     content_id: str,
     *,
+    view: ReadView | Unset = UNSET,
+    offset: int | Unset | None = UNSET,
+    limit: int | Unset = UNSET,
+    version: str | Unset | None = UNSET,
+    query: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> dict[str, Any]:
     headers: dict[str, Any] = {}
     if not isinstance(x_workspace_id, Unset):
         headers["X-Workspace-ID"] = x_workspace_id
+
+    params: dict[str, Any] = {}
+
+    json_view: str | Unset = UNSET
+    if not isinstance(view, Unset):
+        json_view = view.value
+
+    params["view"] = json_view
+
+    json_offset: int | Unset | None
+    if isinstance(offset, Unset):
+        json_offset = UNSET
+    else:
+        json_offset = offset
+    params["offset"] = json_offset
+
+    params["limit"] = limit
+
+    json_version: str | Unset | None
+    if isinstance(version, Unset):
+        json_version = UNSET
+    else:
+        json_version = version
+    params["version"] = json_version
+
+    json_query: str | Unset | None
+    if isinstance(query, Unset):
+        json_query = UNSET
+    else:
+        json_query = query
+    params["query"] = json_query
+
+    params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
 
     _kwargs: dict[str, Any] = {
         "method": "get",
@@ -26,15 +67,42 @@ def build_request(
             run_id=quote(str(run_id), safe=""),
             content_id=quote(str(content_id), safe=""),
         ),
+        "params": params,
     }
 
     _kwargs["headers"] = headers
     return _kwargs
 
 
-def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> ErrorEnvelope | RunContent:
+def _parse_response(
+    *, client: AuthenticatedClient | Client, response: httpx.Response
+) -> ContentSummary | RunContent | TextRead | ErrorEnvelope:
     if response.status_code == 200:
-        response_200 = RunContent.from_dict(response.json())
+
+        def _parse_response_200(data: object) -> ContentSummary | RunContent | TextRead:
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                response_200_type_0 = RunContent.from_dict(data)
+
+                return response_200_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                response_200_type_1 = ContentSummary.from_dict(data)
+
+                return response_200_type_1
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            if not isinstance(data, dict):
+                raise TypeError()
+            response_200_type_2 = TextRead.from_dict(data)
+
+            return response_200_type_2
+
+        response_200 = _parse_response_200(response.json())
 
         return response_200
 
@@ -50,7 +118,7 @@ def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Res
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[ErrorEnvelope | RunContent]:
+) -> Response[ContentSummary | RunContent | TextRead | ErrorEnvelope]:
     from ....errors import ProtocolError
 
     try:
@@ -69,8 +137,13 @@ def sync_detailed(
     content_id: str,
     *,
     client: AuthenticatedClient,
+    view: ReadView | Unset = UNSET,
+    offset: int | Unset | None = UNSET,
+    limit: int | Unset = UNSET,
+    version: str | Unset | None = UNSET,
+    query: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
-) -> Response[ErrorEnvelope | RunContent]:
+) -> Response[ContentSummary | RunContent | TextRead | ErrorEnvelope]:
     """Run Content
 
      The complete value behind a committed display reference.
@@ -78,6 +151,12 @@ def sync_detailed(
     Args:
         run_id (str):
         content_id (str):
+        view (ReadView | Unset):
+        offset (int | None | Unset):
+        limit (int | Unset): Maximum Unicode code points in this fragment.
+        version (None | str | Unset): Content version from the first read; required after offset
+            0.
+        query (None | str | Unset): Case-sensitive literal text search.
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
@@ -87,12 +166,17 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorEnvelope | RunContent]
+        Response[ContentSummary | RunContent | TextRead | ErrorEnvelope]
     """
 
     kwargs = build_request(
         run_id=run_id,
         content_id=content_id,
+        view=view,
+        offset=offset,
+        limit=limit,
+        version=version,
+        query=query,
         x_workspace_id=x_workspace_id,
     )
 
@@ -108,8 +192,13 @@ def sync(
     content_id: str,
     *,
     client: AuthenticatedClient,
+    view: ReadView | Unset = UNSET,
+    offset: int | Unset | None = UNSET,
+    limit: int | Unset = UNSET,
+    version: str | Unset | None = UNSET,
+    query: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
-) -> ErrorEnvelope | RunContent | None:
+) -> ContentSummary | RunContent | TextRead | ErrorEnvelope | None:
     """Run Content
 
      The complete value behind a committed display reference.
@@ -117,6 +206,12 @@ def sync(
     Args:
         run_id (str):
         content_id (str):
+        view (ReadView | Unset):
+        offset (int | None | Unset):
+        limit (int | Unset): Maximum Unicode code points in this fragment.
+        version (None | str | Unset): Content version from the first read; required after offset
+            0.
+        query (None | str | Unset): Case-sensitive literal text search.
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
@@ -126,13 +221,18 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorEnvelope | RunContent
+        ContentSummary | RunContent | TextRead | ErrorEnvelope
     """
 
     return sync_detailed(
         run_id=run_id,
         content_id=content_id,
         client=client,
+        view=view,
+        offset=offset,
+        limit=limit,
+        version=version,
+        query=query,
         x_workspace_id=x_workspace_id,
     ).parsed
 
@@ -142,8 +242,13 @@ async def asyncio_detailed(
     content_id: str,
     *,
     client: AuthenticatedClient,
+    view: ReadView | Unset = UNSET,
+    offset: int | Unset | None = UNSET,
+    limit: int | Unset = UNSET,
+    version: str | Unset | None = UNSET,
+    query: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
-) -> Response[ErrorEnvelope | RunContent]:
+) -> Response[ContentSummary | RunContent | TextRead | ErrorEnvelope]:
     """Run Content
 
      The complete value behind a committed display reference.
@@ -151,6 +256,12 @@ async def asyncio_detailed(
     Args:
         run_id (str):
         content_id (str):
+        view (ReadView | Unset):
+        offset (int | None | Unset):
+        limit (int | Unset): Maximum Unicode code points in this fragment.
+        version (None | str | Unset): Content version from the first read; required after offset
+            0.
+        query (None | str | Unset): Case-sensitive literal text search.
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
@@ -160,12 +271,17 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorEnvelope | RunContent]
+        Response[ContentSummary | RunContent | TextRead | ErrorEnvelope]
     """
 
     kwargs = build_request(
         run_id=run_id,
         content_id=content_id,
+        view=view,
+        offset=offset,
+        limit=limit,
+        version=version,
+        query=query,
         x_workspace_id=x_workspace_id,
     )
 
@@ -179,8 +295,13 @@ async def asyncio(
     content_id: str,
     *,
     client: AuthenticatedClient,
+    view: ReadView | Unset = UNSET,
+    offset: int | Unset | None = UNSET,
+    limit: int | Unset = UNSET,
+    version: str | Unset | None = UNSET,
+    query: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
-) -> ErrorEnvelope | RunContent | None:
+) -> ContentSummary | RunContent | TextRead | ErrorEnvelope | None:
     """Run Content
 
      The complete value behind a committed display reference.
@@ -188,6 +309,12 @@ async def asyncio(
     Args:
         run_id (str):
         content_id (str):
+        view (ReadView | Unset):
+        offset (int | None | Unset):
+        limit (int | Unset): Maximum Unicode code points in this fragment.
+        version (None | str | Unset): Content version from the first read; required after offset
+            0.
+        query (None | str | Unset): Case-sensitive literal text search.
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
@@ -197,7 +324,7 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorEnvelope | RunContent
+        ContentSummary | RunContent | TextRead | ErrorEnvelope
     """
 
     return (
@@ -205,6 +332,11 @@ async def asyncio(
             run_id=run_id,
             content_id=content_id,
             client=client,
+            view=view,
+            offset=offset,
+            limit=limit,
+            version=version,
+            query=query,
             x_workspace_id=x_workspace_id,
         )
     ).parsed

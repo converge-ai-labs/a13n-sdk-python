@@ -80,6 +80,8 @@ from .authorization_status_state import AuthorizationStatusState
 from .bearer_credential import BearerCredential
 from .bootstrap_input import BootstrapInput
 from .callback_outcome import CallbackOutcome
+from .catalog_index import CatalogIndex
+from .catalog_index_item import CatalogIndexItem
 from .catalog_model import CatalogModel
 from .catalog_ref import CatalogRef
 from .category import Category
@@ -92,10 +94,15 @@ from .client_tool_definition import ClientToolDefinition
 from .client_tool_definition_metadata import ClientToolDefinitionMetadata
 from .client_tool_definition_parameters_json_schema import ClientToolDefinitionParametersJsonSchema
 from .client_tool_definition_permission import ClientToolDefinitionPermission
+from .compare_revisions_api_v1_agents_agent_id_revisions_revision_id_compare_get_section import (
+    CompareRevisionsApiV1AgentsAgentIdRevisionsRevisionIdCompareGetSection,
+)
 from .completion import Completion
 from .completion_outcome import CompletionOutcome
 from .computer_check import ComputerCheck
 from .computer_check_status import ComputerCheckStatus
+from .config_section import ConfigSection
+from .config_summary import ConfigSummary
 from .connection import Connection
 from .connection_auth import ConnectionAuth
 from .connection_create import ConnectionCreate
@@ -118,11 +125,16 @@ from .connector_config import ConnectorConfig
 from .connector_config_setup import ConnectorConfigSetup
 from .content_ref import ContentRef
 from .content_ref_media_type import ContentRefMediaType
+from .content_summary import ContentSummary
 from .context_usage import ContextUsage
 from .control import Control
 from .created_subscription import CreatedSubscription
 from .credential_mode import CredentialMode
 from .daily_usage import DailyUsage
+from .definition import Definition
+from .definition_definition import DefinitionDefinition
+from .definition_reference import DefinitionReference
+from .definitions import Definitions
 from .delegation_context_policy import DelegationContextPolicy
 from .delegation_context_policy_history import DelegationContextPolicyHistory
 from .delegation_context_policy_task_state import DelegationContextPolicyTaskState
@@ -137,6 +149,10 @@ from .display_continuation_response_groups import DisplayContinuationResponseGro
 from .email_change_confirm import EmailChangeConfirm
 from .entry_page import EntryPage
 from .entry_status import EntryStatus
+from .entry_summary import EntrySummary
+from .entry_summary_delivery import EntrySummaryDelivery
+from .entry_summary_kind import EntrySummaryKind
+from .entry_summary_page import EntrySummaryPage
 from .entry_update import EntryUpdate
 from .entry_view import EntryView
 from .entry_view_kind import EntryViewKind
@@ -158,6 +174,7 @@ from .evidence import Evidence
 from .external_target_create import ExternalTargetCreate
 from .failed import Failed
 from .failure import Failure
+from .failure_summary import FailureSummary
 from .file_source import FileSource
 from .finding import Finding
 from .finding_create import FindingCreate
@@ -168,6 +185,12 @@ from .fragment_state import FragmentState
 from .fragment_state_pending import FragmentStatePending
 from .frozen_memory_mount import FrozenMemoryMount
 from .gap import Gap
+from .get_entry_api_v1_threads_thread_id_inbox_entry_id_get_section_type_0 import (
+    GetEntryApiV1ThreadsThreadIdInboxEntryIdGetSectionType0,
+)
+from .get_model_catalog_api_v1_model_catalog_get_section_type_0 import GetModelCatalogApiV1ModelCatalogGetSectionType0
+from .get_run_api_v1_runs_run_id_get_section_type_0 import GetRunApiV1RunsRunIdGetSectionType0
+from .get_trace_api_v1_traces_trace_id_get_section_type_0 import GetTraceApiV1TracesTraceIdGetSectionType0
 from .git_hub_source import GitHubSource
 from .grant_create import GrantCreate
 from .grant_page import GrantPage
@@ -194,19 +217,31 @@ from .item import Item
 from .item_content import ItemContent
 from .item_content_refs import ItemContentRefs
 from .item_kind import ItemKind
+from .item_page import ItemPage
+from .item_page_view import ItemPageView
 from .item_ref import ItemRef
 from .item_ref_failure_type_0 import ItemRefFailureType0
 from .item_state import ItemState
+from .item_summary import ItemSummary
 from .json_part import JsonPart
 from .key_create import KeyCreate
 from .lifecycle_kind import LifecycleKind
 from .lineage import Lineage
+from .list_attempt_spans_api_v1_runs_run_id_attempts_attempt_id_trace_get_status_type_0 import (
+    ListAttemptSpansApiV1RunsRunIdAttemptsAttemptIdTraceGetStatusType0,
+)
+from .list_inbox_api_v1_threads_thread_id_inbox_get_kind_type_0 import ListInboxApiV1ThreadsThreadIdInboxGetKindType0
 from .list_members_api_v1_organizations_organization_id_members_get_kind_type_0 import (
     ListMembersApiV1OrganizationsOrganizationIdMembersGetKindType0,
 )
 from .list_provider_types_api_v1_provider_types_kind_get_kind import ListProviderTypesApiV1ProviderTypesKindGetKind
 from .list_runs_api_v1_runs_get_status_type_0 import ListRunsApiV1RunsGetStatusType0
+from .list_runs_api_v1_runs_get_view import ListRunsApiV1RunsGetView
 from .list_skills_api_v1_skills_get_source_type_0 import ListSkillsApiV1SkillsGetSourceType0
+from .list_trace_spans_api_v1_traces_trace_id_spans_get_status_type_0 import (
+    ListTraceSpansApiV1TracesTraceIdSpansGetStatusType0,
+)
+from .list_traces_api_v1_traces_get_status_type_0 import ListTracesApiV1TracesGetStatusType0
 from .login_input import LoginInput
 from .login_output import LoginOutput
 from .login_session import LoginSession
@@ -268,6 +303,8 @@ from .message_payload import MessagePayload
 from .model import Model
 from .model_capability import ModelCapability
 from .model_catalog import ModelCatalog
+from .model_catalog_page import ModelCatalogPage
+from .model_catalog_page_status import ModelCatalogPageStatus
 from .model_catalog_status import ModelCatalogStatus
 from .model_config_input import ModelConfigInput
 from .model_config_input_extra_body import ModelConfigInputExtraBody
@@ -285,6 +322,7 @@ from .model_price_rule_output import ModelPriceRuleOutput
 from .model_pricing_entry_input import ModelPricingEntryInput
 from .model_pricing_entry_output import ModelPricingEntryOutput
 from .model_request_metrics import ModelRequestMetrics
+from .model_summary import ModelSummary
 from .model_update import ModelUpdate
 from .model_usage import ModelUsage
 from .model_usage_group import ModelUsageGroup
@@ -332,6 +370,7 @@ from .plugin_selection import PluginSelection
 from .plugin_selection_config import PluginSelectionConfig
 from .preset import Preset
 from .preset_kind import PresetKind
+from .preview import Preview
 from .price_component_input import PriceComponentInput
 from .price_component_output import PriceComponentOutput
 from .price_tier_input import PriceTierInput
@@ -368,6 +407,13 @@ from .provider_update_config_type_0 import ProviderUpdateConfigType0
 from .provider_update_credential_type_0 import ProviderUpdateCredentialType0
 from .provider_update_extra_headers import ProviderUpdateExtraHeaders
 from .proxy_tool_search_config import ProxyToolSearchConfig
+from .read_item_content_api_v1_runs_run_id_items_item_id_content_get_field import (
+    ReadItemContentApiV1RunsRunIdItemsItemIdContentGetField,
+)
+from .read_span_content_api_v1_traces_trace_id_spans_span_id_content_get_section import (
+    ReadSpanContentApiV1TracesTraceIdSpansSpanIdContentGetSection,
+)
+from .read_view import ReadView
 from .record_source import RecordSource
 from .request import Request
 from .resume import Resume
@@ -376,9 +422,14 @@ from .resume_calls import ResumeCalls
 from .retry_config import RetryConfig
 from .retry_override import RetryOverride
 from .returned import Returned
+from .revision_summary import RevisionSummary
+from .revision_summary_page import RevisionSummaryPage
 from .revoked_connection import RevokedConnection
 from .revoked_connection_remote_revocation import RevokedConnectionRemoteRevocation
 from .run_agent import RunAgent
+from .run_agent_api_v1_runs_run_id_agent_get_part import RunAgentApiV1RunsRunIdAgentGetPart
+from .run_agent_api_v1_runs_run_id_agent_get_section_type_0 import RunAgentApiV1RunsRunIdAgentGetSectionType0
+from .run_agent_summary import RunAgentSummary
 from .run_configuration_input import RunConfigurationInput
 from .run_configuration_input_extensions import RunConfigurationInputExtensions
 from .run_configuration_output import RunConfigurationOutput
@@ -396,6 +447,10 @@ from .run_options_output_labels import RunOptionsOutputLabels
 from .run_page import RunPage
 from .run_snapshot import RunSnapshot
 from .run_status import RunStatus
+from .run_summary import RunSummary
+from .run_summary_lineage import RunSummaryLineage
+from .run_summary_page import RunSummaryPage
+from .run_summary_revision_selection import RunSummaryRevisionSelection
 from .run_usage import RunUsage
 from .run_view import RunView
 from .run_view_input_type_0 import RunViewInputType0
@@ -441,13 +496,17 @@ from .space_binding import SpaceBinding
 from .space_organization_status import SpaceOrganizationStatus
 from .span import Span
 from .span_attributes import SpanAttributes
+from .span_content_page import SpanContentPage
 from .span_event import SpanEvent
 from .span_event_attributes import SpanEventAttributes
 from .span_link import SpanLink
 from .span_link_attributes import SpanLinkAttributes
 from .span_page import SpanPage
+from .span_read_page import SpanReadPage
 from .span_resource_attributes import SpanResourceAttributes
 from .span_status import SpanStatus
+from .span_summary import SpanSummary
+from .span_summary_status import SpanSummaryStatus
 from .span_usage import SpanUsage
 from .stream_position import StreamPosition
 from .subagent_override_input import SubagentOverrideInput
@@ -470,6 +529,8 @@ from .template_page import TemplatePage
 from .template_update import TemplateUpdate
 from .template_update_labels_type_0 import TemplateUpdateLabelsType0
 from .text_part import TextPart
+from .text_read import TextRead
+from .text_read_media_type import TextReadMediaType
 from .thread_page import ThreadPage
 from .thread_state import ThreadState
 from .thread_update import ThreadUpdate
@@ -618,6 +679,8 @@ __all__ = (
     "BearerCredential",
     "BootstrapInput",
     "CallbackOutcome",
+    "CatalogIndex",
+    "CatalogIndexItem",
     "CatalogModel",
     "CatalogRef",
     "Category",
@@ -630,10 +693,13 @@ __all__ = (
     "ClientToolDefinitionMetadata",
     "ClientToolDefinitionParametersJsonSchema",
     "ClientToolDefinitionPermission",
+    "CompareRevisionsApiV1AgentsAgentIdRevisionsRevisionIdCompareGetSection",
     "Completion",
     "CompletionOutcome",
     "ComputerCheck",
     "ComputerCheckStatus",
+    "ConfigSection",
+    "ConfigSummary",
     "Connection",
     "ConnectionAuth",
     "ConnectionCreate",
@@ -656,11 +722,16 @@ __all__ = (
     "ConnectorConfigSetup",
     "ContentRef",
     "ContentRefMediaType",
+    "ContentSummary",
     "ContextUsage",
     "Control",
     "CreatedSubscription",
     "CredentialMode",
     "DailyUsage",
+    "Definition",
+    "DefinitionDefinition",
+    "DefinitionReference",
+    "Definitions",
     "DelegationContextPolicy",
     "DelegationContextPolicyHistory",
     "DelegationContextPolicyTaskState",
@@ -675,6 +746,10 @@ __all__ = (
     "EmailChangeConfirm",
     "EntryPage",
     "EntryStatus",
+    "EntrySummary",
+    "EntrySummaryDelivery",
+    "EntrySummaryKind",
+    "EntrySummaryPage",
     "EntryUpdate",
     "EntryView",
     "EntryViewKind",
@@ -696,6 +771,7 @@ __all__ = (
     "ExternalTargetCreate",
     "Failed",
     "Failure",
+    "FailureSummary",
     "FileSource",
     "Finding",
     "FindingCreate",
@@ -706,6 +782,10 @@ __all__ = (
     "FragmentStatePending",
     "FrozenMemoryMount",
     "Gap",
+    "GetEntryApiV1ThreadsThreadIdInboxEntryIdGetSectionType0",
+    "GetModelCatalogApiV1ModelCatalogGetSectionType0",
+    "GetRunApiV1RunsRunIdGetSectionType0",
+    "GetTraceApiV1TracesTraceIdGetSectionType0",
     "GitHubSource",
     "GrantCreate",
     "GrantPage",
@@ -732,17 +812,25 @@ __all__ = (
     "ItemContent",
     "ItemContentRefs",
     "ItemKind",
+    "ItemPage",
+    "ItemPageView",
     "ItemRef",
     "ItemRefFailureType0",
     "ItemState",
+    "ItemSummary",
     "JsonPart",
     "KeyCreate",
     "LifecycleKind",
     "Lineage",
+    "ListAttemptSpansApiV1RunsRunIdAttemptsAttemptIdTraceGetStatusType0",
+    "ListInboxApiV1ThreadsThreadIdInboxGetKindType0",
     "ListMembersApiV1OrganizationsOrganizationIdMembersGetKindType0",
     "ListProviderTypesApiV1ProviderTypesKindGetKind",
     "ListRunsApiV1RunsGetStatusType0",
+    "ListRunsApiV1RunsGetView",
     "ListSkillsApiV1SkillsGetSourceType0",
+    "ListTraceSpansApiV1TracesTraceIdSpansGetStatusType0",
+    "ListTracesApiV1TracesGetStatusType0",
     "LoginInput",
     "LoginOutput",
     "LoginSession",
@@ -804,6 +892,8 @@ __all__ = (
     "Model",
     "ModelCapability",
     "ModelCatalog",
+    "ModelCatalogPage",
+    "ModelCatalogPageStatus",
     "ModelCatalogStatus",
     "ModelConfigInput",
     "ModelConfigInputExtraBody",
@@ -821,6 +911,7 @@ __all__ = (
     "ModelPricingEntryInput",
     "ModelPricingEntryOutput",
     "ModelRequestMetrics",
+    "ModelSummary",
     "ModelUpdate",
     "ModelUsage",
     "ModelUsageGroup",
@@ -868,6 +959,7 @@ __all__ = (
     "PluginSelectionConfig",
     "Preset",
     "PresetKind",
+    "Preview",
     "PriceComponentInput",
     "PriceComponentOutput",
     "PriceTierInput",
@@ -902,6 +994,9 @@ __all__ = (
     "ProviderUpdateCredentialType0",
     "ProviderUpdateExtraHeaders",
     "ProxyToolSearchConfig",
+    "ReadItemContentApiV1RunsRunIdItemsItemIdContentGetField",
+    "ReadSpanContentApiV1TracesTraceIdSpansSpanIdContentGetSection",
+    "ReadView",
     "RecordSource",
     "Request",
     "Resume",
@@ -910,9 +1005,14 @@ __all__ = (
     "RetryConfig",
     "RetryOverride",
     "Returned",
+    "RevisionSummary",
+    "RevisionSummaryPage",
     "RevokedConnection",
     "RevokedConnectionRemoteRevocation",
     "RunAgent",
+    "RunAgentApiV1RunsRunIdAgentGetPart",
+    "RunAgentApiV1RunsRunIdAgentGetSectionType0",
+    "RunAgentSummary",
     "RunConfigurationInput",
     "RunConfigurationInputExtensions",
     "RunConfigurationOutput",
@@ -930,6 +1030,10 @@ __all__ = (
     "RunPage",
     "RunSnapshot",
     "RunStatus",
+    "RunSummary",
+    "RunSummaryLineage",
+    "RunSummaryPage",
+    "RunSummaryRevisionSelection",
     "RunUsage",
     "RunView",
     "RunViewInputType0",
@@ -975,13 +1079,17 @@ __all__ = (
     "SpaceOrganizationStatus",
     "Span",
     "SpanAttributes",
+    "SpanContentPage",
     "SpanEvent",
     "SpanEventAttributes",
     "SpanLink",
     "SpanLinkAttributes",
     "SpanPage",
+    "SpanReadPage",
     "SpanResourceAttributes",
     "SpanStatus",
+    "SpanSummary",
+    "SpanSummaryStatus",
     "SpanUsage",
     "StreamPosition",
     "SubagentOverrideInput",
@@ -1004,6 +1112,8 @@ __all__ = (
     "TemplateUpdate",
     "TemplateUpdateLabelsType0",
     "TextPart",
+    "TextRead",
+    "TextReadMediaType",
     "ThreadPage",
     "ThreadState",
     "ThreadUpdate",
