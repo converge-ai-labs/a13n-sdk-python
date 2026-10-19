@@ -5,7 +5,8 @@ from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 
-from ..models.toolset_key import ToolsetKey
+from ..models.platform_group import PlatformGroup
+from ..models.toolset_key_type_0 import ToolsetKeyType0
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
@@ -23,17 +24,19 @@ class ToolsetDefinition:
         config_schema (ToolsetDefinitionConfigSchema):
         default_enabled (bool):
         display_name (str):
-        key (ToolsetKey):
+        key (PlatformGroup | ToolsetKeyType0):
         tools (list[ToolDefinition]):
         description (str | Unset):
+        platform (bool | Unset):
     """
 
     config_schema: ToolsetDefinitionConfigSchema
     default_enabled: bool
     display_name: str
-    key: ToolsetKey
+    key: PlatformGroup | ToolsetKeyType0
     tools: list[ToolDefinition]
     description: str | Unset = UNSET
+    platform: bool | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
         config_schema = self.config_schema.to_dict()
@@ -42,7 +45,11 @@ class ToolsetDefinition:
 
         display_name = self.display_name
 
-        key = self.key.value
+        key: str
+        if isinstance(self.key, ToolsetKeyType0):
+            key = self.key.value
+        else:
+            key = self.key.value
 
         tools = []
         for tools_item_data in self.tools:
@@ -50,6 +57,8 @@ class ToolsetDefinition:
             tools.append(tools_item)
 
         description = self.description
+
+        platform = self.platform
 
         field_dict: dict[str, Any] = {}
 
@@ -64,6 +73,8 @@ class ToolsetDefinition:
         )
         if description is not UNSET:
             field_dict["description"] = description
+        if platform is not UNSET:
+            field_dict["platform"] = platform
 
         return field_dict
 
@@ -79,7 +90,22 @@ class ToolsetDefinition:
 
         display_name = d.pop("display_name")
 
-        key = ToolsetKey(d.pop("key"))
+        def _parse_key(data: object) -> PlatformGroup | ToolsetKeyType0:
+            try:
+                if not isinstance(data, str):
+                    raise TypeError()
+                componentsschemas_toolset_key_type_0 = ToolsetKeyType0(data)
+
+                return componentsschemas_toolset_key_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            if not isinstance(data, str):
+                raise TypeError()
+            componentsschemas_toolset_key_type_1 = PlatformGroup(data)
+
+            return componentsschemas_toolset_key_type_1
+
+        key = _parse_key(d.pop("key"))
 
         tools = []
         _tools = d.pop("tools")
@@ -90,6 +116,8 @@ class ToolsetDefinition:
 
         description = d.pop("description", UNSET)
 
+        platform = d.pop("platform", UNSET)
+
         toolset_definition = cls(
             config_schema=config_schema,
             default_enabled=default_enabled,
@@ -97,6 +125,7 @@ class ToolsetDefinition:
             key=key,
             tools=tools,
             description=description,
+            platform=platform,
         )
 
         return toolset_definition

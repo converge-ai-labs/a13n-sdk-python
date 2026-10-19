@@ -18,7 +18,6 @@ if TYPE_CHECKING:
     from ..models.isolated_skill_sync import IsolatedSkillSync
     from ..models.media_understanding_selection import MediaUnderstandingSelection
     from ..models.output_spec import OutputSpec
-    from ..models.platform_selection import PlatformSelection
     from ..models.plugin_selection import PluginSelection
     from ..models.retry_override import RetryOverride
     from ..models.shared_skill_sync import SharedSkillSync
@@ -47,7 +46,6 @@ class AgentOverrideInput:
             model_characteristics (AgentModelCharacteristics | None | Unset):
             model_settings (AgentOverrideInputModelSettingsType0 | None | Unset):
             output_spec (None | OutputSpec | Unset):
-            platform_tools (None | PlatformSelection | Unset):
             plugins (list[PluginSelection] | None | Unset):
             retries (None | RetryOverride | Unset):
             reviewer (AgentReviewer | None | Unset):
@@ -68,7 +66,6 @@ class AgentOverrideInput:
     model_characteristics: AgentModelCharacteristics | Unset | None = UNSET
     model_settings: AgentOverrideInputModelSettingsType0 | Unset | None = UNSET
     output_spec: OutputSpec | Unset | None = UNSET
-    platform_tools: PlatformSelection | Unset | None = UNSET
     plugins: list[PluginSelection] | Unset | None = UNSET
     retries: RetryOverride | Unset | None = UNSET
     reviewer: AgentReviewer | Unset | None = UNSET
@@ -89,7 +86,6 @@ class AgentOverrideInput:
         from ..models.isolated_skill_sync import IsolatedSkillSync
         from ..models.media_understanding_selection import MediaUnderstandingSelection
         from ..models.output_spec import OutputSpec
-        from ..models.platform_selection import PlatformSelection
         from ..models.retry_override import RetryOverride
         from ..models.shared_skill_sync import SharedSkillSync
         from ..models.tool_search import ToolSearch
@@ -176,14 +172,6 @@ class AgentOverrideInput:
             output_spec = self.output_spec.to_dict()
         else:
             output_spec = self.output_spec
-
-        platform_tools: dict[str, Any] | Unset | None
-        if isinstance(self.platform_tools, Unset):
-            platform_tools = UNSET
-        elif isinstance(self.platform_tools, PlatformSelection):
-            platform_tools = self.platform_tools.to_dict()
-        else:
-            platform_tools = self.platform_tools
 
         plugins: list[dict[str, Any]] | Unset | None
         if isinstance(self.plugins, Unset):
@@ -282,8 +270,6 @@ class AgentOverrideInput:
             field_dict["model_settings"] = model_settings
         if output_spec is not UNSET:
             field_dict["output_spec"] = output_spec
-        if platform_tools is not UNSET:
-            field_dict["platform_tools"] = platform_tools
         if plugins is not UNSET:
             field_dict["plugins"] = plugins
         if retries is not UNSET:
@@ -317,7 +303,6 @@ class AgentOverrideInput:
         from ..models.isolated_skill_sync import IsolatedSkillSync
         from ..models.media_understanding_selection import MediaUnderstandingSelection
         from ..models.output_spec import OutputSpec
-        from ..models.platform_selection import PlatformSelection
         from ..models.plugin_selection import PluginSelection
         from ..models.retry_override import RetryOverride
         from ..models.shared_skill_sync import SharedSkillSync
@@ -490,23 +475,6 @@ class AgentOverrideInput:
 
         output_spec = _parse_output_spec(d.pop("output_spec", UNSET))
 
-        def _parse_platform_tools(data: object) -> PlatformSelection | Unset | None:
-            if data is None:
-                return data
-            if isinstance(data, Unset):
-                return data
-            try:
-                if not isinstance(data, dict):
-                    raise TypeError()
-                platform_tools_type_0 = PlatformSelection.from_dict(data)
-
-                return platform_tools_type_0
-            except (TypeError, ValueError, AttributeError, KeyError):
-                pass
-            return cast(PlatformSelection | Unset | None, data)
-
-        platform_tools = _parse_platform_tools(d.pop("platform_tools", UNSET))
-
         def _parse_plugins(data: object) -> list[PluginSelection] | Unset | None:
             if data is None:
                 return data
@@ -672,7 +640,6 @@ class AgentOverrideInput:
             model_characteristics=model_characteristics,
             model_settings=model_settings,
             output_spec=output_spec,
-            platform_tools=platform_tools,
             plugins=plugins,
             retries=retries,
             reviewer=reviewer,

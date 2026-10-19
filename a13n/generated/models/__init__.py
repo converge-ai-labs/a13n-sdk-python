@@ -94,9 +94,7 @@ from .client_tool_definition import ClientToolDefinition
 from .client_tool_definition_metadata import ClientToolDefinitionMetadata
 from .client_tool_definition_parameters_json_schema import ClientToolDefinitionParametersJsonSchema
 from .client_tool_definition_permission import ClientToolDefinitionPermission
-from .compare_revisions_api_v1_agents_agent_id_revisions_revision_id_compare_get_section import (
-    CompareRevisionsApiV1AgentsAgentIdRevisionsRevisionIdCompareGetSection,
-)
+from .compare_agent_revisions_section import CompareAgentRevisionsSection
 from .completion import Completion
 from .completion_outcome import CompletionOutcome
 from .computer_check import ComputerCheck
@@ -185,12 +183,12 @@ from .fragment_state import FragmentState
 from .fragment_state_pending import FragmentStatePending
 from .frozen_memory_mount import FrozenMemoryMount
 from .gap import Gap
-from .get_entry_api_v1_threads_thread_id_inbox_entry_id_get_section_type_0 import (
-    GetEntryApiV1ThreadsThreadIdInboxEntryIdGetSectionType0,
-)
-from .get_model_catalog_api_v1_model_catalog_get_section_type_0 import GetModelCatalogApiV1ModelCatalogGetSectionType0
-from .get_run_api_v1_runs_run_id_get_section_type_0 import GetRunApiV1RunsRunIdGetSectionType0
-from .get_trace_api_v1_traces_trace_id_get_section_type_0 import GetTraceApiV1TracesTraceIdGetSectionType0
+from .get_inbox_entry_section_type_0 import GetInboxEntrySectionType0
+from .get_model_catalog_section_type_0 import GetModelCatalogSectionType0
+from .get_run_agent_part import GetRunAgentPart
+from .get_run_agent_section_type_0 import GetRunAgentSectionType0
+from .get_run_section_type_0 import GetRunSectionType0
+from .get_trace_section_type_0 import GetTraceSectionType0
 from .git_hub_source import GitHubSource
 from .grant_create import GrantCreate
 from .grant_page import GrantPage
@@ -200,7 +198,7 @@ from .harness_model_characteristics_input import HarnessModelCharacteristicsInpu
 from .harness_model_characteristics_output import HarnessModelCharacteristicsOutput
 from .headers_credential import HeadersCredential
 from .headers_credential_headers import HeadersCredentialHeaders
-from .health_healthz_get_response_health_healthz_get import HealthHealthzGetResponseHealthHealthzGet
+from .health_response_health import HealthResponseHealth
 from .history_purge import HistoryPurge
 from .image_input_policy import ImageInputPolicy
 from .inbox_order import InboxOrder
@@ -227,21 +225,15 @@ from .json_part import JsonPart
 from .key_create import KeyCreate
 from .lifecycle_kind import LifecycleKind
 from .lineage import Lineage
-from .list_attempt_spans_api_v1_runs_run_id_attempts_attempt_id_trace_get_status_type_0 import (
-    ListAttemptSpansApiV1RunsRunIdAttemptsAttemptIdTraceGetStatusType0,
-)
-from .list_inbox_api_v1_threads_thread_id_inbox_get_kind_type_0 import ListInboxApiV1ThreadsThreadIdInboxGetKindType0
-from .list_members_api_v1_organizations_organization_id_members_get_kind_type_0 import (
-    ListMembersApiV1OrganizationsOrganizationIdMembersGetKindType0,
-)
-from .list_provider_types_api_v1_provider_types_kind_get_kind import ListProviderTypesApiV1ProviderTypesKindGetKind
-from .list_runs_api_v1_runs_get_status_type_0 import ListRunsApiV1RunsGetStatusType0
-from .list_runs_api_v1_runs_get_view import ListRunsApiV1RunsGetView
-from .list_skills_api_v1_skills_get_source_type_0 import ListSkillsApiV1SkillsGetSourceType0
-from .list_trace_spans_api_v1_traces_trace_id_spans_get_status_type_0 import (
-    ListTraceSpansApiV1TracesTraceIdSpansGetStatusType0,
-)
-from .list_traces_api_v1_traces_get_status_type_0 import ListTracesApiV1TracesGetStatusType0
+from .list_attempt_spans_status_type_0 import ListAttemptSpansStatusType0
+from .list_inbox_kind_type_0 import ListInboxKindType0
+from .list_members_kind_type_0 import ListMembersKindType0
+from .list_provider_types_kind import ListProviderTypesKind
+from .list_runs_status_type_0 import ListRunsStatusType0
+from .list_runs_view import ListRunsView
+from .list_skills_source_type_0 import ListSkillsSourceType0
+from .list_trace_spans_status_type_0 import ListTraceSpansStatusType0
+from .list_traces_status_type_0 import ListTracesStatusType0
 from .login_input import LoginInput
 from .login_output import LoginOutput
 from .login_session import LoginSession
@@ -363,9 +355,6 @@ from .pending_call import PendingCall
 from .pending_call_arguments import PendingCallArguments
 from .pending_call_presentation_type_0 import PendingCallPresentationType0
 from .platform_group import PlatformGroup
-from .platform_selection import PlatformSelection
-from .platform_selection_read_permission import PlatformSelectionReadPermission
-from .platform_selection_write_permission import PlatformSelectionWritePermission
 from .plugin_selection import PluginSelection
 from .plugin_selection_config import PluginSelectionConfig
 from .preset import Preset
@@ -407,12 +396,8 @@ from .provider_update_config_type_0 import ProviderUpdateConfigType0
 from .provider_update_credential_type_0 import ProviderUpdateCredentialType0
 from .provider_update_extra_headers import ProviderUpdateExtraHeaders
 from .proxy_tool_search_config import ProxyToolSearchConfig
-from .read_item_content_api_v1_runs_run_id_items_item_id_content_get_field import (
-    ReadItemContentApiV1RunsRunIdItemsItemIdContentGetField,
-)
-from .read_span_content_api_v1_traces_trace_id_spans_span_id_content_get_section import (
-    ReadSpanContentApiV1TracesTraceIdSpansSpanIdContentGetSection,
-)
+from .read_run_item_content_field import ReadRunItemContentField
+from .read_span_content_section import ReadSpanContentSection
 from .read_view import ReadView
 from .record_source import RecordSource
 from .request import Request
@@ -427,8 +412,6 @@ from .revision_summary_page import RevisionSummaryPage
 from .revoked_connection import RevokedConnection
 from .revoked_connection_remote_revocation import RevokedConnectionRemoteRevocation
 from .run_agent import RunAgent
-from .run_agent_api_v1_runs_run_id_agent_get_part import RunAgentApiV1RunsRunIdAgentGetPart
-from .run_agent_api_v1_runs_run_id_agent_get_section_type_0 import RunAgentApiV1RunsRunIdAgentGetSectionType0
 from .run_agent_summary import RunAgentSummary
 from .run_configuration_input import RunConfigurationInput
 from .run_configuration_input_extensions import RunConfigurationInputExtensions
@@ -562,7 +545,7 @@ from .tool_selection_config import ToolSelectionConfig
 from .toolset_catalog import ToolsetCatalog
 from .toolset_definition import ToolsetDefinition
 from .toolset_definition_config_schema import ToolsetDefinitionConfigSchema
-from .toolset_key import ToolsetKey
+from .toolset_key_type_0 import ToolsetKeyType0
 from .toolset_selection import ToolsetSelection
 from .toolset_selection_config import ToolsetSelectionConfig
 from .toolset_selection_tools import ToolsetSelectionTools
@@ -693,7 +676,7 @@ __all__ = (
     "ClientToolDefinitionMetadata",
     "ClientToolDefinitionParametersJsonSchema",
     "ClientToolDefinitionPermission",
-    "CompareRevisionsApiV1AgentsAgentIdRevisionsRevisionIdCompareGetSection",
+    "CompareAgentRevisionsSection",
     "Completion",
     "CompletionOutcome",
     "ComputerCheck",
@@ -782,10 +765,12 @@ __all__ = (
     "FragmentStatePending",
     "FrozenMemoryMount",
     "Gap",
-    "GetEntryApiV1ThreadsThreadIdInboxEntryIdGetSectionType0",
-    "GetModelCatalogApiV1ModelCatalogGetSectionType0",
-    "GetRunApiV1RunsRunIdGetSectionType0",
-    "GetTraceApiV1TracesTraceIdGetSectionType0",
+    "GetInboxEntrySectionType0",
+    "GetModelCatalogSectionType0",
+    "GetRunAgentPart",
+    "GetRunAgentSectionType0",
+    "GetRunSectionType0",
+    "GetTraceSectionType0",
     "GitHubSource",
     "GrantCreate",
     "GrantPage",
@@ -795,7 +780,7 @@ __all__ = (
     "HarnessModelCharacteristicsOutput",
     "HeadersCredential",
     "HeadersCredentialHeaders",
-    "HealthHealthzGetResponseHealthHealthzGet",
+    "HealthResponseHealth",
     "HistoryPurge",
     "ImageInputPolicy",
     "InboxOrder",
@@ -822,15 +807,15 @@ __all__ = (
     "KeyCreate",
     "LifecycleKind",
     "Lineage",
-    "ListAttemptSpansApiV1RunsRunIdAttemptsAttemptIdTraceGetStatusType0",
-    "ListInboxApiV1ThreadsThreadIdInboxGetKindType0",
-    "ListMembersApiV1OrganizationsOrganizationIdMembersGetKindType0",
-    "ListProviderTypesApiV1ProviderTypesKindGetKind",
-    "ListRunsApiV1RunsGetStatusType0",
-    "ListRunsApiV1RunsGetView",
-    "ListSkillsApiV1SkillsGetSourceType0",
-    "ListTraceSpansApiV1TracesTraceIdSpansGetStatusType0",
-    "ListTracesApiV1TracesGetStatusType0",
+    "ListAttemptSpansStatusType0",
+    "ListInboxKindType0",
+    "ListMembersKindType0",
+    "ListProviderTypesKind",
+    "ListRunsStatusType0",
+    "ListRunsView",
+    "ListSkillsSourceType0",
+    "ListTraceSpansStatusType0",
+    "ListTracesStatusType0",
     "LoginInput",
     "LoginOutput",
     "LoginSession",
@@ -952,9 +937,6 @@ __all__ = (
     "PendingCallArguments",
     "PendingCallPresentationType0",
     "PlatformGroup",
-    "PlatformSelection",
-    "PlatformSelectionReadPermission",
-    "PlatformSelectionWritePermission",
     "PluginSelection",
     "PluginSelectionConfig",
     "Preset",
@@ -994,8 +976,8 @@ __all__ = (
     "ProviderUpdateCredentialType0",
     "ProviderUpdateExtraHeaders",
     "ProxyToolSearchConfig",
-    "ReadItemContentApiV1RunsRunIdItemsItemIdContentGetField",
-    "ReadSpanContentApiV1TracesTraceIdSpansSpanIdContentGetSection",
+    "ReadRunItemContentField",
+    "ReadSpanContentSection",
     "ReadView",
     "RecordSource",
     "Request",
@@ -1010,8 +992,6 @@ __all__ = (
     "RevokedConnection",
     "RevokedConnectionRemoteRevocation",
     "RunAgent",
-    "RunAgentApiV1RunsRunIdAgentGetPart",
-    "RunAgentApiV1RunsRunIdAgentGetSectionType0",
     "RunAgentSummary",
     "RunConfigurationInput",
     "RunConfigurationInputExtensions",
@@ -1145,7 +1125,7 @@ __all__ = (
     "ToolsetCatalog",
     "ToolsetDefinition",
     "ToolsetDefinitionConfigSchema",
-    "ToolsetKey",
+    "ToolsetKeyType0",
     "ToolsetSelection",
     "ToolsetSelectionConfig",
     "ToolsetSelectionTools",

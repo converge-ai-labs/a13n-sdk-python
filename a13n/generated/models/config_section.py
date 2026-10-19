@@ -16,7 +16,6 @@ class ConfigSection(StrEnum):
     MODEL_CHARACTERISTICS = "model_characteristics"
     MODEL_SETTINGS = "model_settings"
     OUTPUT_SPEC = "output_spec"
-    PLATFORM_TOOLS = "platform_tools"
     PLUGINS = "plugins"
     RETRIES = "retries"
     REVIEWER = "reviewer"
