@@ -20,7 +20,6 @@ if TYPE_CHECKING:
     from ..models.media_understanding_selection import MediaUnderstandingSelection
     from ..models.memory_mount import MemoryMount
     from ..models.output_spec import OutputSpec
-    from ..models.platform_selection import PlatformSelection
     from ..models.plugin_selection import PluginSelection
     from ..models.retry_config import RetryConfig
     from ..models.session_memory_settings import SessionMemorySettings
@@ -52,8 +51,6 @@ class AgentConfigOutput:
             model declares.
         model_settings (AgentConfigOutputModelSettings | Unset):
         output_spec (None | OutputSpec | Unset):
-        platform_tools (PlatformSelection | Unset): Platform MCP groups selected independently of local operating
-            instructions.
         plugins (list[PluginSelection] | Unset):
         retries (None | RetryConfig | Unset):
         reviewer (AgentReviewer | None | Unset):
@@ -79,7 +76,6 @@ class AgentConfigOutput:
     model_characteristics: AgentModelCharacteristics | Unset = UNSET
     model_settings: AgentConfigOutputModelSettings | Unset = UNSET
     output_spec: OutputSpec | Unset | None = UNSET
-    platform_tools: PlatformSelection | Unset = UNSET
     plugins: list[PluginSelection] | Unset = UNSET
     retries: RetryConfig | Unset | None = UNSET
     reviewer: AgentReviewer | Unset | None = UNSET
@@ -158,10 +154,6 @@ class AgentConfigOutput:
             output_spec = self.output_spec.to_dict()
         else:
             output_spec = self.output_spec
-
-        platform_tools: dict[str, Any] | Unset = UNSET
-        if not isinstance(self.platform_tools, Unset):
-            platform_tools = self.platform_tools.to_dict()
 
         plugins: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.plugins, Unset):
@@ -254,8 +246,6 @@ class AgentConfigOutput:
             field_dict["model_settings"] = model_settings
         if output_spec is not UNSET:
             field_dict["output_spec"] = output_spec
-        if platform_tools is not UNSET:
-            field_dict["platform_tools"] = platform_tools
         if plugins is not UNSET:
             field_dict["plugins"] = plugins
         if retries is not UNSET:
@@ -292,7 +282,6 @@ class AgentConfigOutput:
         from ..models.media_understanding_selection import MediaUnderstandingSelection
         from ..models.memory_mount import MemoryMount
         from ..models.output_spec import OutputSpec
-        from ..models.platform_selection import PlatformSelection
         from ..models.plugin_selection import PluginSelection
         from ..models.retry_config import RetryConfig
         from ..models.session_memory_settings import SessionMemorySettings
@@ -401,13 +390,6 @@ class AgentConfigOutput:
             return cast(OutputSpec | Unset | None, data)
 
         output_spec = _parse_output_spec(d.pop("output_spec", UNSET))
-
-        _platform_tools = d.pop("platform_tools", UNSET)
-        platform_tools: PlatformSelection | Unset
-        if isinstance(_platform_tools, Unset):
-            platform_tools = UNSET
-        else:
-            platform_tools = PlatformSelection.from_dict(_platform_tools)
 
         _plugins = d.pop("plugins", UNSET)
         plugins: list[PluginSelection] | Unset = UNSET
@@ -534,7 +516,6 @@ class AgentConfigOutput:
             model_characteristics=model_characteristics,
             model_settings=model_settings,
             output_spec=output_spec,
-            platform_tools=platform_tools,
             plugins=plugins,
             retries=retries,
             reviewer=reviewer,

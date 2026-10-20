@@ -40,6 +40,7 @@ class ThreadView:
         version (int):
         workspace_id (str):
         purpose (ThreadViewPurpose | Unset):
+        schedule_occurrence_id (None | str | Unset):
     """
 
     archived_at: datetime.datetime | None
@@ -59,6 +60,7 @@ class ThreadView:
     version: int
     workspace_id: str
     purpose: ThreadViewPurpose | Unset = UNSET
+    schedule_occurrence_id: str | Unset | None = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -108,6 +110,12 @@ class ThreadView:
         if not isinstance(self.purpose, Unset):
             purpose = self.purpose.value
 
+        schedule_occurrence_id: str | Unset | None
+        if isinstance(self.schedule_occurrence_id, Unset):
+            schedule_occurrence_id = UNSET
+        else:
+            schedule_occurrence_id = self.schedule_occurrence_id
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -132,6 +140,8 @@ class ThreadView:
         )
         if purpose is not UNSET:
             field_dict["purpose"] = purpose
+        if schedule_occurrence_id is not UNSET:
+            field_dict["schedule_occurrence_id"] = schedule_occurrence_id
 
         return field_dict
 
@@ -224,6 +234,15 @@ class ThreadView:
         else:
             purpose = ThreadViewPurpose(_purpose)
 
+        def _parse_schedule_occurrence_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        schedule_occurrence_id = _parse_schedule_occurrence_id(d.pop("schedule_occurrence_id", UNSET))
+
         thread_view = cls(
             archived_at=archived_at,
             created_at=created_at,
@@ -242,6 +261,7 @@ class ThreadView:
             version=version,
             workspace_id=workspace_id,
             purpose=purpose,
+            schedule_occurrence_id=schedule_occurrence_id,
         )
 
         thread_view.additional_properties = d

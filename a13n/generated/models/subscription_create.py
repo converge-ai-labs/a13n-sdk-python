@@ -24,7 +24,8 @@ class SubscriptionCreate:
         name (str):
         url (str):
         enabled (bool | Unset):
-        filter_ (SubscriptionFilter | Unset): Absent fields match every run.
+        filter_ (SubscriptionFilter | Unset): Absent fields match every event; a specified identity must exist and
+            match.
         signing_secret (None | str | Unset):
     """
 
