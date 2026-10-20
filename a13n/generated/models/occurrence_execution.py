@@ -17,7 +17,7 @@ T = TypeVar("T", bound="OccurrenceExecution")
 
 @_attrs_define(repr=False)
 class OccurrenceExecution:
-    """Current execution facts, independent of the immutable submission result and its version.
+    """Current execution observations alongside the durable occurrence completion facts.
 
     Attributes:
         has_unfinished_work (bool):

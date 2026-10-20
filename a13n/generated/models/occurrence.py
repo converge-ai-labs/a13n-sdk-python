@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 
+from ..models.occurrence_execution_outcome_type_0 import OccurrenceExecutionOutcomeType0
 from ..models.occurrence_status import OccurrenceStatus
 from ..models.schedule_trigger import ScheduleTrigger
 from ..types import UNSET, Unset
@@ -44,7 +45,10 @@ class Occurrence:
         trigger (ScheduleTrigger):
         updated_at (datetime.datetime):
         version (int):
+        completed_at (datetime.datetime | None | Unset):
+        completion_run_id (None | str | Unset):
         execution (None | OccurrenceExecution | Unset):
+        execution_outcome (None | OccurrenceExecutionOutcomeType0 | Unset):
     """
 
     covered_from_at: datetime.datetime | None
@@ -69,7 +73,10 @@ class Occurrence:
     trigger: ScheduleTrigger
     updated_at: datetime.datetime
     version: int
+    completed_at: datetime.datetime | Unset | None = UNSET
+    completion_run_id: str | Unset | None = UNSET
     execution: OccurrenceExecution | Unset | None = UNSET
+    execution_outcome: OccurrenceExecutionOutcomeType0 | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
         from ..models.occurrence_execution import OccurrenceExecution
@@ -139,6 +146,20 @@ class Occurrence:
 
         version = self.version
 
+        completed_at: str | Unset | None
+        if isinstance(self.completed_at, Unset):
+            completed_at = UNSET
+        elif isinstance(self.completed_at, datetime.datetime):
+            completed_at = self.completed_at.isoformat()
+        else:
+            completed_at = self.completed_at
+
+        completion_run_id: str | Unset | None
+        if isinstance(self.completion_run_id, Unset):
+            completion_run_id = UNSET
+        else:
+            completion_run_id = self.completion_run_id
+
         execution: dict[str, Any] | Unset | None
         if isinstance(self.execution, Unset):
             execution = UNSET
@@ -146,6 +167,14 @@ class Occurrence:
             execution = self.execution.to_dict()
         else:
             execution = self.execution
+
+        execution_outcome: str | Unset | None
+        if isinstance(self.execution_outcome, Unset):
+            execution_outcome = UNSET
+        elif isinstance(self.execution_outcome, OccurrenceExecutionOutcomeType0):
+            execution_outcome = self.execution_outcome.value
+        else:
+            execution_outcome = self.execution_outcome
 
         field_dict: dict[str, Any] = {}
 
@@ -175,8 +204,14 @@ class Occurrence:
                 "version": version,
             }
         )
+        if completed_at is not UNSET:
+            field_dict["completed_at"] = completed_at
+        if completion_run_id is not UNSET:
+            field_dict["completion_run_id"] = completion_run_id
         if execution is not UNSET:
             field_dict["execution"] = execution
+        if execution_outcome is not UNSET:
+            field_dict["execution_outcome"] = execution_outcome
 
         return field_dict
 
@@ -308,6 +343,32 @@ class Occurrence:
 
         version = d.pop("version")
 
+        def _parse_completed_at(data: object) -> datetime.datetime | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, str):
+                    raise TypeError()
+                completed_at_type_0 = datetime.datetime.fromisoformat(data)
+
+                return completed_at_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(datetime.datetime | Unset | None, data)
+
+        completed_at = _parse_completed_at(d.pop("completed_at", UNSET))
+
+        def _parse_completion_run_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        completion_run_id = _parse_completion_run_id(d.pop("completion_run_id", UNSET))
+
         def _parse_execution(data: object) -> OccurrenceExecution | Unset | None:
             if data is None:
                 return data
@@ -324,6 +385,23 @@ class Occurrence:
             return cast(OccurrenceExecution | Unset | None, data)
 
         execution = _parse_execution(d.pop("execution", UNSET))
+
+        def _parse_execution_outcome(data: object) -> OccurrenceExecutionOutcomeType0 | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, str):
+                    raise TypeError()
+                execution_outcome_type_0 = OccurrenceExecutionOutcomeType0(data)
+
+                return execution_outcome_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(OccurrenceExecutionOutcomeType0 | Unset | None, data)
+
+        execution_outcome = _parse_execution_outcome(d.pop("execution_outcome", UNSET))
 
         occurrence = cls(
             covered_from_at=covered_from_at,
@@ -348,7 +426,10 @@ class Occurrence:
             trigger=trigger,
             updated_at=updated_at,
             version=version,
+            completed_at=completed_at,
+            completion_run_id=completion_run_id,
             execution=execution,
+            execution_outcome=execution_outcome,
         )
 
         return occurrence

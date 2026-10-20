@@ -342,10 +342,12 @@ from .observer_state_threads import ObserverStateThreads
 from .occurrence import Occurrence
 from .occurrence_event import OccurrenceEvent
 from .occurrence_execution import OccurrenceExecution
+from .occurrence_execution_outcome_type_0 import OccurrenceExecutionOutcomeType0
 from .occurrence_page import OccurrencePage
 from .occurrence_snapshot import OccurrenceSnapshot
 from .occurrence_status import OccurrenceStatus
 from .occurrence_summary import OccurrenceSummary
+from .occurrence_summary_execution_outcome_type_0 import OccurrenceSummaryExecutionOutcomeType0
 from .once_schedule import OnceSchedule
 from .operation_kind import OperationKind
 from .organization import Organization
@@ -958,10 +960,12 @@ __all__ = (
     "Occurrence",
     "OccurrenceEvent",
     "OccurrenceExecution",
+    "OccurrenceExecutionOutcomeType0",
     "OccurrencePage",
     "OccurrenceSnapshot",
     "OccurrenceStatus",
     "OccurrenceSummary",
+    "OccurrenceSummaryExecutionOutcomeType0",
     "OnceSchedule",
     "OperationKind",
     "Organization",
