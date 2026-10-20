@@ -68,7 +68,8 @@ def sync_detailed(
 
      The session's threads and the live output of their runs over SSE: `thread`, `items`, `delta` and
     `gap`
-    frames. Every connection starts from a snapshot.
+    frames, plus `schedule` and `occurrence` state for Schedule-owned sessions. Every connection starts
+    from a snapshot.
 
     Args:
         session_id (str):
@@ -106,7 +107,8 @@ def sync(
 
      The session's threads and the live output of their runs over SSE: `thread`, `items`, `delta` and
     `gap`
-    frames. Every connection starts from a snapshot.
+    frames, plus `schedule` and `occurrence` state for Schedule-owned sessions. Every connection starts
+    from a snapshot.
 
     Args:
         session_id (str):
@@ -139,7 +141,8 @@ async def asyncio_detailed(
 
      The session's threads and the live output of their runs over SSE: `thread`, `items`, `delta` and
     `gap`
-    frames. Every connection starts from a snapshot.
+    frames, plus `schedule` and `occurrence` state for Schedule-owned sessions. Every connection starts
+    from a snapshot.
 
     Args:
         session_id (str):
@@ -175,7 +178,8 @@ async def asyncio(
 
      The session's threads and the live output of their runs over SSE: `thread`, `items`, `delta` and
     `gap`
-    frames. Every connection starts from a snapshot.
+    frames, plus `schedule` and `occurrence` state for Schedule-owned sessions. Every connection starts
+    from a snapshot.
 
     Args:
         session_id (str):

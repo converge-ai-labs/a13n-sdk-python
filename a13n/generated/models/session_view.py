@@ -36,6 +36,7 @@ class SessionView:
         preview (None | SessionPreview | Unset):
         purpose (SessionViewPurpose | Unset):
         run_count (int | Unset):
+        schedule_id (None | str | Unset):
     """
 
     created_at: datetime.datetime
@@ -50,6 +51,7 @@ class SessionView:
     preview: SessionPreview | Unset | None = UNSET
     purpose: SessionViewPurpose | Unset = UNSET
     run_count: int | Unset = UNSET
+    schedule_id: str | Unset | None = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -90,6 +92,12 @@ class SessionView:
 
         run_count = self.run_count
 
+        schedule_id: str | Unset | None
+        if isinstance(self.schedule_id, Unset):
+            schedule_id = UNSET
+        else:
+            schedule_id = self.schedule_id
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -112,6 +120,8 @@ class SessionView:
             field_dict["purpose"] = purpose
         if run_count is not UNSET:
             field_dict["run_count"] = run_count
+        if schedule_id is not UNSET:
+            field_dict["schedule_id"] = schedule_id
 
         return field_dict
 
@@ -176,6 +186,15 @@ class SessionView:
 
         run_count = d.pop("run_count", UNSET)
 
+        def _parse_schedule_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        schedule_id = _parse_schedule_id(d.pop("schedule_id", UNSET))
+
         session_view = cls(
             created_at=created_at,
             created_by_id=created_by_id,
@@ -189,6 +208,7 @@ class SessionView:
             preview=preview,
             purpose=purpose,
             run_count=run_count,
+            schedule_id=schedule_id,
         )
 
         session_view.additional_properties = d

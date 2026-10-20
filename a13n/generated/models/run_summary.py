@@ -17,6 +17,7 @@ from ..types import UNSET, Unset
 if TYPE_CHECKING:
     from ..models.failure_summary import FailureSummary
     from ..models.preview import Preview
+    from ..models.schedule_origin import ScheduleOrigin
 
 
 T = TypeVar("T", bound="RunSummary")
@@ -54,6 +55,7 @@ class RunSummary:
         wait_reason (None | WaitReason):
         workspace_id (str):
         omitted_sections (list[str] | Unset):
+        schedule_origin (None | ScheduleOrigin | Unset):
         view (Literal['compact'] | Unset):
     """
 
@@ -85,11 +87,13 @@ class RunSummary:
     wait_reason: WaitReason | None
     workspace_id: str
     omitted_sections: list[str] | Unset = UNSET
+    schedule_origin: ScheduleOrigin | Unset | None = UNSET
     view: Literal["compact"] | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         from ..models.failure_summary import FailureSummary
+        from ..models.schedule_origin import ScheduleOrigin
 
         agent_id = self.agent_id
 
@@ -169,6 +173,14 @@ class RunSummary:
         if not isinstance(self.omitted_sections, Unset):
             omitted_sections = self.omitted_sections
 
+        schedule_origin: dict[str, Any] | Unset | None
+        if isinstance(self.schedule_origin, Unset):
+            schedule_origin = UNSET
+        elif isinstance(self.schedule_origin, ScheduleOrigin):
+            schedule_origin = self.schedule_origin.to_dict()
+        else:
+            schedule_origin = self.schedule_origin
+
         view = self.view
 
         field_dict: dict[str, Any] = {}
@@ -206,6 +218,8 @@ class RunSummary:
         )
         if omitted_sections is not UNSET:
             field_dict["omitted_sections"] = omitted_sections
+        if schedule_origin is not UNSET:
+            field_dict["schedule_origin"] = schedule_origin
         if view is not UNSET:
             field_dict["view"] = view
 
@@ -215,6 +229,7 @@ class RunSummary:
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.failure_summary import FailureSummary
         from ..models.preview import Preview
+        from ..models.schedule_origin import ScheduleOrigin
 
         d = dict(src_dict)
         agent_id = d.pop("agent_id")
@@ -345,6 +360,23 @@ class RunSummary:
 
         omitted_sections = cast(list[str], d.pop("omitted_sections", UNSET))
 
+        def _parse_schedule_origin(data: object) -> ScheduleOrigin | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                schedule_origin_type_0 = ScheduleOrigin.from_dict(data)
+
+                return schedule_origin_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(ScheduleOrigin | Unset | None, data)
+
+        schedule_origin = _parse_schedule_origin(d.pop("schedule_origin", UNSET))
+
         view = cast(Literal["compact"] | Unset, d.pop("view", UNSET))
         if view != "compact" and not isinstance(view, Unset):
             raise ValueError(f"view must match const 'compact', got '{view}'")
@@ -378,6 +410,7 @@ class RunSummary:
             wait_reason=wait_reason,
             workspace_id=workspace_id,
             omitted_sections=omitted_sections,
+            schedule_origin=schedule_origin,
             view=view,
         )
 

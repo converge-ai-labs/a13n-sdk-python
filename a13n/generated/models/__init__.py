@@ -79,6 +79,8 @@ from .authorization_status import AuthorizationStatus
 from .authorization_status_state import AuthorizationStatusState
 from .bearer_credential import BearerCredential
 from .bootstrap_input import BootstrapInput
+from .busy_occurrence import BusyOccurrence
+from .busy_occurrence_page import BusyOccurrencePage
 from .callback_outcome import CallbackOutcome
 from .catalog_index import CatalogIndex
 from .catalog_index_item import CatalogIndexItem
@@ -101,6 +103,7 @@ from .computer_check import ComputerCheck
 from .computer_check_status import ComputerCheckStatus
 from .config_section import ConfigSection
 from .config_summary import ConfigSummary
+from .configuration import Configuration
 from .connection import Connection
 from .connection_auth import ConnectionAuth
 from .connection_create import ConnectionCreate
@@ -128,6 +131,7 @@ from .context_usage import ContextUsage
 from .control import Control
 from .created_subscription import CreatedSubscription
 from .credential_mode import CredentialMode
+from .cron_schedule import CronSchedule
 from .daily_usage import DailyUsage
 from .definition import Definition
 from .definition_definition import DefinitionDefinition
@@ -202,6 +206,7 @@ from .health_response_health import HealthResponseHealth
 from .history_purge import HistoryPurge
 from .image_input_policy import ImageInputPolicy
 from .inbox_order import InboxOrder
+from .initial_run import InitialRun
 from .instrumentation_scope import InstrumentationScope
 from .invitation import Invitation
 from .invitation_accept import InvitationAccept
@@ -334,6 +339,13 @@ from .observer_state import ObserverState
 from .observer_state_children import ObserverStateChildren
 from .observer_state_parts import ObserverStateParts
 from .observer_state_threads import ObserverStateThreads
+from .occurrence import Occurrence
+from .occurrence_event import OccurrenceEvent
+from .occurrence_execution import OccurrenceExecution
+from .occurrence_page import OccurrencePage
+from .occurrence_snapshot import OccurrenceSnapshot
+from .occurrence_status import OccurrenceStatus
+from .occurrence_summary import OccurrenceSummary
 from .operation_kind import OperationKind
 from .organization import Organization
 from .organization_page import OrganizationPage
@@ -369,6 +381,7 @@ from .pricing_constraint_kind import PricingConstraintKind
 from .principal_summary import PrincipalSummary
 from .profile import Profile
 from .profile_update import ProfileUpdate
+from .progress import Progress
 from .provider import Provider
 from .provider_authorization_request import ProviderAuthorizationRequest
 from .provider_config import ProviderConfig
@@ -440,6 +453,26 @@ from .run_view_input_type_0 import RunViewInputType0
 from .run_view_labels import RunViewLabels
 from .run_view_revision_selection import RunViewRevisionSelection
 from .run_view_usage_at_seal_type_0 import RunViewUsageAtSealType0
+from .schedule import Schedule
+from .schedule_command import ScheduleCommand
+from .schedule_create import ScheduleCreate
+from .schedule_create_labels import ScheduleCreateLabels
+from .schedule_create_state import ScheduleCreateState
+from .schedule_event import ScheduleEvent
+from .schedule_invocation_input import ScheduleInvocationInput
+from .schedule_invocation_output import ScheduleInvocationOutput
+from .schedule_labels import ScheduleLabels
+from .schedule_origin import ScheduleOrigin
+from .schedule_page import SchedulePage
+from .schedule_pause_reason_type_0 import SchedulePauseReasonType0
+from .schedule_preview import SchedulePreview
+from .schedule_preview_request import SchedulePreviewRequest
+from .schedule_state import ScheduleState
+from .schedule_status import ScheduleStatus
+from .schedule_time import ScheduleTime
+from .schedule_trigger import ScheduleTrigger
+from .schedule_update import ScheduleUpdate
+from .schedule_update_labels_type_0 import ScheduleUpdateLabelsType0
 from .selected_trace import SelectedTrace
 from .service_account import ServiceAccount
 from .service_account_create import ServiceAccountCreate
@@ -661,6 +694,8 @@ __all__ = (
     "AuthorizationStatusState",
     "BearerCredential",
     "BootstrapInput",
+    "BusyOccurrence",
+    "BusyOccurrencePage",
     "CallbackOutcome",
     "CatalogIndex",
     "CatalogIndexItem",
@@ -683,6 +718,7 @@ __all__ = (
     "ComputerCheckStatus",
     "ConfigSection",
     "ConfigSummary",
+    "Configuration",
     "Connection",
     "ConnectionAuth",
     "ConnectionCreate",
@@ -710,6 +746,7 @@ __all__ = (
     "Control",
     "CreatedSubscription",
     "CredentialMode",
+    "CronSchedule",
     "DailyUsage",
     "Definition",
     "DefinitionDefinition",
@@ -784,6 +821,7 @@ __all__ = (
     "HistoryPurge",
     "ImageInputPolicy",
     "InboxOrder",
+    "InitialRun",
     "InstrumentationScope",
     "Invitation",
     "InvitationAccept",
@@ -916,6 +954,13 @@ __all__ = (
     "ObserverStateChildren",
     "ObserverStateParts",
     "ObserverStateThreads",
+    "Occurrence",
+    "OccurrenceEvent",
+    "OccurrenceExecution",
+    "OccurrencePage",
+    "OccurrenceSnapshot",
+    "OccurrenceStatus",
+    "OccurrenceSummary",
     "OperationKind",
     "Organization",
     "OrganizationPage",
@@ -951,6 +996,7 @@ __all__ = (
     "PrincipalSummary",
     "Profile",
     "ProfileUpdate",
+    "Progress",
     "Provider",
     "ProviderAuthorizationRequest",
     "ProviderConfig",
@@ -1020,6 +1066,26 @@ __all__ = (
     "RunViewLabels",
     "RunViewRevisionSelection",
     "RunViewUsageAtSealType0",
+    "Schedule",
+    "ScheduleCommand",
+    "ScheduleCreate",
+    "ScheduleCreateLabels",
+    "ScheduleCreateState",
+    "ScheduleEvent",
+    "ScheduleInvocationInput",
+    "ScheduleInvocationOutput",
+    "ScheduleLabels",
+    "ScheduleOrigin",
+    "SchedulePage",
+    "SchedulePauseReasonType0",
+    "SchedulePreview",
+    "SchedulePreviewRequest",
+    "ScheduleState",
+    "ScheduleStatus",
+    "ScheduleTime",
+    "ScheduleTrigger",
+    "ScheduleUpdate",
+    "ScheduleUpdateLabelsType0",
     "SelectedTrace",
     "ServiceAccount",
     "ServiceAccountCreate",

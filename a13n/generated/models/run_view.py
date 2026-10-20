@@ -25,6 +25,7 @@ if TYPE_CHECKING:
     from ..models.run_view_input_type_0 import RunViewInputType0
     from ..models.run_view_labels import RunViewLabels
     from ..models.run_view_usage_at_seal_type_0 import RunViewUsageAtSealType0
+    from ..models.schedule_origin import ScheduleOrigin
 
 
 T = TypeVar("T", bound="RunView")
@@ -69,6 +70,7 @@ class RunView:
         wait_reason (None | WaitReason):
         workspace_id (str):
         input_ (None | RunViewInputType0 | Unset):
+        schedule_origin (None | ScheduleOrigin | Unset):
     """
 
     agent_id: str
@@ -105,6 +107,7 @@ class RunView:
     wait_reason: WaitReason | None
     workspace_id: str
     input_: RunViewInputType0 | Unset | None = UNSET
+    schedule_origin: ScheduleOrigin | Unset | None = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -114,6 +117,7 @@ class RunView:
         from ..models.resume import Resume
         from ..models.run_view_input_type_0 import RunViewInputType0
         from ..models.run_view_usage_at_seal_type_0 import RunViewUsageAtSealType0
+        from ..models.schedule_origin import ScheduleOrigin
 
         agent_id = self.agent_id
 
@@ -237,6 +241,14 @@ class RunView:
         else:
             input_ = self.input_
 
+        schedule_origin: dict[str, Any] | Unset | None
+        if isinstance(self.schedule_origin, Unset):
+            schedule_origin = UNSET
+        elif isinstance(self.schedule_origin, ScheduleOrigin):
+            schedule_origin = self.schedule_origin.to_dict()
+        else:
+            schedule_origin = self.schedule_origin
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -278,6 +290,8 @@ class RunView:
         )
         if input_ is not UNSET:
             field_dict["input"] = input_
+        if schedule_origin is not UNSET:
+            field_dict["schedule_origin"] = schedule_origin
 
         return field_dict
 
@@ -293,6 +307,7 @@ class RunView:
         from ..models.run_view_input_type_0 import RunViewInputType0
         from ..models.run_view_labels import RunViewLabels
         from ..models.run_view_usage_at_seal_type_0 import RunViewUsageAtSealType0
+        from ..models.schedule_origin import ScheduleOrigin
 
         d = dict(src_dict)
         agent_id = d.pop("agent_id")
@@ -535,6 +550,23 @@ class RunView:
 
         input_ = _parse_input_(d.pop("input", UNSET))
 
+        def _parse_schedule_origin(data: object) -> ScheduleOrigin | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                schedule_origin_type_0 = ScheduleOrigin.from_dict(data)
+
+                return schedule_origin_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(ScheduleOrigin | Unset | None, data)
+
+        schedule_origin = _parse_schedule_origin(d.pop("schedule_origin", UNSET))
+
         run_view = cls(
             agent_id=agent_id,
             agent_revision_id=agent_revision_id,
@@ -570,6 +602,7 @@ class RunView:
             wait_reason=wait_reason,
             workspace_id=workspace_id,
             input_=input_,
+            schedule_origin=schedule_origin,
         )
 
         run_view.additional_properties = d

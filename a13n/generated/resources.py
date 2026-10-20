@@ -5,7 +5,7 @@ from __future__ import annotations
 import datetime
 from collections.abc import AsyncIterator
 from contextlib import AbstractAsyncContextManager
-from typing import Any
+from typing import Any, Literal
 
 import httpx2
 
@@ -237,6 +237,20 @@ from .api.runs import (
     update_thread,
     withdraw_entry,
 )
+from .api.schedules import (
+    archive_schedule,
+    create_schedule,
+    dispatch_schedule,
+    enable_schedule,
+    get_schedule,
+    get_schedule_occurrence,
+    get_schedule_status,
+    list_schedule_occurrences,
+    list_schedules,
+    pause_schedule,
+    preview_schedule,
+    update_schedule,
+)
 from .api.skills import (
     archive_skill,
     create_skill,
@@ -416,6 +430,10 @@ class ServiceResources(Resource):
     @property
     def runs(self) -> Runs:
         return Runs(self._client, self._bindings)
+
+    @property
+    def schedules(self) -> Schedules:
+        return Schedules(self._client, self._bindings)
 
     @property
     def sessions(self) -> Sessions:
@@ -4051,6 +4069,349 @@ class RunsRunIdLineage(Resource):
         )
 
 
+class Schedules(Resource):
+    """Bound Native resource: /schedules."""
+
+    async def list(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        state: wire.ScheduleState | Unset | None = UNSET,
+        agent_id: str | Unset | None = UNSET,
+        principal_id: str | Unset | None = UNSET,
+        label: list[str] | Unset = UNSET,
+        q: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.SchedulePage]:
+        """List Schedules. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: list_schedules.asyncio_detailed(
+                client=client,
+                limit=limit,
+                cursor=cursor,
+                state=state,
+                agent_id=agent_id,
+                principal_id=principal_id,
+                label=label,
+                q=q,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    def pages(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        state: wire.ScheduleState | Unset | None = UNSET,
+        agent_id: str | Unset | None = UNSET,
+        principal_id: str | Unset | None = UNSET,
+        label: list[str] | Unset = UNSET,
+        q: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[Result[wire.SchedulePage]]:
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        label = label.copy() if isinstance(label, list) else label
+        return pages(
+            lambda next_cursor: self.list(
+                limit=limit,
+                state=state,
+                agent_id=agent_id,
+                principal_id=principal_id,
+                label=label,
+                q=q,
+                x_workspace_id=x_workspace_id,
+                cursor=next_cursor,
+            ),
+            lambda value: value.next_cursor,
+            cursor,
+        )
+
+    def iter(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        state: wire.ScheduleState | Unset | None = UNSET,
+        agent_id: str | Unset | None = UNSET,
+        principal_id: str | Unset | None = UNSET,
+        label: list[str] | Unset = UNSET,
+        q: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[wire.Schedule]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(
+                limit=limit,
+                cursor=cursor,
+                state=state,
+                agent_id=agent_id,
+                principal_id=principal_id,
+                label=label,
+                q=q,
+                x_workspace_id=x_workspace_id,
+            )
+            for item in page.value.items
+        )
+
+    async def create(
+        self, *, body: wire.ScheduleCreate, idempotency_key: str, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.Schedule]:
+        """Create Schedule. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: create_schedule.asyncio_detailed(
+                client=client, body=body, idempotency_key=idempotency_key, x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def preview(
+        self, *, body: wire.SchedulePreviewRequest, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.SchedulePreview]:
+        """Preview Schedule. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: preview_schedule.asyncio_detailed(client=client, body=body, x_workspace_id=x_workspace_id)
+        )
+
+    def __call__(self, schedule_id: str) -> SchedulesScheduleId:
+        return SchedulesScheduleId(self._client, self._bind("schedule_id", schedule_id))
+
+
+class SchedulesScheduleId(Resource):
+    """Bound Native resource: /schedules / {schedule_id}."""
+
+    async def delete(
+        self, *, if_match: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[None]:
+        """Archive Schedule. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: archive_schedule.asyncio_detailed(
+                client=client,
+                schedule_id=self._bindings["schedule_id"],
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Schedule]:
+        """Get Schedule. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_schedule.asyncio_detailed(
+                client=client, schedule_id=self._bindings["schedule_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def update(
+        self,
+        *,
+        body: wire.ScheduleUpdate,
+        if_match: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.Schedule]:
+        """Update Schedule. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: update_schedule.asyncio_detailed(
+                client=client,
+                schedule_id=self._bindings["schedule_id"],
+                body=body,
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    async def dispatch(
+        self,
+        *,
+        body: wire.ScheduleCommand,
+        idempotency_key: str,
+        if_match: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.Occurrence]:
+        """Dispatch Schedule. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: dispatch_schedule.asyncio_detailed(
+                client=client,
+                schedule_id=self._bindings["schedule_id"],
+                body=body,
+                idempotency_key=idempotency_key,
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    async def enable(
+        self,
+        *,
+        body: wire.ScheduleCommand,
+        if_match: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.Schedule]:
+        """Enable Schedule. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: enable_schedule.asyncio_detailed(
+                client=client,
+                schedule_id=self._bindings["schedule_id"],
+                body=body,
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    @property
+    def occurrences(self) -> SchedulesScheduleIdOccurrences:
+        return SchedulesScheduleIdOccurrences(self._client, self._bindings)
+
+    async def pause(
+        self,
+        *,
+        body: wire.ScheduleCommand,
+        if_match: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.Schedule]:
+        """Pause Schedule. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: pause_schedule.asyncio_detailed(
+                client=client,
+                schedule_id=self._bindings["schedule_id"],
+                body=body,
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    @property
+    def status(self) -> SchedulesScheduleIdStatus:
+        return SchedulesScheduleIdStatus(self._client, self._bindings)
+
+
+class SchedulesScheduleIdOccurrences(Resource):
+    """Bound Native resource: /schedules / {schedule_id} / occurrences."""
+
+    async def list(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        status: wire.OccurrenceStatus | Unset | None = UNSET,
+        trigger: wire.ScheduleTrigger | Unset | None = UNSET,
+        created_after: datetime.datetime | Unset | None = UNSET,
+        created_before: datetime.datetime | Unset | None = UNSET,
+        unfinished: bool | Unset | None = UNSET,
+        include: Literal["execution"] | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.OccurrencePage]:
+        """List Schedule Occurrences. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: list_schedule_occurrences.asyncio_detailed(
+                client=client,
+                schedule_id=self._bindings["schedule_id"],
+                limit=limit,
+                cursor=cursor,
+                status=status,
+                trigger=trigger,
+                created_after=created_after,
+                created_before=created_before,
+                unfinished=unfinished,
+                include=include,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    def pages(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        status: wire.OccurrenceStatus | Unset | None = UNSET,
+        trigger: wire.ScheduleTrigger | Unset | None = UNSET,
+        created_after: datetime.datetime | Unset | None = UNSET,
+        created_before: datetime.datetime | Unset | None = UNSET,
+        unfinished: bool | Unset | None = UNSET,
+        include: Literal["execution"] | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[Result[wire.OccurrencePage]]:
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        return pages(
+            lambda next_cursor: self.list(
+                limit=limit,
+                status=status,
+                trigger=trigger,
+                created_after=created_after,
+                created_before=created_before,
+                unfinished=unfinished,
+                include=include,
+                x_workspace_id=x_workspace_id,
+                cursor=next_cursor,
+            ),
+            lambda value: value.next_cursor,
+            cursor,
+        )
+
+    def iter(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        status: wire.OccurrenceStatus | Unset | None = UNSET,
+        trigger: wire.ScheduleTrigger | Unset | None = UNSET,
+        created_after: datetime.datetime | Unset | None = UNSET,
+        created_before: datetime.datetime | Unset | None = UNSET,
+        unfinished: bool | Unset | None = UNSET,
+        include: Literal["execution"] | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[wire.OccurrenceSummary]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(
+                limit=limit,
+                cursor=cursor,
+                status=status,
+                trigger=trigger,
+                created_after=created_after,
+                created_before=created_before,
+                unfinished=unfinished,
+                include=include,
+                x_workspace_id=x_workspace_id,
+            )
+            for item in page.value.items
+        )
+
+    def __call__(self, occurrence_id: str) -> SchedulesScheduleIdOccurrencesOccurrenceId:
+        return SchedulesScheduleIdOccurrencesOccurrenceId(self._client, self._bind("occurrence_id", occurrence_id))
+
+
+class SchedulesScheduleIdOccurrencesOccurrenceId(Resource):
+    """Bound Native resource: /schedules / {schedule_id} / occurrences / {occurrence_id}."""
+
+    async def get(
+        self, *, include: Literal["execution"] | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.Occurrence]:
+        """Get Schedule Occurrence. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_schedule_occurrence.asyncio_detailed(
+                client=client,
+                schedule_id=self._bindings["schedule_id"],
+                occurrence_id=self._bindings["occurrence_id"],
+                include=include,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+
+class SchedulesScheduleIdStatus(Resource):
+    """Bound Native resource: /schedules / {schedule_id} / status."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ScheduleStatus]:
+        """Get Schedule Status. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_schedule_status.asyncio_detailed(
+                client=client, schedule_id=self._bindings["schedule_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+
 class Sessions(Resource):
     """Bound Native resource: /sessions."""
 
@@ -4739,6 +5100,7 @@ class Threads(Resource):
         self,
         *,
         session_id: str | Unset | None = UNSET,
+        occurrence_id: str | Unset | None = UNSET,
         text_query: str | Unset | None = UNSET,
         label: list[str] | Unset | None = UNSET,
         limit: int | Unset = UNSET,
@@ -4750,6 +5112,7 @@ class Threads(Resource):
             lambda client: list_threads.asyncio_detailed(
                 client=client,
                 session_id=session_id,
+                occurrence_id=occurrence_id,
                 text_query=text_query,
                 label=label,
                 limit=limit,
@@ -4762,6 +5125,7 @@ class Threads(Resource):
         self,
         *,
         session_id: str | Unset | None = UNSET,
+        occurrence_id: str | Unset | None = UNSET,
         text_query: str | Unset | None = UNSET,
         label: list[str] | Unset | None = UNSET,
         limit: int | Unset = UNSET,
@@ -4773,6 +5137,7 @@ class Threads(Resource):
         return pages(
             lambda next_cursor: self.list(
                 session_id=session_id,
+                occurrence_id=occurrence_id,
                 text_query=text_query,
                 label=label,
                 limit=limit,
@@ -4787,6 +5152,7 @@ class Threads(Resource):
         self,
         *,
         session_id: str | Unset | None = UNSET,
+        occurrence_id: str | Unset | None = UNSET,
         text_query: str | Unset | None = UNSET,
         label: list[str] | Unset | None = UNSET,
         limit: int | Unset = UNSET,
@@ -4798,6 +5164,7 @@ class Threads(Resource):
             item
             async for page in self.pages(
                 session_id=session_id,
+                occurrence_id=occurrence_id,
                 text_query=text_query,
                 label=label,
                 limit=limit,
