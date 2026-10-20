@@ -12,6 +12,7 @@ from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.cron_schedule import CronSchedule
+    from ..models.once_schedule import OnceSchedule
     from ..models.schedule_invocation_output import ScheduleInvocationOutput
     from ..models.schedule_labels import ScheduleLabels
 
@@ -31,7 +32,7 @@ class Schedule:
         name (str):
         pause_reason (None | SchedulePauseReasonType0):
         principal_id (str):
-        schedule (CronSchedule):
+        schedule (CronSchedule | OnceSchedule):
         session_id (str):
         state (ScheduleState):
         stream_url (str):
@@ -52,7 +53,7 @@ class Schedule:
     name: str
     pause_reason: SchedulePauseReasonType0 | None
     principal_id: str
-    schedule: CronSchedule
+    schedule: CronSchedule | OnceSchedule
     session_id: str
     state: ScheduleState
     stream_url: str
@@ -65,6 +66,8 @@ class Schedule:
     max_lateness_seconds: int | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.cron_schedule import CronSchedule
+
         archived_at: str | None
         if isinstance(self.archived_at, datetime.datetime):
             archived_at = self.archived_at.isoformat()
@@ -89,7 +92,11 @@ class Schedule:
 
         principal_id = self.principal_id
 
-        schedule = self.schedule.to_dict()
+        schedule: dict[str, Any]
+        if isinstance(self.schedule, CronSchedule):
+            schedule = self.schedule.to_dict()
+        else:
+            schedule = self.schedule.to_dict()
 
         session_id = self.session_id
 
@@ -151,6 +158,7 @@ class Schedule:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.cron_schedule import CronSchedule
+        from ..models.once_schedule import OnceSchedule
         from ..models.schedule_invocation_output import ScheduleInvocationOutput
         from ..models.schedule_labels import ScheduleLabels
 
@@ -198,7 +206,22 @@ class Schedule:
 
         principal_id = d.pop("principal_id")
 
-        schedule = CronSchedule.from_dict(d.pop("schedule"))
+        def _parse_schedule(data: object) -> CronSchedule | OnceSchedule:
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                componentsschemas_schedule_rule_type_0 = CronSchedule.from_dict(data)
+
+                return componentsschemas_schedule_rule_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            if not isinstance(data, dict):
+                raise TypeError()
+            componentsschemas_schedule_rule_type_1 = OnceSchedule.from_dict(data)
+
+            return componentsschemas_schedule_rule_type_1
+
+        schedule = _parse_schedule(d.pop("schedule"))
 
         session_id = d.pop("session_id")
 

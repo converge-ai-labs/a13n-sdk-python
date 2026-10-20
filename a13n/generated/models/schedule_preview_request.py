@@ -10,6 +10,7 @@ from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.cron_schedule import CronSchedule
+    from ..models.once_schedule import OnceSchedule
 
 
 T = TypeVar("T", bound="SchedulePreviewRequest")
@@ -20,18 +21,24 @@ class SchedulePreviewRequest:
     """
     Attributes:
         after (datetime.datetime):
-        schedule (CronSchedule):
+        schedule (CronSchedule | OnceSchedule):
         count (int | Unset):
     """
 
     after: datetime.datetime
-    schedule: CronSchedule
+    schedule: CronSchedule | OnceSchedule
     count: int | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.cron_schedule import CronSchedule
+
         after = self.after.isoformat()
 
-        schedule = self.schedule.to_dict()
+        schedule: dict[str, Any]
+        if isinstance(self.schedule, CronSchedule):
+            schedule = self.schedule.to_dict()
+        else:
+            schedule = self.schedule.to_dict()
 
         count = self.count
 
@@ -51,11 +58,27 @@ class SchedulePreviewRequest:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.cron_schedule import CronSchedule
+        from ..models.once_schedule import OnceSchedule
 
         d = dict(src_dict)
         after = datetime.datetime.fromisoformat(d.pop("after"))
 
-        schedule = CronSchedule.from_dict(d.pop("schedule"))
+        def _parse_schedule(data: object) -> CronSchedule | OnceSchedule:
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                componentsschemas_schedule_rule_type_0 = CronSchedule.from_dict(data)
+
+                return componentsschemas_schedule_rule_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            if not isinstance(data, dict):
+                raise TypeError()
+            componentsschemas_schedule_rule_type_1 = OnceSchedule.from_dict(data)
+
+            return componentsschemas_schedule_rule_type_1
+
+        schedule = _parse_schedule(d.pop("schedule"))
 
         count = d.pop("count", UNSET)
 

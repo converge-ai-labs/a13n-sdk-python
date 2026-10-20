@@ -3,6 +3,7 @@ from enum import StrEnum
 
 class ScheduleState(StrEnum):
     ARCHIVED = "archived"
+    COMPLETED = "completed"
     ENABLED = "enabled"
     PAUSED = "paused"
 

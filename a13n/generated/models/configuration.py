@@ -10,6 +10,7 @@ from ..models.schedule_state import ScheduleState
 
 if TYPE_CHECKING:
     from ..models.cron_schedule import CronSchedule
+    from ..models.once_schedule import OnceSchedule
 
 
 T = TypeVar("T", bound="Configuration")
@@ -24,7 +25,7 @@ class Configuration:
         name (str):
         pause_reason (None | str):
         principal_id (str):
-        schedule (CronSchedule):
+        schedule (CronSchedule | OnceSchedule):
         session_id (str):
         state (ScheduleState):
         version (int):
@@ -35,13 +36,15 @@ class Configuration:
     name: str
     pause_reason: str | None
     principal_id: str
-    schedule: CronSchedule
+    schedule: CronSchedule | OnceSchedule
     session_id: str
     state: ScheduleState
     version: int
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.cron_schedule import CronSchedule
+
         id = self.id
 
         max_lateness_seconds = self.max_lateness_seconds
@@ -53,7 +56,11 @@ class Configuration:
 
         principal_id = self.principal_id
 
-        schedule = self.schedule.to_dict()
+        schedule: dict[str, Any]
+        if isinstance(self.schedule, CronSchedule):
+            schedule = self.schedule.to_dict()
+        else:
+            schedule = self.schedule.to_dict()
 
         session_id = self.session_id
 
@@ -82,6 +89,7 @@ class Configuration:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.cron_schedule import CronSchedule
+        from ..models.once_schedule import OnceSchedule
 
         d = dict(src_dict)
         id = d.pop("id")
@@ -99,7 +107,22 @@ class Configuration:
 
         principal_id = d.pop("principal_id")
 
-        schedule = CronSchedule.from_dict(d.pop("schedule"))
+        def _parse_schedule(data: object) -> CronSchedule | OnceSchedule:
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                componentsschemas_schedule_rule_type_0 = CronSchedule.from_dict(data)
+
+                return componentsschemas_schedule_rule_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            if not isinstance(data, dict):
+                raise TypeError()
+            componentsschemas_schedule_rule_type_1 = OnceSchedule.from_dict(data)
+
+            return componentsschemas_schedule_rule_type_1
+
+        schedule = _parse_schedule(d.pop("schedule"))
 
         session_id = d.pop("session_id")
 

@@ -7,6 +7,7 @@ from attrs import define as _attrs_define
 
 if TYPE_CHECKING:
     from ..models.cron_schedule import CronSchedule
+    from ..models.once_schedule import OnceSchedule
     from ..models.schedule_invocation_output import ScheduleInvocationOutput
 
 
@@ -20,7 +21,7 @@ class OccurrenceSnapshot:
         invocation (ScheduleInvocationOutput):
         max_lateness_seconds (int):
         name (str):
-        schedule (CronSchedule):
+        schedule (CronSchedule | OnceSchedule):
         timezone_data_version (str):
         utc_offset_seconds (int | None):
     """
@@ -28,18 +29,24 @@ class OccurrenceSnapshot:
     invocation: ScheduleInvocationOutput
     max_lateness_seconds: int
     name: str
-    schedule: CronSchedule
+    schedule: CronSchedule | OnceSchedule
     timezone_data_version: str
     utc_offset_seconds: int | None
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.cron_schedule import CronSchedule
+
         invocation = self.invocation.to_dict()
 
         max_lateness_seconds = self.max_lateness_seconds
 
         name = self.name
 
-        schedule = self.schedule.to_dict()
+        schedule: dict[str, Any]
+        if isinstance(self.schedule, CronSchedule):
+            schedule = self.schedule.to_dict()
+        else:
+            schedule = self.schedule.to_dict()
 
         timezone_data_version = self.timezone_data_version
 
@@ -64,6 +71,7 @@ class OccurrenceSnapshot:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.cron_schedule import CronSchedule
+        from ..models.once_schedule import OnceSchedule
         from ..models.schedule_invocation_output import ScheduleInvocationOutput
 
         d = dict(src_dict)
@@ -73,7 +81,22 @@ class OccurrenceSnapshot:
 
         name = d.pop("name")
 
-        schedule = CronSchedule.from_dict(d.pop("schedule"))
+        def _parse_schedule(data: object) -> CronSchedule | OnceSchedule:
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                componentsschemas_schedule_rule_type_0 = CronSchedule.from_dict(data)
+
+                return componentsschemas_schedule_rule_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            if not isinstance(data, dict):
+                raise TypeError()
+            componentsschemas_schedule_rule_type_1 = OnceSchedule.from_dict(data)
+
+            return componentsschemas_schedule_rule_type_1
+
+        schedule = _parse_schedule(d.pop("schedule"))
 
         timezone_data_version = d.pop("timezone_data_version")
 

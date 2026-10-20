@@ -346,6 +346,7 @@ from .occurrence_page import OccurrencePage
 from .occurrence_snapshot import OccurrenceSnapshot
 from .occurrence_status import OccurrenceStatus
 from .occurrence_summary import OccurrenceSummary
+from .once_schedule import OnceSchedule
 from .operation_kind import OperationKind
 from .organization import Organization
 from .organization_page import OrganizationPage
@@ -961,6 +962,7 @@ __all__ = (
     "OccurrenceSnapshot",
     "OccurrenceStatus",
     "OccurrenceSummary",
+    "OnceSchedule",
     "OperationKind",
     "Organization",
     "OrganizationPage",

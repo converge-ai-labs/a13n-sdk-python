@@ -10,6 +10,7 @@ from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.cron_schedule import CronSchedule
+    from ..models.once_schedule import OnceSchedule
     from ..models.schedule_create_labels import ScheduleCreateLabels
     from ..models.schedule_invocation_input import ScheduleInvocationInput
 
@@ -23,7 +24,7 @@ class ScheduleCreate:
     Attributes:
         invocation (ScheduleInvocationInput):
         name (str):
-        schedule (CronSchedule):
+        schedule (CronSchedule | OnceSchedule):
         description (None | str | Unset):
         labels (ScheduleCreateLabels | Unset):
         max_lateness_seconds (int | Unset):
@@ -32,18 +33,24 @@ class ScheduleCreate:
 
     invocation: ScheduleInvocationInput
     name: str
-    schedule: CronSchedule
+    schedule: CronSchedule | OnceSchedule
     description: str | Unset | None = UNSET
     labels: ScheduleCreateLabels | Unset = UNSET
     max_lateness_seconds: int | Unset = UNSET
     state: ScheduleCreateState | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.cron_schedule import CronSchedule
+
         invocation = self.invocation.to_dict()
 
         name = self.name
 
-        schedule = self.schedule.to_dict()
+        schedule: dict[str, Any]
+        if isinstance(self.schedule, CronSchedule):
+            schedule = self.schedule.to_dict()
+        else:
+            schedule = self.schedule.to_dict()
 
         description: str | Unset | None
         if isinstance(self.description, Unset):
@@ -84,6 +91,7 @@ class ScheduleCreate:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.cron_schedule import CronSchedule
+        from ..models.once_schedule import OnceSchedule
         from ..models.schedule_create_labels import ScheduleCreateLabels
         from ..models.schedule_invocation_input import ScheduleInvocationInput
 
@@ -92,7 +100,22 @@ class ScheduleCreate:
 
         name = d.pop("name")
 
-        schedule = CronSchedule.from_dict(d.pop("schedule"))
+        def _parse_schedule(data: object) -> CronSchedule | OnceSchedule:
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                componentsschemas_schedule_rule_type_0 = CronSchedule.from_dict(data)
+
+                return componentsschemas_schedule_rule_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            if not isinstance(data, dict):
+                raise TypeError()
+            componentsschemas_schedule_rule_type_1 = OnceSchedule.from_dict(data)
+
+            return componentsschemas_schedule_rule_type_1
+
+        schedule = _parse_schedule(d.pop("schedule"))
 
         def _parse_description(data: object) -> str | Unset | None:
             if data is None:
