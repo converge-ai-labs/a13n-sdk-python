@@ -15,15 +15,18 @@ class ImageInputPolicy:
     """Preparation limits for one model's image input, not native ModelSettings.
 
     Attributes:
+        image_retention_ratio (float | Unset): Fraction of max_images retained at the first overflow; one evicts only
+            the excess images.
         image_split_max_height (int | Unset):
         image_split_overlap (int | Unset):
         max_image_bytes (int | Unset): Maximum base64-encoded bytes per image; zero disables this byte limit.
         max_image_dimension (int | Unset): Maximum image axis; zero disables this limit.
-        max_images (int | Unset): Keep the newest images; zero removes all image input.
+        max_images (int | Unset): Maximum retained images; zero removes all image input.
         split_large_images (bool | Unset):
         support_gif (bool | Unset):
     """
 
+    image_retention_ratio: float | Unset = UNSET
     image_split_max_height: int | Unset = UNSET
     image_split_overlap: int | Unset = UNSET
     max_image_bytes: int | Unset = UNSET
@@ -33,6 +36,8 @@ class ImageInputPolicy:
     support_gif: bool | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
+        image_retention_ratio = self.image_retention_ratio
+
         image_split_max_height = self.image_split_max_height
 
         image_split_overlap = self.image_split_overlap
@@ -50,6 +55,8 @@ class ImageInputPolicy:
         field_dict: dict[str, Any] = {}
 
         field_dict.update({})
+        if image_retention_ratio is not UNSET:
+            field_dict["image_retention_ratio"] = image_retention_ratio
         if image_split_max_height is not UNSET:
             field_dict["image_split_max_height"] = image_split_max_height
         if image_split_overlap is not UNSET:
@@ -70,6 +77,8 @@ class ImageInputPolicy:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
+        image_retention_ratio = d.pop("image_retention_ratio", UNSET)
+
         image_split_max_height = d.pop("image_split_max_height", UNSET)
 
         image_split_overlap = d.pop("image_split_overlap", UNSET)
@@ -85,6 +94,7 @@ class ImageInputPolicy:
         support_gif = d.pop("support_gif", UNSET)
 
         image_input_policy = cls(
+            image_retention_ratio=image_retention_ratio,
             image_split_max_height=image_split_max_height,
             image_split_overlap=image_split_overlap,
             max_image_bytes=max_image_bytes,
