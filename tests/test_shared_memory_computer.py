@@ -353,7 +353,10 @@ def test_required_nullable_usage_metrics_and_per_run_summary():
         "average_time_to_first_chunk_seconds": None,
         "output_tokens_per_second": 0,
     }
-    summary = {"models": [model], "runs": [{"run_id": "run_1", "thread_id": "thr_1", "models": [model]}]}
+    summary = {
+        "models": [model],
+        "runs": [{"run_id": "run_1", "thread_id": "thr_1", "run_number": 42, "models": [model]}],
+    }
     assert wire.UsageSummary.from_dict(summary).to_dict() == summary
     assert wire.ModelRequestMetrics.from_dict(METRICS).to_dict() == METRICS
     with pytest.raises(KeyError):

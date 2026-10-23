@@ -19,11 +19,13 @@ class RunUsage:
     Attributes:
         models (list[ModelUsage]):
         run_id (str):
+        run_number (int): One-based chronological position among all Runs in the Thread.
         thread_id (str):
     """
 
     models: list[ModelUsage]
     run_id: str
+    run_number: int
     thread_id: str
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -35,6 +37,8 @@ class RunUsage:
 
         run_id = self.run_id
 
+        run_number = self.run_number
+
         thread_id = self.thread_id
 
         field_dict: dict[str, Any] = {}
@@ -43,6 +47,7 @@ class RunUsage:
             {
                 "models": models,
                 "run_id": run_id,
+                "run_number": run_number,
                 "thread_id": thread_id,
             }
         )
@@ -63,11 +68,14 @@ class RunUsage:
 
         run_id = d.pop("run_id")
 
+        run_number = d.pop("run_number")
+
         thread_id = d.pop("thread_id")
 
         run_usage = cls(
             models=models,
             run_id=run_id,
+            run_number=run_number,
             thread_id=thread_id,
         )
 
