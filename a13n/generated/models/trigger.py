@@ -7,6 +7,7 @@ class Trigger(StrEnum):
     QUEUED = "queued"
     RESUME = "resume"
     SPAWNED = "spawned"
+    TOOL_RESULT = "tool_result"
 
     def __str__(self) -> str:
         return str(self.value)

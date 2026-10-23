@@ -284,22 +284,12 @@ def test_run_memory_union_keeps_typed_host_resolved_roots(frozen):
     assert "roots" not in wire.MemoryMount.__annotations__
 
 
-@pytest.mark.parametrize(
-    "value",
-    [
-        UNSET,
-        None,
-        {},
-        {"groups": [], "read_permission": "deny", "write_permission": "ask"},
-        {"groups": ["execution", "models"], "read_permission": "allow", "write_permission": "deny"},
-    ],
-)
-def test_public_platform_overrides_preserve_omission_null_and_empty(value):
-    options = RunOptions(overrides=AgentOverride(builtin_skills=[], platform_tools=value))
-    expected = {"builtin_skills": []}
-    if value is not UNSET:
-        expected["platform_tools"] = value
-    assert options.into_wire().to_dict() == {"overrides": expected}
+def test_public_overrides_reject_retired_platform_settings():
+    with pytest.raises(TypeError):
+        AgentOverride(platform_tools={})
+    assert RunOptions(overrides=AgentOverride(builtin_skills=[])).into_wire().to_dict() == {
+        "overrides": {"builtin_skills": []}
+    }
     assert RunOptions(overrides=AgentOverride(builtin_skills=None)).into_wire().to_dict() == {
         "overrides": {"builtin_skills": None}
     }

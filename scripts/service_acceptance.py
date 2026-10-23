@@ -562,12 +562,9 @@ async def _desktop_discovery_context_acceptance(
         raise RuntimeError("Run without completed contribution did not remain successful null")
     stored = []
     for configuration in [
-        wire.ProxyToolSearchConfig(
+        wire.ToolSearchConfig(
             mode="proxy", search_name="find_grouped_tools", call_name="invoke_grouped_tool", max_results=7
         ),
-        wire.NativeToolSearchConfig(mode="native"),
-        wire.NativeToolSearchConfig(mode="native", strategy=None),
-        wire.NativeToolSearchConfig(mode="native", strategy=wire.NativeToolSearchConfigStrategyType0.REGEX),
     ]:
         search = wire.ToolSearch(config=configuration, groups=wire.ToolSearchGroups())
         created = await client.api.agents.create(
@@ -586,7 +583,7 @@ async def _desktop_discovery_context_acceptance(
             or saved.groups.to_dict() != {}
         ):
             raise RuntimeError("Stored discovery group selection changed")
-        if not isinstance(saved.config, (wire.NativeToolSearchConfig, wire.ProxyToolSearchConfig)):
+        if not isinstance(saved.config, wire.ToolSearchConfig):
             raise RuntimeError("Stored discovery config is missing")
         actual = saved.config.to_dict()
         if any(actual.get(key) != value for key, value in configuration.to_dict().items()):

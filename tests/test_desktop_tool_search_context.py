@@ -54,10 +54,8 @@ def desktop_wait() -> dict:
     "value",
     [
         {},
-        {"config": {"mode": "native"}},
-        {"config": {"mode": "native", "strategy": None}},
-        {"config": {"mode": "native", "strategy": "bm25"}, "groups": {}},
-        {"config": {"mode": "native", "strategy": "regex"}},
+        {"config": {}},
+        {"config": {"mode": "proxy"}},
         {
             "config": {
                 "mode": "proxy",
@@ -82,10 +80,8 @@ def desktop_wait() -> dict:
 def test_tool_search_round_trip_uses_one_generated_hierarchy(value: dict) -> None:
     search = wire.ToolSearch.from_dict(value)
     assert search.to_dict() == value
-    if value.get("config", {}).get("mode") == "native":
-        assert isinstance(search.config, wire.NativeToolSearchConfig)
-    elif value.get("config", {}).get("mode") == "proxy":
-        assert isinstance(search.config, wire.ProxyToolSearchConfig)
+    if "config" in value:
+        assert isinstance(search.config, wire.ToolSearchConfig)
     for model in (wire.AgentConfigInput, wire.AgentConfigOutput, wire.AgentOverrideInput, wire.AgentOverrideOutput):
         base = {"model": "model_1"} if model in (wire.AgentConfigInput, wire.AgentConfigOutput) else {}
         assert model.from_dict({**base, "tool_search": value}).to_dict() == {**base, "tool_search": value}
@@ -97,7 +93,7 @@ def test_tool_search_round_trip_uses_one_generated_hierarchy(value: dict) -> Non
 @pytest.mark.parametrize(
     "value",
     [
-        {"config": {}},
+        {"config": {"mode": "native"}},
         {"config": None},
         {"config": {"mode": "other"}},
         {"config": {"mode": "native", "strategy": "invalid"}},
@@ -124,11 +120,11 @@ def test_tool_search_invalid_union_forms_fail_at_model_and_nullable_parent(value
 def test_typed_tool_search_validates_serialization_and_omission_null_empty() -> None:
     assert AgentOverride().to_dict() == {}
     assert AgentOverride(tool_search=None).to_dict() == {"tool_search": None}
-    assert wire.NativeToolSearchConfig(mode="native").to_dict() == {"mode": "native"}
-    search = wire.ToolSearch(config=wire.NativeToolSearchConfig(mode="native"), groups=wire.ToolSearchGroups())
-    assert AgentOverride(tool_search=search).to_dict() == {"tool_search": {"config": {"mode": "native"}, "groups": {}}}
-    invalid = wire.NativeToolSearchConfig(mode="native")
-    invalid.strategy = False  # type: ignore[assignment] -- runtime callers also cross this boundary
+    assert wire.ToolSearchConfig(mode="proxy").to_dict() == {"mode": "proxy"}
+    search = wire.ToolSearch(config=wire.ToolSearchConfig(mode="proxy"), groups=wire.ToolSearchGroups())
+    assert AgentOverride(tool_search=search).to_dict() == {"tool_search": {"config": {"mode": "proxy"}, "groups": {}}}
+    invalid = wire.ToolSearchConfig(mode="proxy")
+    invalid.mode = "native"  # type: ignore[assignment] -- runtime callers also cross this boundary
     with pytest.raises(ValueError):
         RunOptions(overrides=AgentOverride(tool_search=wire.ToolSearch(config=invalid))).into_wire()
     for model in (wire.AgentConfigInput, wire.AgentConfigOutput, wire.AgentOverrideInput, wire.AgentOverrideOutput):

@@ -5,313 +5,363 @@ from __future__ import annotations
 import datetime
 from collections.abc import AsyncIterator
 from contextlib import AbstractAsyncContextManager
-from typing import Any
+from typing import Any, Literal, overload
 
 import httpx2
 
 from .._resources import Resource, Result, pages
 from . import models as wire
 from .api.agents import (
-    archive_agent_api_v1_agents_agent_id_archive_post,
-    create_agent_api_v1_agents_post,
-    create_revision_api_v1_agents_agent_id_revisions_post,
-    delete_avatar_api_v1_agents_agent_id_avatar_delete,
-    duplicate_agent_api_v1_agents_agent_id_duplicate_post,
-    get_agent_api_v1_agents_agent_id_get,
-    get_avatar_api_v1_agents_agent_id_avatar_get,
-    get_revision_api_v1_agents_agent_id_revisions_revision_id_get,
-    list_agents_api_v1_agents_get,
-    list_revisions_api_v1_agents_agent_id_revisions_get,
-    list_toolsets_api_v1_toolsets_get,
-    prepare_composer_api_v1_agent_composer_post,
-    put_avatar_api_v1_agents_agent_id_avatar_put,
-    set_default_api_v1_agents_agent_id_revisions_revision_id_set_default_post,
-    unarchive_agent_api_v1_agents_agent_id_unarchive_post,
-    update_agent_api_v1_agents_agent_id_patch,
-    validate_revision_api_v1_agents_validate_post,
+    archive_agent,
+    compare_agent_revisions,
+    create_agent,
+    create_agent_revision,
+    define_toolsets,
+    delete_agent_avatar,
+    duplicate_agent,
+    get_agent,
+    get_agent_avatar,
+    get_agent_revision,
+    index_toolsets,
+    list_agent_revisions,
+    list_agents,
+    list_toolsets,
+    prepare_composer,
+    put_agent_avatar,
+    set_default_agent_revision,
+    unarchive_agent,
+    update_agent,
+    validate_agent,
 )
-from .api.assets import (
-    create_asset_api_v1_assets_post,
-    create_upload_api_v1_uploads_post,
-    get_asset_api_v1_assets_asset_id_get,
-    list_assets_api_v1_assets_get,
-    read_asset_content_api_v1_assets_asset_id_content_get,
-    retire_asset_api_v1_assets_asset_id_delete,
-)
+from .api.assets import create_asset, create_upload, get_asset, list_assets, read_asset_content, retire_asset
 from .api.auth import (
-    accept_api_v1_invitations_invitation_id_accept_post,
-    auth_configuration_api_v1_auth_configuration_get,
-    bootstrap_administrator_api_v1_auth_bootstrap_post,
-    change_password_api_v1_users_me_password_post,
-    confirm_email_change_api_v1_auth_email_change_confirm_post,
-    confirm_password_reset_api_v1_auth_password_reset_confirm_post,
-    create_user_key_api_v1_users_me_keys_post,
-    delete_avatar_api_v1_users_me_avatar_delete,
-    disable_account_api_v1_users_me_disable_post,
-    get_avatar_api_v1_users_user_id_avatar_get,
-    get_profile_api_v1_users_me_get,
-    list_account_audit_events_api_v1_users_me_audit_events_get,
-    list_login_sessions_api_v1_users_me_login_sessions_get,
-    list_user_keys_api_v1_users_me_keys_get,
-    logout_api_v1_auth_logout_post,
-    password_login_api_v1_auth_login_post,
-    put_avatar_api_v1_users_me_avatar_put,
-    request_password_reset_api_v1_auth_password_reset_post,
-    revoke_login_session_api_v1_users_me_login_sessions_session_id_delete,
-    revoke_user_key_api_v1_users_me_keys_key_id_delete,
-    session_profile_api_v1_auth_session_get,
-    update_profile_api_v1_users_me_patch,
+    accept,
+    auth_configuration,
+    bootstrap_administrator,
+    change_password,
+    confirm_email_change,
+    confirm_password_reset,
+    create_user_key,
+    delete_user_avatar,
+    disable_account,
+    get_profile,
+    get_user_avatar,
+    list_account_audit_events,
+    list_login_sessions,
+    list_user_keys,
+    logout,
+    password_login,
+    put_user_avatar,
+    request_password_reset,
+    revoke_login_session,
+    revoke_user_key,
+    session_profile,
+    update_profile,
 )
 from .api.connections import (
-    authorize_connection_api_v1_connections_connection_id_authorize_post,
-    complete_authorization_api_v1_connections_callback_get,
-    create_connection_api_v1_connections_post,
-    get_app_api_v1_connector_providers_provider_id_apps_app_get,
-    get_connection_api_v1_connections_connection_id_get,
-    get_redirect_uri_api_v1_connections_redirect_uri_get,
-    list_actions_api_v1_connector_providers_provider_id_apps_app_actions_get,
-    list_apps_api_v1_connector_providers_provider_id_apps_get,
-    list_connections_api_v1_connections_get,
-    list_mcp_servers_api_v1_mcp_servers_get,
-    list_tools_api_v1_connections_connection_id_tools_get,
-    revoke_connection_api_v1_connections_connection_id_revoke_post,
-    test_connection_api_v1_connections_connection_id_test_post,
-    update_connection_api_v1_connections_connection_id_patch,
+    authorize_connection,
+    complete_authorization,
+    create_connection,
+    define_connection_tools,
+    define_connector_actions,
+    get_connection,
+    get_connector_app,
+    get_redirect_uri,
+    index_connection_tools,
+    index_connector_actions,
+    list_connection_tools,
+    list_connections,
+    list_connector_actions,
+    list_connector_apps,
+    list_mcp_servers,
+    revoke_connection,
+    test_connection,
+    update_connection,
 )
-from .api.default import health_healthz_get, ready_readyz_get
+from .api.default import health, ready
 from .api.desktop_assistance import (
-    complete_assistance_api_v1_desktop_assistance_assistance_id_complete_post,
-    control_desktop_api_v1_desktop_assistance_assistance_id_control_post,
-    disconnect_desktop_api_v1_desktop_assistance_assistance_id_disconnect_post,
-    get_assistance_api_v1_runs_run_id_desktop_assistance_call_id_get,
-    get_control_api_v1_runs_run_id_desktop_control_get,
-    open_control_api_v1_runs_run_id_desktop_control_post,
-    request_control_api_v1_desktop_assistance_assistance_id_request_control_post,
-    view_desktop_api_v1_desktop_assistance_assistance_id_view_post,
+    complete_assistance,
+    control_desktop,
+    disconnect_desktop,
+    get_assistance,
+    get_control,
+    open_control,
+    open_view,
+    request_control,
+    view_desktop,
 )
 from .api.environments import (
-    add_mount_api_v1_threads_thread_id_environments_post,
-    check_computer_api_v1_environments_environment_id_computer_check_post,
-    create_environment_api_v1_environments_post,
-    create_template_api_v1_environment_templates_post,
-    delete_environment_api_v1_environments_environment_id_delete,
-    get_environment_api_v1_environments_environment_id_get,
-    get_template_api_v1_environment_templates_template_id_get,
-    list_environments_api_v1_environments_get,
-    list_mounts_api_v1_threads_thread_id_environments_get,
-    list_templates_api_v1_environment_templates_get,
-    remove_mount_api_v1_threads_thread_id_environments_name_delete,
-    stop_environment_api_v1_environments_environment_id_stop_post,
-    update_environment_api_v1_environments_environment_id_patch,
-    update_mount_api_v1_threads_thread_id_environments_name_patch,
-    update_template_api_v1_environment_templates_template_id_patch,
+    add_environment_mount,
+    check_computer,
+    create_environment,
+    create_environment_template,
+    delete_environment,
+    get_collector_status,
+    get_environment,
+    get_environment_creation,
+    get_environment_desktop_preview,
+    get_environment_template,
+    list_environment_mounts,
+    list_environment_templates,
+    list_environments,
+    query_environment_metrics,
+    remove_environment_mount,
+    retry_environment_creation,
+    select_metrics_source,
+    stop_environment,
+    update_environment,
+    update_environment_mount,
+    update_environment_template,
 )
 from .api.findings import (
-    create_finding_api_v1_findings_post,
-    get_finding_api_v1_findings_finding_id_get,
-    list_analyses_api_v1_finding_analyses_get,
-    list_findings_api_v1_findings_get,
-    prepare_finding_agent_api_v1_finding_agent_post,
-    start_analysis_api_v1_finding_analyses_post,
-    update_finding_api_v1_findings_finding_id_patch,
+    create_finding,
+    get_finding,
+    list_finding_analyses,
+    list_findings,
+    prepare_finding_agent,
+    start_analysis,
+    update_finding,
 )
 from .api.memories import (
-    add_mount_api_v1_threads_thread_id_memories_post,
-    add_record_api_v1_memories_memory_id_records_post,
-    create_file_api_v1_memories_memory_id_files_post,
-    create_memory_api_v1_memories_post,
-    delete_file_api_v1_memories_memory_id_files_path_delete,
-    delete_memory_api_v1_memories_memory_id_delete,
-    delete_record_api_v1_memories_memory_id_records_record_id_delete,
-    get_memory_api_v1_memories_memory_id_get,
-    get_revision_api_v1_memories_memory_id_revisions_seq_get,
-    list_files_api_v1_memories_memory_id_files_get,
-    list_memories_api_v1_memories_get,
-    list_mounts_api_v1_threads_thread_id_memories_get,
-    list_records_api_v1_memories_memory_id_records_get,
-    list_revisions_api_v1_memories_memory_id_revisions_get,
-    move_file_api_v1_memories_memory_id_files_move_post,
-    purge_history_api_v1_memories_memory_id_revisions_delete,
-    read_file_api_v1_memories_memory_id_files_path_get,
-    remove_mount_api_v1_threads_thread_id_memories_name_delete,
-    replace_file_api_v1_memories_memory_id_files_path_put,
-    restore_revision_api_v1_memories_memory_id_revisions_seq_restore_post,
-    search_records_api_v1_memories_memory_id_records_search_post,
-    update_memory_api_v1_memories_memory_id_patch,
-    update_mount_api_v1_threads_thread_id_memories_name_patch,
-    update_record_api_v1_memories_memory_id_records_record_id_put,
+    add_memory_mount,
+    add_record,
+    create_file,
+    create_memory,
+    delete_file,
+    delete_memory,
+    delete_record,
+    get_memory,
+    get_memory_revision,
+    list_files,
+    list_memories,
+    list_memory_mounts,
+    list_memory_revisions,
+    list_records,
+    move_file,
+    purge_history,
+    read_file,
+    remove_memory_mount,
+    replace_file,
+    restore_memory_revision,
+    search_records,
+    update_memory,
+    update_memory_mount,
+    update_record,
 )
 from .api.memory_spaces import (
-    create_space_api_v1_memory_spaces_post,
-    delete_space_api_v1_memory_spaces_space_id_delete,
-    get_space_api_v1_memory_spaces_space_id_get,
-    get_space_organization_api_v1_memory_spaces_space_id_organization_get,
-    list_space_organizations_api_v1_memory_spaces_space_id_organizations_get,
-    list_space_sessions_api_v1_memory_spaces_space_id_sessions_get,
-    list_spaces_api_v1_memory_spaces_get,
-    organize_space_api_v1_memory_spaces_space_id_organizations_post,
-    update_space_api_v1_memory_spaces_space_id_patch,
+    create_space,
+    delete_space,
+    get_space,
+    get_space_organization,
+    list_space_organizations,
+    list_space_sessions,
+    list_spaces,
+    organize_space,
+    update_space,
+)
+from .api.metrics_dashboards import (
+    create_dashboard,
+    delete_dashboard,
+    get_dashboard,
+    get_dashboard_preset,
+    list_dashboards,
+    update_dashboard,
+)
+from .api.metrics_data_sources import (
+    create_metrics_data_source,
+    delete_metrics_data_source,
+    get_metrics_capabilities,
+    get_metrics_data_source,
+    get_metrics_deployment_preset,
+    list_metrics_data_sources,
+    query_metrics_data_source,
+    update_metrics_data_source,
 )
 from .api.models import (
-    create_model_api_v1_models_post,
-    get_media_defaults_api_v1_media_understanding_defaults_get,
-    get_model_api_v1_models_key_get,
-    get_model_catalog_api_v1_model_catalog_get,
-    list_models_api_v1_models_get,
-    replace_media_defaults_api_v1_media_understanding_defaults_put,
-    update_model_api_v1_models_key_patch,
+    create_model,
+    get_media_defaults,
+    get_model,
+    get_model_catalog,
+    list_models,
+    replace_media_defaults,
+    update_model,
+)
+from .api.monitoring_devices import (
+    create_device,
+    delete_device,
+    get_device,
+    list_devices,
+    query_device_metrics,
+    rotate_device_credential,
+    update_device,
 )
 from .api.providers import (
-    authorize_model_api_v1_model_providers_provider_id_authorize_post,
-    complete_model_authorization_api_v1_model_providers_provider_id_authorization_callback_post,
-    create_provider_api_v1_connector_providers_post,
-    create_provider_api_v1_environment_providers_post,
-    create_provider_api_v1_memory_providers_post,
-    create_provider_api_v1_model_providers_post,
-    create_provider_api_v1_web_providers_post,
-    delete_environment_provider_api_v1_environment_providers_provider_id_delete,
-    disconnect_model_authorization_api_v1_model_providers_provider_id_authorization_delete,
-    discover_model_provider_models_api_v1_model_providers_provider_id_models_get,
-    environment_provider_references_api_v1_environment_providers_provider_id_references_get,
-    get_provider_api_v1_connector_providers_provider_id_get,
-    get_provider_api_v1_environment_providers_provider_id_get,
-    get_provider_api_v1_memory_providers_provider_id_get,
-    get_provider_api_v1_model_providers_provider_id_get,
-    get_provider_api_v1_web_providers_provider_id_get,
-    list_provider_types_api_v1_provider_types_kind_get,
-    list_providers_api_v1_connector_providers_get,
-    list_providers_api_v1_environment_providers_get,
-    list_providers_api_v1_memory_providers_get,
-    list_providers_api_v1_model_providers_get,
-    list_providers_api_v1_web_providers_get,
-    model_authorization_api_v1_model_providers_provider_id_authorization_get,
-    test_provider_api_v1_connector_providers_provider_id_test_post,
-    test_provider_api_v1_environment_providers_provider_id_test_post,
-    test_provider_api_v1_memory_providers_provider_id_test_post,
-    test_provider_api_v1_model_providers_provider_id_test_post,
-    test_provider_api_v1_web_providers_provider_id_test_post,
-    update_provider_api_v1_connector_providers_provider_id_patch,
-    update_provider_api_v1_environment_providers_provider_id_patch,
-    update_provider_api_v1_memory_providers_provider_id_patch,
-    update_provider_api_v1_model_providers_provider_id_patch,
-    update_provider_api_v1_web_providers_provider_id_patch,
+    authorize_model,
+    complete_model_authorization,
+    create_connector_provider,
+    create_environment_provider,
+    create_memory_provider,
+    create_model_provider,
+    create_web_provider,
+    delete_environment_provider,
+    disconnect_model_authorization,
+    discover_model_provider_models,
+    environment_provider_references,
+    get_connector_provider,
+    get_environment_provider,
+    get_memory_provider,
+    get_model_provider,
+    get_web_provider,
+    list_connector_providers,
+    list_environment_providers,
+    list_memory_providers,
+    list_model_providers,
+    list_provider_types,
+    list_web_providers,
+    model_authorization,
+    test_connector_provider,
+    test_environment_provider,
+    test_memory_provider,
+    test_model_provider,
+    test_web_provider,
+    update_connector_provider,
+    update_environment_provider,
+    update_memory_provider,
+    update_model_provider,
+    update_web_provider,
 )
 from .api.runs import (
-    archive_thread_api_v1_threads_thread_id_archive_post,
-    create_session_api_v1_sessions_post,
-    create_thread_api_v1_threads_post,
-    edit_entry_api_v1_threads_thread_id_inbox_entry_id_patch,
-    fork_run_api_v1_runs_run_id_fork_post,
-    get_attempt_api_v1_runs_run_id_attempts_attempt_id_get,
-    get_entry_api_v1_threads_thread_id_inbox_entry_id_get,
-    get_message_authors_api_v1_sessions_session_id_message_authors_get,
-    get_run_api_v1_runs_run_id_get,
-    get_session_api_v1_sessions_session_id_get,
-    get_thread_api_v1_threads_thread_id_get,
-    get_trace_api_v1_traces_trace_id_get,
-    get_trace_backend_api_v1_trace_backend_get,
-    interrupt_run_api_v1_runs_run_id_interrupt_post,
-    list_attempt_spans_api_v1_runs_run_id_attempts_attempt_id_trace_get,
-    list_inbox_api_v1_threads_thread_id_inbox_get,
-    list_runs_api_v1_runs_get,
-    list_sessions_api_v1_sessions_get,
-    list_thread_runs_api_v1_threads_thread_id_runs_get,
-    list_threads_api_v1_threads_get,
-    list_trace_spans_api_v1_traces_trace_id_spans_get,
-    list_traces_api_v1_traces_get,
-    reorder_inbox_api_v1_threads_thread_id_inbox_order_put,
-    resume_run_api_v1_runs_run_id_resume_post,
-    run_agent_api_v1_runs_run_id_agent_get,
-    run_attempts_api_v1_runs_run_id_attempts_get,
-    run_content_api_v1_runs_run_id_contents_content_id_get,
-    run_image_api_v1_runs_run_id_images_image_id_get,
-    run_items_api_v1_runs_run_id_items_get,
-    run_lineage_api_v1_runs_run_id_lineage_get,
-    session_stream_api_v1_sessions_session_id_stream_get,
-    submit_message_api_v1_threads_thread_id_inbox_post,
-    thread_stream_api_v1_threads_thread_id_stream_get,
-    update_run_api_v1_runs_run_id_patch,
-    update_session_api_v1_sessions_session_id_patch,
-    update_thread_api_v1_threads_thread_id_patch,
-    withdraw_entry_api_v1_threads_thread_id_inbox_entry_id_delete,
+    archive_thread,
+    cancel_tool_execution,
+    create_session,
+    create_thread,
+    edit_entry,
+    fork_run,
+    get_inbox_entry,
+    get_message_authors,
+    get_run,
+    get_run_agent,
+    get_run_attempt,
+    get_run_content,
+    get_run_lineage,
+    get_session,
+    get_thread,
+    get_tool_execution,
+    get_tool_execution_result,
+    get_trace,
+    get_trace_backend,
+    get_trace_span,
+    interrupt_run,
+    list_attempt_spans,
+    list_inbox,
+    list_run_attempts,
+    list_run_items,
+    list_runs,
+    list_sessions,
+    list_thread_runs,
+    list_threads,
+    list_tool_executions,
+    list_trace_spans,
+    list_traces,
+    observe_tool_execution,
+    read_run_item_content,
+    read_span_content,
+    reorder_inbox,
+    resume_run,
+    run_image,
+    search_traces,
+    session_stream,
+    submit_message,
+    thread_stream,
+    update_run,
+    update_session,
+    update_thread,
+    withdraw_entry,
+)
+from .api.schedules import (
+    archive_schedule,
+    create_schedule,
+    dispatch_schedule,
+    enable_schedule,
+    get_schedule,
+    get_schedule_occurrence,
+    get_schedule_status,
+    list_schedule_occurrences,
+    list_schedules,
+    pause_schedule,
+    preview_schedule,
+    update_schedule,
 )
 from .api.skills import (
-    archive_skill_api_v1_skills_skill_id_archive_post,
-    create_revision_api_v1_skills_skill_id_revisions_post,
-    create_skill_api_v1_skills_post,
-    get_revision_api_v1_skills_skill_id_revisions_revision_id_get,
-    get_skill_api_v1_skills_skill_id_get,
-    list_revisions_api_v1_skills_skill_id_revisions_get,
-    list_skills_api_v1_skills_get,
-    read_archive_api_v1_skills_skill_id_revisions_revision_id_content_get,
-    read_file_api_v1_skills_skill_id_revisions_revision_id_files_path_get,
-    set_default_revision_api_v1_skills_skill_id_revisions_revision_id_set_default_post,
-    unarchive_skill_api_v1_skills_skill_id_unarchive_post,
-    update_skill_api_v1_skills_skill_id_patch,
-    validate_package_api_v1_skills_validate_post,
+    archive_skill,
+    create_skill,
+    create_skill_revision,
+    get_skill,
+    get_skill_revision,
+    list_skill_revisions,
+    list_skills,
+    read_skill_archive,
+    read_skill_file,
+    set_default_skill_revision,
+    unarchive_skill,
+    update_skill,
+    validate_skill,
 )
 from .api.subscriptions import (
-    create_subscription_api_v1_subscriptions_post,
-    delete_subscription_api_v1_subscriptions_subscription_id_delete,
-    get_subscription_api_v1_subscriptions_subscription_id_get,
-    list_deliveries_api_v1_subscriptions_subscription_id_deliveries_get,
-    list_subscriptions_api_v1_subscriptions_get,
-    redeliver_api_v1_subscriptions_subscription_id_deliveries_delivery_id_redeliver_post,
-    update_subscription_api_v1_subscriptions_subscription_id_patch,
+    create_subscription,
+    delete_subscription,
+    get_subscription,
+    list_deliveries,
+    list_subscriptions,
+    redeliver,
+    update_subscription,
 )
 from .api.tenancy import (
-    archive_workspace_api_v1_workspaces_workspace_id_archive_post,
-    change_organization_grant_api_v1_organizations_organization_id_grants_grant_id_patch,
-    change_workspace_grant_api_v1_workspaces_workspace_id_grants_grant_id_patch,
-    create_organization_grant_api_v1_organizations_organization_id_grants_post,
-    create_organization_invitation_api_v1_organizations_organization_id_invitations_post,
-    create_service_account_api_v1_workspaces_workspace_id_service_accounts_post,
-    create_service_account_key_api_v1_workspaces_workspace_id_service_accounts_account_id_keys_post,
-    create_workspace_api_v1_organizations_organization_id_workspaces_post,
-    create_workspace_grant_api_v1_workspaces_workspace_id_grants_post,
-    create_workspace_invitation_api_v1_workspaces_workspace_id_invitations_post,
-    delete_organization_grant_api_v1_organizations_organization_id_grants_grant_id_delete,
-    delete_organization_icon_api_v1_organizations_organization_id_icon_delete,
-    delete_service_account_api_v1_workspaces_workspace_id_service_accounts_account_id_delete,
-    delete_workspace_grant_api_v1_workspaces_workspace_id_grants_grant_id_delete,
-    delete_workspace_icon_api_v1_workspaces_workspace_id_icon_delete,
-    get_organization_api_v1_organizations_organization_id_get,
-    get_organization_icon_api_v1_organizations_organization_id_icon_get,
-    get_service_account_api_v1_workspaces_workspace_id_service_accounts_account_id_get,
-    get_workspace_api_v1_workspaces_workspace_id_get,
-    get_workspace_icon_api_v1_workspaces_workspace_id_icon_get,
-    list_members_api_v1_organizations_organization_id_members_get,
-    list_organization_audit_events_api_v1_organizations_organization_id_audit_events_get,
-    list_organization_grants_api_v1_organizations_organization_id_grants_get,
-    list_organization_invitations_api_v1_organizations_organization_id_invitations_get,
-    list_organization_workspaces_api_v1_organizations_organization_id_workspaces_get,
-    list_organizations_api_v1_organizations_get,
-    list_service_account_keys_api_v1_workspaces_workspace_id_service_accounts_account_id_keys_get,
-    list_service_accounts_api_v1_workspaces_workspace_id_service_accounts_get,
-    list_workspace_audit_events_api_v1_workspaces_workspace_id_audit_events_get,
-    list_workspace_grants_api_v1_workspaces_workspace_id_grants_get,
-    list_workspace_invitations_api_v1_workspaces_workspace_id_invitations_get,
-    list_workspace_keys_api_v1_workspaces_workspace_id_keys_get,
-    list_workspaces_api_v1_workspaces_get,
-    put_organization_icon_api_v1_organizations_organization_id_icon_put,
-    put_workspace_icon_api_v1_workspaces_workspace_id_icon_put,
-    resend_organization_invitation_api_v1_organizations_organization_id_invitations_invitation_id_resend_post,
-    resend_workspace_invitation_api_v1_workspaces_workspace_id_invitations_invitation_id_resend_post,
-    revoke_organization_invitation_api_v1_organizations_organization_id_invitations_invitation_id_revoke_post,
-    revoke_workspace_invitation_api_v1_workspaces_workspace_id_invitations_invitation_id_revoke_post,
-    revoke_workspace_key_api_v1_workspaces_workspace_id_keys_key_id_delete,
-    update_organization_api_v1_organizations_organization_id_patch,
-    update_service_account_api_v1_workspaces_workspace_id_service_accounts_account_id_patch,
-    update_workspace_api_v1_workspaces_workspace_id_patch,
+    archive_workspace,
+    change_organization_grant,
+    change_workspace_grant,
+    create_organization_grant,
+    create_organization_invitation,
+    create_service_account,
+    create_service_account_key,
+    create_workspace,
+    create_workspace_grant,
+    create_workspace_invitation,
+    delete_organization_grant,
+    delete_organization_icon,
+    delete_service_account,
+    delete_workspace_grant,
+    delete_workspace_icon,
+    get_organization,
+    get_organization_icon,
+    get_service_account,
+    get_workspace,
+    get_workspace_icon,
+    list_members,
+    list_organization_audit_events,
+    list_organization_grants,
+    list_organization_invitations,
+    list_organization_workspaces,
+    list_organizations,
+    list_service_account_keys,
+    list_service_accounts,
+    list_workspace_audit_events,
+    list_workspace_grants,
+    list_workspace_invitations,
+    list_workspace_keys,
+    list_workspaces,
+    put_organization_icon,
+    put_workspace_icon,
+    resend_organization_invitation,
+    resend_workspace_invitation,
+    revoke_organization_invitation,
+    revoke_workspace_invitation,
+    revoke_workspace_key,
+    update_organization,
+    update_service_account,
+    update_workspace,
 )
-from .api.usage import (
-    context_usage_api_v1_usage_context_get,
-    model_request_metrics_api_v1_usage_records_record_id_metrics_get,
-    summarize_usage_api_v1_usage_get,
-    usage_agents_api_v1_usage_agents_get,
-    usage_models_api_v1_usage_models_get,
-    usage_overview_api_v1_usage_overview_get,
-)
+from .api.usage import context_usage, model_request_metrics, summarize_usage, usage_agents, usage_models, usage_overview
 from .types import UNSET, File, Unset
 
 
@@ -321,9 +371,7 @@ class ServiceResources(Resource):
     async def agent_composer(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Agent]:
         """Prepare Composer. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: prepare_composer_api_v1_agent_composer_post.asyncio_detailed(
-                client=client, x_workspace_id=x_workspace_id
-            )
+            lambda client: prepare_composer.asyncio_detailed(client=client, x_workspace_id=x_workspace_id)
         )
 
     @property
@@ -351,6 +399,10 @@ class ServiceResources(Resource):
         return DesktopAssistance(self._client, self._bindings)
 
     @property
+    def devices(self) -> Devices:
+        return Devices(self._client, self._bindings)
+
+    @property
     def environment_providers(self) -> EnvironmentProviders:
         return EnvironmentProviders(self._client, self._bindings)
 
@@ -365,9 +417,7 @@ class ServiceResources(Resource):
     async def finding_agent(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Agent]:
         """Prepare Finding Agent. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: prepare_finding_agent_api_v1_finding_agent_post.asyncio_detailed(
-                client=client, x_workspace_id=x_workspace_id
-            )
+            lambda client: prepare_finding_agent.asyncio_detailed(client=client, x_workspace_id=x_workspace_id)
         )
 
     @property
@@ -403,6 +453,14 @@ class ServiceResources(Resource):
         return MemorySpaces(self._client, self._bindings)
 
     @property
+    def metrics_dashboards(self) -> MetricsDashboards:
+        return MetricsDashboards(self._client, self._bindings)
+
+    @property
+    def metrics_data_sources(self) -> MetricsDataSources:
+        return MetricsDataSources(self._client, self._bindings)
+
+    @property
     def model_catalog(self) -> ModelCatalog:
         return ModelCatalog(self._client, self._bindings)
 
@@ -425,6 +483,10 @@ class ServiceResources(Resource):
     @property
     def runs(self) -> Runs:
         return Runs(self._client, self._bindings)
+
+    @property
+    def schedules(self) -> Schedules:
+        return Schedules(self._client, self._bindings)
 
     @property
     def sessions(self) -> Sessions:
@@ -502,7 +564,7 @@ class Agents(Resource):
     ) -> Result[wire.AgentPage]:
         """List Agents. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_agents_api_v1_agents_get.asyncio_detailed(
+            lambda client: list_agents.asyncio_detailed(
                 client=client,
                 label=label,
                 q=q,
@@ -585,17 +647,13 @@ class Agents(Resource):
     async def create(self, *, body: wire.AgentCreate, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Agent]:
         """Create Agent. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: create_agent_api_v1_agents_post.asyncio_detailed(
-                client=client, body=body, x_workspace_id=x_workspace_id
-            )
+            lambda client: create_agent.asyncio_detailed(client=client, body=body, x_workspace_id=x_workspace_id)
         )
 
     async def validate(self, *, body: wire.AgentValidate, x_workspace_id: str | Unset | None = UNSET) -> Result[None]:
-        """Validate Revision. One HTTP request; no automatic replay."""
+        """Validate Agent. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: validate_revision_api_v1_agents_validate_post.asyncio_detailed(
-                client=client, body=body, x_workspace_id=x_workspace_id
-            )
+            lambda client: validate_agent.asyncio_detailed(client=client, body=body, x_workspace_id=x_workspace_id)
         )
 
     def __call__(self, agent_id: str) -> Agent:
@@ -608,7 +666,7 @@ class Agent(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Agent]:
         """Get Agent. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_agent_api_v1_agents_agent_id_get.asyncio_detailed(
+            lambda client: get_agent.asyncio_detailed(
                 client=client, agent_id=self._bindings["agent_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -622,7 +680,7 @@ class Agent(Resource):
     ) -> Result[wire.Agent]:
         """Update Agent. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: update_agent_api_v1_agents_agent_id_patch.asyncio_detailed(
+            lambda client: update_agent.asyncio_detailed(
                 client=client,
                 agent_id=self._bindings["agent_id"],
                 body=body,
@@ -636,7 +694,7 @@ class Agent(Resource):
     ) -> Result[wire.Agent]:
         """Archive Agent. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: archive_agent_api_v1_agents_agent_id_archive_post.asyncio_detailed(
+            lambda client: archive_agent.asyncio_detailed(
                 client=client, agent_id=self._bindings["agent_id"], if_match=if_match, x_workspace_id=x_workspace_id
             )
         )
@@ -650,7 +708,7 @@ class Agent(Resource):
     ) -> Result[wire.Agent]:
         """Duplicate Agent. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: duplicate_agent_api_v1_agents_agent_id_duplicate_post.asyncio_detailed(
+            lambda client: duplicate_agent.asyncio_detailed(
                 client=client, agent_id=self._bindings["agent_id"], body=body, x_workspace_id=x_workspace_id
             )
         )
@@ -664,7 +722,7 @@ class Agent(Resource):
     ) -> Result[wire.Agent]:
         """Unarchive Agent. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: unarchive_agent_api_v1_agents_agent_id_unarchive_post.asyncio_detailed(
+            lambda client: unarchive_agent.asyncio_detailed(
                 client=client, agent_id=self._bindings["agent_id"], if_match=if_match, x_workspace_id=x_workspace_id
             )
         )
@@ -676,17 +734,17 @@ class AgentsAgentIdAvatar(Resource):
     async def delete(
         self, *, if_match: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
     ) -> Result[wire.Agent]:
-        """Delete Avatar. One HTTP request; no automatic replay."""
+        """Delete Agent Avatar. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: delete_avatar_api_v1_agents_agent_id_avatar_delete.asyncio_detailed(
+            lambda client: delete_agent_avatar.asyncio_detailed(
                 client=client, agent_id=self._bindings["agent_id"], if_match=if_match, x_workspace_id=x_workspace_id
             )
         )
 
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[File]:
-        """Get Avatar. One HTTP request; no automatic replay."""
+        """Get Agent Avatar. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_avatar_api_v1_agents_agent_id_avatar_get.asyncio_detailed(
+            lambda client: get_agent_avatar.asyncio_detailed(
                 client=client, agent_id=self._bindings["agent_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -694,17 +752,15 @@ class AgentsAgentIdAvatar(Resource):
     def get_stream(self, *, x_workspace_id: str | Unset | None = UNSET) -> AbstractAsyncContextManager[httpx2.Response]:
         """Unbuffered response; caller checks status and consumes within the context."""
         return self._stream(
-            get_avatar_api_v1_agents_agent_id_avatar_get.build_request(
-                agent_id=self._bindings["agent_id"], x_workspace_id=x_workspace_id
-            )
+            get_agent_avatar.build_request(agent_id=self._bindings["agent_id"], x_workspace_id=x_workspace_id)
         )
 
     async def replace(
         self, *, body: File, if_match: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
     ) -> Result[wire.Agent]:
-        """Put Avatar. One HTTP request; no automatic replay."""
+        """Put Agent Avatar. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: put_avatar_api_v1_agents_agent_id_avatar_put.asyncio_detailed(
+            lambda client: put_agent_avatar.asyncio_detailed(
                 client=client,
                 agent_id=self._bindings["agent_id"],
                 body=body,
@@ -717,50 +773,42 @@ class AgentsAgentIdAvatar(Resource):
 class AgentsAgentIdRevisions(Resource):
     """Bound Native resource: /agents / {agent_id} / revisions."""
 
+    @overload
     async def list(
         self,
         *,
-        limit: int | Unset = UNSET,
+        view: Literal[wire.ReadView.DETAILED] | Unset = UNSET,
+        limit: int | Unset | None = UNSET,
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
-    ) -> Result[wire.AgentRevisionPage]:
-        """List Revisions. One HTTP request; no automatic replay."""
+    ) -> Result[wire.AgentRevisionPage]: ...
+    @overload
+    async def list(
+        self,
+        *,
+        view: wire.ReadView | Unset = UNSET,
+        limit: int | Unset | None = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.AgentRevisionPage | wire.RevisionSummaryPage]: ...
+    async def list(
+        self,
+        *,
+        view: wire.ReadView | Unset = UNSET,
+        limit: int | Unset | None = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.AgentRevisionPage | wire.RevisionSummaryPage] | Result[wire.AgentRevisionPage]:
+        """List Agent Revisions. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_revisions_api_v1_agents_agent_id_revisions_get.asyncio_detailed(
+            lambda client: list_agent_revisions.asyncio_detailed(
                 client=client,
                 agent_id=self._bindings["agent_id"],
+                view=view,
                 limit=limit,
                 cursor=cursor,
                 x_workspace_id=x_workspace_id,
             )
-        )
-
-    def pages(
-        self,
-        *,
-        limit: int | Unset = UNSET,
-        cursor: str | Unset | None = UNSET,
-        x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[Result[wire.AgentRevisionPage]]:
-        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
-        return pages(
-            lambda next_cursor: self.list(limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor),
-            lambda value: value.next_cursor,
-            cursor,
-        )
-
-    def iter(
-        self,
-        *,
-        limit: int | Unset = UNSET,
-        cursor: str | Unset | None = UNSET,
-        x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[wire.AgentRevision]:
-        """Yield ordinary wire values lazily with a filter snapshot and server order."""
-        return (
-            item
-            async for page in self.pages(limit=limit, cursor=cursor, x_workspace_id=x_workspace_id)
-            for item in page.value.items
         )
 
     async def create(
@@ -770,9 +818,9 @@ class AgentsAgentIdRevisions(Resource):
         if_match: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> Result[wire.AgentRevision]:
-        """Create Revision. One HTTP request; no automatic replay."""
+        """Create Agent Revision. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: create_revision_api_v1_agents_agent_id_revisions_post.asyncio_detailed(
+            lambda client: create_agent_revision.asyncio_detailed(
                 client=client,
                 agent_id=self._bindings["agent_id"],
                 body=body,
@@ -788,27 +836,102 @@ class AgentsAgentIdRevisions(Resource):
 class AgentsAgentIdRevisionsRevisionId(Resource):
     """Bound Native resource: /agents / {agent_id} / revisions / {revision_id}."""
 
-    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.AgentRevision]:
-        """Get Revision. One HTTP request; no automatic replay."""
+    @overload
+    async def get(
+        self,
+        *,
+        view: Literal[wire.ReadView.DETAILED] | Unset = UNSET,
+        section: Unset | None = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.AgentRevision]: ...
+    @overload
+    async def get(
+        self,
+        *,
+        view: wire.ReadView | Unset = UNSET,
+        section: wire.ConfigSection | Unset | None = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.AgentRevision | wire.RevisionSummary | wire.TextRead]: ...
+    async def get(
+        self,
+        *,
+        view: wire.ReadView | Unset = UNSET,
+        section: wire.ConfigSection | Unset | None = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.AgentRevision | wire.RevisionSummary | wire.TextRead] | Result[wire.AgentRevision]:
+        """Get Agent Revision. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_revision_api_v1_agents_agent_id_revisions_revision_id_get.asyncio_detailed(
+            lambda client: get_agent_revision.asyncio_detailed(
                 client=client,
                 agent_id=self._bindings["agent_id"],
                 revision_id=self._bindings["revision_id"],
+                view=view,
+                section=section,
+                offset=offset,
+                limit=limit,
+                version=version,
+                query=query,
                 x_workspace_id=x_workspace_id,
             )
         )
 
+    @property
+    def compare(self) -> AgentsAgentIdRevisionsRevisionIdCompare:
+        return AgentsAgentIdRevisionsRevisionIdCompare(self._client, self._bindings)
+
     async def set_default(
         self, *, if_match: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
     ) -> Result[wire.Agent]:
-        """Set Default. One HTTP request; no automatic replay."""
+        """Set Default Agent Revision. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: set_default_api_v1_agents_agent_id_revisions_revision_id_set_default_post.asyncio_detailed(
+            lambda client: set_default_agent_revision.asyncio_detailed(
                 client=client,
                 agent_id=self._bindings["agent_id"],
                 revision_id=self._bindings["revision_id"],
                 if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+
+class AgentsAgentIdRevisionsRevisionIdCompare(Resource):
+    """Bound Native resource: /agents / {agent_id} / revisions / {revision_id} / compare."""
+
+    async def get(
+        self,
+        *,
+        base_revision_id: str,
+        section: wire.CompareAgentRevisionsSection | Unset = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.TextRead]:
+        """Compare Agent Revisions. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: compare_agent_revisions.asyncio_detailed(
+                client=client,
+                agent_id=self._bindings["agent_id"],
+                revision_id=self._bindings["revision_id"],
+                base_revision_id=base_revision_id,
+                section=section,
+                offset=offset,
+                limit=limit,
+                version=version,
+                query=query,
                 x_workspace_id=x_workspace_id,
             )
         )
@@ -826,7 +949,7 @@ class Assets(Resource):
     ) -> Result[wire.AssetPage]:
         """List Assets. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_assets_api_v1_assets_get.asyncio_detailed(
+            lambda client: list_assets.asyncio_detailed(
                 client=client, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
             )
         )
@@ -862,9 +985,7 @@ class Assets(Resource):
     async def create(self, *, body: wire.AssetCreate, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Asset]:
         """Create Asset. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: create_asset_api_v1_assets_post.asyncio_detailed(
-                client=client, body=body, x_workspace_id=x_workspace_id
-            )
+            lambda client: create_asset.asyncio_detailed(client=client, body=body, x_workspace_id=x_workspace_id)
         )
 
     def __call__(self, asset_id: str) -> AssetsAssetId:
@@ -879,7 +1000,7 @@ class AssetsAssetId(Resource):
     ) -> Result[wire.Asset]:
         """Retire Asset. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: retire_asset_api_v1_assets_asset_id_delete.asyncio_detailed(
+            lambda client: retire_asset.asyncio_detailed(
                 client=client, asset_id=self._bindings["asset_id"], if_match=if_match, x_workspace_id=x_workspace_id
             )
         )
@@ -887,7 +1008,7 @@ class AssetsAssetId(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Asset]:
         """Get Asset. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_asset_api_v1_assets_asset_id_get.asyncio_detailed(
+            lambda client: get_asset.asyncio_detailed(
                 client=client, asset_id=self._bindings["asset_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -903,7 +1024,7 @@ class AssetsAssetIdContent(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[File]:
         """Read Asset Content. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: read_asset_content_api_v1_assets_asset_id_content_get.asyncio_detailed(
+            lambda client: read_asset_content.asyncio_detailed(
                 client=client, asset_id=self._bindings["asset_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -911,9 +1032,7 @@ class AssetsAssetIdContent(Resource):
     def get_stream(self, *, x_workspace_id: str | Unset | None = UNSET) -> AbstractAsyncContextManager[httpx2.Response]:
         """Unbuffered response; caller checks status and consumes within the context."""
         return self._stream(
-            read_asset_content_api_v1_assets_asset_id_content_get.build_request(
-                asset_id=self._bindings["asset_id"], x_workspace_id=x_workspace_id
-            )
+            read_asset_content.build_request(asset_id=self._bindings["asset_id"], x_workspace_id=x_workspace_id)
         )
 
 
@@ -922,9 +1041,7 @@ class Auth(Resource):
 
     async def bootstrap(self, *, body: wire.BootstrapInput) -> Result[wire.LoginOutput]:
         """Bootstrap Administrator. One HTTP request; no automatic replay."""
-        return await self._call(
-            lambda client: bootstrap_administrator_api_v1_auth_bootstrap_post.asyncio_detailed(client=client, body=body)
-        )
+        return await self._call(lambda client: bootstrap_administrator.asyncio_detailed(client=client, body=body))
 
     @property
     def configuration(self) -> AuthConfiguration:
@@ -936,13 +1053,11 @@ class Auth(Resource):
 
     async def login(self, *, body: wire.LoginInput) -> Result[wire.LoginOutput]:
         """Password Login. One HTTP request; no automatic replay."""
-        return await self._call(
-            lambda client: password_login_api_v1_auth_login_post.asyncio_detailed(client=client, body=body)
-        )
+        return await self._call(lambda client: password_login.asyncio_detailed(client=client, body=body))
 
     async def logout(self) -> Result[None]:
         """Logout. One HTTP request; no automatic replay."""
-        return await self._call(lambda client: logout_api_v1_auth_logout_post.asyncio_detailed(client=client))
+        return await self._call(lambda client: logout.asyncio_detailed(client=client))
 
     @property
     def password_reset(self) -> AuthPasswordReset:
@@ -958,9 +1073,7 @@ class AuthConfiguration(Resource):
 
     async def get(self) -> Result[wire.AuthConfiguration]:
         """Auth Configuration. One HTTP request; no automatic replay."""
-        return await self._call(
-            lambda client: auth_configuration_api_v1_auth_configuration_get.asyncio_detailed(client=client)
-        )
+        return await self._call(lambda client: auth_configuration.asyncio_detailed(client=client))
 
 
 class AuthEmailChange(Resource):
@@ -968,11 +1081,7 @@ class AuthEmailChange(Resource):
 
     async def confirm(self, *, body: wire.EmailChangeConfirm) -> Result[None]:
         """Confirm Email Change. One HTTP request; no automatic replay."""
-        return await self._call(
-            lambda client: confirm_email_change_api_v1_auth_email_change_confirm_post.asyncio_detailed(
-                client=client, body=body
-            )
-        )
+        return await self._call(lambda client: confirm_email_change.asyncio_detailed(client=client, body=body))
 
 
 class AuthPasswordReset(Resource):
@@ -980,19 +1089,11 @@ class AuthPasswordReset(Resource):
 
     async def create(self, *, body: wire.PasswordReset) -> Result[None]:
         """Request Password Reset. One HTTP request; no automatic replay."""
-        return await self._call(
-            lambda client: request_password_reset_api_v1_auth_password_reset_post.asyncio_detailed(
-                client=client, body=body
-            )
-        )
+        return await self._call(lambda client: request_password_reset.asyncio_detailed(client=client, body=body))
 
     async def confirm(self, *, body: wire.PasswordResetConfirm) -> Result[None]:
         """Confirm Password Reset. One HTTP request; no automatic replay."""
-        return await self._call(
-            lambda client: confirm_password_reset_api_v1_auth_password_reset_confirm_post.asyncio_detailed(
-                client=client, body=body
-            )
-        )
+        return await self._call(lambda client: confirm_password_reset.asyncio_detailed(client=client, body=body))
 
 
 class AuthSession(Resource):
@@ -1000,7 +1101,7 @@ class AuthSession(Resource):
 
     async def get(self) -> Result[wire.SessionProfile]:
         """Session Profile. One HTTP request; no automatic replay."""
-        return await self._call(lambda client: session_profile_api_v1_auth_session_get.asyncio_detailed(client=client))
+        return await self._call(lambda client: session_profile.asyncio_detailed(client=client))
 
 
 class Connections(Resource):
@@ -1015,7 +1116,7 @@ class Connections(Resource):
     ) -> Result[wire.ConnectionPage]:
         """List Connections. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_connections_api_v1_connections_get.asyncio_detailed(
+            lambda client: list_connections.asyncio_detailed(
                 client=client, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
             )
         )
@@ -1053,9 +1154,7 @@ class Connections(Resource):
     ) -> Result[wire.Connection]:
         """Create Connection. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: create_connection_api_v1_connections_post.asyncio_detailed(
-                client=client, body=body, x_workspace_id=x_workspace_id
-            )
+            lambda client: create_connection.asyncio_detailed(client=client, body=body, x_workspace_id=x_workspace_id)
         )
 
     @property
@@ -1084,7 +1183,7 @@ class ConnectionsCallback(Resource):
     ) -> Result[Any | wire.CallbackOutcome]:
         """Complete Authorization. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: complete_authorization_api_v1_connections_callback_get.asyncio_detailed(
+            lambda client: complete_authorization.asyncio_detailed(
                 client=client, state=state, code=code, error=error, iss=iss, session_uri=session_uri
             )
         )
@@ -1095,9 +1194,7 @@ class ConnectionsRedirectUri(Resource):
 
     async def get(self) -> Result[wire.OAuthRedirect]:
         """Get Redirect Uri. One HTTP request; no automatic replay."""
-        return await self._call(
-            lambda client: get_redirect_uri_api_v1_connections_redirect_uri_get.asyncio_detailed(client=client)
-        )
+        return await self._call(lambda client: get_redirect_uri.asyncio_detailed(client=client))
 
 
 class ConnectionsConnectionId(Resource):
@@ -1106,7 +1203,7 @@ class ConnectionsConnectionId(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Connection]:
         """Get Connection. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_connection_api_v1_connections_connection_id_get.asyncio_detailed(
+            lambda client: get_connection.asyncio_detailed(
                 client=client, connection_id=self._bindings["connection_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -1120,7 +1217,7 @@ class ConnectionsConnectionId(Resource):
     ) -> Result[wire.Connection]:
         """Update Connection. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: update_connection_api_v1_connections_connection_id_patch.asyncio_detailed(
+            lambda client: update_connection.asyncio_detailed(
                 client=client,
                 connection_id=self._bindings["connection_id"],
                 body=body,
@@ -1138,7 +1235,7 @@ class ConnectionsConnectionId(Resource):
     ) -> Result[wire.AuthorizationResult]:
         """Authorize Connection. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: authorize_connection_api_v1_connections_connection_id_authorize_post.asyncio_detailed(
+            lambda client: authorize_connection.asyncio_detailed(
                 client=client,
                 connection_id=self._bindings["connection_id"],
                 body=body,
@@ -1152,7 +1249,7 @@ class ConnectionsConnectionId(Resource):
     ) -> Result[wire.RevokedConnection]:
         """Revoke Connection. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: revoke_connection_api_v1_connections_connection_id_revoke_post.asyncio_detailed(
+            lambda client: revoke_connection.asyncio_detailed(
                 client=client,
                 connection_id=self._bindings["connection_id"],
                 if_match=if_match,
@@ -1163,7 +1260,7 @@ class ConnectionsConnectionId(Resource):
     async def test(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ConnectionTest]:
         """Test Connection. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: test_connection_api_v1_connections_connection_id_test_post.asyncio_detailed(
+            lambda client: test_connection.asyncio_detailed(
                 client=client, connection_id=self._bindings["connection_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -1177,10 +1274,70 @@ class ConnectionsConnectionIdTools(Resource):
     """Bound Native resource: /connections / {connection_id} / tools."""
 
     async def list(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ToolPage]:
-        """List Tools. One HTTP request; no automatic replay."""
+        """List Connection Tools. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_tools_api_v1_connections_connection_id_tools_get.asyncio_detailed(
+            lambda client: list_connection_tools.asyncio_detailed(
                 client=client, connection_id=self._bindings["connection_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+    @property
+    def definitions(self) -> ConnectionsConnectionIdToolsDefinitions:
+        return ConnectionsConnectionIdToolsDefinitions(self._client, self._bindings)
+
+    @property
+    def index(self) -> ConnectionsConnectionIdToolsIndex:
+        return ConnectionsConnectionIdToolsIndex(self._client, self._bindings)
+
+
+class ConnectionsConnectionIdToolsDefinitions(Resource):
+    """Bound Native resource: /connections / {connection_id} / tools / definitions."""
+
+    async def get(
+        self,
+        *,
+        name: list[str],
+        offset: int | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.Definitions | wire.TextRead]:
+        """Define Connection Tools. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: define_connection_tools.asyncio_detailed(
+                client=client,
+                connection_id=self._bindings["connection_id"],
+                name=name,
+                offset=offset,
+                limit=limit,
+                version=version,
+                query=query,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+
+class ConnectionsConnectionIdToolsIndex(Resource):
+    """Bound Native resource: /connections / {connection_id} / tools / index."""
+
+    async def get(
+        self,
+        *,
+        query: str | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.CatalogIndex]:
+        """Index Connection Tools. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: index_connection_tools.asyncio_detailed(
+                client=client,
+                connection_id=self._bindings["connection_id"],
+                query=query,
+                limit=limit,
+                cursor=cursor,
+                x_workspace_id=x_workspace_id,
             )
         )
 
@@ -1197,7 +1354,7 @@ class ConnectorProviders(Resource):
     ) -> Result[wire.ProviderPage]:
         """List connector providers. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_providers_api_v1_connector_providers_get.asyncio_detailed(
+            lambda client: list_connector_providers.asyncio_detailed(
                 client=client, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
             )
         )
@@ -1235,7 +1392,7 @@ class ConnectorProviders(Resource):
     ) -> Result[wire.Provider]:
         """Create connector provider. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: create_provider_api_v1_connector_providers_post.asyncio_detailed(
+            lambda client: create_connector_provider.asyncio_detailed(
                 client=client, body=body, x_workspace_id=x_workspace_id
             )
         )
@@ -1250,7 +1407,7 @@ class ConnectorProvidersProviderId(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Provider]:
         """Get connector provider. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_provider_api_v1_connector_providers_provider_id_get.asyncio_detailed(
+            lambda client: get_connector_provider.asyncio_detailed(
                 client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -1264,7 +1421,7 @@ class ConnectorProvidersProviderId(Resource):
     ) -> Result[wire.Provider]:
         """Update connector provider. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: update_provider_api_v1_connector_providers_provider_id_patch.asyncio_detailed(
+            lambda client: update_connector_provider.asyncio_detailed(
                 client=client,
                 provider_id=self._bindings["provider_id"],
                 body=body,
@@ -1280,7 +1437,7 @@ class ConnectorProvidersProviderId(Resource):
     async def test(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ProviderTest]:
         """Test connector provider. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: test_provider_api_v1_connector_providers_provider_id_test_post.asyncio_detailed(
+            lambda client: test_connector_provider.asyncio_detailed(
                 client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -1298,9 +1455,9 @@ class ConnectorProvidersProviderIdApps(Resource):
         refresh: bool | Unset = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> Result[wire.ConnectorAppPage]:
-        """List Apps. One HTTP request; no automatic replay."""
+        """List Connector Apps. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_apps_api_v1_connector_providers_provider_id_apps_get.asyncio_detailed(
+            lambda client: list_connector_apps.asyncio_detailed(
                 client=client,
                 provider_id=self._bindings["provider_id"],
                 query=query,
@@ -1355,9 +1512,9 @@ class ConnectorProvidersProviderIdAppsApp(Resource):
     """Bound Native resource: /connector-providers / {provider_id} / apps / {app}."""
 
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ConnectorApp]:
-        """Get App. One HTTP request; no automatic replay."""
+        """Get Connector App. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_app_api_v1_connector_providers_provider_id_apps_app_get.asyncio_detailed(
+            lambda client: get_connector_app.asyncio_detailed(
                 client=client,
                 provider_id=self._bindings["provider_id"],
                 app=self._bindings["app"],
@@ -1374,12 +1531,74 @@ class ConnectorProvidersProviderIdAppsAppActions(Resource):
     """Bound Native resource: /connector-providers / {provider_id} / apps / {app} / actions."""
 
     async def list(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ConnectorActionPage]:
-        """List Actions. One HTTP request; no automatic replay."""
+        """List Connector Actions. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_actions_api_v1_connector_providers_provider_id_apps_app_actions_get.asyncio_detailed(
+            lambda client: list_connector_actions.asyncio_detailed(
                 client=client,
                 provider_id=self._bindings["provider_id"],
                 app=self._bindings["app"],
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    @property
+    def definitions(self) -> ConnectorProvidersProviderIdAppsAppActionsDefinitions:
+        return ConnectorProvidersProviderIdAppsAppActionsDefinitions(self._client, self._bindings)
+
+    @property
+    def index(self) -> ConnectorProvidersProviderIdAppsAppActionsIndex:
+        return ConnectorProvidersProviderIdAppsAppActionsIndex(self._client, self._bindings)
+
+
+class ConnectorProvidersProviderIdAppsAppActionsDefinitions(Resource):
+    """Bound Native resource: /connector-providers / {provider_id} / apps / {app} / actions / definitions."""
+
+    async def get(
+        self,
+        *,
+        name: list[str],
+        offset: int | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.Definitions | wire.TextRead]:
+        """Define Connector Actions. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: define_connector_actions.asyncio_detailed(
+                client=client,
+                provider_id=self._bindings["provider_id"],
+                app=self._bindings["app"],
+                name=name,
+                offset=offset,
+                limit=limit,
+                version=version,
+                query=query,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+
+class ConnectorProvidersProviderIdAppsAppActionsIndex(Resource):
+    """Bound Native resource: /connector-providers / {provider_id} / apps / {app} / actions / index."""
+
+    async def get(
+        self,
+        *,
+        query: str | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.CatalogIndex]:
+        """Index Connector Actions. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: index_connector_actions.asyncio_detailed(
+                client=client,
+                provider_id=self._bindings["provider_id"],
+                app=self._bindings["app"],
+                query=query,
+                limit=limit,
+                cursor=cursor,
                 x_workspace_id=x_workspace_id,
             )
         )
@@ -1398,7 +1617,7 @@ class DesktopAssistanceAssistanceId(Resource):
     async def complete(self, *, body: wire.Completion, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.View]:
         """Complete Assistance. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: complete_assistance_api_v1_desktop_assistance_assistance_id_complete_post.asyncio_detailed(
+            lambda client: complete_assistance.asyncio_detailed(
                 client=client, assistance_id=self._bindings["assistance_id"], body=body, x_workspace_id=x_workspace_id
             )
         )
@@ -1408,7 +1627,7 @@ class DesktopAssistanceAssistanceId(Resource):
     ) -> Result[wire.Access]:
         """Control Desktop. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: control_desktop_api_v1_desktop_assistance_assistance_id_control_post.asyncio_detailed(
+            lambda client: control_desktop.asyncio_detailed(
                 client=client,
                 assistance_id=self._bindings["assistance_id"],
                 body=body,
@@ -1420,7 +1639,7 @@ class DesktopAssistanceAssistanceId(Resource):
     async def disconnect(self, *, body: wire.Control, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.View]:
         """Disconnect Desktop. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: disconnect_desktop_api_v1_desktop_assistance_assistance_id_disconnect_post.asyncio_detailed(
+            lambda client: disconnect_desktop.asyncio_detailed(
                 client=client, assistance_id=self._bindings["assistance_id"], body=body, x_workspace_id=x_workspace_id
             )
         )
@@ -1428,10 +1647,8 @@ class DesktopAssistanceAssistanceId(Resource):
     async def request_control(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.View]:
         """Request Control. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: (
-                request_control_api_v1_desktop_assistance_assistance_id_request_control_post.asyncio_detailed(
-                    client=client, assistance_id=self._bindings["assistance_id"], x_workspace_id=x_workspace_id
-                )
+            lambda client: request_control.asyncio_detailed(
+                client=client, assistance_id=self._bindings["assistance_id"], x_workspace_id=x_workspace_id
             )
         )
 
@@ -1440,12 +1657,137 @@ class DesktopAssistanceAssistanceId(Resource):
     ) -> Result[wire.Access]:
         """View Desktop. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: view_desktop_api_v1_desktop_assistance_assistance_id_view_post.asyncio_detailed(
+            lambda client: view_desktop.asyncio_detailed(
                 client=client,
                 assistance_id=self._bindings["assistance_id"],
                 body=body,
                 renew=renew,
                 x_workspace_id=x_workspace_id,
+            )
+        )
+
+
+class Devices(Resource):
+    """Bound Native resource: /devices."""
+
+    async def list(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.DevicePage]:
+        """List Devices. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: list_devices.asyncio_detailed(
+                client=client, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
+            )
+        )
+
+    def pages(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[Result[wire.DevicePage]]:
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        return pages(
+            lambda next_cursor: self.list(limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor),
+            lambda value: value.next_cursor,
+            cursor,
+        )
+
+    def iter(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[wire.Device]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(limit=limit, cursor=cursor, x_workspace_id=x_workspace_id)
+            for item in page.value.items
+        )
+
+    async def create(
+        self, *, body: wire.DeviceCreate, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.DeviceCredential]:
+        """Create Device. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: create_device.asyncio_detailed(client=client, body=body, x_workspace_id=x_workspace_id)
+        )
+
+    def __call__(self, device_id: str) -> DevicesDeviceId:
+        return DevicesDeviceId(self._client, self._bind("device_id", device_id))
+
+
+class DevicesDeviceId(Resource):
+    """Bound Native resource: /devices / {device_id}."""
+
+    async def delete(
+        self, *, if_match: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[None]:
+        """Delete Device. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: delete_device.asyncio_detailed(
+                client=client, device_id=self._bindings["device_id"], if_match=if_match, x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Device]:
+        """Get Device. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_device.asyncio_detailed(
+                client=client, device_id=self._bindings["device_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def update(
+        self,
+        *,
+        body: wire.DeviceUpdate,
+        if_match: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.Device]:
+        """Update Device. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: update_device.asyncio_detailed(
+                client=client,
+                device_id=self._bindings["device_id"],
+                body=body,
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    @property
+    def metrics(self) -> DevicesDeviceIdMetrics:
+        return DevicesDeviceIdMetrics(self._client, self._bindings)
+
+    async def rotate_credential(
+        self, *, if_match: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.DeviceCredential]:
+        """Rotate Device Credential. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: rotate_device_credential.asyncio_detailed(
+                client=client, device_id=self._bindings["device_id"], if_match=if_match, x_workspace_id=x_workspace_id
+            )
+        )
+
+
+class DevicesDeviceIdMetrics(Resource):
+    """Bound Native resource: /devices / {device_id} / metrics."""
+
+    async def query(
+        self, *, body: wire.EnvironmentQuery, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.LocalResult | wire.QueryResult]:
+        """Query Device Metrics. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: query_device_metrics.asyncio_detailed(
+                client=client, device_id=self._bindings["device_id"], body=body, x_workspace_id=x_workspace_id
             )
         )
 
@@ -1462,7 +1804,7 @@ class EnvironmentProviders(Resource):
     ) -> Result[wire.ProviderPage]:
         """List environment providers. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_providers_api_v1_environment_providers_get.asyncio_detailed(
+            lambda client: list_environment_providers.asyncio_detailed(
                 client=client, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
             )
         )
@@ -1500,7 +1842,7 @@ class EnvironmentProviders(Resource):
     ) -> Result[wire.Provider]:
         """Create environment provider. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: create_provider_api_v1_environment_providers_post.asyncio_detailed(
+            lambda client: create_environment_provider.asyncio_detailed(
                 client=client, body=body, x_workspace_id=x_workspace_id
             )
         )
@@ -1517,7 +1859,7 @@ class EnvironmentProvidersProviderId(Resource):
     ) -> Result[None]:
         """Delete Environment Provider. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: delete_environment_provider_api_v1_environment_providers_provider_id_delete.asyncio_detailed(
+            lambda client: delete_environment_provider.asyncio_detailed(
                 client=client,
                 provider_id=self._bindings["provider_id"],
                 if_match=if_match,
@@ -1528,7 +1870,7 @@ class EnvironmentProvidersProviderId(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Provider]:
         """Get environment provider. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_provider_api_v1_environment_providers_provider_id_get.asyncio_detailed(
+            lambda client: get_environment_provider.asyncio_detailed(
                 client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -1542,7 +1884,7 @@ class EnvironmentProvidersProviderId(Resource):
     ) -> Result[wire.Provider]:
         """Update environment provider. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: update_provider_api_v1_environment_providers_provider_id_patch.asyncio_detailed(
+            lambda client: update_environment_provider.asyncio_detailed(
                 client=client,
                 provider_id=self._bindings["provider_id"],
                 body=body,
@@ -1558,7 +1900,7 @@ class EnvironmentProvidersProviderId(Resource):
     async def test(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ProviderTest]:
         """Test environment provider. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: test_provider_api_v1_environment_providers_provider_id_test_post.asyncio_detailed(
+            lambda client: test_environment_provider.asyncio_detailed(
                 client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -1570,10 +1912,8 @@ class EnvironmentProvidersProviderIdReferences(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.EnvironmentProviderReferences]:
         """Environment Provider References. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: (
-                environment_provider_references_api_v1_environment_providers_provider_id_references_get.asyncio_detailed(
-                    client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
-                )
+            lambda client: environment_provider_references.asyncio_detailed(
+                client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
             )
         )
 
@@ -1589,9 +1929,9 @@ class EnvironmentTemplates(Resource):
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> Result[wire.TemplatePage]:
-        """List Templates. One HTTP request; no automatic replay."""
+        """List Environment Templates. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_templates_api_v1_environment_templates_get.asyncio_detailed(
+            lambda client: list_environment_templates.asyncio_detailed(
                 client=client, label=label, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
             )
         )
@@ -1630,9 +1970,9 @@ class EnvironmentTemplates(Resource):
     async def create(
         self, *, body: wire.TemplateCreate, x_workspace_id: str | Unset | None = UNSET
     ) -> Result[wire.Template]:
-        """Create Template. One HTTP request; no automatic replay."""
+        """Create Environment Template. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: create_template_api_v1_environment_templates_post.asyncio_detailed(
+            lambda client: create_environment_template.asyncio_detailed(
                 client=client, body=body, x_workspace_id=x_workspace_id
             )
         )
@@ -1645,9 +1985,9 @@ class EnvironmentTemplatesTemplateId(Resource):
     """Bound Native resource: /environment-templates / {template_id}."""
 
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Template]:
-        """Get Template. One HTTP request; no automatic replay."""
+        """Get Environment Template. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_template_api_v1_environment_templates_template_id_get.asyncio_detailed(
+            lambda client: get_environment_template.asyncio_detailed(
                 client=client, template_id=self._bindings["template_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -1659,9 +1999,9 @@ class EnvironmentTemplatesTemplateId(Resource):
         if_match: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> Result[wire.Template]:
-        """Update Template. One HTTP request; no automatic replay."""
+        """Update Environment Template. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: update_template_api_v1_environment_templates_template_id_patch.asyncio_detailed(
+            lambda client: update_environment_template.asyncio_detailed(
                 client=client,
                 template_id=self._bindings["template_id"],
                 body=body,
@@ -1684,7 +2024,7 @@ class Environments(Resource):
     ) -> Result[wire.EnvironmentPage]:
         """List Environments. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_environments_api_v1_environments_get.asyncio_detailed(
+            lambda client: list_environments.asyncio_detailed(
                 client=client, status=status, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
             )
         )
@@ -1729,9 +2069,7 @@ class Environments(Resource):
     ) -> Result[wire.EnvironmentView]:
         """Create Environment. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: create_environment_api_v1_environments_post.asyncio_detailed(
-                client=client, body=body, x_workspace_id=x_workspace_id
-            )
+            lambda client: create_environment.asyncio_detailed(client=client, body=body, x_workspace_id=x_workspace_id)
         )
 
     def __call__(self, environment_id: str) -> EnvironmentsEnvironmentId:
@@ -1746,7 +2084,7 @@ class EnvironmentsEnvironmentId(Resource):
     ) -> Result[wire.EnvironmentView]:
         """Delete Environment. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: delete_environment_api_v1_environments_environment_id_delete.asyncio_detailed(
+            lambda client: delete_environment.asyncio_detailed(
                 client=client,
                 environment_id=self._bindings["environment_id"],
                 if_match=if_match,
@@ -1757,7 +2095,7 @@ class EnvironmentsEnvironmentId(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.EnvironmentView]:
         """Get Environment. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_environment_api_v1_environments_environment_id_get.asyncio_detailed(
+            lambda client: get_environment.asyncio_detailed(
                 client=client, environment_id=self._bindings["environment_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -1771,7 +2109,7 @@ class EnvironmentsEnvironmentId(Resource):
     ) -> Result[wire.EnvironmentView]:
         """Update Environment. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: update_environment_api_v1_environments_environment_id_patch.asyncio_detailed(
+            lambda client: update_environment.asyncio_detailed(
                 client=client,
                 environment_id=self._bindings["environment_id"],
                 body=body,
@@ -1784,12 +2122,41 @@ class EnvironmentsEnvironmentId(Resource):
     def computer(self) -> EnvironmentsEnvironmentIdComputer:
         return EnvironmentsEnvironmentIdComputer(self._client, self._bindings)
 
+    @property
+    def creation(self) -> EnvironmentsEnvironmentIdCreation:
+        return EnvironmentsEnvironmentIdCreation(self._client, self._bindings)
+
+    @property
+    def desktop_preview(self) -> EnvironmentsEnvironmentIdDesktopPreview:
+        return EnvironmentsEnvironmentIdDesktopPreview(self._client, self._bindings)
+
+    @property
+    def metrics_binding(self) -> EnvironmentsEnvironmentIdMetricsBinding:
+        return EnvironmentsEnvironmentIdMetricsBinding(self._client, self._bindings)
+
+    @property
+    def metrics(self) -> EnvironmentsEnvironmentIdMetrics:
+        return EnvironmentsEnvironmentIdMetrics(self._client, self._bindings)
+
+    async def retry_creation(
+        self, *, if_match: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.EnvironmentView]:
+        """Retry Environment Creation. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: retry_environment_creation.asyncio_detailed(
+                client=client,
+                environment_id=self._bindings["environment_id"],
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
     async def stop(
         self, *, if_match: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
     ) -> Result[wire.EnvironmentView]:
         """Stop Environment. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: stop_environment_api_v1_environments_environment_id_stop_post.asyncio_detailed(
+            lambda client: stop_environment.asyncio_detailed(
                 client=client,
                 environment_id=self._bindings["environment_id"],
                 if_match=if_match,
@@ -1804,7 +2171,87 @@ class EnvironmentsEnvironmentIdComputer(Resource):
     async def check(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ComputerCheck]:
         """Check Computer. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: check_computer_api_v1_environments_environment_id_computer_check_post.asyncio_detailed(
+            lambda client: check_computer.asyncio_detailed(
+                client=client, environment_id=self._bindings["environment_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+
+class EnvironmentsEnvironmentIdCreation(Resource):
+    """Bound Native resource: /environments / {environment_id} / creation."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.CreationProgress | None]:
+        """Get Environment Creation. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_environment_creation.asyncio_detailed(
+                client=client, environment_id=self._bindings["environment_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+
+class EnvironmentsEnvironmentIdDesktopPreview(Resource):
+    """Bound Native resource: /environments / {environment_id} / desktop-preview."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[File]:
+        """Get Environment Desktop Preview. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_environment_desktop_preview.asyncio_detailed(
+                client=client, environment_id=self._bindings["environment_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+    def get_stream(self, *, x_workspace_id: str | Unset | None = UNSET) -> AbstractAsyncContextManager[httpx2.Response]:
+        """Unbuffered response; caller checks status and consumes within the context."""
+        return self._stream(
+            get_environment_desktop_preview.build_request(
+                environment_id=self._bindings["environment_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+
+class EnvironmentsEnvironmentIdMetricsBinding(Resource):
+    """Bound Native resource: /environments / {environment_id} / metrics-binding."""
+
+    async def replace(
+        self, *, body: wire.Selection, if_match: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.EnvironmentView]:
+        """Select Metrics Source. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: select_metrics_source.asyncio_detailed(
+                client=client,
+                environment_id=self._bindings["environment_id"],
+                body=body,
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+
+class EnvironmentsEnvironmentIdMetrics(Resource):
+    """Bound Native resource: /environments / {environment_id} / metrics."""
+
+    @property
+    def collector(self) -> EnvironmentsEnvironmentIdMetricsCollector:
+        return EnvironmentsEnvironmentIdMetricsCollector(self._client, self._bindings)
+
+    async def query(
+        self, *, body: wire.EnvironmentQuery, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.LocalResult | wire.QueryResult]:
+        """Query Environment Metrics. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: query_environment_metrics.asyncio_detailed(
+                client=client, environment_id=self._bindings["environment_id"], body=body, x_workspace_id=x_workspace_id
+            )
+        )
+
+
+class EnvironmentsEnvironmentIdMetricsCollector(Resource):
+    """Bound Native resource: /environments / {environment_id} / metrics / collector."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.CollectorStatus]:
+        """Get Collector Status. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_collector_status.asyncio_detailed(
                 client=client, environment_id=self._bindings["environment_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -1820,9 +2267,9 @@ class FindingAnalyses(Resource):
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> Result[wire.AnalysisPage]:
-        """List Analyses. One HTTP request; no automatic replay."""
+        """List Finding Analyses. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_analyses_api_v1_finding_analyses_get.asyncio_detailed(
+            lambda client: list_finding_analyses.asyncio_detailed(
                 client=client, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
             )
         )
@@ -1860,7 +2307,7 @@ class FindingAnalyses(Resource):
     ) -> Result[wire.Analysis]:
         """Start Analysis. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: start_analysis_api_v1_finding_analyses_post.asyncio_detailed(
+            lambda client: start_analysis.asyncio_detailed(
                 client=client, body=body, idempotency_key=idempotency_key, x_workspace_id=x_workspace_id
             )
         )
@@ -1883,7 +2330,7 @@ class Findings(Resource):
     ) -> Result[wire.FindingPage]:
         """List Findings. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_findings_api_v1_findings_get.asyncio_detailed(
+            lambda client: list_findings.asyncio_detailed(
                 client=client,
                 agent_id=agent_id,
                 category=category,
@@ -1957,9 +2404,7 @@ class Findings(Resource):
     ) -> Result[wire.Finding]:
         """Create Finding. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: create_finding_api_v1_findings_post.asyncio_detailed(
-                client=client, body=body, x_workspace_id=x_workspace_id
-            )
+            lambda client: create_finding.asyncio_detailed(client=client, body=body, x_workspace_id=x_workspace_id)
         )
 
     def __call__(self, finding_id: str) -> FindingsFindingId:
@@ -1972,7 +2417,7 @@ class FindingsFindingId(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Finding]:
         """Get Finding. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_finding_api_v1_findings_finding_id_get.asyncio_detailed(
+            lambda client: get_finding.asyncio_detailed(
                 client=client, finding_id=self._bindings["finding_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -1986,7 +2431,7 @@ class FindingsFindingId(Resource):
     ) -> Result[wire.Finding]:
         """Update Finding. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: update_finding_api_v1_findings_finding_id_patch.asyncio_detailed(
+            lambda client: update_finding.asyncio_detailed(
                 client=client,
                 finding_id=self._bindings["finding_id"],
                 body=body,
@@ -2009,7 +2454,7 @@ class InvitationsInvitationId(Resource):
     async def accept(self, *, body: wire.InvitationAccept) -> Result[wire.LoginOutput]:
         """Accept. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: accept_api_v1_invitations_invitation_id_accept_post.asyncio_detailed(
+            lambda client: accept.asyncio_detailed(
                 client=client, invitation_id=self._bindings["invitation_id"], body=body
             )
         )
@@ -2023,9 +2468,7 @@ class McpServers(Resource):
     ) -> Result[wire.McpServerPage]:
         """List Mcp Servers. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_mcp_servers_api_v1_mcp_servers_get.asyncio_detailed(
-                client=client, query=query, limit=limit, cursor=cursor
-            )
+            lambda client: list_mcp_servers.asyncio_detailed(client=client, query=query, limit=limit, cursor=cursor)
         )
 
     def pages(
@@ -2051,9 +2494,7 @@ class MediaUnderstandingDefaults(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.MediaDefaults]:
         """Get Media Defaults. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_media_defaults_api_v1_media_understanding_defaults_get.asyncio_detailed(
-                client=client, x_workspace_id=x_workspace_id
-            )
+            lambda client: get_media_defaults.asyncio_detailed(client=client, x_workspace_id=x_workspace_id)
         )
 
     async def replace(
@@ -2065,7 +2506,7 @@ class MediaUnderstandingDefaults(Resource):
     ) -> Result[wire.MediaDefaults]:
         """Replace Media Defaults. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: replace_media_defaults_api_v1_media_understanding_defaults_put.asyncio_detailed(
+            lambda client: replace_media_defaults.asyncio_detailed(
                 client=client, body=body, if_match=if_match, x_workspace_id=x_workspace_id
             )
         )
@@ -2086,7 +2527,7 @@ class Memories(Resource):
     ) -> Result[wire.MemoryPage]:
         """List Memories. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_memories_api_v1_memories_get.asyncio_detailed(
+            lambda client: list_memories.asyncio_detailed(
                 client=client,
                 label=label,
                 kind=kind,
@@ -2141,9 +2582,7 @@ class Memories(Resource):
     ) -> Result[wire.Memory]:
         """Create Memory. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: create_memory_api_v1_memories_post.asyncio_detailed(
-                client=client, body=body, x_workspace_id=x_workspace_id
-            )
+            lambda client: create_memory.asyncio_detailed(client=client, body=body, x_workspace_id=x_workspace_id)
         )
 
     def __call__(self, memory_id: str) -> MemoriesMemoryId:
@@ -2158,7 +2597,7 @@ class MemoriesMemoryId(Resource):
     ) -> Result[None]:
         """Delete Memory. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: delete_memory_api_v1_memories_memory_id_delete.asyncio_detailed(
+            lambda client: delete_memory.asyncio_detailed(
                 client=client, memory_id=self._bindings["memory_id"], if_match=if_match, x_workspace_id=x_workspace_id
             )
         )
@@ -2166,7 +2605,7 @@ class MemoriesMemoryId(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Memory]:
         """Get Memory. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_memory_api_v1_memories_memory_id_get.asyncio_detailed(
+            lambda client: get_memory.asyncio_detailed(
                 client=client, memory_id=self._bindings["memory_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -2180,7 +2619,7 @@ class MemoriesMemoryId(Resource):
     ) -> Result[wire.Memory]:
         """Update Memory. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: update_memory_api_v1_memories_memory_id_patch.asyncio_detailed(
+            lambda client: update_memory.asyncio_detailed(
                 client=client,
                 memory_id=self._bindings["memory_id"],
                 body=body,
@@ -2215,7 +2654,7 @@ class MemoriesMemoryIdFiles(Resource):
     ) -> Result[wire.MemoryFilePage]:
         """List Files. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_files_api_v1_memories_memory_id_files_get.asyncio_detailed(
+            lambda client: list_files.asyncio_detailed(
                 client=client,
                 memory_id=self._bindings["memory_id"],
                 prefix=prefix,
@@ -2262,7 +2701,7 @@ class MemoriesMemoryIdFiles(Resource):
     ) -> Result[wire.MemoryFile]:
         """Create File. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: create_file_api_v1_memories_memory_id_files_post.asyncio_detailed(
+            lambda client: create_file.asyncio_detailed(
                 client=client, memory_id=self._bindings["memory_id"], body=body, x_workspace_id=x_workspace_id
             )
         )
@@ -2276,7 +2715,7 @@ class MemoriesMemoryIdFiles(Resource):
     ) -> Result[wire.MemoryFile]:
         """Move File. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: move_file_api_v1_memories_memory_id_files_move_post.asyncio_detailed(
+            lambda client: move_file.asyncio_detailed(
                 client=client,
                 memory_id=self._bindings["memory_id"],
                 body=body,
@@ -2297,7 +2736,7 @@ class MemoriesMemoryIdFilesPath(Resource):
     ) -> Result[None]:
         """Delete File. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: delete_file_api_v1_memories_memory_id_files_path_delete.asyncio_detailed(
+            lambda client: delete_file.asyncio_detailed(
                 client=client,
                 memory_id=self._bindings["memory_id"],
                 path=self._bindings["path"],
@@ -2309,7 +2748,7 @@ class MemoriesMemoryIdFilesPath(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.MemoryFile]:
         """Read File. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: read_file_api_v1_memories_memory_id_files_path_get.asyncio_detailed(
+            lambda client: read_file.asyncio_detailed(
                 client=client,
                 memory_id=self._bindings["memory_id"],
                 path=self._bindings["path"],
@@ -2326,7 +2765,7 @@ class MemoriesMemoryIdFilesPath(Resource):
     ) -> Result[wire.MemoryFile]:
         """Replace File. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: replace_file_api_v1_memories_memory_id_files_path_put.asyncio_detailed(
+            lambda client: replace_file.asyncio_detailed(
                 client=client,
                 memory_id=self._bindings["memory_id"],
                 path=self._bindings["path"],
@@ -2349,7 +2788,7 @@ class MemoriesMemoryIdRecords(Resource):
     ) -> Result[wire.MemoryRecordPage]:
         """List Records. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_records_api_v1_memories_memory_id_records_get.asyncio_detailed(
+            lambda client: list_records.asyncio_detailed(
                 client=client,
                 memory_id=self._bindings["memory_id"],
                 limit=limit,
@@ -2391,7 +2830,7 @@ class MemoriesMemoryIdRecords(Resource):
     ) -> Result[wire.MemoryRecordView]:
         """Add Record. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: add_record_api_v1_memories_memory_id_records_post.asyncio_detailed(
+            lambda client: add_record.asyncio_detailed(
                 client=client, memory_id=self._bindings["memory_id"], body=body, x_workspace_id=x_workspace_id
             )
         )
@@ -2401,7 +2840,7 @@ class MemoriesMemoryIdRecords(Resource):
     ) -> Result[wire.MemoryRecordPage]:
         """Search Records. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: search_records_api_v1_memories_memory_id_records_search_post.asyncio_detailed(
+            lambda client: search_records.asyncio_detailed(
                 client=client, memory_id=self._bindings["memory_id"], body=body, x_workspace_id=x_workspace_id
             )
         )
@@ -2416,7 +2855,7 @@ class MemoriesMemoryIdRecordsRecordId(Resource):
     async def delete(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[None]:
         """Delete Record. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: delete_record_api_v1_memories_memory_id_records_record_id_delete.asyncio_detailed(
+            lambda client: delete_record.asyncio_detailed(
                 client=client,
                 memory_id=self._bindings["memory_id"],
                 record_id=self._bindings["record_id"],
@@ -2429,7 +2868,7 @@ class MemoriesMemoryIdRecordsRecordId(Resource):
     ) -> Result[wire.MemoryRecordView]:
         """Update Record. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: update_record_api_v1_memories_memory_id_records_record_id_put.asyncio_detailed(
+            lambda client: update_record.asyncio_detailed(
                 client=client,
                 memory_id=self._bindings["memory_id"],
                 record_id=self._bindings["record_id"],
@@ -2445,7 +2884,7 @@ class MemoriesMemoryIdRevisions(Resource):
     async def delete(self, *, path: str, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.HistoryPurge]:
         """Purge History. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: purge_history_api_v1_memories_memory_id_revisions_delete.asyncio_detailed(
+            lambda client: purge_history.asyncio_detailed(
                 client=client, memory_id=self._bindings["memory_id"], path=path, x_workspace_id=x_workspace_id
             )
         )
@@ -2459,9 +2898,9 @@ class MemoriesMemoryIdRevisions(Resource):
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> Result[wire.MemoryRevisionPage]:
-        """List Revisions. One HTTP request; no automatic replay."""
+        """List Memory Revisions. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_revisions_api_v1_memories_memory_id_revisions_get.asyncio_detailed(
+            lambda client: list_memory_revisions.asyncio_detailed(
                 client=client,
                 memory_id=self._bindings["memory_id"],
                 path=path,
@@ -2516,9 +2955,9 @@ class MemoriesMemoryIdRevisionsSeq(Resource):
     """Bound Native resource: /memories / {memory_id} / revisions / {seq}."""
 
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.MemoryRevisionDetail]:
-        """Get Revision. One HTTP request; no automatic replay."""
+        """Get Memory Revision. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_revision_api_v1_memories_memory_id_revisions_seq_get.asyncio_detailed(
+            lambda client: get_memory_revision.asyncio_detailed(
                 client=client,
                 memory_id=self._bindings["memory_id"],
                 seq=int(self._bindings["seq"]),
@@ -2529,9 +2968,9 @@ class MemoriesMemoryIdRevisionsSeq(Resource):
     async def restore(
         self, *, if_match: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
     ) -> Result[wire.MemoryFileState]:
-        """Restore Revision. One HTTP request; no automatic replay."""
+        """Restore Memory Revision. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: restore_revision_api_v1_memories_memory_id_revisions_seq_restore_post.asyncio_detailed(
+            lambda client: restore_memory_revision.asyncio_detailed(
                 client=client,
                 memory_id=self._bindings["memory_id"],
                 seq=int(self._bindings["seq"]),
@@ -2553,7 +2992,7 @@ class MemoryProviders(Resource):
     ) -> Result[wire.ProviderPage]:
         """List memory providers. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_providers_api_v1_memory_providers_get.asyncio_detailed(
+            lambda client: list_memory_providers.asyncio_detailed(
                 client=client, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
             )
         )
@@ -2591,7 +3030,7 @@ class MemoryProviders(Resource):
     ) -> Result[wire.Provider]:
         """Create memory provider. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: create_provider_api_v1_memory_providers_post.asyncio_detailed(
+            lambda client: create_memory_provider.asyncio_detailed(
                 client=client, body=body, x_workspace_id=x_workspace_id
             )
         )
@@ -2606,7 +3045,7 @@ class MemoryProvidersProviderId(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Provider]:
         """Get memory provider. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_provider_api_v1_memory_providers_provider_id_get.asyncio_detailed(
+            lambda client: get_memory_provider.asyncio_detailed(
                 client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -2620,7 +3059,7 @@ class MemoryProvidersProviderId(Resource):
     ) -> Result[wire.Provider]:
         """Update memory provider. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: update_provider_api_v1_memory_providers_provider_id_patch.asyncio_detailed(
+            lambda client: update_memory_provider.asyncio_detailed(
                 client=client,
                 provider_id=self._bindings["provider_id"],
                 body=body,
@@ -2632,7 +3071,7 @@ class MemoryProvidersProviderId(Resource):
     async def test(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ProviderTest]:
         """Test memory provider. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: test_provider_api_v1_memory_providers_provider_id_test_post.asyncio_detailed(
+            lambda client: test_memory_provider.asyncio_detailed(
                 client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -2652,7 +3091,7 @@ class MemorySpaces(Resource):
     ) -> Result[wire.MemorySpacePage]:
         """List Spaces. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_spaces_api_v1_memory_spaces_get.asyncio_detailed(
+            lambda client: list_spaces.asyncio_detailed(
                 client=client, label=label, enabled=enabled, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
             )
         )
@@ -2699,9 +3138,7 @@ class MemorySpaces(Resource):
     ) -> Result[wire.MemorySpace]:
         """Create Space. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: create_space_api_v1_memory_spaces_post.asyncio_detailed(
-                client=client, body=body, x_workspace_id=x_workspace_id
-            )
+            lambda client: create_space.asyncio_detailed(client=client, body=body, x_workspace_id=x_workspace_id)
         )
 
     def __call__(self, space_id: str) -> MemorySpacesSpaceId:
@@ -2716,7 +3153,7 @@ class MemorySpacesSpaceId(Resource):
     ) -> Result[None]:
         """Delete Space. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: delete_space_api_v1_memory_spaces_space_id_delete.asyncio_detailed(
+            lambda client: delete_space.asyncio_detailed(
                 client=client, space_id=self._bindings["space_id"], if_match=if_match, x_workspace_id=x_workspace_id
             )
         )
@@ -2724,7 +3161,7 @@ class MemorySpacesSpaceId(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.MemorySpace]:
         """Get Space. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_space_api_v1_memory_spaces_space_id_get.asyncio_detailed(
+            lambda client: get_space.asyncio_detailed(
                 client=client, space_id=self._bindings["space_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -2738,7 +3175,7 @@ class MemorySpacesSpaceId(Resource):
     ) -> Result[wire.MemorySpace]:
         """Update Space. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: update_space_api_v1_memory_spaces_space_id_patch.asyncio_detailed(
+            lambda client: update_space.asyncio_detailed(
                 client=client,
                 space_id=self._bindings["space_id"],
                 body=body,
@@ -2766,7 +3203,7 @@ class MemorySpacesSpaceIdOrganization(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.SpaceOrganizationStatus]:
         """Get Space Organization. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_space_organization_api_v1_memory_spaces_space_id_organization_get.asyncio_detailed(
+            lambda client: get_space_organization.asyncio_detailed(
                 client=client, space_id=self._bindings["space_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -2784,7 +3221,7 @@ class MemorySpacesSpaceIdOrganizations(Resource):
     ) -> Result[wire.RunPage]:
         """List Space Organizations. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_space_organizations_api_v1_memory_spaces_space_id_organizations_get.asyncio_detailed(
+            lambda client: list_space_organizations.asyncio_detailed(
                 client=client,
                 space_id=self._bindings["space_id"],
                 limit=limit,
@@ -2813,7 +3250,7 @@ class MemorySpacesSpaceIdOrganizations(Resource):
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[wire.RunView]:
+    ) -> AsyncIterator[wire.RunListItem]:
         """Yield ordinary wire values lazily with a filter snapshot and server order."""
         return (
             item
@@ -2824,7 +3261,7 @@ class MemorySpacesSpaceIdOrganizations(Resource):
     async def create(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.SpaceOrganizationStatus]:
         """Organize Space. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: organize_space_api_v1_memory_spaces_space_id_organizations_post.asyncio_detailed(
+            lambda client: organize_space.asyncio_detailed(
                 client=client, space_id=self._bindings["space_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -2842,7 +3279,7 @@ class MemorySpacesSpaceIdSessions(Resource):
     ) -> Result[wire.SessionPage]:
         """List Space Sessions. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_space_sessions_api_v1_memory_spaces_space_id_sessions_get.asyncio_detailed(
+            lambda client: list_space_sessions.asyncio_detailed(
                 client=client,
                 space_id=self._bindings["space_id"],
                 limit=limit,
@@ -2880,16 +3317,322 @@ class MemorySpacesSpaceIdSessions(Resource):
         )
 
 
+class MetricsDashboards(Resource):
+    """Bound Native resource: /metrics-dashboards."""
+
+    async def list(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.DashboardPage]:
+        """List Dashboards. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: list_dashboards.asyncio_detailed(
+                client=client, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
+            )
+        )
+
+    def pages(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[Result[wire.DashboardPage]]:
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        return pages(
+            lambda next_cursor: self.list(limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor),
+            lambda value: value.next_cursor,
+            cursor,
+        )
+
+    def iter(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[wire.Dashboard]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(limit=limit, cursor=cursor, x_workspace_id=x_workspace_id)
+            for item in page.value.items
+        )
+
+    async def create(
+        self, *, body: wire.DashboardCreate, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.Dashboard]:
+        """Create Dashboard. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: create_dashboard.asyncio_detailed(client=client, body=body, x_workspace_id=x_workspace_id)
+        )
+
+    @property
+    def preset(self) -> MetricsDashboardsPreset:
+        return MetricsDashboardsPreset(self._client, self._bindings)
+
+    def __call__(self, dashboard_id: str) -> MetricsDashboardsDashboardId:
+        return MetricsDashboardsDashboardId(self._client, self._bind("dashboard_id", dashboard_id))
+
+
+class MetricsDashboardsPreset(Resource):
+    """Bound Native resource: /metrics-dashboards / preset."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.DashboardConfig]:
+        """Get Dashboard Preset. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_dashboard_preset.asyncio_detailed(client=client, x_workspace_id=x_workspace_id)
+        )
+
+
+class MetricsDashboardsDashboardId(Resource):
+    """Bound Native resource: /metrics-dashboards / {dashboard_id}."""
+
+    async def delete(
+        self, *, if_match: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[None]:
+        """Delete Dashboard. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: delete_dashboard.asyncio_detailed(
+                client=client,
+                dashboard_id=self._bindings["dashboard_id"],
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Dashboard]:
+        """Get Dashboard. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_dashboard.asyncio_detailed(
+                client=client, dashboard_id=self._bindings["dashboard_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def update(
+        self,
+        *,
+        body: wire.DashboardUpdate,
+        if_match: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.Dashboard]:
+        """Update Dashboard. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: update_dashboard.asyncio_detailed(
+                client=client,
+                dashboard_id=self._bindings["dashboard_id"],
+                body=body,
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+
+class MetricsDataSources(Resource):
+    """Bound Native resource: /metrics-data-sources."""
+
+    async def list(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.DataSourcePage]:
+        """List Metrics Data Sources. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: list_metrics_data_sources.asyncio_detailed(
+                client=client, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
+            )
+        )
+
+    def pages(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[Result[wire.DataSourcePage]]:
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        return pages(
+            lambda next_cursor: self.list(limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor),
+            lambda value: value.next_cursor,
+            cursor,
+        )
+
+    def iter(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[wire.DataSource]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(limit=limit, cursor=cursor, x_workspace_id=x_workspace_id)
+            for item in page.value.items
+        )
+
+    async def create(
+        self, *, body: wire.DataSourceCreate, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.DataSource]:
+        """Create Metrics Data Source. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: create_metrics_data_source.asyncio_detailed(
+                client=client, body=body, x_workspace_id=x_workspace_id
+            )
+        )
+
+    @property
+    def capabilities(self) -> MetricsDataSourcesCapabilities:
+        return MetricsDataSourcesCapabilities(self._client, self._bindings)
+
+    @property
+    def deployment_preset(self) -> MetricsDataSourcesDeploymentPreset:
+        return MetricsDataSourcesDeploymentPreset(self._client, self._bindings)
+
+    def __call__(self, source_id: str) -> MetricsDataSourcesSourceId:
+        return MetricsDataSourcesSourceId(self._client, self._bind("source_id", source_id))
+
+
+class MetricsDataSourcesCapabilities(Resource):
+    """Bound Native resource: /metrics-data-sources / capabilities."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Capabilities]:
+        """Get Metrics Capabilities. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_metrics_capabilities.asyncio_detailed(client=client, x_workspace_id=x_workspace_id)
+        )
+
+
+class MetricsDataSourcesDeploymentPreset(Resource):
+    """Bound Native resource: /metrics-data-sources / deployment-preset."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.DeploymentPreset | None]:
+        """Get Metrics Deployment Preset. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_metrics_deployment_preset.asyncio_detailed(client=client, x_workspace_id=x_workspace_id)
+        )
+
+
+class MetricsDataSourcesSourceId(Resource):
+    """Bound Native resource: /metrics-data-sources / {source_id}."""
+
+    async def delete(
+        self, *, if_match: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[None]:
+        """Delete Metrics Data Source. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: delete_metrics_data_source.asyncio_detailed(
+                client=client, source_id=self._bindings["source_id"], if_match=if_match, x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.DataSource]:
+        """Get Metrics Data Source. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_metrics_data_source.asyncio_detailed(
+                client=client, source_id=self._bindings["source_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def update(
+        self,
+        *,
+        body: wire.DataSourceUpdate,
+        if_match: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.DataSource]:
+        """Update Metrics Data Source. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: update_metrics_data_source.asyncio_detailed(
+                client=client,
+                source_id=self._bindings["source_id"],
+                body=body,
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    async def query(
+        self, *, body: wire.InstantQuery | wire.RangeQuery, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.QueryResult]:
+        """Query Metrics Data Source. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: query_metrics_data_source.asyncio_detailed(
+                client=client, source_id=self._bindings["source_id"], body=body, x_workspace_id=x_workspace_id
+            )
+        )
+
+
 class ModelCatalog(Resource):
     """Bound Native resource: /model-catalog."""
 
-    async def get(
-        self, *, provider: str | Unset | None = UNSET, model: str | Unset | None = UNSET
-    ) -> Result[wire.ModelCatalog]:
+    @overload
+    async def list(
+        self,
+        *,
+        provider: str | Unset | None = UNSET,
+        model: str | Unset | None = UNSET,
+        view: Literal[wire.ReadView.DETAILED] | Unset = UNSET,
+        query: str | Unset | None = UNSET,
+        capability: str | Unset | None = UNSET,
+        limit: int | Unset | None = UNSET,
+        cursor: str | Unset | None = UNSET,
+        section: Unset | None = UNSET,
+        offset: int | Unset = UNSET,
+        text_limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+    ) -> Result[wire.ModelCatalog]: ...
+    @overload
+    async def list(
+        self,
+        *,
+        provider: str | Unset | None = UNSET,
+        model: str | Unset | None = UNSET,
+        view: wire.ReadView | Unset = UNSET,
+        query: str | Unset | None = UNSET,
+        capability: str | Unset | None = UNSET,
+        limit: int | Unset | None = UNSET,
+        cursor: str | Unset | None = UNSET,
+        section: wire.GetModelCatalogSectionType0 | Unset | None = UNSET,
+        offset: int | Unset = UNSET,
+        text_limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+    ) -> Result[wire.ModelCatalog | wire.ModelCatalogPage | wire.TextRead]: ...
+    async def list(
+        self,
+        *,
+        provider: str | Unset | None = UNSET,
+        model: str | Unset | None = UNSET,
+        view: wire.ReadView | Unset = UNSET,
+        query: str | Unset | None = UNSET,
+        capability: str | Unset | None = UNSET,
+        limit: int | Unset | None = UNSET,
+        cursor: str | Unset | None = UNSET,
+        section: wire.GetModelCatalogSectionType0 | Unset | None = UNSET,
+        offset: int | Unset = UNSET,
+        text_limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+    ) -> Result[wire.ModelCatalog | wire.ModelCatalogPage | wire.TextRead] | Result[wire.ModelCatalog]:
         """Get Model Catalog. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_model_catalog_api_v1_model_catalog_get.asyncio_detailed(
-                client=client, provider=provider, model=model
+            lambda client: get_model_catalog.asyncio_detailed(
+                client=client,
+                provider=provider,
+                model=model,
+                view=view,
+                query=query,
+                capability=capability,
+                limit=limit,
+                cursor=cursor,
+                section=section,
+                offset=offset,
+                text_limit=text_limit,
+                version=version,
             )
         )
 
@@ -2906,7 +3649,7 @@ class ModelProviders(Resource):
     ) -> Result[wire.ProviderPage]:
         """List model providers. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_providers_api_v1_model_providers_get.asyncio_detailed(
+            lambda client: list_model_providers.asyncio_detailed(
                 client=client, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
             )
         )
@@ -2944,7 +3687,7 @@ class ModelProviders(Resource):
     ) -> Result[wire.Provider]:
         """Create model provider. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: create_provider_api_v1_model_providers_post.asyncio_detailed(
+            lambda client: create_model_provider.asyncio_detailed(
                 client=client, body=body, x_workspace_id=x_workspace_id
             )
         )
@@ -2959,7 +3702,7 @@ class ModelProvidersProviderId(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Provider]:
         """Get model provider. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_provider_api_v1_model_providers_provider_id_get.asyncio_detailed(
+            lambda client: get_model_provider.asyncio_detailed(
                 client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -2973,7 +3716,7 @@ class ModelProvidersProviderId(Resource):
     ) -> Result[wire.Provider]:
         """Update model provider. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: update_provider_api_v1_model_providers_provider_id_patch.asyncio_detailed(
+            lambda client: update_model_provider.asyncio_detailed(
                 client=client,
                 provider_id=self._bindings["provider_id"],
                 body=body,
@@ -2991,7 +3734,7 @@ class ModelProvidersProviderId(Resource):
     ) -> Result[wire.AuthorizationStart]:
         """Authorize Model. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: authorize_model_api_v1_model_providers_provider_id_authorize_post.asyncio_detailed(
+            lambda client: authorize_model.asyncio_detailed(
                 client=client, provider_id=self._bindings["provider_id"], body=body, x_workspace_id=x_workspace_id
             )
         )
@@ -3003,7 +3746,7 @@ class ModelProvidersProviderId(Resource):
     async def test(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ProviderTest]:
         """Test model provider. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: test_provider_api_v1_model_providers_provider_id_test_post.asyncio_detailed(
+            lambda client: test_model_provider.asyncio_detailed(
                 client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -3015,17 +3758,15 @@ class ModelProvidersProviderIdAuthorization(Resource):
     async def delete(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.AuthorizationDisconnect]:
         """Disconnect Model Authorization. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: (
-                disconnect_model_authorization_api_v1_model_providers_provider_id_authorization_delete.asyncio_detailed(
-                    client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
-                )
+            lambda client: disconnect_model_authorization.asyncio_detailed(
+                client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
             )
         )
 
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.AuthorizationStatus]:
         """Model Authorization. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: model_authorization_api_v1_model_providers_provider_id_authorization_get.asyncio_detailed(
+            lambda client: model_authorization.asyncio_detailed(
                 client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -3035,10 +3776,8 @@ class ModelProvidersProviderIdAuthorization(Resource):
     ) -> Result[wire.AuthorizationStatus]:
         """Complete Model Authorization. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: (
-                complete_model_authorization_api_v1_model_providers_provider_id_authorization_callback_post.asyncio_detailed(
-                    client=client, provider_id=self._bindings["provider_id"], body=body, x_workspace_id=x_workspace_id
-                )
+            lambda client: complete_model_authorization.asyncio_detailed(
+                client=client, provider_id=self._bindings["provider_id"], body=body, x_workspace_id=x_workspace_id
             )
         )
 
@@ -3049,10 +3788,8 @@ class ModelProvidersProviderIdModels(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[list[wire.ProviderModel]]:
         """Discover Model Provider Models. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: (
-                discover_model_provider_models_api_v1_model_providers_provider_id_models_get.asyncio_detailed(
-                    client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
-                )
+            lambda client: discover_model_provider_models.asyncio_detailed(
+                client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
             )
         )
 
@@ -3069,7 +3806,7 @@ class Models(Resource):
     ) -> Result[wire.ModelPage]:
         """List Models. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_models_api_v1_models_get.asyncio_detailed(
+            lambda client: list_models.asyncio_detailed(
                 client=client, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
             )
         )
@@ -3105,9 +3842,7 @@ class Models(Resource):
     async def create(self, *, body: wire.ModelCreate, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Model]:
         """Create Model. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: create_model_api_v1_models_post.asyncio_detailed(
-                client=client, body=body, x_workspace_id=x_workspace_id
-            )
+            lambda client: create_model.asyncio_detailed(client=client, body=body, x_workspace_id=x_workspace_id)
         )
 
     def __call__(self, key: str) -> ModelsKey:
@@ -3120,7 +3855,7 @@ class ModelsKey(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Model]:
         """Get Model. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_model_api_v1_models_key_get.asyncio_detailed(
+            lambda client: get_model.asyncio_detailed(
                 client=client, key=self._bindings["key"], x_workspace_id=x_workspace_id
             )
         )
@@ -3134,7 +3869,7 @@ class ModelsKey(Resource):
     ) -> Result[wire.Model]:
         """Update Model. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: update_model_api_v1_models_key_patch.asyncio_detailed(
+            lambda client: update_model.asyncio_detailed(
                 client=client, key=self._bindings["key"], body=body, if_match=if_match, x_workspace_id=x_workspace_id
             )
         )
@@ -3148,9 +3883,7 @@ class Organizations(Resource):
     ) -> Result[wire.OrganizationPage]:
         """List Organizations. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_organizations_api_v1_organizations_get.asyncio_detailed(
-                client=client, limit=limit, cursor=cursor
-            )
+            lambda client: list_organizations.asyncio_detailed(client=client, limit=limit, cursor=cursor)
         )
 
     def pages(
@@ -3177,7 +3910,7 @@ class Organization(Resource):
     async def get(self) -> Result[wire.Organization]:
         """Get Organization. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_organization_api_v1_organizations_organization_id_get.asyncio_detailed(
+            lambda client: get_organization.asyncio_detailed(
                 client=client, organization_id=self._bindings["organization_id"]
             )
         )
@@ -3187,7 +3920,7 @@ class Organization(Resource):
     ) -> Result[wire.Organization]:
         """Update Organization. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: update_organization_api_v1_organizations_organization_id_patch.asyncio_detailed(
+            lambda client: update_organization.asyncio_detailed(
                 client=client, organization_id=self._bindings["organization_id"], body=body, if_match=if_match
             )
         )
@@ -3223,10 +3956,8 @@ class OrganizationsOrganizationIdAuditEvents(Resource):
     async def list(self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET) -> Result[wire.AuditPage]:
         """List Organization Audit Events. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: (
-                list_organization_audit_events_api_v1_organizations_organization_id_audit_events_get.asyncio_detailed(
-                    client=client, organization_id=self._bindings["organization_id"], limit=limit, cursor=cursor
-                )
+            lambda client: list_organization_audit_events.asyncio_detailed(
+                client=client, organization_id=self._bindings["organization_id"], limit=limit, cursor=cursor
             )
         )
 
@@ -3249,7 +3980,7 @@ class OrganizationsOrganizationIdGrants(Resource):
     async def list(self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET) -> Result[wire.GrantPage]:
         """List Organization Grants. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_organization_grants_api_v1_organizations_organization_id_grants_get.asyncio_detailed(
+            lambda client: list_organization_grants.asyncio_detailed(
                 client=client, organization_id=self._bindings["organization_id"], limit=limit, cursor=cursor
             )
         )
@@ -3269,7 +4000,7 @@ class OrganizationsOrganizationIdGrants(Resource):
     async def create(self, *, body: wire.GrantCreate) -> Result[wire.GrantView]:
         """Create Organization Grant. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: create_organization_grant_api_v1_organizations_organization_id_grants_post.asyncio_detailed(
+            lambda client: create_organization_grant.asyncio_detailed(
                 client=client, organization_id=self._bindings["organization_id"], body=body
             )
         )
@@ -3284,25 +4015,19 @@ class OrganizationsOrganizationIdGrantsGrantId(Resource):
     async def delete(self) -> Result[None]:
         """Delete Organization Grant. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: (
-                delete_organization_grant_api_v1_organizations_organization_id_grants_grant_id_delete.asyncio_detailed(
-                    client=client,
-                    organization_id=self._bindings["organization_id"],
-                    grant_id=self._bindings["grant_id"],
-                )
+            lambda client: delete_organization_grant.asyncio_detailed(
+                client=client, organization_id=self._bindings["organization_id"], grant_id=self._bindings["grant_id"]
             )
         )
 
     async def update(self, *, body: wire.GrantUpdate) -> Result[wire.GrantView]:
         """Change Organization Grant. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: (
-                change_organization_grant_api_v1_organizations_organization_id_grants_grant_id_patch.asyncio_detailed(
-                    client=client,
-                    organization_id=self._bindings["organization_id"],
-                    grant_id=self._bindings["grant_id"],
-                    body=body,
-                )
+            lambda client: change_organization_grant.asyncio_detailed(
+                client=client,
+                organization_id=self._bindings["organization_id"],
+                grant_id=self._bindings["grant_id"],
+                body=body,
             )
         )
 
@@ -3313,7 +4038,7 @@ class OrganizationsOrganizationIdIcon(Resource):
     async def delete(self, *, if_match: str | Unset | None = UNSET) -> Result[wire.Organization]:
         """Delete Organization Icon. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: delete_organization_icon_api_v1_organizations_organization_id_icon_delete.asyncio_detailed(
+            lambda client: delete_organization_icon.asyncio_detailed(
                 client=client, organization_id=self._bindings["organization_id"], if_match=if_match
             )
         )
@@ -3321,23 +4046,19 @@ class OrganizationsOrganizationIdIcon(Resource):
     async def get(self) -> Result[File]:
         """Get Organization Icon. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_organization_icon_api_v1_organizations_organization_id_icon_get.asyncio_detailed(
+            lambda client: get_organization_icon.asyncio_detailed(
                 client=client, organization_id=self._bindings["organization_id"]
             )
         )
 
     def get_stream(self) -> AbstractAsyncContextManager[httpx2.Response]:
         """Unbuffered response; caller checks status and consumes within the context."""
-        return self._stream(
-            get_organization_icon_api_v1_organizations_organization_id_icon_get.build_request(
-                organization_id=self._bindings["organization_id"]
-            )
-        )
+        return self._stream(get_organization_icon.build_request(organization_id=self._bindings["organization_id"]))
 
     async def replace(self, *, body: File, if_match: str | Unset | None = UNSET) -> Result[wire.Organization]:
         """Put Organization Icon. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: put_organization_icon_api_v1_organizations_organization_id_icon_put.asyncio_detailed(
+            lambda client: put_organization_icon.asyncio_detailed(
                 client=client, organization_id=self._bindings["organization_id"], body=body, if_match=if_match
             )
         )
@@ -3351,10 +4072,8 @@ class OrganizationsOrganizationIdInvitations(Resource):
     ) -> Result[wire.InvitationPage]:
         """List Organization Invitations. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: (
-                list_organization_invitations_api_v1_organizations_organization_id_invitations_get.asyncio_detailed(
-                    client=client, organization_id=self._bindings["organization_id"], limit=limit, cursor=cursor
-                )
+            lambda client: list_organization_invitations.asyncio_detailed(
+                client=client, organization_id=self._bindings["organization_id"], limit=limit, cursor=cursor
             )
         )
 
@@ -3373,10 +4092,8 @@ class OrganizationsOrganizationIdInvitations(Resource):
     async def create(self, *, body: wire.InvitationCreate) -> Result[wire.InvitationReceipt]:
         """Create Organization Invitation. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: (
-                create_organization_invitation_api_v1_organizations_organization_id_invitations_post.asyncio_detailed(
-                    client=client, organization_id=self._bindings["organization_id"], body=body
-                )
+            lambda client: create_organization_invitation.asyncio_detailed(
+                client=client, organization_id=self._bindings["organization_id"], body=body
             )
         )
 
@@ -3392,26 +4109,22 @@ class OrganizationsOrganizationIdInvitationsInvitationId(Resource):
     async def resend(self, *, if_match: str | Unset | None = UNSET) -> Result[wire.InvitationReceipt]:
         """Resend Organization Invitation. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: (
-                resend_organization_invitation_api_v1_organizations_organization_id_invitations_invitation_id_resend_post.asyncio_detailed(
-                    client=client,
-                    organization_id=self._bindings["organization_id"],
-                    invitation_id=self._bindings["invitation_id"],
-                    if_match=if_match,
-                )
+            lambda client: resend_organization_invitation.asyncio_detailed(
+                client=client,
+                organization_id=self._bindings["organization_id"],
+                invitation_id=self._bindings["invitation_id"],
+                if_match=if_match,
             )
         )
 
     async def revoke(self, *, if_match: str | Unset | None = UNSET) -> Result[wire.Invitation]:
         """Revoke Organization Invitation. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: (
-                revoke_organization_invitation_api_v1_organizations_organization_id_invitations_invitation_id_revoke_post.asyncio_detailed(
-                    client=client,
-                    organization_id=self._bindings["organization_id"],
-                    invitation_id=self._bindings["invitation_id"],
-                    if_match=if_match,
-                )
+            lambda client: revoke_organization_invitation.asyncio_detailed(
+                client=client,
+                organization_id=self._bindings["organization_id"],
+                invitation_id=self._bindings["invitation_id"],
+                if_match=if_match,
             )
         )
 
@@ -3422,13 +4135,13 @@ class OrganizationsOrganizationIdMembers(Resource):
     async def list(
         self,
         *,
-        kind: wire.ListMembersApiV1OrganizationsOrganizationIdMembersGetKindType0 | Unset | None = UNSET,
+        kind: wire.ListMembersKindType0 | Unset | None = UNSET,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
     ) -> Result[wire.MemberPage]:
         """List Members. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_members_api_v1_organizations_organization_id_members_get.asyncio_detailed(
+            lambda client: list_members.asyncio_detailed(
                 client=client, organization_id=self._bindings["organization_id"], kind=kind, limit=limit, cursor=cursor
             )
         )
@@ -3436,7 +4149,7 @@ class OrganizationsOrganizationIdMembers(Resource):
     def pages(
         self,
         *,
-        kind: wire.ListMembersApiV1OrganizationsOrganizationIdMembersGetKindType0 | Unset | None = UNSET,
+        kind: wire.ListMembersKindType0 | Unset | None = UNSET,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
     ) -> AsyncIterator[Result[wire.MemberPage]]:
@@ -3450,7 +4163,7 @@ class OrganizationsOrganizationIdMembers(Resource):
     def iter(
         self,
         *,
-        kind: wire.ListMembersApiV1OrganizationsOrganizationIdMembersGetKindType0 | Unset | None = UNSET,
+        kind: wire.ListMembersKindType0 | Unset | None = UNSET,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
     ) -> AsyncIterator[wire.PrincipalSummary]:
@@ -3466,10 +4179,8 @@ class OrganizationsOrganizationIdWorkspaces(Resource):
     ) -> Result[wire.WorkspacePage]:
         """List Organization Workspaces. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: (
-                list_organization_workspaces_api_v1_organizations_organization_id_workspaces_get.asyncio_detailed(
-                    client=client, organization_id=self._bindings["organization_id"], limit=limit, cursor=cursor
-                )
+            lambda client: list_organization_workspaces.asyncio_detailed(
+                client=client, organization_id=self._bindings["organization_id"], limit=limit, cursor=cursor
             )
         )
 
@@ -3488,7 +4199,7 @@ class OrganizationsOrganizationIdWorkspaces(Resource):
     async def create(self, *, body: wire.WorkspaceCreate) -> Result[wire.Workspace]:
         """Create Workspace. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: create_workspace_api_v1_organizations_organization_id_workspaces_post.asyncio_detailed(
+            lambda client: create_workspace.asyncio_detailed(
                 client=client, organization_id=self._bindings["organization_id"], body=body
             )
         )
@@ -3497,7 +4208,7 @@ class OrganizationsOrganizationIdWorkspaces(Resource):
 class ProviderTypes(Resource):
     """Bound Native resource: /provider-types."""
 
-    def __call__(self, kind: wire.ListProviderTypesApiV1ProviderTypesKindGetKind) -> ProviderTypesKind:
+    def __call__(self, kind: wire.ListProviderTypesKind) -> ProviderTypesKind:
         return ProviderTypesKind(self._client, self._bind("kind", str(kind)))
 
 
@@ -3507,8 +4218,8 @@ class ProviderTypesKind(Resource):
     async def list(self) -> Result[wire.ProviderTypePage]:
         """List Provider Types. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_provider_types_api_v1_provider_types_kind_get.asyncio_detailed(
-                client=client, kind=wire.ListProviderTypesApiV1ProviderTypesKindGetKind(self._bindings["kind"])
+            lambda client: list_provider_types.asyncio_detailed(
+                client=client, kind=wire.ListProviderTypesKind(self._bindings["kind"])
             )
         )
 
@@ -3519,11 +4230,12 @@ class Runs(Resource):
     async def list(
         self,
         *,
+        text_query: str | Unset | None = UNSET,
         agent_id: str | Unset | None = UNSET,
         session_id: str | Unset | None = UNSET,
         thread_id: str | Unset | None = UNSET,
         principal_id: str | Unset | None = UNSET,
-        status: wire.ListRunsApiV1RunsGetStatusType0 | Unset | None = UNSET,
+        status: wire.ListRunsStatusType0 | Unset | None = UNSET,
         created_after: datetime.datetime | Unset | None = UNSET,
         created_before: datetime.datetime | Unset | None = UNSET,
         limit: int | Unset = UNSET,
@@ -3532,8 +4244,9 @@ class Runs(Resource):
     ) -> Result[wire.RunPage]:
         """List Runs. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_runs_api_v1_runs_get.asyncio_detailed(
+            lambda client: list_runs.asyncio_detailed(
                 client=client,
+                text_query=text_query,
                 agent_id=agent_id,
                 session_id=session_id,
                 thread_id=thread_id,
@@ -3550,11 +4263,12 @@ class Runs(Resource):
     def pages(
         self,
         *,
+        text_query: str | Unset | None = UNSET,
         agent_id: str | Unset | None = UNSET,
         session_id: str | Unset | None = UNSET,
         thread_id: str | Unset | None = UNSET,
         principal_id: str | Unset | None = UNSET,
-        status: wire.ListRunsApiV1RunsGetStatusType0 | Unset | None = UNSET,
+        status: wire.ListRunsStatusType0 | Unset | None = UNSET,
         created_after: datetime.datetime | Unset | None = UNSET,
         created_before: datetime.datetime | Unset | None = UNSET,
         limit: int | Unset = UNSET,
@@ -3564,6 +4278,7 @@ class Runs(Resource):
         """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(
+                text_query=text_query,
                 agent_id=agent_id,
                 session_id=session_id,
                 thread_id=thread_id,
@@ -3582,21 +4297,23 @@ class Runs(Resource):
     def iter(
         self,
         *,
+        text_query: str | Unset | None = UNSET,
         agent_id: str | Unset | None = UNSET,
         session_id: str | Unset | None = UNSET,
         thread_id: str | Unset | None = UNSET,
         principal_id: str | Unset | None = UNSET,
-        status: wire.ListRunsApiV1RunsGetStatusType0 | Unset | None = UNSET,
+        status: wire.ListRunsStatusType0 | Unset | None = UNSET,
         created_after: datetime.datetime | Unset | None = UNSET,
         created_before: datetime.datetime | Unset | None = UNSET,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[wire.RunView]:
+    ) -> AsyncIterator[wire.RunListItem]:
         """Yield ordinary wire values lazily with a filter snapshot and server order."""
         return (
             item
             async for page in self.pages(
+                text_query=text_query,
                 agent_id=agent_id,
                 session_id=session_id,
                 thread_id=thread_id,
@@ -3618,11 +4335,53 @@ class Runs(Resource):
 class Run(Resource):
     """Bound Native resource: /runs / {run_id}."""
 
-    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.RunView]:
+    @overload
+    async def get(
+        self,
+        *,
+        view: Literal[wire.ReadView.DETAILED] | Unset = UNSET,
+        section: Unset | None = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.RunView]: ...
+    @overload
+    async def get(
+        self,
+        *,
+        view: wire.ReadView | Unset = UNSET,
+        section: wire.GetRunSectionType0 | Unset | None = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.RunSummary | wire.RunView | wire.TextRead]: ...
+    async def get(
+        self,
+        *,
+        view: wire.ReadView | Unset = UNSET,
+        section: wire.GetRunSectionType0 | Unset | None = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.RunSummary | wire.RunView | wire.TextRead] | Result[wire.RunView]:
         """Get Run. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_run_api_v1_runs_run_id_get.asyncio_detailed(
-                client=client, run_id=self._bindings["run_id"], x_workspace_id=x_workspace_id
+            lambda client: get_run.asyncio_detailed(
+                client=client,
+                run_id=self._bindings["run_id"],
+                view=view,
+                section=section,
+                offset=offset,
+                limit=limit,
+                version=version,
+                query=query,
+                x_workspace_id=x_workspace_id,
             )
         )
 
@@ -3631,7 +4390,7 @@ class Run(Resource):
     ) -> Result[wire.RunView]:
         """Update Run. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: update_run_api_v1_runs_run_id_patch.asyncio_detailed(
+            lambda client: update_run.asyncio_detailed(
                 client=client,
                 run_id=self._bindings["run_id"],
                 body=body,
@@ -3665,7 +4424,7 @@ class Run(Resource):
     ) -> Result[wire.Submitted]:
         """Fork Run. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: fork_run_api_v1_runs_run_id_fork_post.asyncio_detailed(
+            lambda client: fork_run.asyncio_detailed(
                 client=client,
                 run_id=self._bindings["run_id"],
                 body=body,
@@ -3681,7 +4440,7 @@ class Run(Resource):
     async def interrupt(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.RunView]:
         """Interrupt Run. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: interrupt_run_api_v1_runs_run_id_interrupt_post.asyncio_detailed(
+            lambda client: interrupt_run.asyncio_detailed(
                 client=client, run_id=self._bindings["run_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -3699,7 +4458,7 @@ class Run(Resource):
     ) -> Result[wire.RunView]:
         """Resume Run. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: resume_run_api_v1_runs_run_id_resume_post.asyncio_detailed(
+            lambda client: resume_run.asyncio_detailed(
                 client=client,
                 run_id=self._bindings["run_id"],
                 body=body,
@@ -3712,11 +4471,57 @@ class Run(Resource):
 class RunsRunIdAgent(Resource):
     """Bound Native resource: /runs / {run_id} / agent."""
 
-    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.RunAgent]:
-        """Run Agent. One HTTP request; no automatic replay."""
+    @overload
+    async def get(
+        self,
+        *,
+        view: Literal[wire.ReadView.DETAILED] | Unset = UNSET,
+        section: Unset | None = UNSET,
+        part: wire.GetRunAgentPart | Unset = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.RunAgent]: ...
+    @overload
+    async def get(
+        self,
+        *,
+        view: wire.ReadView | Unset = UNSET,
+        section: wire.GetRunAgentSectionType0 | Unset | None = UNSET,
+        part: wire.GetRunAgentPart | Unset = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.RunAgent | wire.RunAgentSummary | wire.TextRead]: ...
+    async def get(
+        self,
+        *,
+        view: wire.ReadView | Unset = UNSET,
+        section: wire.GetRunAgentSectionType0 | Unset | None = UNSET,
+        part: wire.GetRunAgentPart | Unset = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.RunAgent | wire.RunAgentSummary | wire.TextRead] | Result[wire.RunAgent]:
+        """Get Run Agent. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: run_agent_api_v1_runs_run_id_agent_get.asyncio_detailed(
-                client=client, run_id=self._bindings["run_id"], x_workspace_id=x_workspace_id
+            lambda client: get_run_agent.asyncio_detailed(
+                client=client,
+                run_id=self._bindings["run_id"],
+                view=view,
+                section=section,
+                part=part,
+                offset=offset,
+                limit=limit,
+                version=version,
+                query=query,
+                x_workspace_id=x_workspace_id,
             )
         )
 
@@ -3725,9 +4530,9 @@ class RunsRunIdAttempts(Resource):
     """Bound Native resource: /runs / {run_id} / attempts."""
 
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Attempts]:
-        """Run Attempts. One HTTP request; no automatic replay."""
+        """List Run Attempts. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: run_attempts_api_v1_runs_run_id_attempts_get.asyncio_detailed(
+            lambda client: list_run_attempts.asyncio_detailed(
                 client=client, run_id=self._bindings["run_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -3740,9 +4545,9 @@ class RunsRunIdAttemptsAttemptId(Resource):
     """Bound Native resource: /runs / {run_id} / attempts / {attempt_id}."""
 
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.AttemptView]:
-        """Get Attempt. One HTTP request; no automatic replay."""
+        """Get Run Attempt. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_attempt_api_v1_runs_run_id_attempts_attempt_id_get.asyncio_detailed(
+            lambda client: get_run_attempt.asyncio_detailed(
                 client=client,
                 run_id=self._bindings["run_id"],
                 attempt_id=self._bindings["attempt_id"],
@@ -3758,51 +4563,55 @@ class RunsRunIdAttemptsAttemptId(Resource):
 class RunsRunIdAttemptsAttemptIdTrace(Resource):
     """Bound Native resource: /runs / {run_id} / attempts / {attempt_id} / trace."""
 
+    @overload
     async def list(
         self,
         *,
-        limit: int | Unset = UNSET,
+        view: Literal[wire.ReadView.DETAILED] | Unset = UNSET,
+        status: wire.ListAttemptSpansStatusType0 | Unset | None = UNSET,
+        kind: str | Unset | None = UNSET,
+        tool_name: str | Unset | None = UNSET,
+        limit: int | Unset | None = UNSET,
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
-    ) -> Result[wire.SpanPage]:
+    ) -> Result[wire.SpanPage]: ...
+    @overload
+    async def list(
+        self,
+        *,
+        view: wire.ReadView | Unset = UNSET,
+        status: wire.ListAttemptSpansStatusType0 | Unset | None = UNSET,
+        kind: str | Unset | None = UNSET,
+        tool_name: str | Unset | None = UNSET,
+        limit: int | Unset | None = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.SpanPage | wire.SpanReadPage]: ...
+    async def list(
+        self,
+        *,
+        view: wire.ReadView | Unset = UNSET,
+        status: wire.ListAttemptSpansStatusType0 | Unset | None = UNSET,
+        kind: str | Unset | None = UNSET,
+        tool_name: str | Unset | None = UNSET,
+        limit: int | Unset | None = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.SpanPage | wire.SpanReadPage] | Result[wire.SpanPage]:
         """List Attempt Spans. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_attempt_spans_api_v1_runs_run_id_attempts_attempt_id_trace_get.asyncio_detailed(
+            lambda client: list_attempt_spans.asyncio_detailed(
                 client=client,
                 run_id=self._bindings["run_id"],
                 attempt_id=self._bindings["attempt_id"],
+                view=view,
+                status=status,
+                kind=kind,
+                tool_name=tool_name,
                 limit=limit,
                 cursor=cursor,
                 x_workspace_id=x_workspace_id,
             )
-        )
-
-    def pages(
-        self,
-        *,
-        limit: int | Unset = UNSET,
-        cursor: str | Unset | None = UNSET,
-        x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[Result[wire.SpanPage]]:
-        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
-        return pages(
-            lambda next_cursor: self.list(limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor),
-            lambda value: value.next_cursor,
-            cursor,
-        )
-
-    def iter(
-        self,
-        *,
-        limit: int | Unset = UNSET,
-        cursor: str | Unset | None = UNSET,
-        x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[wire.Span]:
-        """Yield ordinary wire values lazily with a filter snapshot and server order."""
-        return (
-            item
-            async for page in self.pages(limit=limit, cursor=cursor, x_workspace_id=x_workspace_id)
-            for item in page.value.items
         )
 
 
@@ -3816,13 +4625,49 @@ class RunsRunIdContents(Resource):
 class RunsRunIdContentsContentId(Resource):
     """Bound Native resource: /runs / {run_id} / contents / {content_id}."""
 
-    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.RunContent]:
-        """Run Content. One HTTP request; no automatic replay."""
+    @overload
+    async def get(
+        self,
+        *,
+        view: Literal[wire.ReadView.DETAILED] | Unset = UNSET,
+        offset: int | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.RunContent]: ...
+    @overload
+    async def get(
+        self,
+        *,
+        view: wire.ReadView | Unset = UNSET,
+        offset: int | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.ContentSummary | wire.RunContent | wire.TextRead]: ...
+    async def get(
+        self,
+        *,
+        view: wire.ReadView | Unset = UNSET,
+        offset: int | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.ContentSummary | wire.RunContent | wire.TextRead] | Result[wire.RunContent]:
+        """Get Run Content. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: run_content_api_v1_runs_run_id_contents_content_id_get.asyncio_detailed(
+            lambda client: get_run_content.asyncio_detailed(
                 client=client,
                 run_id=self._bindings["run_id"],
                 content_id=self._bindings["content_id"],
+                view=view,
+                offset=offset,
+                limit=limit,
+                version=version,
+                query=query,
                 x_workspace_id=x_workspace_id,
             )
         )
@@ -3841,7 +4686,7 @@ class RunsRunIdDesktopAssistanceCallId(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.View]:
         """Get Assistance. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_assistance_api_v1_runs_run_id_desktop_assistance_call_id_get.asyncio_detailed(
+            lambda client: get_assistance.asyncio_detailed(
                 client=client,
                 run_id=self._bindings["run_id"],
                 call_id=self._bindings["call_id"],
@@ -3856,7 +4701,7 @@ class RunsRunIdDesktopControl(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.View | None]:
         """Get Control. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_control_api_v1_runs_run_id_desktop_control_get.asyncio_detailed(
+            lambda client: get_control.asyncio_detailed(
                 client=client, run_id=self._bindings["run_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -3864,7 +4709,15 @@ class RunsRunIdDesktopControl(Resource):
     async def create(self, *, body: wire.Request, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.View]:
         """Open Control. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: open_control_api_v1_runs_run_id_desktop_control_post.asyncio_detailed(
+            lambda client: open_control.asyncio_detailed(
+                client=client, run_id=self._bindings["run_id"], body=body, x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def view(self, *, body: wire.OpenView, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Access]:
+        """Open View. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: open_view.asyncio_detailed(
                 client=client, run_id=self._bindings["run_id"], body=body, x_workspace_id=x_workspace_id
             )
         )
@@ -3883,7 +4736,7 @@ class RunsRunIdImagesImageId(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[File]:
         """Run Image. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: run_image_api_v1_runs_run_id_images_image_id_get.asyncio_detailed(
+            lambda client: run_image.asyncio_detailed(
                 client=client,
                 run_id=self._bindings["run_id"],
                 image_id=self._bindings["image_id"],
@@ -3894,7 +4747,7 @@ class RunsRunIdImagesImageId(Resource):
     def get_stream(self, *, x_workspace_id: str | Unset | None = UNSET) -> AbstractAsyncContextManager[httpx2.Response]:
         """Unbuffered response; caller checks status and consumes within the context."""
         return self._stream(
-            run_image_api_v1_runs_run_id_images_image_id_get.build_request(
+            run_image.build_request(
                 run_id=self._bindings["run_id"], image_id=self._bindings["image_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -3903,22 +4756,98 @@ class RunsRunIdImagesImageId(Resource):
 class RunsRunIdItems(Resource):
     """Bound Native resource: /runs / {run_id} / items."""
 
+    @overload
     async def get(
         self,
         *,
         before: int | Unset | None = UNSET,
         after: int | Unset | None = UNSET,
-        limit: int | Unset = UNSET,
+        limit: int | Unset | None = UNSET,
+        view: Literal[wire.ReadView.DETAILED] | Unset = UNSET,
+        kind: wire.ItemKind | Unset | None = UNSET,
+        state: wire.ItemState | Unset | None = UNSET,
+        tool_name: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
-    ) -> Result[wire.RunItems]:
-        """Run Items. One HTTP request; no automatic replay."""
+    ) -> Result[wire.RunItems]: ...
+    @overload
+    async def get(
+        self,
+        *,
+        before: int | Unset | None = UNSET,
+        after: int | Unset | None = UNSET,
+        limit: int | Unset | None = UNSET,
+        view: wire.ReadView | Unset = UNSET,
+        kind: wire.ItemKind | Unset | None = UNSET,
+        state: wire.ItemState | Unset | None = UNSET,
+        tool_name: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.ItemPage | wire.RunItems]: ...
+    async def get(
+        self,
+        *,
+        before: int | Unset | None = UNSET,
+        after: int | Unset | None = UNSET,
+        limit: int | Unset | None = UNSET,
+        view: wire.ReadView | Unset = UNSET,
+        kind: wire.ItemKind | Unset | None = UNSET,
+        state: wire.ItemState | Unset | None = UNSET,
+        tool_name: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.ItemPage | wire.RunItems] | Result[wire.RunItems]:
+        """List Run Items. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: run_items_api_v1_runs_run_id_items_get.asyncio_detailed(
+            lambda client: list_run_items.asyncio_detailed(
                 client=client,
                 run_id=self._bindings["run_id"],
                 before=before,
                 after=after,
                 limit=limit,
+                view=view,
+                kind=kind,
+                state=state,
+                tool_name=tool_name,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    def __call__(self, item_id: str) -> RunsRunIdItemsItemId:
+        return RunsRunIdItemsItemId(self._client, self._bind("item_id", item_id))
+
+
+class RunsRunIdItemsItemId(Resource):
+    """Bound Native resource: /runs / {run_id} / items / {item_id}."""
+
+    @property
+    def content(self) -> RunsRunIdItemsItemIdContent:
+        return RunsRunIdItemsItemIdContent(self._client, self._bindings)
+
+
+class RunsRunIdItemsItemIdContent(Resource):
+    """Bound Native resource: /runs / {run_id} / items / {item_id} / content."""
+
+    async def get(
+        self,
+        *,
+        ordinal: int,
+        field: wire.ReadRunItemContentField | Unset = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.TextRead]:
+        """Read Run Item Content. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: read_run_item_content.asyncio_detailed(
+                client=client,
+                run_id=self._bindings["run_id"],
+                item_id=self._bindings["item_id"],
+                ordinal=ordinal,
+                field=field,
+                offset=offset,
+                limit=limit,
+                version=version,
+                query=query,
                 x_workspace_id=x_workspace_id,
             )
         )
@@ -3928,31 +4857,392 @@ class RunsRunIdLineage(Resource):
     """Bound Native resource: /runs / {run_id} / lineage."""
 
     async def list(
-        self, *, cursor: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
+        self,
+        *,
+        cursor: str | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
     ) -> Result[wire.RunPage]:
-        """Run Lineage. One HTTP request; no automatic replay."""
+        """Get Run Lineage. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: run_lineage_api_v1_runs_run_id_lineage_get.asyncio_detailed(
-                client=client, run_id=self._bindings["run_id"], cursor=cursor, x_workspace_id=x_workspace_id
+            lambda client: get_run_lineage.asyncio_detailed(
+                client=client,
+                run_id=self._bindings["run_id"],
+                cursor=cursor,
+                limit=limit,
+                x_workspace_id=x_workspace_id,
             )
         )
 
     def pages(
-        self, *, cursor: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
+        self,
+        *,
+        cursor: str | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
     ) -> AsyncIterator[Result[wire.RunPage]]:
         """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
-            lambda next_cursor: self.list(x_workspace_id=x_workspace_id, cursor=next_cursor),
+            lambda next_cursor: self.list(limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor),
             lambda value: value.next_cursor,
             cursor,
         )
 
     def iter(
-        self, *, cursor: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
-    ) -> AsyncIterator[wire.RunView]:
+        self,
+        *,
+        cursor: str | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[wire.RunListItem]:
         """Yield ordinary wire values lazily with a filter snapshot and server order."""
         return (
-            item async for page in self.pages(cursor=cursor, x_workspace_id=x_workspace_id) for item in page.value.items
+            item
+            async for page in self.pages(cursor=cursor, limit=limit, x_workspace_id=x_workspace_id)
+            for item in page.value.items
+        )
+
+
+class Schedules(Resource):
+    """Bound Native resource: /schedules."""
+
+    async def list(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        state: wire.ScheduleState | Unset | None = UNSET,
+        agent_id: str | Unset | None = UNSET,
+        principal_id: str | Unset | None = UNSET,
+        label: list[str] | Unset = UNSET,
+        q: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.SchedulePage]:
+        """List Schedules. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: list_schedules.asyncio_detailed(
+                client=client,
+                limit=limit,
+                cursor=cursor,
+                state=state,
+                agent_id=agent_id,
+                principal_id=principal_id,
+                label=label,
+                q=q,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    def pages(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        state: wire.ScheduleState | Unset | None = UNSET,
+        agent_id: str | Unset | None = UNSET,
+        principal_id: str | Unset | None = UNSET,
+        label: list[str] | Unset = UNSET,
+        q: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[Result[wire.SchedulePage]]:
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        label = label.copy() if isinstance(label, list) else label
+        return pages(
+            lambda next_cursor: self.list(
+                limit=limit,
+                state=state,
+                agent_id=agent_id,
+                principal_id=principal_id,
+                label=label,
+                q=q,
+                x_workspace_id=x_workspace_id,
+                cursor=next_cursor,
+            ),
+            lambda value: value.next_cursor,
+            cursor,
+        )
+
+    def iter(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        state: wire.ScheduleState | Unset | None = UNSET,
+        agent_id: str | Unset | None = UNSET,
+        principal_id: str | Unset | None = UNSET,
+        label: list[str] | Unset = UNSET,
+        q: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[wire.Schedule]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(
+                limit=limit,
+                cursor=cursor,
+                state=state,
+                agent_id=agent_id,
+                principal_id=principal_id,
+                label=label,
+                q=q,
+                x_workspace_id=x_workspace_id,
+            )
+            for item in page.value.items
+        )
+
+    async def create(
+        self, *, body: wire.ScheduleCreate, idempotency_key: str, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.Schedule]:
+        """Create Schedule. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: create_schedule.asyncio_detailed(
+                client=client, body=body, idempotency_key=idempotency_key, x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def preview(
+        self, *, body: wire.SchedulePreviewRequest, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.SchedulePreview]:
+        """Preview Schedule. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: preview_schedule.asyncio_detailed(client=client, body=body, x_workspace_id=x_workspace_id)
+        )
+
+    def __call__(self, schedule_id: str) -> SchedulesScheduleId:
+        return SchedulesScheduleId(self._client, self._bind("schedule_id", schedule_id))
+
+
+class SchedulesScheduleId(Resource):
+    """Bound Native resource: /schedules / {schedule_id}."""
+
+    async def delete(
+        self, *, if_match: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[None]:
+        """Archive Schedule. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: archive_schedule.asyncio_detailed(
+                client=client,
+                schedule_id=self._bindings["schedule_id"],
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Schedule]:
+        """Get Schedule. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_schedule.asyncio_detailed(
+                client=client, schedule_id=self._bindings["schedule_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def update(
+        self,
+        *,
+        body: wire.ScheduleUpdate,
+        if_match: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.Schedule]:
+        """Update Schedule. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: update_schedule.asyncio_detailed(
+                client=client,
+                schedule_id=self._bindings["schedule_id"],
+                body=body,
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    async def dispatch(
+        self,
+        *,
+        body: wire.ScheduleCommand,
+        idempotency_key: str,
+        if_match: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.Occurrence]:
+        """Dispatch Schedule. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: dispatch_schedule.asyncio_detailed(
+                client=client,
+                schedule_id=self._bindings["schedule_id"],
+                body=body,
+                idempotency_key=idempotency_key,
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    async def enable(
+        self,
+        *,
+        body: wire.ScheduleCommand,
+        if_match: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.Schedule]:
+        """Enable Schedule. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: enable_schedule.asyncio_detailed(
+                client=client,
+                schedule_id=self._bindings["schedule_id"],
+                body=body,
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    @property
+    def occurrences(self) -> SchedulesScheduleIdOccurrences:
+        return SchedulesScheduleIdOccurrences(self._client, self._bindings)
+
+    async def pause(
+        self,
+        *,
+        body: wire.ScheduleCommand,
+        if_match: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.Schedule]:
+        """Pause Schedule. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: pause_schedule.asyncio_detailed(
+                client=client,
+                schedule_id=self._bindings["schedule_id"],
+                body=body,
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    @property
+    def status(self) -> SchedulesScheduleIdStatus:
+        return SchedulesScheduleIdStatus(self._client, self._bindings)
+
+
+class SchedulesScheduleIdOccurrences(Resource):
+    """Bound Native resource: /schedules / {schedule_id} / occurrences."""
+
+    async def list(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        status: wire.OccurrenceStatus | Unset | None = UNSET,
+        trigger: wire.ScheduleTrigger | Unset | None = UNSET,
+        created_after: datetime.datetime | Unset | None = UNSET,
+        created_before: datetime.datetime | Unset | None = UNSET,
+        unfinished: bool | Unset | None = UNSET,
+        include: Literal["execution"] | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.OccurrencePage]:
+        """List Schedule Occurrences. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: list_schedule_occurrences.asyncio_detailed(
+                client=client,
+                schedule_id=self._bindings["schedule_id"],
+                limit=limit,
+                cursor=cursor,
+                status=status,
+                trigger=trigger,
+                created_after=created_after,
+                created_before=created_before,
+                unfinished=unfinished,
+                include=include,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    def pages(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        status: wire.OccurrenceStatus | Unset | None = UNSET,
+        trigger: wire.ScheduleTrigger | Unset | None = UNSET,
+        created_after: datetime.datetime | Unset | None = UNSET,
+        created_before: datetime.datetime | Unset | None = UNSET,
+        unfinished: bool | Unset | None = UNSET,
+        include: Literal["execution"] | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[Result[wire.OccurrencePage]]:
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        return pages(
+            lambda next_cursor: self.list(
+                limit=limit,
+                status=status,
+                trigger=trigger,
+                created_after=created_after,
+                created_before=created_before,
+                unfinished=unfinished,
+                include=include,
+                x_workspace_id=x_workspace_id,
+                cursor=next_cursor,
+            ),
+            lambda value: value.next_cursor,
+            cursor,
+        )
+
+    def iter(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        status: wire.OccurrenceStatus | Unset | None = UNSET,
+        trigger: wire.ScheduleTrigger | Unset | None = UNSET,
+        created_after: datetime.datetime | Unset | None = UNSET,
+        created_before: datetime.datetime | Unset | None = UNSET,
+        unfinished: bool | Unset | None = UNSET,
+        include: Literal["execution"] | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[wire.OccurrenceSummary]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(
+                limit=limit,
+                cursor=cursor,
+                status=status,
+                trigger=trigger,
+                created_after=created_after,
+                created_before=created_before,
+                unfinished=unfinished,
+                include=include,
+                x_workspace_id=x_workspace_id,
+            )
+            for item in page.value.items
+        )
+
+    def __call__(self, occurrence_id: str) -> SchedulesScheduleIdOccurrencesOccurrenceId:
+        return SchedulesScheduleIdOccurrencesOccurrenceId(self._client, self._bind("occurrence_id", occurrence_id))
+
+
+class SchedulesScheduleIdOccurrencesOccurrenceId(Resource):
+    """Bound Native resource: /schedules / {schedule_id} / occurrences / {occurrence_id}."""
+
+    async def get(
+        self, *, include: Literal["execution"] | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.Occurrence]:
+        """Get Schedule Occurrence. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_schedule_occurrence.asyncio_detailed(
+                client=client,
+                schedule_id=self._bindings["schedule_id"],
+                occurrence_id=self._bindings["occurrence_id"],
+                include=include,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+
+class SchedulesScheduleIdStatus(Resource):
+    """Bound Native resource: /schedules / {schedule_id} / status."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ScheduleStatus]:
+        """Get Schedule Status. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_schedule_status.asyncio_detailed(
+                client=client, schedule_id=self._bindings["schedule_id"], x_workspace_id=x_workspace_id
+            )
         )
 
 
@@ -3962,7 +5252,9 @@ class Sessions(Resource):
     async def list(
         self,
         *,
+        text_query: str | Unset | None = UNSET,
         q: str | Unset | None = UNSET,
+        application: str | Unset | None = UNSET,
         agent_id: str | Unset | None = UNSET,
         status: list[wire.RunStatus] | Unset = UNSET,
         trigger: list[wire.Trigger] | Unset = UNSET,
@@ -3975,9 +5267,11 @@ class Sessions(Resource):
     ) -> Result[wire.SessionPage]:
         """List Sessions. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_sessions_api_v1_sessions_get.asyncio_detailed(
+            lambda client: list_sessions.asyncio_detailed(
                 client=client,
+                text_query=text_query,
                 q=q,
+                application=application,
                 agent_id=agent_id,
                 status=status,
                 trigger=trigger,
@@ -3993,7 +5287,9 @@ class Sessions(Resource):
     def pages(
         self,
         *,
+        text_query: str | Unset | None = UNSET,
         q: str | Unset | None = UNSET,
+        application: str | Unset | None = UNSET,
         agent_id: str | Unset | None = UNSET,
         status: list[wire.RunStatus] | Unset = UNSET,
         trigger: list[wire.Trigger] | Unset = UNSET,
@@ -4010,7 +5306,9 @@ class Sessions(Resource):
         label = label.copy() if isinstance(label, list) else label
         return pages(
             lambda next_cursor: self.list(
+                text_query=text_query,
                 q=q,
+                application=application,
                 agent_id=agent_id,
                 status=status,
                 trigger=trigger,
@@ -4028,7 +5326,9 @@ class Sessions(Resource):
     def iter(
         self,
         *,
+        text_query: str | Unset | None = UNSET,
         q: str | Unset | None = UNSET,
+        application: str | Unset | None = UNSET,
         agent_id: str | Unset | None = UNSET,
         status: list[wire.RunStatus] | Unset = UNSET,
         trigger: list[wire.Trigger] | Unset = UNSET,
@@ -4043,7 +5343,9 @@ class Sessions(Resource):
         return (
             item
             async for page in self.pages(
+                text_query=text_query,
                 q=q,
+                application=application,
                 agent_id=agent_id,
                 status=status,
                 trigger=trigger,
@@ -4062,9 +5364,7 @@ class Sessions(Resource):
     ) -> Result[wire.SessionView]:
         """Create Session. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: create_session_api_v1_sessions_post.asyncio_detailed(
-                client=client, body=body, x_workspace_id=x_workspace_id
-            )
+            lambda client: create_session.asyncio_detailed(client=client, body=body, x_workspace_id=x_workspace_id)
         )
 
     def __call__(self, session_id: str) -> Session:
@@ -4077,7 +5377,7 @@ class Session(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.SessionView]:
         """Get Session. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_session_api_v1_sessions_session_id_get.asyncio_detailed(
+            lambda client: get_session.asyncio_detailed(
                 client=client, session_id=self._bindings["session_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -4091,7 +5391,7 @@ class Session(Resource):
     ) -> Result[wire.SessionView]:
         """Update Session. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: update_session_api_v1_sessions_session_id_patch.asyncio_detailed(
+            lambda client: update_session.asyncio_detailed(
                 client=client,
                 session_id=self._bindings["session_id"],
                 body=body,
@@ -4117,7 +5417,7 @@ class SessionsSessionIdMessageAuthors(Resource):
     ) -> Result[wire.MessageAuthors]:
         """Get Message Authors. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_message_authors_api_v1_sessions_session_id_message_authors_get.asyncio_detailed(
+            lambda client: get_message_authors.asyncio_detailed(
                 client=client, session_id=self._bindings["session_id"], entry_id=entry_id, x_workspace_id=x_workspace_id
             )
         )
@@ -4129,7 +5429,7 @@ class SessionsSessionIdStream(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[Any]:
         """Session Stream. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: session_stream_api_v1_sessions_session_id_stream_get.asyncio_detailed(
+            lambda client: session_stream.asyncio_detailed(
                 client=client, session_id=self._bindings["session_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -4137,9 +5437,7 @@ class SessionsSessionIdStream(Resource):
     def get_stream(self, *, x_workspace_id: str | Unset | None = UNSET) -> AbstractAsyncContextManager[httpx2.Response]:
         """Unbuffered response; caller checks status and consumes within the context."""
         return self._stream(
-            session_stream_api_v1_sessions_session_id_stream_get.build_request(
-                session_id=self._bindings["session_id"], x_workspace_id=x_workspace_id
-            )
+            session_stream.build_request(session_id=self._bindings["session_id"], x_workspace_id=x_workspace_id)
         )
 
 
@@ -4151,7 +5449,7 @@ class Skills(Resource):
         *,
         label: list[str] | Unset | None = UNSET,
         q: str | Unset | None = UNSET,
-        source: wire.ListSkillsApiV1SkillsGetSourceType0 | Unset | None = UNSET,
+        source: wire.ListSkillsSourceType0 | Unset | None = UNSET,
         archived: bool | Unset | None = UNSET,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
@@ -4159,7 +5457,7 @@ class Skills(Resource):
     ) -> Result[wire.SkillPage]:
         """List Skills. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_skills_api_v1_skills_get.asyncio_detailed(
+            lambda client: list_skills.asyncio_detailed(
                 client=client,
                 label=label,
                 q=q,
@@ -4176,7 +5474,7 @@ class Skills(Resource):
         *,
         label: list[str] | Unset | None = UNSET,
         q: str | Unset | None = UNSET,
-        source: wire.ListSkillsApiV1SkillsGetSourceType0 | Unset | None = UNSET,
+        source: wire.ListSkillsSourceType0 | Unset | None = UNSET,
         archived: bool | Unset | None = UNSET,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
@@ -4203,7 +5501,7 @@ class Skills(Resource):
         *,
         label: list[str] | Unset | None = UNSET,
         q: str | Unset | None = UNSET,
-        source: wire.ListSkillsApiV1SkillsGetSourceType0 | Unset | None = UNSET,
+        source: wire.ListSkillsSourceType0 | Unset | None = UNSET,
         archived: bool | Unset | None = UNSET,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
@@ -4227,19 +5525,15 @@ class Skills(Resource):
     async def create(self, *, body: wire.SkillCreate, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Skill]:
         """Create Skill. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: create_skill_api_v1_skills_post.asyncio_detailed(
-                client=client, body=body, x_workspace_id=x_workspace_id
-            )
+            lambda client: create_skill.asyncio_detailed(client=client, body=body, x_workspace_id=x_workspace_id)
         )
 
     async def validate(
         self, *, body: wire.SkillValidate, x_workspace_id: str | Unset | None = UNSET
     ) -> Result[wire.SkillManifest]:
-        """Validate Package. One HTTP request; no automatic replay."""
+        """Validate Skill. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: validate_package_api_v1_skills_validate_post.asyncio_detailed(
-                client=client, body=body, x_workspace_id=x_workspace_id
-            )
+            lambda client: validate_skill.asyncio_detailed(client=client, body=body, x_workspace_id=x_workspace_id)
         )
 
     def __call__(self, skill_id: str) -> SkillsSkillId:
@@ -4252,7 +5546,7 @@ class SkillsSkillId(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Skill]:
         """Get Skill. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_skill_api_v1_skills_skill_id_get.asyncio_detailed(
+            lambda client: get_skill.asyncio_detailed(
                 client=client, skill_id=self._bindings["skill_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -4266,7 +5560,7 @@ class SkillsSkillId(Resource):
     ) -> Result[wire.Skill]:
         """Update Skill. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: update_skill_api_v1_skills_skill_id_patch.asyncio_detailed(
+            lambda client: update_skill.asyncio_detailed(
                 client=client,
                 skill_id=self._bindings["skill_id"],
                 body=body,
@@ -4280,7 +5574,7 @@ class SkillsSkillId(Resource):
     ) -> Result[wire.Skill]:
         """Archive Skill. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: archive_skill_api_v1_skills_skill_id_archive_post.asyncio_detailed(
+            lambda client: archive_skill.asyncio_detailed(
                 client=client, skill_id=self._bindings["skill_id"], if_match=if_match, x_workspace_id=x_workspace_id
             )
         )
@@ -4294,7 +5588,7 @@ class SkillsSkillId(Resource):
     ) -> Result[wire.Skill]:
         """Unarchive Skill. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: unarchive_skill_api_v1_skills_skill_id_unarchive_post.asyncio_detailed(
+            lambda client: unarchive_skill.asyncio_detailed(
                 client=client, skill_id=self._bindings["skill_id"], if_match=if_match, x_workspace_id=x_workspace_id
             )
         )
@@ -4310,9 +5604,9 @@ class SkillsSkillIdRevisions(Resource):
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> Result[wire.SkillRevisionPage]:
-        """List Revisions. One HTTP request; no automatic replay."""
+        """List Skill Revisions. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_revisions_api_v1_skills_skill_id_revisions_get.asyncio_detailed(
+            lambda client: list_skill_revisions.asyncio_detailed(
                 client=client,
                 skill_id=self._bindings["skill_id"],
                 limit=limit,
@@ -4356,9 +5650,9 @@ class SkillsSkillIdRevisions(Resource):
         if_match: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> Result[wire.SkillRevision]:
-        """Create Revision. One HTTP request; no automatic replay."""
+        """Create Skill Revision. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: create_revision_api_v1_skills_skill_id_revisions_post.asyncio_detailed(
+            lambda client: create_skill_revision.asyncio_detailed(
                 client=client,
                 skill_id=self._bindings["skill_id"],
                 body=body,
@@ -4375,9 +5669,9 @@ class SkillsSkillIdRevisionsRevisionId(Resource):
     """Bound Native resource: /skills / {skill_id} / revisions / {revision_id}."""
 
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.SkillRevision]:
-        """Get Revision. One HTTP request; no automatic replay."""
+        """Get Skill Revision. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_revision_api_v1_skills_skill_id_revisions_revision_id_get.asyncio_detailed(
+            lambda client: get_skill_revision.asyncio_detailed(
                 client=client,
                 skill_id=self._bindings["skill_id"],
                 revision_id=self._bindings["revision_id"],
@@ -4396,16 +5690,14 @@ class SkillsSkillIdRevisionsRevisionId(Resource):
     async def set_default(
         self, *, if_match: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
     ) -> Result[wire.Skill]:
-        """Set Default Revision. One HTTP request; no automatic replay."""
+        """Set Default Skill Revision. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: (
-                set_default_revision_api_v1_skills_skill_id_revisions_revision_id_set_default_post.asyncio_detailed(
-                    client=client,
-                    skill_id=self._bindings["skill_id"],
-                    revision_id=self._bindings["revision_id"],
-                    if_match=if_match,
-                    x_workspace_id=x_workspace_id,
-                )
+            lambda client: set_default_skill_revision.asyncio_detailed(
+                client=client,
+                skill_id=self._bindings["skill_id"],
+                revision_id=self._bindings["revision_id"],
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
             )
         )
 
@@ -4414,9 +5706,9 @@ class SkillsSkillIdRevisionsRevisionIdContent(Resource):
     """Bound Native resource: /skills / {skill_id} / revisions / {revision_id} / content."""
 
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[File]:
-        """Read Archive. One HTTP request; no automatic replay."""
+        """Read Skill Archive. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: read_archive_api_v1_skills_skill_id_revisions_revision_id_content_get.asyncio_detailed(
+            lambda client: read_skill_archive.asyncio_detailed(
                 client=client,
                 skill_id=self._bindings["skill_id"],
                 revision_id=self._bindings["revision_id"],
@@ -4427,7 +5719,7 @@ class SkillsSkillIdRevisionsRevisionIdContent(Resource):
     def get_stream(self, *, x_workspace_id: str | Unset | None = UNSET) -> AbstractAsyncContextManager[httpx2.Response]:
         """Unbuffered response; caller checks status and consumes within the context."""
         return self._stream(
-            read_archive_api_v1_skills_skill_id_revisions_revision_id_content_get.build_request(
+            read_skill_archive.build_request(
                 skill_id=self._bindings["skill_id"],
                 revision_id=self._bindings["revision_id"],
                 x_workspace_id=x_workspace_id,
@@ -4446,9 +5738,9 @@ class SkillsSkillIdRevisionsRevisionIdFilesPath(Resource):
     """Bound Native resource: /skills / {skill_id} / revisions / {revision_id} / files / {path}."""
 
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[File]:
-        """Read File. One HTTP request; no automatic replay."""
+        """Read Skill File. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: read_file_api_v1_skills_skill_id_revisions_revision_id_files_path_get.asyncio_detailed(
+            lambda client: read_skill_file.asyncio_detailed(
                 client=client,
                 skill_id=self._bindings["skill_id"],
                 revision_id=self._bindings["revision_id"],
@@ -4460,7 +5752,7 @@ class SkillsSkillIdRevisionsRevisionIdFilesPath(Resource):
     def get_stream(self, *, x_workspace_id: str | Unset | None = UNSET) -> AbstractAsyncContextManager[httpx2.Response]:
         """Unbuffered response; caller checks status and consumes within the context."""
         return self._stream(
-            read_file_api_v1_skills_skill_id_revisions_revision_id_files_path_get.build_request(
+            read_skill_file.build_request(
                 skill_id=self._bindings["skill_id"],
                 revision_id=self._bindings["revision_id"],
                 path=self._bindings["path"],
@@ -4481,7 +5773,7 @@ class Subscriptions(Resource):
     ) -> Result[wire.SubscriptionPage]:
         """List Subscriptions. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_subscriptions_api_v1_subscriptions_get.asyncio_detailed(
+            lambda client: list_subscriptions.asyncio_detailed(
                 client=client, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
             )
         )
@@ -4519,9 +5811,7 @@ class Subscriptions(Resource):
     ) -> Result[wire.CreatedSubscription]:
         """Create Subscription. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: create_subscription_api_v1_subscriptions_post.asyncio_detailed(
-                client=client, body=body, x_workspace_id=x_workspace_id
-            )
+            lambda client: create_subscription.asyncio_detailed(client=client, body=body, x_workspace_id=x_workspace_id)
         )
 
     def __call__(self, subscription_id: str) -> SubscriptionsSubscriptionId:
@@ -4536,7 +5826,7 @@ class SubscriptionsSubscriptionId(Resource):
     ) -> Result[None]:
         """Delete Subscription. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: delete_subscription_api_v1_subscriptions_subscription_id_delete.asyncio_detailed(
+            lambda client: delete_subscription.asyncio_detailed(
                 client=client,
                 subscription_id=self._bindings["subscription_id"],
                 if_match=if_match,
@@ -4547,7 +5837,7 @@ class SubscriptionsSubscriptionId(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Subscription]:
         """Get Subscription. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_subscription_api_v1_subscriptions_subscription_id_get.asyncio_detailed(
+            lambda client: get_subscription.asyncio_detailed(
                 client=client, subscription_id=self._bindings["subscription_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -4561,7 +5851,7 @@ class SubscriptionsSubscriptionId(Resource):
     ) -> Result[wire.Subscription]:
         """Update Subscription. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: update_subscription_api_v1_subscriptions_subscription_id_patch.asyncio_detailed(
+            lambda client: update_subscription.asyncio_detailed(
                 client=client,
                 subscription_id=self._bindings["subscription_id"],
                 body=body,
@@ -4587,7 +5877,7 @@ class SubscriptionsSubscriptionIdDeliveries(Resource):
     ) -> Result[wire.DeliveryPage]:
         """List Deliveries. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_deliveries_api_v1_subscriptions_subscription_id_deliveries_get.asyncio_detailed(
+            lambda client: list_deliveries.asyncio_detailed(
                 client=client,
                 subscription_id=self._bindings["subscription_id"],
                 limit=limit,
@@ -4634,13 +5924,11 @@ class SubscriptionsSubscriptionIdDeliveriesDeliveryId(Resource):
     async def redeliver(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.WebhookDelivery]:
         """Redeliver. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: (
-                redeliver_api_v1_subscriptions_subscription_id_deliveries_delivery_id_redeliver_post.asyncio_detailed(
-                    client=client,
-                    subscription_id=self._bindings["subscription_id"],
-                    delivery_id=self._bindings["delivery_id"],
-                    x_workspace_id=x_workspace_id,
-                )
+            lambda client: redeliver.asyncio_detailed(
+                client=client,
+                subscription_id=self._bindings["subscription_id"],
+                delivery_id=self._bindings["delivery_id"],
+                x_workspace_id=x_workspace_id,
             )
         )
 
@@ -4652,6 +5940,8 @@ class Threads(Resource):
         self,
         *,
         session_id: str | Unset | None = UNSET,
+        occurrence_id: str | Unset | None = UNSET,
+        text_query: str | Unset | None = UNSET,
         label: list[str] | Unset | None = UNSET,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
@@ -4659,9 +5949,11 @@ class Threads(Resource):
     ) -> Result[wire.ThreadPage]:
         """List Threads. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_threads_api_v1_threads_get.asyncio_detailed(
+            lambda client: list_threads.asyncio_detailed(
                 client=client,
                 session_id=session_id,
+                occurrence_id=occurrence_id,
+                text_query=text_query,
                 label=label,
                 limit=limit,
                 cursor=cursor,
@@ -4673,6 +5965,8 @@ class Threads(Resource):
         self,
         *,
         session_id: str | Unset | None = UNSET,
+        occurrence_id: str | Unset | None = UNSET,
+        text_query: str | Unset | None = UNSET,
         label: list[str] | Unset | None = UNSET,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
@@ -4682,7 +5976,13 @@ class Threads(Resource):
         label = label.copy() if isinstance(label, list) else label
         return pages(
             lambda next_cursor: self.list(
-                session_id=session_id, label=label, limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor
+                session_id=session_id,
+                occurrence_id=occurrence_id,
+                text_query=text_query,
+                label=label,
+                limit=limit,
+                x_workspace_id=x_workspace_id,
+                cursor=next_cursor,
             ),
             lambda value: value.next_cursor,
             cursor,
@@ -4692,6 +5992,8 @@ class Threads(Resource):
         self,
         *,
         session_id: str | Unset | None = UNSET,
+        occurrence_id: str | Unset | None = UNSET,
+        text_query: str | Unset | None = UNSET,
         label: list[str] | Unset | None = UNSET,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
@@ -4701,7 +6003,13 @@ class Threads(Resource):
         return (
             item
             async for page in self.pages(
-                session_id=session_id, label=label, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
+                session_id=session_id,
+                occurrence_id=occurrence_id,
+                text_query=text_query,
+                label=label,
+                limit=limit,
+                cursor=cursor,
+                x_workspace_id=x_workspace_id,
             )
             for item in page.value.items
         )
@@ -4711,7 +6019,7 @@ class Threads(Resource):
     ) -> Result[wire.Submitted]:
         """Create Thread. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: create_thread_api_v1_threads_post.asyncio_detailed(
+            lambda client: create_thread.asyncio_detailed(
                 client=client, body=body, idempotency_key=idempotency_key, x_workspace_id=x_workspace_id
             )
         )
@@ -4726,7 +6034,7 @@ class Thread(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ThreadView]:
         """Get Thread. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_thread_api_v1_threads_thread_id_get.asyncio_detailed(
+            lambda client: get_thread.asyncio_detailed(
                 client=client, thread_id=self._bindings["thread_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -4740,7 +6048,7 @@ class Thread(Resource):
     ) -> Result[wire.ThreadView]:
         """Update Thread. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: update_thread_api_v1_threads_thread_id_patch.asyncio_detailed(
+            lambda client: update_thread.asyncio_detailed(
                 client=client,
                 thread_id=self._bindings["thread_id"],
                 body=body,
@@ -4754,7 +6062,7 @@ class Thread(Resource):
     ) -> Result[wire.ThreadView]:
         """Archive Thread. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: archive_thread_api_v1_threads_thread_id_archive_post.asyncio_detailed(
+            lambda client: archive_thread.asyncio_detailed(
                 client=client, thread_id=self._bindings["thread_id"], if_match=if_match, x_workspace_id=x_workspace_id
             )
         )
@@ -4779,14 +6087,18 @@ class Thread(Resource):
     def stream(self) -> ThreadsThreadIdStream:
         return ThreadsThreadIdStream(self._client, self._bindings)
 
+    @property
+    def tool_executions(self) -> ThreadsThreadIdToolExecutions:
+        return ThreadsThreadIdToolExecutions(self._client, self._bindings)
+
 
 class ThreadsThreadIdEnvironments(Resource):
     """Bound Native resource: /threads / {thread_id} / environments."""
 
     async def list(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.MountPage]:
-        """List Mounts. One HTTP request; no automatic replay."""
+        """List Environment Mounts. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_mounts_api_v1_threads_thread_id_environments_get.asyncio_detailed(
+            lambda client: list_environment_mounts.asyncio_detailed(
                 client=client, thread_id=self._bindings["thread_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -4798,9 +6110,9 @@ class ThreadsThreadIdEnvironments(Resource):
         if_match: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> Result[wire.MountView]:
-        """Add Mount. One HTTP request; no automatic replay."""
+        """Add Environment Mount. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: add_mount_api_v1_threads_thread_id_environments_post.asyncio_detailed(
+            lambda client: add_environment_mount.asyncio_detailed(
                 client=client,
                 thread_id=self._bindings["thread_id"],
                 body=body,
@@ -4819,9 +6131,9 @@ class ThreadsThreadIdEnvironmentsName(Resource):
     async def delete(
         self, *, if_match: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
     ) -> Result[None]:
-        """Remove Mount. One HTTP request; no automatic replay."""
+        """Remove Environment Mount. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: remove_mount_api_v1_threads_thread_id_environments_name_delete.asyncio_detailed(
+            lambda client: remove_environment_mount.asyncio_detailed(
                 client=client,
                 thread_id=self._bindings["thread_id"],
                 name=self._bindings["name"],
@@ -4837,9 +6149,9 @@ class ThreadsThreadIdEnvironmentsName(Resource):
         if_match: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> Result[wire.MountView]:
-        """Update Mount. One HTTP request; no automatic replay."""
+        """Update Environment Mount. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: update_mount_api_v1_threads_thread_id_environments_name_patch.asyncio_detailed(
+            lambda client: update_environment_mount.asyncio_detailed(
                 client=client,
                 thread_id=self._bindings["thread_id"],
                 name=self._bindings["name"],
@@ -4853,57 +6165,50 @@ class ThreadsThreadIdEnvironmentsName(Resource):
 class ThreadsThreadIdInbox(Resource):
     """Bound Native resource: /threads / {thread_id} / inbox."""
 
+    @overload
     async def list(
         self,
         *,
         status: list[wire.EntryStatus] | Unset | None = UNSET,
-        limit: int | Unset = UNSET,
+        view: Literal[wire.ReadView.DETAILED] | Unset = UNSET,
+        kind: wire.ListInboxKindType0 | Unset | None = UNSET,
+        limit: int | Unset | None = UNSET,
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
-    ) -> Result[wire.EntryPage]:
+    ) -> Result[wire.EntryPage]: ...
+    @overload
+    async def list(
+        self,
+        *,
+        status: list[wire.EntryStatus] | Unset | None = UNSET,
+        view: wire.ReadView | Unset = UNSET,
+        kind: wire.ListInboxKindType0 | Unset | None = UNSET,
+        limit: int | Unset | None = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.EntryPage | wire.EntrySummaryPage]: ...
+    async def list(
+        self,
+        *,
+        status: list[wire.EntryStatus] | Unset | None = UNSET,
+        view: wire.ReadView | Unset = UNSET,
+        kind: wire.ListInboxKindType0 | Unset | None = UNSET,
+        limit: int | Unset | None = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.EntryPage | wire.EntrySummaryPage] | Result[wire.EntryPage]:
         """List Inbox. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_inbox_api_v1_threads_thread_id_inbox_get.asyncio_detailed(
+            lambda client: list_inbox.asyncio_detailed(
                 client=client,
                 thread_id=self._bindings["thread_id"],
                 status=status,
+                view=view,
+                kind=kind,
                 limit=limit,
                 cursor=cursor,
                 x_workspace_id=x_workspace_id,
             )
-        )
-
-    def pages(
-        self,
-        *,
-        status: list[wire.EntryStatus] | Unset | None = UNSET,
-        limit: int | Unset = UNSET,
-        cursor: str | Unset | None = UNSET,
-        x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[Result[wire.EntryPage]]:
-        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
-        status = status.copy() if isinstance(status, list) else status
-        return pages(
-            lambda next_cursor: self.list(
-                status=status, limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor
-            ),
-            lambda value: value.next_cursor,
-            cursor,
-        )
-
-    def iter(
-        self,
-        *,
-        status: list[wire.EntryStatus] | Unset | None = UNSET,
-        limit: int | Unset = UNSET,
-        cursor: str | Unset | None = UNSET,
-        x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[wire.EntryView]:
-        """Yield ordinary wire values lazily with a filter snapshot and server order."""
-        return (
-            item
-            async for page in self.pages(status=status, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id)
-            for item in page.value.items
         )
 
     async def create(
@@ -4911,7 +6216,7 @@ class ThreadsThreadIdInbox(Resource):
     ) -> Result[wire.Submitted]:
         """Submit Message. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: submit_message_api_v1_threads_thread_id_inbox_post.asyncio_detailed(
+            lambda client: submit_message.asyncio_detailed(
                 client=client,
                 thread_id=self._bindings["thread_id"],
                 body=body,
@@ -4936,7 +6241,7 @@ class ThreadsThreadIdInboxOrder(Resource):
     ) -> Result[wire.ThreadView]:
         """Reorder Inbox. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: reorder_inbox_api_v1_threads_thread_id_inbox_order_put.asyncio_detailed(
+            lambda client: reorder_inbox.asyncio_detailed(
                 client=client,
                 thread_id=self._bindings["thread_id"],
                 body=body,
@@ -4954,7 +6259,7 @@ class InboxEntry(Resource):
     ) -> Result[wire.Submitted]:
         """Withdraw Entry. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: withdraw_entry_api_v1_threads_thread_id_inbox_entry_id_delete.asyncio_detailed(
+            lambda client: withdraw_entry.asyncio_detailed(
                 client=client,
                 thread_id=self._bindings["thread_id"],
                 entry_id=self._bindings["entry_id"],
@@ -4963,13 +6268,53 @@ class InboxEntry(Resource):
             )
         )
 
-    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.EntryView]:
-        """Get Entry. One HTTP request; no automatic replay."""
+    @overload
+    async def get(
+        self,
+        *,
+        view: Literal[wire.ReadView.DETAILED] | Unset = UNSET,
+        section: Unset | None = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.EntryView]: ...
+    @overload
+    async def get(
+        self,
+        *,
+        view: wire.ReadView | Unset = UNSET,
+        section: wire.GetInboxEntrySectionType0 | Unset | None = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.EntrySummary | wire.EntryView | wire.TextRead]: ...
+    async def get(
+        self,
+        *,
+        view: wire.ReadView | Unset = UNSET,
+        section: wire.GetInboxEntrySectionType0 | Unset | None = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.EntrySummary | wire.EntryView | wire.TextRead] | Result[wire.EntryView]:
+        """Get Inbox Entry. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_entry_api_v1_threads_thread_id_inbox_entry_id_get.asyncio_detailed(
+            lambda client: get_inbox_entry.asyncio_detailed(
                 client=client,
                 thread_id=self._bindings["thread_id"],
                 entry_id=self._bindings["entry_id"],
+                view=view,
+                section=section,
+                offset=offset,
+                limit=limit,
+                version=version,
+                query=query,
                 x_workspace_id=x_workspace_id,
             )
         )
@@ -4983,7 +6328,7 @@ class InboxEntry(Resource):
     ) -> Result[wire.Submitted]:
         """Edit Entry. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: edit_entry_api_v1_threads_thread_id_inbox_entry_id_patch.asyncio_detailed(
+            lambda client: edit_entry.asyncio_detailed(
                 client=client,
                 thread_id=self._bindings["thread_id"],
                 entry_id=self._bindings["entry_id"],
@@ -4998,9 +6343,9 @@ class ThreadsThreadIdMemories(Resource):
     """Bound Native resource: /threads / {thread_id} / memories."""
 
     async def list(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.MemoryMountPage]:
-        """List Mounts. One HTTP request; no automatic replay."""
+        """List Memory Mounts. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_mounts_api_v1_threads_thread_id_memories_get.asyncio_detailed(
+            lambda client: list_memory_mounts.asyncio_detailed(
                 client=client, thread_id=self._bindings["thread_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -5012,9 +6357,9 @@ class ThreadsThreadIdMemories(Resource):
         if_match: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> Result[wire.MemoryMount]:
-        """Add Mount. One HTTP request; no automatic replay."""
+        """Add Memory Mount. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: add_mount_api_v1_threads_thread_id_memories_post.asyncio_detailed(
+            lambda client: add_memory_mount.asyncio_detailed(
                 client=client,
                 thread_id=self._bindings["thread_id"],
                 body=body,
@@ -5033,9 +6378,9 @@ class ThreadsThreadIdMemoriesName(Resource):
     async def delete(
         self, *, if_match: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
     ) -> Result[None]:
-        """Remove Mount. One HTTP request; no automatic replay."""
+        """Remove Memory Mount. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: remove_mount_api_v1_threads_thread_id_memories_name_delete.asyncio_detailed(
+            lambda client: remove_memory_mount.asyncio_detailed(
                 client=client,
                 thread_id=self._bindings["thread_id"],
                 name=self._bindings["name"],
@@ -5051,9 +6396,9 @@ class ThreadsThreadIdMemoriesName(Resource):
         if_match: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> Result[wire.MemoryMount]:
-        """Update Mount. One HTTP request; no automatic replay."""
+        """Update Memory Mount. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: update_mount_api_v1_threads_thread_id_memories_name_patch.asyncio_detailed(
+            lambda client: update_memory_mount.asyncio_detailed(
                 client=client,
                 thread_id=self._bindings["thread_id"],
                 name=self._bindings["name"],
@@ -5072,15 +6417,17 @@ class ThreadsThreadIdRuns(Resource):
         *,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
+        anchor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
-    ) -> Result[wire.RunPage]:
+    ) -> Result[wire.ThreadRunPage]:
         """List Thread Runs. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_thread_runs_api_v1_threads_thread_id_runs_get.asyncio_detailed(
+            lambda client: list_thread_runs.asyncio_detailed(
                 client=client,
                 thread_id=self._bindings["thread_id"],
                 limit=limit,
                 cursor=cursor,
+                anchor=anchor,
                 x_workspace_id=x_workspace_id,
             )
         )
@@ -5090,11 +6437,17 @@ class ThreadsThreadIdRuns(Resource):
         *,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
+        anchor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[Result[wire.RunPage]]:
+    ) -> AsyncIterator[Result[wire.ThreadRunPage]]:
         """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
-            lambda next_cursor: self.list(limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor),
+            lambda next_cursor: self.list(
+                limit=limit,
+                anchor=anchor if isinstance(next_cursor, Unset) or next_cursor is None else UNSET,
+                x_workspace_id=x_workspace_id,
+                cursor=next_cursor,
+            ),
             lambda value: value.next_cursor,
             cursor,
         )
@@ -5104,12 +6457,13 @@ class ThreadsThreadIdRuns(Resource):
         *,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
+        anchor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[wire.RunView]:
+    ) -> AsyncIterator[wire.RunListItem]:
         """Yield ordinary wire values lazily with a filter snapshot and server order."""
         return (
             item
-            async for page in self.pages(limit=limit, cursor=cursor, x_workspace_id=x_workspace_id)
+            async for page in self.pages(limit=limit, cursor=cursor, anchor=anchor, x_workspace_id=x_workspace_id)
             for item in page.value.items
         )
 
@@ -5127,7 +6481,7 @@ class ThreadsThreadIdStream(Resource):
     ) -> Result[Any]:
         """Thread Stream. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: thread_stream_api_v1_threads_thread_id_stream_get.asyncio_detailed(
+            lambda client: thread_stream.asyncio_detailed(
                 client=client,
                 thread_id=self._bindings["thread_id"],
                 run=run,
@@ -5147,11 +6501,150 @@ class ThreadsThreadIdStream(Resource):
     ) -> AbstractAsyncContextManager[httpx2.Response]:
         """Unbuffered response; caller checks status and consumes within the context."""
         return self._stream(
-            thread_stream_api_v1_threads_thread_id_stream_get.build_request(
+            thread_stream.build_request(
                 thread_id=self._bindings["thread_id"],
                 run=run,
                 position=position,
                 last_event_id=last_event_id,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+
+class ThreadsThreadIdToolExecutions(Resource):
+    """Bound Native resource: /threads / {thread_id} / tool-executions."""
+
+    async def list(
+        self,
+        *,
+        run_id: str | Unset | None = UNSET,
+        active: bool | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.ExecutionPage]:
+        """List Tool Executions. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: list_tool_executions.asyncio_detailed(
+                client=client,
+                thread_id=self._bindings["thread_id"],
+                run_id=run_id,
+                active=active,
+                limit=limit,
+                cursor=cursor,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    def pages(
+        self,
+        *,
+        run_id: str | Unset | None = UNSET,
+        active: bool | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[Result[wire.ExecutionPage]]:
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        return pages(
+            lambda next_cursor: self.list(
+                run_id=run_id, active=active, limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor
+            ),
+            lambda value: value.next_cursor,
+            cursor,
+        )
+
+    def iter(
+        self,
+        *,
+        run_id: str | Unset | None = UNSET,
+        active: bool | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[wire.ExecutionView]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(
+                run_id=run_id, active=active, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
+            )
+            for item in page.value.items
+        )
+
+    def __call__(self, execution_id: str) -> ThreadsThreadIdToolExecutionsExecutionId:
+        return ThreadsThreadIdToolExecutionsExecutionId(self._client, self._bind("execution_id", execution_id))
+
+
+class ThreadsThreadIdToolExecutionsExecutionId(Resource):
+    """Bound Native resource: /threads / {thread_id} / tool-executions / {execution_id}."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ExecutionView]:
+        """Get Tool Execution. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_tool_execution.asyncio_detailed(
+                client=client,
+                thread_id=self._bindings["thread_id"],
+                execution_id=self._bindings["execution_id"],
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    async def cancel(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ExecutionView]:
+        """Cancel Tool Execution. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: cancel_tool_execution.asyncio_detailed(
+                client=client,
+                thread_id=self._bindings["thread_id"],
+                execution_id=self._bindings["execution_id"],
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    @property
+    def observation(self) -> ThreadsThreadIdToolExecutionsExecutionIdObservation:
+        return ThreadsThreadIdToolExecutionsExecutionIdObservation(self._client, self._bindings)
+
+    @property
+    def result(self) -> ThreadsThreadIdToolExecutionsExecutionIdResult:
+        return ThreadsThreadIdToolExecutionsExecutionIdResult(self._client, self._bindings)
+
+
+class ThreadsThreadIdToolExecutionsExecutionIdObservation(Resource):
+    """Bound Native resource: /threads / {thread_id} / tool-executions / {execution_id} / observation."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ExecutionObservation]:
+        """Observe Tool Execution. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: observe_tool_execution.asyncio_detailed(
+                client=client,
+                thread_id=self._bindings["thread_id"],
+                execution_id=self._bindings["execution_id"],
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+
+class ThreadsThreadIdToolExecutionsExecutionIdResult(Resource):
+    """Bound Native resource: /threads / {thread_id} / tool-executions / {execution_id} / result."""
+
+    async def get(
+        self,
+        *,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.TextRead]:
+        """Get Tool Execution Result. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_tool_execution_result.asyncio_detailed(
+                client=client,
+                thread_id=self._bindings["thread_id"],
+                execution_id=self._bindings["execution_id"],
+                offset=offset,
+                limit=limit,
+                version=version,
                 x_workspace_id=x_workspace_id,
             )
         )
@@ -5163,8 +6656,60 @@ class Toolsets(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ToolsetCatalog]:
         """List Toolsets. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_toolsets_api_v1_toolsets_get.asyncio_detailed(
-                client=client, x_workspace_id=x_workspace_id
+            lambda client: list_toolsets.asyncio_detailed(client=client, x_workspace_id=x_workspace_id)
+        )
+
+    @property
+    def definitions(self) -> ToolsetsDefinitions:
+        return ToolsetsDefinitions(self._client, self._bindings)
+
+    @property
+    def index(self) -> ToolsetsIndex:
+        return ToolsetsIndex(self._client, self._bindings)
+
+
+class ToolsetsDefinitions(Resource):
+    """Bound Native resource: /toolsets / definitions."""
+
+    async def get(
+        self,
+        *,
+        name: list[str],
+        offset: int | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.Definitions | wire.TextRead]:
+        """Define Toolsets. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: define_toolsets.asyncio_detailed(
+                client=client,
+                name=name,
+                offset=offset,
+                limit=limit,
+                version=version,
+                query=query,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+
+class ToolsetsIndex(Resource):
+    """Bound Native resource: /toolsets / index."""
+
+    async def get(
+        self,
+        *,
+        query: str | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.CatalogIndex]:
+        """Index Toolsets. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: index_toolsets.asyncio_detailed(
+                client=client, query=query, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
             )
         )
 
@@ -5175,15 +6720,14 @@ class TraceBackend(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.TraceBackend]:
         """Get Trace Backend. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_trace_backend_api_v1_trace_backend_get.asyncio_detailed(
-                client=client, x_workspace_id=x_workspace_id
-            )
+            lambda client: get_trace_backend.asyncio_detailed(client=client, x_workspace_id=x_workspace_id)
         )
 
 
 class Traces(Resource):
     """Bound Native resource: /traces."""
 
+    @overload
     async def list(
         self,
         *,
@@ -5193,13 +6737,52 @@ class Traces(Resource):
         attribute: list[str] | Unset | None = UNSET,
         started_after: datetime.datetime | Unset | None = UNSET,
         started_before: datetime.datetime | Unset | None = UNSET,
-        limit: int | Unset = UNSET,
+        view: Literal[wire.ReadView.DETAILED] | Unset = UNSET,
+        status: wire.ListTracesStatusType0 | Unset | None = UNSET,
+        kind: str | Unset | None = UNSET,
+        tool_name: str | Unset | None = UNSET,
+        limit: int | Unset | None = UNSET,
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
-    ) -> Result[wire.SpanPage]:
+    ) -> Result[wire.SpanPage]: ...
+    @overload
+    async def list(
+        self,
+        *,
+        session_id: str | Unset | None = UNSET,
+        thread_id: str | Unset | None = UNSET,
+        run_id: str | Unset | None = UNSET,
+        attribute: list[str] | Unset | None = UNSET,
+        started_after: datetime.datetime | Unset | None = UNSET,
+        started_before: datetime.datetime | Unset | None = UNSET,
+        view: wire.ReadView | Unset = UNSET,
+        status: wire.ListTracesStatusType0 | Unset | None = UNSET,
+        kind: str | Unset | None = UNSET,
+        tool_name: str | Unset | None = UNSET,
+        limit: int | Unset | None = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.SpanPage | wire.SpanReadPage]: ...
+    async def list(
+        self,
+        *,
+        session_id: str | Unset | None = UNSET,
+        thread_id: str | Unset | None = UNSET,
+        run_id: str | Unset | None = UNSET,
+        attribute: list[str] | Unset | None = UNSET,
+        started_after: datetime.datetime | Unset | None = UNSET,
+        started_before: datetime.datetime | Unset | None = UNSET,
+        view: wire.ReadView | Unset = UNSET,
+        status: wire.ListTracesStatusType0 | Unset | None = UNSET,
+        kind: str | Unset | None = UNSET,
+        tool_name: str | Unset | None = UNSET,
+        limit: int | Unset | None = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.SpanPage | wire.SpanReadPage] | Result[wire.SpanPage]:
         """List Traces. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_traces_api_v1_traces_get.asyncio_detailed(
+            lambda client: list_traces.asyncio_detailed(
                 client=client,
                 session_id=session_id,
                 thread_id=thread_id,
@@ -5207,6 +6790,62 @@ class Traces(Resource):
                 attribute=attribute,
                 started_after=started_after,
                 started_before=started_before,
+                view=view,
+                status=status,
+                kind=kind,
+                tool_name=tool_name,
+                limit=limit,
+                cursor=cursor,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    @property
+    def search(self) -> TracesSearch:
+        return TracesSearch(self._client, self._bindings)
+
+    def __call__(self, trace_id: str) -> TracesTraceId:
+        return TracesTraceId(self._client, self._bind("trace_id", trace_id))
+
+
+class TracesSearch(Resource):
+    """Bound Native resource: /traces / search."""
+
+    async def list(
+        self,
+        *,
+        session_id: str | Unset | None = UNSET,
+        thread_id: str | Unset | None = UNSET,
+        run_id: str | Unset | None = UNSET,
+        attribute: list[str] | Unset = UNSET,
+        started_after: datetime.datetime,
+        started_before: datetime.datetime,
+        order_by: wire.SearchTracesOrderBy | Unset = UNSET,
+        direction: wire.SearchTracesDirection | Unset = UNSET,
+        min_duration_seconds: float | str | Unset | None = UNSET,
+        max_duration_seconds: float | str | Unset | None = UNSET,
+        min_cost_usd: float | str | Unset | None = UNSET,
+        max_cost_usd: float | str | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.TraceSearchPage]:
+        """Search Traces. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: search_traces.asyncio_detailed(
+                client=client,
+                session_id=session_id,
+                thread_id=thread_id,
+                run_id=run_id,
+                attribute=attribute,
+                started_after=started_after,
+                started_before=started_before,
+                order_by=order_by,
+                direction=direction,
+                min_duration_seconds=min_duration_seconds,
+                max_duration_seconds=max_duration_seconds,
+                min_cost_usd=min_cost_usd,
+                max_cost_usd=max_cost_usd,
                 limit=limit,
                 cursor=cursor,
                 x_workspace_id=x_workspace_id,
@@ -5219,13 +6858,19 @@ class Traces(Resource):
         session_id: str | Unset | None = UNSET,
         thread_id: str | Unset | None = UNSET,
         run_id: str | Unset | None = UNSET,
-        attribute: list[str] | Unset | None = UNSET,
-        started_after: datetime.datetime | Unset | None = UNSET,
-        started_before: datetime.datetime | Unset | None = UNSET,
+        attribute: list[str] | Unset = UNSET,
+        started_after: datetime.datetime,
+        started_before: datetime.datetime,
+        order_by: wire.SearchTracesOrderBy | Unset = UNSET,
+        direction: wire.SearchTracesDirection | Unset = UNSET,
+        min_duration_seconds: float | str | Unset | None = UNSET,
+        max_duration_seconds: float | str | Unset | None = UNSET,
+        min_cost_usd: float | str | Unset | None = UNSET,
+        max_cost_usd: float | str | Unset | None = UNSET,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[Result[wire.SpanPage]]:
+    ) -> AsyncIterator[Result[wire.TraceSearchPage]]:
         """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         attribute = attribute.copy() if isinstance(attribute, list) else attribute
         return pages(
@@ -5236,6 +6881,12 @@ class Traces(Resource):
                 attribute=attribute,
                 started_after=started_after,
                 started_before=started_before,
+                order_by=order_by,
+                direction=direction,
+                min_duration_seconds=min_duration_seconds,
+                max_duration_seconds=max_duration_seconds,
+                min_cost_usd=min_cost_usd,
+                max_cost_usd=max_cost_usd,
                 limit=limit,
                 x_workspace_id=x_workspace_id,
                 cursor=next_cursor,
@@ -5250,13 +6901,19 @@ class Traces(Resource):
         session_id: str | Unset | None = UNSET,
         thread_id: str | Unset | None = UNSET,
         run_id: str | Unset | None = UNSET,
-        attribute: list[str] | Unset | None = UNSET,
-        started_after: datetime.datetime | Unset | None = UNSET,
-        started_before: datetime.datetime | Unset | None = UNSET,
+        attribute: list[str] | Unset = UNSET,
+        started_after: datetime.datetime,
+        started_before: datetime.datetime,
+        order_by: wire.SearchTracesOrderBy | Unset = UNSET,
+        direction: wire.SearchTracesDirection | Unset = UNSET,
+        min_duration_seconds: float | str | Unset | None = UNSET,
+        max_duration_seconds: float | str | Unset | None = UNSET,
+        min_cost_usd: float | str | Unset | None = UNSET,
+        max_cost_usd: float | str | Unset | None = UNSET,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[wire.Span]:
+    ) -> AsyncIterator[wire.TraceSearchItem]:
         """Yield ordinary wire values lazily with a filter snapshot and server order."""
         return (
             item
@@ -5267,6 +6924,12 @@ class Traces(Resource):
                 attribute=attribute,
                 started_after=started_after,
                 started_before=started_before,
+                order_by=order_by,
+                direction=direction,
+                min_duration_seconds=min_duration_seconds,
+                max_duration_seconds=max_duration_seconds,
+                min_cost_usd=min_cost_usd,
+                max_cost_usd=max_cost_usd,
                 limit=limit,
                 cursor=cursor,
                 x_workspace_id=x_workspace_id,
@@ -5274,18 +6937,57 @@ class Traces(Resource):
             for item in page.value.items
         )
 
-    def __call__(self, trace_id: str) -> TracesTraceId:
-        return TracesTraceId(self._client, self._bind("trace_id", trace_id))
-
 
 class TracesTraceId(Resource):
     """Bound Native resource: /traces / {trace_id}."""
 
-    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Span]:
+    @overload
+    async def get(
+        self,
+        *,
+        view: Literal[wire.ReadView.DETAILED] | Unset = UNSET,
+        section: Unset | None = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.Span]: ...
+    @overload
+    async def get(
+        self,
+        *,
+        view: wire.ReadView | Unset = UNSET,
+        section: wire.GetTraceSectionType0 | Unset | None = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.Span | wire.SpanSummary | wire.TextRead]: ...
+    async def get(
+        self,
+        *,
+        view: wire.ReadView | Unset = UNSET,
+        section: wire.GetTraceSectionType0 | Unset | None = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.Span | wire.SpanSummary | wire.TextRead] | Result[wire.Span]:
         """Get Trace. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_trace_api_v1_traces_trace_id_get.asyncio_detailed(
-                client=client, trace_id=self._bindings["trace_id"], x_workspace_id=x_workspace_id
+            lambda client: get_trace.asyncio_detailed(
+                client=client,
+                trace_id=self._bindings["trace_id"],
+                view=view,
+                section=section,
+                offset=offset,
+                limit=limit,
+                version=version,
+                query=query,
+                x_workspace_id=x_workspace_id,
             )
         )
 
@@ -5297,20 +6999,105 @@ class TracesTraceId(Resource):
 class TracesTraceIdSpans(Resource):
     """Bound Native resource: /traces / {trace_id} / spans."""
 
+    @overload
     async def list(
         self,
         *,
-        limit: int | Unset = UNSET,
+        view: wire.ListTraceSpansView | Unset = UNSET,
+        status: wire.ListTraceSpansStatusType0 | Unset | None = UNSET,
+        kind: str | Unset | None = UNSET,
+        tool_name: str | Unset | None = UNSET,
+        limit: int | Unset | None = UNSET,
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
-    ) -> Result[wire.SpanPage]:
+    ) -> Result[wire.SpanPage]: ...
+    @overload
+    async def list(
+        self,
+        *,
+        view: wire.ListTraceSpansView | Unset = UNSET,
+        status: wire.ListTraceSpansStatusType0 | Unset | None = UNSET,
+        kind: str | Unset | None = UNSET,
+        tool_name: str | Unset | None = UNSET,
+        limit: int | Unset | None = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.SpanPage | wire.SpanReadPage]: ...
+    async def list(
+        self,
+        *,
+        view: wire.ListTraceSpansView | Unset = UNSET,
+        status: wire.ListTraceSpansStatusType0 | Unset | None = UNSET,
+        kind: str | Unset | None = UNSET,
+        tool_name: str | Unset | None = UNSET,
+        limit: int | Unset | None = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.SpanPage | wire.SpanReadPage] | Result[wire.SpanPage]:
         """List Trace Spans. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_trace_spans_api_v1_traces_trace_id_spans_get.asyncio_detailed(
+            lambda client: list_trace_spans.asyncio_detailed(
                 client=client,
                 trace_id=self._bindings["trace_id"],
+                view=view,
+                status=status,
+                kind=kind,
+                tool_name=tool_name,
                 limit=limit,
                 cursor=cursor,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    def __call__(self, span_id: str) -> TracesTraceIdSpansSpanId:
+        return TracesTraceIdSpansSpanId(self._client, self._bind("span_id", span_id))
+
+
+class TracesTraceIdSpansSpanId(Resource):
+    """Bound Native resource: /traces / {trace_id} / spans / {span_id}."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Span]:
+        """Get Trace Span. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_trace_span.asyncio_detailed(
+                client=client,
+                trace_id=self._bindings["trace_id"],
+                span_id=self._bindings["span_id"],
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    @property
+    def content(self) -> TracesTraceIdSpansSpanIdContent:
+        return TracesTraceIdSpansSpanIdContent(self._client, self._bindings)
+
+
+class TracesTraceIdSpansSpanIdContent(Resource):
+    """Bound Native resource: /traces / {trace_id} / spans / {span_id} / content."""
+
+    async def list(
+        self,
+        *,
+        section: wire.ReadSpanContentSection | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.SpanContentPage]:
+        """Read Span Content. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: read_span_content.asyncio_detailed(
+                client=client,
+                trace_id=self._bindings["trace_id"],
+                span_id=self._bindings["span_id"],
+                section=section,
+                cursor=cursor,
+                offset=offset,
+                limit=limit,
+                version=version,
+                query=query,
                 x_workspace_id=x_workspace_id,
             )
         )
@@ -5318,13 +7105,25 @@ class TracesTraceIdSpans(Resource):
     def pages(
         self,
         *,
-        limit: int | Unset = UNSET,
+        section: wire.ReadSpanContentSection | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[Result[wire.SpanPage]]:
+    ) -> AsyncIterator[Result[wire.SpanContentPage]]:
         """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
-            lambda next_cursor: self.list(limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor),
+            lambda next_cursor: self.list(
+                section=section,
+                offset=offset,
+                limit=limit,
+                version=version,
+                query=query,
+                x_workspace_id=x_workspace_id,
+                cursor=next_cursor,
+            ),
             lambda value: value.next_cursor,
             cursor,
         )
@@ -5332,14 +7131,26 @@ class TracesTraceIdSpans(Resource):
     def iter(
         self,
         *,
-        limit: int | Unset = UNSET,
+        section: wire.ReadSpanContentSection | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
+        offset: int | Unset = UNSET,
+        limit: int | Unset = UNSET,
+        version: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[wire.Span]:
+    ) -> AsyncIterator[wire.TextRead]:
         """Yield ordinary wire values lazily with a filter snapshot and server order."""
         return (
             item
-            async for page in self.pages(limit=limit, cursor=cursor, x_workspace_id=x_workspace_id)
+            async for page in self.pages(
+                section=section,
+                cursor=cursor,
+                offset=offset,
+                limit=limit,
+                version=version,
+                query=query,
+                x_workspace_id=x_workspace_id,
+            )
             for item in page.value.items
         )
 
@@ -5352,7 +7163,7 @@ class Uploads(Resource):
     ) -> Result[wire.Upload]:
         """Create Upload. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: create_upload_api_v1_uploads_post.asyncio_detailed(
+            lambda client: create_upload.asyncio_detailed(
                 client=client, body=body, idempotency_key=idempotency_key, x_workspace_id=x_workspace_id
             )
         )
@@ -5373,7 +7184,7 @@ class Usage(Resource):
     ) -> Result[wire.UsageSummary]:
         """Summarize Usage. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: summarize_usage_api_v1_usage_get.asyncio_detailed(
+            lambda client: summarize_usage.asyncio_detailed(
                 client=client,
                 run_id=run_id,
                 thread_id=thread_id,
@@ -5419,7 +7230,7 @@ class UsageAgents(Resource):
     ) -> Result[wire.AgentUsagePage]:
         """Usage Agents. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: usage_agents_api_v1_usage_agents_get.asyncio_detailed(
+            lambda client: usage_agents.asyncio_detailed(
                 client=client, start=start, end=end, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
             )
         )
@@ -5474,7 +7285,7 @@ class UsageContext(Resource):
     ) -> Result[wire.ContextUsage | None]:
         """Context Usage. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: context_usage_api_v1_usage_context_get.asyncio_detailed(
+            lambda client: context_usage.asyncio_detailed(
                 client=client, thread_id=thread_id, run_id=run_id, record_id=record_id, x_workspace_id=x_workspace_id
             )
         )
@@ -5494,7 +7305,7 @@ class UsageModels(Resource):
     ) -> Result[wire.ModelUsagePage]:
         """Usage Models. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: usage_models_api_v1_usage_models_get.asyncio_detailed(
+            lambda client: usage_models.asyncio_detailed(
                 client=client, start=start, end=end, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
             )
         )
@@ -5549,7 +7360,7 @@ class UsageOverview(Resource):
     ) -> Result[wire.UsageOverview]:
         """Usage Overview. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: usage_overview_api_v1_usage_overview_get.asyncio_detailed(
+            lambda client: usage_overview.asyncio_detailed(
                 client=client, start=start, end=end, timezone=timezone, x_workspace_id=x_workspace_id
             )
         )
@@ -5576,7 +7387,7 @@ class UsageRecordsRecordIdMetrics(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ModelRequestMetrics]:
         """Model Request Metrics. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: model_request_metrics_api_v1_usage_records_record_id_metrics_get.asyncio_detailed(
+            lambda client: model_request_metrics.asyncio_detailed(
                 client=client, record_id=self._bindings["record_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -5598,14 +7409,12 @@ class UsersMe(Resource):
 
     async def get(self) -> Result[wire.Profile]:
         """Get Profile. One HTTP request; no automatic replay."""
-        return await self._call(lambda client: get_profile_api_v1_users_me_get.asyncio_detailed(client=client))
+        return await self._call(lambda client: get_profile.asyncio_detailed(client=client))
 
     async def update(self, *, body: wire.ProfileUpdate, if_match: str | Unset | None = UNSET) -> Result[wire.Profile]:
         """Update Profile. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: update_profile_api_v1_users_me_patch.asyncio_detailed(
-                client=client, body=body, if_match=if_match
-            )
+            lambda client: update_profile.asyncio_detailed(client=client, body=body, if_match=if_match)
         )
 
     @property
@@ -5618,9 +7427,7 @@ class UsersMe(Resource):
 
     async def disable(self, *, body: wire.AccountDisable) -> Result[None]:
         """Disable Account. One HTTP request; no automatic replay."""
-        return await self._call(
-            lambda client: disable_account_api_v1_users_me_disable_post.asyncio_detailed(client=client, body=body)
-        )
+        return await self._call(lambda client: disable_account.asyncio_detailed(client=client, body=body))
 
     @property
     def keys(self) -> UsersMeKeys:
@@ -5632,9 +7439,7 @@ class UsersMe(Resource):
 
     async def password(self, *, body: wire.PasswordChange) -> Result[None]:
         """Change Password. One HTTP request; no automatic replay."""
-        return await self._call(
-            lambda client: change_password_api_v1_users_me_password_post.asyncio_detailed(client=client, body=body)
-        )
+        return await self._call(lambda client: change_password.asyncio_detailed(client=client, body=body))
 
 
 class UsersMeAuditEvents(Resource):
@@ -5643,9 +7448,7 @@ class UsersMeAuditEvents(Resource):
     async def list(self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET) -> Result[wire.AuditPage]:
         """List Account Audit Events. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_account_audit_events_api_v1_users_me_audit_events_get.asyncio_detailed(
-                client=client, limit=limit, cursor=cursor
-            )
+            lambda client: list_account_audit_events.asyncio_detailed(client=client, limit=limit, cursor=cursor)
         )
 
     def pages(
@@ -5665,19 +7468,13 @@ class UsersMeAvatar(Resource):
     """Bound Native resource: /users / me / avatar."""
 
     async def delete(self, *, if_match: str | Unset | None = UNSET) -> Result[wire.Profile]:
-        """Delete Avatar. One HTTP request; no automatic replay."""
-        return await self._call(
-            lambda client: delete_avatar_api_v1_users_me_avatar_delete.asyncio_detailed(
-                client=client, if_match=if_match
-            )
-        )
+        """Delete User Avatar. One HTTP request; no automatic replay."""
+        return await self._call(lambda client: delete_user_avatar.asyncio_detailed(client=client, if_match=if_match))
 
     async def replace(self, *, body: File, if_match: str | Unset | None = UNSET) -> Result[wire.Profile]:
-        """Put Avatar. One HTTP request; no automatic replay."""
+        """Put User Avatar. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: put_avatar_api_v1_users_me_avatar_put.asyncio_detailed(
-                client=client, body=body, if_match=if_match
-            )
+            lambda client: put_user_avatar.asyncio_detailed(client=client, body=body, if_match=if_match)
         )
 
 
@@ -5693,7 +7490,7 @@ class UsersMeKeys(Resource):
     ) -> Result[wire.ApiKeyPage]:
         """List User Keys. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_user_keys_api_v1_users_me_keys_get.asyncio_detailed(
+            lambda client: list_user_keys.asyncio_detailed(
                 client=client, workspace_id=workspace_id, limit=limit, cursor=cursor
             )
         )
@@ -5728,9 +7525,7 @@ class UsersMeKeys(Resource):
 
     async def create(self, *, body: wire.UserKeyCreate) -> Result[wire.IssuedKey]:
         """Create User Key. One HTTP request; no automatic replay."""
-        return await self._call(
-            lambda client: create_user_key_api_v1_users_me_keys_post.asyncio_detailed(client=client, body=body)
-        )
+        return await self._call(lambda client: create_user_key.asyncio_detailed(client=client, body=body))
 
     def __call__(self, key_id: str) -> UsersMeKeysKeyId:
         return UsersMeKeysKeyId(self._client, self._bind("key_id", key_id))
@@ -5742,7 +7537,7 @@ class UsersMeKeysKeyId(Resource):
     async def delete(self, *, if_match: str | Unset | None = UNSET) -> Result[wire.ApiKey]:
         """Revoke User Key. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: revoke_user_key_api_v1_users_me_keys_key_id_delete.asyncio_detailed(
+            lambda client: revoke_user_key.asyncio_detailed(
                 client=client, key_id=self._bindings["key_id"], if_match=if_match
             )
         )
@@ -5756,9 +7551,7 @@ class UsersMeLoginSessions(Resource):
     ) -> Result[wire.LoginSessionPage]:
         """List Login Sessions. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_login_sessions_api_v1_users_me_login_sessions_get.asyncio_detailed(
-                client=client, limit=limit, cursor=cursor
-            )
+            lambda client: list_login_sessions.asyncio_detailed(client=client, limit=limit, cursor=cursor)
         )
 
     def pages(
@@ -5785,9 +7578,7 @@ class UsersMeLoginSessionsSessionId(Resource):
     async def delete(self) -> Result[None]:
         """Revoke Login Session. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: revoke_login_session_api_v1_users_me_login_sessions_session_id_delete.asyncio_detailed(
-                client=client, session_id=self._bindings["session_id"]
-            )
+            lambda client: revoke_login_session.asyncio_detailed(client=client, session_id=self._bindings["session_id"])
         )
 
 
@@ -5803,16 +7594,14 @@ class UsersUserIdAvatar(Resource):
     """Bound Native resource: /users / {user_id} / avatar."""
 
     async def get(self) -> Result[File]:
-        """Get Avatar. One HTTP request; no automatic replay."""
+        """Get User Avatar. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_avatar_api_v1_users_user_id_avatar_get.asyncio_detailed(
-                client=client, user_id=self._bindings["user_id"]
-            )
+            lambda client: get_user_avatar.asyncio_detailed(client=client, user_id=self._bindings["user_id"])
         )
 
     def get_stream(self) -> AbstractAsyncContextManager[httpx2.Response]:
         """Unbuffered response; caller checks status and consumes within the context."""
-        return self._stream(get_avatar_api_v1_users_user_id_avatar_get.build_request(user_id=self._bindings["user_id"]))
+        return self._stream(get_user_avatar.build_request(user_id=self._bindings["user_id"]))
 
 
 class WebProviders(Resource):
@@ -5827,7 +7616,7 @@ class WebProviders(Resource):
     ) -> Result[wire.ProviderPage]:
         """List web providers. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_providers_api_v1_web_providers_get.asyncio_detailed(
+            lambda client: list_web_providers.asyncio_detailed(
                 client=client, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
             )
         )
@@ -5865,9 +7654,7 @@ class WebProviders(Resource):
     ) -> Result[wire.Provider]:
         """Create web provider. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: create_provider_api_v1_web_providers_post.asyncio_detailed(
-                client=client, body=body, x_workspace_id=x_workspace_id
-            )
+            lambda client: create_web_provider.asyncio_detailed(client=client, body=body, x_workspace_id=x_workspace_id)
         )
 
     def __call__(self, provider_id: str) -> WebProvidersProviderId:
@@ -5880,7 +7667,7 @@ class WebProvidersProviderId(Resource):
     async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Provider]:
         """Get web provider. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_provider_api_v1_web_providers_provider_id_get.asyncio_detailed(
+            lambda client: get_web_provider.asyncio_detailed(
                 client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -5894,7 +7681,7 @@ class WebProvidersProviderId(Resource):
     ) -> Result[wire.Provider]:
         """Update web provider. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: update_provider_api_v1_web_providers_provider_id_patch.asyncio_detailed(
+            lambda client: update_web_provider.asyncio_detailed(
                 client=client,
                 provider_id=self._bindings["provider_id"],
                 body=body,
@@ -5906,7 +7693,7 @@ class WebProvidersProviderId(Resource):
     async def test(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ProviderTest]:
         """Test web provider. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: test_provider_api_v1_web_providers_provider_id_test_post.asyncio_detailed(
+            lambda client: test_web_provider.asyncio_detailed(
                 client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
             )
         )
@@ -5920,9 +7707,7 @@ class Workspaces(Resource):
     ) -> Result[wire.WorkspacePage]:
         """List Workspaces. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_workspaces_api_v1_workspaces_get.asyncio_detailed(
-                client=client, limit=limit, cursor=cursor
-            )
+            lambda client: list_workspaces.asyncio_detailed(client=client, limit=limit, cursor=cursor)
         )
 
     def pages(
@@ -5947,9 +7732,7 @@ class Workspace(Resource):
     async def get(self) -> Result[wire.Workspace]:
         """Get Workspace. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_workspace_api_v1_workspaces_workspace_id_get.asyncio_detailed(
-                client=client, workspace_id=self._bindings["workspace_id"]
-            )
+            lambda client: get_workspace.asyncio_detailed(client=client, workspace_id=self._bindings["workspace_id"])
         )
 
     async def update(
@@ -5957,7 +7740,7 @@ class Workspace(Resource):
     ) -> Result[wire.Workspace]:
         """Update Workspace. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: update_workspace_api_v1_workspaces_workspace_id_patch.asyncio_detailed(
+            lambda client: update_workspace.asyncio_detailed(
                 client=client, workspace_id=self._bindings["workspace_id"], body=body, if_match=if_match
             )
         )
@@ -5965,7 +7748,7 @@ class Workspace(Resource):
     async def archive(self, *, if_match: str | Unset | None = UNSET) -> Result[wire.Workspace]:
         """Archive Workspace. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: archive_workspace_api_v1_workspaces_workspace_id_archive_post.asyncio_detailed(
+            lambda client: archive_workspace.asyncio_detailed(
                 client=client, workspace_id=self._bindings["workspace_id"], if_match=if_match
             )
         )
@@ -6001,7 +7784,7 @@ class WorkspacesWorkspaceIdAuditEvents(Resource):
     async def list(self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET) -> Result[wire.AuditPage]:
         """List Workspace Audit Events. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_workspace_audit_events_api_v1_workspaces_workspace_id_audit_events_get.asyncio_detailed(
+            lambda client: list_workspace_audit_events.asyncio_detailed(
                 client=client, workspace_id=self._bindings["workspace_id"], limit=limit, cursor=cursor
             )
         )
@@ -6025,7 +7808,7 @@ class WorkspacesWorkspaceIdGrants(Resource):
     async def list(self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET) -> Result[wire.GrantPage]:
         """List Workspace Grants. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_workspace_grants_api_v1_workspaces_workspace_id_grants_get.asyncio_detailed(
+            lambda client: list_workspace_grants.asyncio_detailed(
                 client=client, workspace_id=self._bindings["workspace_id"], limit=limit, cursor=cursor
             )
         )
@@ -6045,7 +7828,7 @@ class WorkspacesWorkspaceIdGrants(Resource):
     async def create(self, *, body: wire.GrantCreate) -> Result[wire.GrantView]:
         """Create Workspace Grant. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: create_workspace_grant_api_v1_workspaces_workspace_id_grants_post.asyncio_detailed(
+            lambda client: create_workspace_grant.asyncio_detailed(
                 client=client, workspace_id=self._bindings["workspace_id"], body=body
             )
         )
@@ -6060,17 +7843,15 @@ class WorkspacesWorkspaceIdGrantsGrantId(Resource):
     async def delete(self) -> Result[None]:
         """Delete Workspace Grant. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: (
-                delete_workspace_grant_api_v1_workspaces_workspace_id_grants_grant_id_delete.asyncio_detailed(
-                    client=client, workspace_id=self._bindings["workspace_id"], grant_id=self._bindings["grant_id"]
-                )
+            lambda client: delete_workspace_grant.asyncio_detailed(
+                client=client, workspace_id=self._bindings["workspace_id"], grant_id=self._bindings["grant_id"]
             )
         )
 
     async def update(self, *, body: wire.GrantUpdate) -> Result[wire.GrantView]:
         """Change Workspace Grant. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: change_workspace_grant_api_v1_workspaces_workspace_id_grants_grant_id_patch.asyncio_detailed(
+            lambda client: change_workspace_grant.asyncio_detailed(
                 client=client,
                 workspace_id=self._bindings["workspace_id"],
                 grant_id=self._bindings["grant_id"],
@@ -6085,7 +7866,7 @@ class WorkspacesWorkspaceIdIcon(Resource):
     async def delete(self, *, if_match: str | Unset | None = UNSET) -> Result[wire.Workspace]:
         """Delete Workspace Icon. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: delete_workspace_icon_api_v1_workspaces_workspace_id_icon_delete.asyncio_detailed(
+            lambda client: delete_workspace_icon.asyncio_detailed(
                 client=client, workspace_id=self._bindings["workspace_id"], if_match=if_match
             )
         )
@@ -6093,23 +7874,19 @@ class WorkspacesWorkspaceIdIcon(Resource):
     async def get(self) -> Result[File]:
         """Get Workspace Icon. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: get_workspace_icon_api_v1_workspaces_workspace_id_icon_get.asyncio_detailed(
+            lambda client: get_workspace_icon.asyncio_detailed(
                 client=client, workspace_id=self._bindings["workspace_id"]
             )
         )
 
     def get_stream(self) -> AbstractAsyncContextManager[httpx2.Response]:
         """Unbuffered response; caller checks status and consumes within the context."""
-        return self._stream(
-            get_workspace_icon_api_v1_workspaces_workspace_id_icon_get.build_request(
-                workspace_id=self._bindings["workspace_id"]
-            )
-        )
+        return self._stream(get_workspace_icon.build_request(workspace_id=self._bindings["workspace_id"]))
 
     async def replace(self, *, body: File, if_match: str | Unset | None = UNSET) -> Result[wire.Workspace]:
         """Put Workspace Icon. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: put_workspace_icon_api_v1_workspaces_workspace_id_icon_put.asyncio_detailed(
+            lambda client: put_workspace_icon.asyncio_detailed(
                 client=client, workspace_id=self._bindings["workspace_id"], body=body, if_match=if_match
             )
         )
@@ -6123,7 +7900,7 @@ class WorkspacesWorkspaceIdInvitations(Resource):
     ) -> Result[wire.InvitationPage]:
         """List Workspace Invitations. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_workspace_invitations_api_v1_workspaces_workspace_id_invitations_get.asyncio_detailed(
+            lambda client: list_workspace_invitations.asyncio_detailed(
                 client=client, workspace_id=self._bindings["workspace_id"], limit=limit, cursor=cursor
             )
         )
@@ -6143,7 +7920,7 @@ class WorkspacesWorkspaceIdInvitations(Resource):
     async def create(self, *, body: wire.InvitationCreate) -> Result[wire.InvitationReceipt]:
         """Create Workspace Invitation. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: create_workspace_invitation_api_v1_workspaces_workspace_id_invitations_post.asyncio_detailed(
+            lambda client: create_workspace_invitation.asyncio_detailed(
                 client=client, workspace_id=self._bindings["workspace_id"], body=body
             )
         )
@@ -6158,26 +7935,22 @@ class WorkspacesWorkspaceIdInvitationsInvitationId(Resource):
     async def resend(self, *, if_match: str | Unset | None = UNSET) -> Result[wire.InvitationReceipt]:
         """Resend Workspace Invitation. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: (
-                resend_workspace_invitation_api_v1_workspaces_workspace_id_invitations_invitation_id_resend_post.asyncio_detailed(
-                    client=client,
-                    workspace_id=self._bindings["workspace_id"],
-                    invitation_id=self._bindings["invitation_id"],
-                    if_match=if_match,
-                )
+            lambda client: resend_workspace_invitation.asyncio_detailed(
+                client=client,
+                workspace_id=self._bindings["workspace_id"],
+                invitation_id=self._bindings["invitation_id"],
+                if_match=if_match,
             )
         )
 
     async def revoke(self, *, if_match: str | Unset | None = UNSET) -> Result[wire.Invitation]:
         """Revoke Workspace Invitation. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: (
-                revoke_workspace_invitation_api_v1_workspaces_workspace_id_invitations_invitation_id_revoke_post.asyncio_detailed(
-                    client=client,
-                    workspace_id=self._bindings["workspace_id"],
-                    invitation_id=self._bindings["invitation_id"],
-                    if_match=if_match,
-                )
+            lambda client: revoke_workspace_invitation.asyncio_detailed(
+                client=client,
+                workspace_id=self._bindings["workspace_id"],
+                invitation_id=self._bindings["invitation_id"],
+                if_match=if_match,
             )
         )
 
@@ -6194,7 +7967,7 @@ class WorkspacesWorkspaceIdKeys(Resource):
     ) -> Result[wire.ApiKeyPage]:
         """List Workspace Keys. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_workspace_keys_api_v1_workspaces_workspace_id_keys_get.asyncio_detailed(
+            lambda client: list_workspace_keys.asyncio_detailed(
                 client=client,
                 workspace_id=self._bindings["workspace_id"],
                 principal_id=principal_id,
@@ -6241,7 +8014,7 @@ class WorkspacesWorkspaceIdKeysKeyId(Resource):
     async def delete(self, *, if_match: str | Unset | None = UNSET) -> Result[wire.ApiKey]:
         """Revoke Workspace Key. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: revoke_workspace_key_api_v1_workspaces_workspace_id_keys_key_id_delete.asyncio_detailed(
+            lambda client: revoke_workspace_key.asyncio_detailed(
                 client=client,
                 workspace_id=self._bindings["workspace_id"],
                 key_id=self._bindings["key_id"],
@@ -6258,7 +8031,7 @@ class WorkspacesWorkspaceIdServiceAccounts(Resource):
     ) -> Result[wire.ServiceAccountPage]:
         """List Service Accounts. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_service_accounts_api_v1_workspaces_workspace_id_service_accounts_get.asyncio_detailed(
+            lambda client: list_service_accounts.asyncio_detailed(
                 client=client, workspace_id=self._bindings["workspace_id"], limit=limit, cursor=cursor
             )
         )
@@ -6280,7 +8053,7 @@ class WorkspacesWorkspaceIdServiceAccounts(Resource):
     async def create(self, *, body: wire.ServiceAccountCreate) -> Result[wire.ServiceAccount]:
         """Create Service Account. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: create_service_account_api_v1_workspaces_workspace_id_service_accounts_post.asyncio_detailed(
+            lambda client: create_service_account.asyncio_detailed(
                 client=client, workspace_id=self._bindings["workspace_id"], body=body
             )
         )
@@ -6295,23 +8068,19 @@ class WorkspacesWorkspaceIdServiceAccountsAccountId(Resource):
     async def delete(self, *, if_match: str | Unset | None = UNSET) -> Result[wire.ServiceAccount]:
         """Delete Service Account. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: (
-                delete_service_account_api_v1_workspaces_workspace_id_service_accounts_account_id_delete.asyncio_detailed(
-                    client=client,
-                    workspace_id=self._bindings["workspace_id"],
-                    account_id=self._bindings["account_id"],
-                    if_match=if_match,
-                )
+            lambda client: delete_service_account.asyncio_detailed(
+                client=client,
+                workspace_id=self._bindings["workspace_id"],
+                account_id=self._bindings["account_id"],
+                if_match=if_match,
             )
         )
 
     async def get(self) -> Result[wire.ServiceAccount]:
         """Get Service Account. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: (
-                get_service_account_api_v1_workspaces_workspace_id_service_accounts_account_id_get.asyncio_detailed(
-                    client=client, workspace_id=self._bindings["workspace_id"], account_id=self._bindings["account_id"]
-                )
+            lambda client: get_service_account.asyncio_detailed(
+                client=client, workspace_id=self._bindings["workspace_id"], account_id=self._bindings["account_id"]
             )
         )
 
@@ -6320,14 +8089,12 @@ class WorkspacesWorkspaceIdServiceAccountsAccountId(Resource):
     ) -> Result[wire.ServiceAccount]:
         """Update Service Account. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: (
-                update_service_account_api_v1_workspaces_workspace_id_service_accounts_account_id_patch.asyncio_detailed(
-                    client=client,
-                    workspace_id=self._bindings["workspace_id"],
-                    account_id=self._bindings["account_id"],
-                    body=body,
-                    if_match=if_match,
-                )
+            lambda client: update_service_account.asyncio_detailed(
+                client=client,
+                workspace_id=self._bindings["workspace_id"],
+                account_id=self._bindings["account_id"],
+                body=body,
+                if_match=if_match,
             )
         )
 
@@ -6342,14 +8109,12 @@ class WorkspacesWorkspaceIdServiceAccountsAccountIdKeys(Resource):
     async def list(self, *, limit: int | Unset = UNSET, cursor: str | Unset | None = UNSET) -> Result[wire.ApiKeyPage]:
         """List Service Account Keys. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: (
-                list_service_account_keys_api_v1_workspaces_workspace_id_service_accounts_account_id_keys_get.asyncio_detailed(
-                    client=client,
-                    workspace_id=self._bindings["workspace_id"],
-                    account_id=self._bindings["account_id"],
-                    limit=limit,
-                    cursor=cursor,
-                )
+            lambda client: list_service_account_keys.asyncio_detailed(
+                client=client,
+                workspace_id=self._bindings["workspace_id"],
+                account_id=self._bindings["account_id"],
+                limit=limit,
+                cursor=cursor,
             )
         )
 
@@ -6368,13 +8133,11 @@ class WorkspacesWorkspaceIdServiceAccountsAccountIdKeys(Resource):
     async def create(self, *, body: wire.KeyCreate) -> Result[wire.IssuedKey]:
         """Create Service Account Key. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: (
-                create_service_account_key_api_v1_workspaces_workspace_id_service_accounts_account_id_keys_post.asyncio_detailed(
-                    client=client,
-                    workspace_id=self._bindings["workspace_id"],
-                    account_id=self._bindings["account_id"],
-                    body=body,
-                )
+            lambda client: create_service_account_key.asyncio_detailed(
+                client=client,
+                workspace_id=self._bindings["workspace_id"],
+                account_id=self._bindings["account_id"],
+                body=body,
             )
         )
 
@@ -6382,9 +8145,9 @@ class WorkspacesWorkspaceIdServiceAccountsAccountIdKeys(Resource):
 class Healthz(Resource):
     """Bound Native resource: /healthz."""
 
-    async def get(self) -> Result[wire.HealthHealthzGetResponseHealthHealthzGet]:
+    async def get(self) -> Result[wire.HealthResponseHealth]:
         """Health. One HTTP request; no automatic replay."""
-        return await self._call(lambda client: health_healthz_get.asyncio_detailed(client=client))
+        return await self._call(lambda client: health.asyncio_detailed(client=client))
 
 
 class Readyz(Resource):
@@ -6392,4 +8155,4 @@ class Readyz(Resource):
 
     async def get(self) -> Result[Any]:
         """Ready. One HTTP request; no automatic replay."""
-        return await self._call(lambda client: ready_readyz_get.asyncio_detailed(client=client))
+        return await self._call(lambda client: ready.asyncio_detailed(client=client))

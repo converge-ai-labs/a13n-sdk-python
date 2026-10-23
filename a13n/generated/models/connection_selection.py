@@ -4,6 +4,7 @@ from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, Literal, TypeVar, cast
 
 from attrs import define as _attrs_define
+from attrs import field as _attrs_field
 
 from ..models.tool_permission_mode import ToolPermissionMode
 from ..types import UNSET, Unset
@@ -17,26 +18,23 @@ T = TypeVar("T", bound="ConnectionSelection")
 
 @_attrs_define(repr=False)
 class ConnectionSelection:
-    """An agent's use of one connection: all the tools it exposes, or a subset, and their permissions.
+    """An agent's selected tools and permissions.
 
     Attributes:
         connection_id (str):
-        defer_loading (bool | Unset):
         permission (Literal['inherit'] | ToolPermissionMode | Unset):
         permissions (ConnectionSelectionPermissions | Unset):
         tools (list[str] | None | Unset):
     """
 
     connection_id: str
-    defer_loading: bool | Unset = UNSET
     permission: Literal["inherit"] | ToolPermissionMode | Unset = UNSET
     permissions: ConnectionSelectionPermissions | Unset = UNSET
     tools: list[str] | Unset | None = UNSET
+    additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         connection_id = self.connection_id
-
-        defer_loading = self.defer_loading
 
         permission: Literal["inherit"] | str | Unset
         if isinstance(self.permission, Unset):
@@ -60,14 +58,12 @@ class ConnectionSelection:
             tools = self.tools
 
         field_dict: dict[str, Any] = {}
-
+        field_dict.update(self.additional_properties)
         field_dict.update(
             {
                 "connection_id": connection_id,
             }
         )
-        if defer_loading is not UNSET:
-            field_dict["defer_loading"] = defer_loading
         if permission is not UNSET:
             field_dict["permission"] = permission
         if permissions is not UNSET:
@@ -83,8 +79,6 @@ class ConnectionSelection:
 
         d = dict(src_dict)
         connection_id = d.pop("connection_id")
-
-        defer_loading = d.pop("defer_loading", UNSET)
 
         def _parse_permission(data: object) -> Literal["inherit"] | ToolPermissionMode | Unset:
             if isinstance(data, Unset):
@@ -132,10 +126,26 @@ class ConnectionSelection:
 
         connection_selection = cls(
             connection_id=connection_id,
-            defer_loading=defer_loading,
             permission=permission,
             permissions=permissions,
             tools=tools,
         )
 
+        connection_selection.additional_properties = d
         return connection_selection
+
+    @property
+    def additional_keys(self) -> list[str]:
+        return list(self.additional_properties.keys())
+
+    def __getitem__(self, key: str) -> Any:
+        return self.additional_properties[key]
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        self.additional_properties[key] = value
+
+    def __delitem__(self, key: str) -> None:
+        del self.additional_properties[key]
+
+    def __contains__(self, key: str) -> bool:
+        return key in self.additional_properties

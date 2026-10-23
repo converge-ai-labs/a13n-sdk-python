@@ -14,6 +14,15 @@ class LifecycleKind(StrEnum):
     RUN_FAILED = "run.failed"
     RUN_RUNNING = "run.running"
     RUN_WAITING = "run.waiting"
+    SCHEDULE_ARCHIVED = "schedule.archived"
+    SCHEDULE_COMPLETED = "schedule.completed"
+    SCHEDULE_ENABLED = "schedule.enabled"
+    SCHEDULE_OCCURRENCE_CANCELLED = "schedule_occurrence.cancelled"
+    SCHEDULE_OCCURRENCE_COMPLETED = "schedule_occurrence.completed"
+    SCHEDULE_OCCURRENCE_FAILED = "schedule_occurrence.failed"
+    SCHEDULE_OCCURRENCE_SKIPPED = "schedule_occurrence.skipped"
+    SCHEDULE_OCCURRENCE_SUBMITTED = "schedule_occurrence.submitted"
+    SCHEDULE_PAUSED = "schedule.paused"
 
     def __str__(self) -> str:
         return str(self.value)

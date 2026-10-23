@@ -13,20 +13,20 @@ T = TypeVar("T", bound="ContextUsage")
 
 @_attrs_define(repr=False)
 class ContextUsage:
-    """One reported generation, compared with its currently configured window.
+    """A Run's configured window and its latest eligible generation, when available.
 
     Attributes:
         context_window_tokens (int | None):
         input_tokens (int | None):
         output_tokens (int | None):
-        record_id (str):
+        record_id (None | str):
         run_id (str):
     """
 
     context_window_tokens: int | None
     input_tokens: int | None
     output_tokens: int | None
-    record_id: str
+    record_id: str | None
     run_id: str
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -40,6 +40,7 @@ class ContextUsage:
         output_tokens: int | None
         output_tokens = self.output_tokens
 
+        record_id: str | None
         record_id = self.record_id
 
         run_id = self.run_id
@@ -85,7 +86,12 @@ class ContextUsage:
 
         output_tokens = _parse_output_tokens(d.pop("output_tokens"))
 
-        record_id = d.pop("record_id")
+        def _parse_record_id(data: object) -> str | None:
+            if data is None:
+                return data
+            return cast(str | None, data)
+
+        record_id = _parse_record_id(d.pop("record_id"))
 
         run_id = d.pop("run_id")
 

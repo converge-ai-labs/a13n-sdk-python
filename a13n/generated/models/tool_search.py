@@ -9,8 +9,7 @@ from ..._validation import validate_model
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
-    from ..models.native_tool_search_config import NativeToolSearchConfig
-    from ..models.proxy_tool_search_config import ProxyToolSearchConfig
+    from ..models.tool_search_config import ToolSearchConfig
     from ..models.tool_search_groups import ToolSearchGroups
 
 
@@ -22,22 +21,16 @@ class ToolSearch:
     """Presentation of already-selected sources, composed by Harness once per agent.
 
     Attributes:
-        config (NativeToolSearchConfig | ProxyToolSearchConfig | Unset):
+        config (ToolSearchConfig | Unset): Names and bounded discovery settings for one Agent's proxy surface.
         groups (ToolSearchGroups | Unset):
     """
 
-    config: NativeToolSearchConfig | ProxyToolSearchConfig | Unset = UNSET
+    config: ToolSearchConfig | Unset = UNSET
     groups: ToolSearchGroups | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.proxy_tool_search_config import ProxyToolSearchConfig
-
-        config: dict[str, Any] | Unset
-        if isinstance(self.config, Unset):
-            config = UNSET
-        elif isinstance(self.config, ProxyToolSearchConfig):
-            config = self.config.to_dict()
-        else:
+        config: dict[str, Any] | Unset = UNSET
+        if not isinstance(self.config, Unset):
             config = self.config.to_dict()
 
         groups: dict[str, Any] | Unset = UNSET
@@ -58,30 +51,16 @@ class ToolSearch:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         validate_model("ToolSearch", src_dict)
-        from ..models.native_tool_search_config import NativeToolSearchConfig
-        from ..models.proxy_tool_search_config import ProxyToolSearchConfig
+        from ..models.tool_search_config import ToolSearchConfig
         from ..models.tool_search_groups import ToolSearchGroups
 
         d = dict(src_dict)
-
-        def _parse_config(data: object) -> NativeToolSearchConfig | ProxyToolSearchConfig | Unset:
-            if isinstance(data, Unset):
-                return data
-            try:
-                if not isinstance(data, dict):
-                    raise TypeError()
-                componentsschemas_tool_search_config_type_0 = ProxyToolSearchConfig.from_dict(data)
-
-                return componentsschemas_tool_search_config_type_0
-            except (TypeError, ValueError, AttributeError, KeyError):
-                pass
-            if not isinstance(data, dict):
-                raise TypeError()
-            componentsschemas_tool_search_config_type_1 = NativeToolSearchConfig.from_dict(data)
-
-            return componentsschemas_tool_search_config_type_1
-
-        config = _parse_config(d.pop("config", UNSET))
+        _config = d.pop("config", UNSET)
+        config: ToolSearchConfig | Unset
+        if isinstance(_config, Unset):
+            config = UNSET
+        else:
+            config = ToolSearchConfig.from_dict(_config)
 
         _groups = d.pop("groups", UNSET)
         groups: ToolSearchGroups | Unset

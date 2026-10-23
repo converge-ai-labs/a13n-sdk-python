@@ -31,7 +31,7 @@ Discovery returns `ProviderModel` choices, preserving the original `slug` and `d
 
 Service's default skill policy is shared publication (`mode=shared`, `overwrite=true`, `cleanup=false`); opt-in isolated policy uses `mode=isolated`, `cache_count=128`. A Run override replaces the whole block, and omitted members use that mode's native defaults. Shared overwrite/cleanup acts on mutable conventional skill names; isolated packages use digest directories and a soft count budget, with zero disabling trimming. The SDK preserves the policy and performs no publication, cache management or migration.
 
-`AgentOverride.builtin_skills` selects instance-local instructions independently of `platform_tools`, whose native `PlatformSelection` chooses MCP groups and read/write permissions. The SDK preserves omission, null and empty selections without granting tenant authority or installing local tools. `PresetKind` distinguishes Composer, Finding and memory-organizer presets; presets use ordinary Agent revisions and Runs.
+`AgentOverride.builtin_skills` selects instruction bundles while preserving omission, null and empty selections. Service owns tool admission and authorization; instruction selection grants no authority.
 
 ## Computer and Environment Authority
 
@@ -43,7 +43,7 @@ Environment Provider `references.get()` returns counts and bounded reference sam
 
 ## Tool Discovery Configuration
 
-Agent revisions and Run overrides expose generated `ToolSearch(config=..., groups=...)`. `config` discriminates strict `NativeToolSearchConfig(mode="native", strategy=...)` and `ProxyToolSearchConfig(mode="proxy", ...)` shapes; mixed properties and unknown modes fail at serialization/deserialization. Native strategy may be omitted, null, `bm25` or `regex`. Groups map names to `ToolSearchGroup` descriptions and selected connection/plugin/platform sources. Selection grants no new source authority. The Service/Harness owns discovery execution and provider support.
+Agent revisions and Run overrides expose generated `ToolSearch` with a strict proxy-only `ToolSearchConfig`. Omitted configuration and `{}` use Service defaults; null configuration and retired native strategy fields are invalid. Groups select already admitted Connection, plugin, platform and capability sources. Service owns discovery execution and validation.
 
 Omitted or null `tool_search` retains revision configuration; an explicit block replaces the whole block, without recursive merging. Omitted config/groups retains its native defaults; `groups={}` disables grouping. The SDK preserves omitted members, explicit null and empty maps and adds no provider fallback.
 

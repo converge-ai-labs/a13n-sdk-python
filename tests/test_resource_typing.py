@@ -173,7 +173,7 @@ def test_ordinal_paging_rejects_obsolete_fields_and_cursor_facade_typing(tmp_pat
     )
     report = run_pyright(source)
     assert report["returncode"] == 1
-    assert len(report["generalDiagnostics"]) == 4
+    assert {d["range"]["start"]["line"] for d in report["generalDiagnostics"]} == {3, 4, 5, 6}
 
 
 def test_root_only_workflow_values_and_resume_typing(tmp_path: Path) -> None:
@@ -271,7 +271,7 @@ def test_shared_memory_computer_and_execution_typing(tmp_path: Path) -> None:
     source.write_text("""from a13n import Client, AgentOverride, MountCreate, MemoryMount, RunOptions
 from a13n.generated import models as wire
 async def use(client: Client) -> None:
-    options = RunOptions(overrides=AgentOverride(builtin_skills=['platform-operations'], platform_tools={'groups': ['execution']}))
+    options = RunOptions(overrides=AgentOverride(builtin_skills=['platform-operations']))
     mount = MountCreate('work', 'env', permission_ceiling={'operations': []})
     created: wire.MemorySpace = (await client.api.memory_spaces.create(body=wire.MemorySpaceCreate(name='Notes'))).value
     space = client.api.memory_spaces(created.id)
@@ -341,7 +341,7 @@ def test_session_native_reader_and_frame_payload_typing(tmp_path: Path) -> None:
         "    elif frame.event_type == 'delta':\n"
         "        sequence: int = frame.data.sequence\n"
         "        print(frame.data.event.to_dict())\n"
-        "    else:\n"
+        "    elif frame.event_type == 'gap':\n"
         "        run_id: str = frame.data.run_id\n"
         "async def use(client: Client) -> None:\n"
         "    async with client.api.sessions('ses').stream.get_stream() as response:\n"
@@ -377,10 +377,10 @@ def test_desktop_tool_search_context_typing(tmp_path: Path) -> None:
         "from a13n import Client, AgentOverride, RunOptions, Unset\n"
         "from a13n.generated import models as wire\n"
         "async def use(client: Client) -> None:\n"
-        "    search = wire.ToolSearch(config=wire.NativeToolSearchConfig(mode='native', strategy=None),\n"
+        "    search = wire.ToolSearch(config=wire.ToolSearchConfig(mode='proxy'),\n"
         "        groups=wire.ToolSearchGroups())\n"
         "    config = wire.AgentConfigInput(model='model', tool_search=search)\n"
-        "    proxy = wire.ToolSearch(config=wire.ProxyToolSearchConfig(mode='proxy', max_results=0))\n"
+        "    proxy = wire.ToolSearch(config=wire.ToolSearchConfig(mode='proxy', max_results=0))\n"
         "    options = RunOptions(overrides=AgentOverride(tool_search=proxy))\n"
         "    usage: wire.ContextUsage | None = (await client.api.usage.context.get(record_id='record')).value\n"
         "    if usage is not None:\n"
@@ -410,7 +410,7 @@ def test_desktop_tool_search_context_typing_rejects_mixed_shapes_and_unchecked_n
         "    wire.NativeToolSearchConfig(mode='proxy')\n"
         "    wire.NativeToolSearchConfig(mode='native', search_name='mixed')\n"
         "    wire.NativeToolSearchConfig(mode='native', strategy='invalid')\n"
-        "    wire.ProxyToolSearchConfig(mode='proxy', strategy='bm25')\n"
+        "    wire.ToolSearchConfig(mode='proxy', strategy='bm25')\n"
         "    AgentOverride(tool_search='json string')\n"
         "    wire.Control(session_id='browser_session_token_1234', epoch='0')\n"
         "    usage = (await client.api.usage.context.get(run_id='run')).value\n"

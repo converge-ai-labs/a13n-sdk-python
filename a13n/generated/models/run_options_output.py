@@ -9,6 +9,7 @@ from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.agent_override_output import AgentOverrideOutput
+    from ..models.execution_override import ExecutionOverride
     from ..models.run_configuration_output import RunConfigurationOutput
     from ..models.run_options_output_labels import RunOptionsOutputLabels
     from ..models.usage_limit import UsageLimit
@@ -23,18 +24,21 @@ class RunOptionsOutput:
 
     Attributes:
         configuration (None | RunConfigurationOutput | Unset):
+        execution (ExecutionOverride | None | Unset):
         labels (RunOptionsOutputLabels | Unset):
         max_usage (None | Unset | UsageLimit):
         overrides (AgentOverrideOutput | None | Unset):
     """
 
     configuration: RunConfigurationOutput | Unset | None = UNSET
+    execution: ExecutionOverride | Unset | None = UNSET
     labels: RunOptionsOutputLabels | Unset = UNSET
     max_usage: Unset | UsageLimit | None = UNSET
     overrides: AgentOverrideOutput | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
         from ..models.agent_override_output import AgentOverrideOutput
+        from ..models.execution_override import ExecutionOverride
         from ..models.run_configuration_output import RunConfigurationOutput
         from ..models.usage_limit import UsageLimit
 
@@ -45,6 +49,14 @@ class RunOptionsOutput:
             configuration = self.configuration.to_dict()
         else:
             configuration = self.configuration
+
+        execution: dict[str, Any] | Unset | None
+        if isinstance(self.execution, Unset):
+            execution = UNSET
+        elif isinstance(self.execution, ExecutionOverride):
+            execution = self.execution.to_dict()
+        else:
+            execution = self.execution
 
         labels: dict[str, Any] | Unset = UNSET
         if not isinstance(self.labels, Unset):
@@ -71,6 +83,8 @@ class RunOptionsOutput:
         field_dict.update({})
         if configuration is not UNSET:
             field_dict["configuration"] = configuration
+        if execution is not UNSET:
+            field_dict["execution"] = execution
         if labels is not UNSET:
             field_dict["labels"] = labels
         if max_usage is not UNSET:
@@ -83,6 +97,7 @@ class RunOptionsOutput:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.agent_override_output import AgentOverrideOutput
+        from ..models.execution_override import ExecutionOverride
         from ..models.run_configuration_output import RunConfigurationOutput
         from ..models.run_options_output_labels import RunOptionsOutputLabels
         from ..models.usage_limit import UsageLimit
@@ -105,6 +120,23 @@ class RunOptionsOutput:
             return cast(RunConfigurationOutput | Unset | None, data)
 
         configuration = _parse_configuration(d.pop("configuration", UNSET))
+
+        def _parse_execution(data: object) -> ExecutionOverride | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                execution_type_0 = ExecutionOverride.from_dict(data)
+
+                return execution_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(ExecutionOverride | Unset | None, data)
+
+        execution = _parse_execution(d.pop("execution", UNSET))
 
         _labels = d.pop("labels", UNSET)
         labels: RunOptionsOutputLabels | Unset
@@ -149,6 +181,7 @@ class RunOptionsOutput:
 
         run_options_output = cls(
             configuration=configuration,
+            execution=execution,
             labels=labels,
             max_usage=max_usage,
             overrides=overrides,

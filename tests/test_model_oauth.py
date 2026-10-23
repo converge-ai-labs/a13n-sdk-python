@@ -22,7 +22,7 @@ STATUS = {
 
 
 @pytest.mark.parametrize("session", [False, True])
-@pytest.mark.parametrize("method", ["manual_callback", "browser_callback"])
+@pytest.mark.parametrize("method", ["manual_callback"])
 def test_generated_oauth_graph_preserves_scope_status_nullable_data_and_auth(session: bool, method: str) -> None:
     async def scenario() -> None:
         seen: list[tuple[str, str]] = []

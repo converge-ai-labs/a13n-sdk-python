@@ -97,14 +97,13 @@ def test_all_non_null_override_fields_remain_selectable_with_canonical_wire_valu
         "model_characteristics": {},
         "model_settings": {"extra_body": {"false": False, "zero": 0, "null": None}},
         "output_spec": {"schema": {"type": "object"}},
-        "platform_tools": {"groups": [], "read_permission": "deny", "write_permission": "ask"},
         "plugins": [],
         "retries": {},
         "reviewer": {"model": "review-model"},
         "skill_sync": {"mode": "isolated", "cache_count": 0},
         "skills": [],
         "subagents": {},
-        "tool_search": wire.ToolSearch(config=wire.NativeToolSearchConfig(mode="native")),
+        "tool_search": wire.ToolSearch(config=wire.ToolSearchConfig(mode="proxy")),
         "toolsets": {},
     }
     assert set(values) == {field.name for field in fields(AgentOverride)}

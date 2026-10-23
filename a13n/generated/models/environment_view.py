@@ -7,8 +7,12 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
+from ..types import UNSET, Unset
+
 if TYPE_CHECKING:
     from ..models.environment_failure import EnvironmentFailure
+    from ..models.environment_view_metrics_labels import EnvironmentViewMetricsLabels
+    from ..models.metrics_application import MetricsApplication
 
 
 T = TypeVar("T", bound="EnvironmentView")
@@ -36,6 +40,9 @@ class EnvironmentView:
         updated_at (datetime.datetime):
         version (int):
         workspace_id (str):
+        metrics_application (MetricsApplication | None | Unset):
+        metrics_data_source_id (None | str | Unset):
+        metrics_labels (EnvironmentViewMetricsLabels | Unset):
     """
 
     created_at: datetime.datetime
@@ -56,10 +63,14 @@ class EnvironmentView:
     updated_at: datetime.datetime
     version: int
     workspace_id: str
+    metrics_application: MetricsApplication | Unset | None = UNSET
+    metrics_data_source_id: str | Unset | None = UNSET
+    metrics_labels: EnvironmentViewMetricsLabels | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         from ..models.environment_failure import EnvironmentFailure
+        from ..models.metrics_application import MetricsApplication
 
         created_at = self.created_at.isoformat()
 
@@ -115,6 +126,24 @@ class EnvironmentView:
 
         workspace_id = self.workspace_id
 
+        metrics_application: dict[str, Any] | Unset | None
+        if isinstance(self.metrics_application, Unset):
+            metrics_application = UNSET
+        elif isinstance(self.metrics_application, MetricsApplication):
+            metrics_application = self.metrics_application.to_dict()
+        else:
+            metrics_application = self.metrics_application
+
+        metrics_data_source_id: str | Unset | None
+        if isinstance(self.metrics_data_source_id, Unset):
+            metrics_data_source_id = UNSET
+        else:
+            metrics_data_source_id = self.metrics_data_source_id
+
+        metrics_labels: dict[str, Any] | Unset = UNSET
+        if not isinstance(self.metrics_labels, Unset):
+            metrics_labels = self.metrics_labels.to_dict()
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -139,12 +168,20 @@ class EnvironmentView:
                 "workspace_id": workspace_id,
             }
         )
+        if metrics_application is not UNSET:
+            field_dict["metrics_application"] = metrics_application
+        if metrics_data_source_id is not UNSET:
+            field_dict["metrics_data_source_id"] = metrics_data_source_id
+        if metrics_labels is not UNSET:
+            field_dict["metrics_labels"] = metrics_labels
 
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.environment_failure import EnvironmentFailure
+        from ..models.environment_view_metrics_labels import EnvironmentViewMetricsLabels
+        from ..models.metrics_application import MetricsApplication
 
         d = dict(src_dict)
         created_at = datetime.datetime.fromisoformat(d.pop("created_at"))
@@ -252,6 +289,39 @@ class EnvironmentView:
 
         workspace_id = d.pop("workspace_id")
 
+        def _parse_metrics_application(data: object) -> MetricsApplication | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                metrics_application_type_0 = MetricsApplication.from_dict(data)
+
+                return metrics_application_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(MetricsApplication | Unset | None, data)
+
+        metrics_application = _parse_metrics_application(d.pop("metrics_application", UNSET))
+
+        def _parse_metrics_data_source_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        metrics_data_source_id = _parse_metrics_data_source_id(d.pop("metrics_data_source_id", UNSET))
+
+        _metrics_labels = d.pop("metrics_labels", UNSET)
+        metrics_labels: EnvironmentViewMetricsLabels | Unset
+        if isinstance(_metrics_labels, Unset):
+            metrics_labels = UNSET
+        else:
+            metrics_labels = EnvironmentViewMetricsLabels.from_dict(_metrics_labels)
+
         environment_view = cls(
             created_at=created_at,
             created_by_id=created_by_id,
@@ -271,6 +341,9 @@ class EnvironmentView:
             updated_at=updated_at,
             version=version,
             workspace_id=workspace_id,
+            metrics_application=metrics_application,
+            metrics_data_source_id=metrics_data_source_id,
+            metrics_labels=metrics_labels,
         )
 
         environment_view.additional_properties = d

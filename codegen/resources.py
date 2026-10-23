@@ -159,8 +159,36 @@ def generate_resources(document: dict, output: Path) -> None:
         call_args += [f"{arg.arg}={arg.arg}" for arg, _ in exposed]
         call = ", ".join(["client=client", *call_args])
         request = f"await self._call(lambda client: {alias}.asyncio_detailed({call}))"
+        overloads = []
+        implementation_result = result
+        view = next((p for p in op.get("parameters", []) if p["name"] == "view"), {})
+        detailed = (
+            successful[0]
+            .get("content", {})
+            .get("application/json", {})
+            .get("schema", {})
+            .get("anyOf", [{}])[0]
+            .get("$ref")
+            if successful
+            else None
+        )
+        if view.get("schema", {}).get("default") == "detailed" and detailed:
+            imports.add("from typing import Literal, overload")
+            detailed_name = detailed.rsplit("/", 1)[-1]
+            detailed_signature = signature.replace(
+                "view: wire.ReadView | Unset", "view: Literal[wire.ReadView.DETAILED] | Unset"
+            )
+            detailed_signature = re.sub(r"section: [^=,]+", "section: None | Unset ", detailed_signature)
+            implementation_result = f"{result} | Result[wire.{detailed_name}]"
+            overloads = [
+                "    @overload",
+                f"    async def {name}({detailed_signature}) -> Result[wire.{detailed_name}]: ...",
+                "    @overload",
+                f"    async def {name}({signature}) -> {result}: ...",
+            ]
         lines = [
-            f"    async def {name}({signature}) -> {result}:",
+            *overloads,
+            f"    async def {name}({signature}) -> {implementation_result}:",
             f'        """{op.get("summary", alias)}. One HTTP request; no automatic replay."""',
             f"        return {request}",
             "",
@@ -172,6 +200,12 @@ def generate_resources(document: dict, output: Path) -> None:
             model_file = next((p for p in models.glob("*.py") if f"class {raw_result}:" in p.read_text()), None)
             if model_file and "next_cursor:" in model_file.read_text():
                 page_args = [f"{arg.arg}={arg.arg}" for arg, _ in exposed if arg.arg != "cursor"]
+                page_args = [
+                    "anchor=anchor if isinstance(next_cursor, Unset) or next_cursor is None else UNSET"
+                    if value == "anchor=anchor"
+                    else value
+                    for value in page_args
+                ]
                 page_args.append("cursor=next_cursor")
                 snapshots = [
                     f"        {arg.arg} = {arg.arg}.copy() if isinstance({arg.arg}, list) else {arg.arg}"
@@ -255,6 +289,8 @@ def generate_resources(document: dict, output: Path) -> None:
                 if code.startswith("2")
                 for marker in ("Collection", "Page")
             )
+            if segments == ("runs", "{run_id}", "items"):
+                is_collection = False
             method_name = ("list" if is_collection else "get") if verb == "get" else VERBS[verb]
             members.add(method_name)
             lines += method(node, verb, op, segments, method_name)

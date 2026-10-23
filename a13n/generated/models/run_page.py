@@ -7,7 +7,7 @@ from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
 if TYPE_CHECKING:
-    from ..models.run_view import RunView
+    from ..models.run_list_item import RunListItem
 
 
 T = TypeVar("T", bound="RunPage")
@@ -17,11 +17,11 @@ T = TypeVar("T", bound="RunPage")
 class RunPage:
     """
     Attributes:
-        items (list[RunView]):
+        items (list[RunListItem]):
         next_cursor (None | str):
     """
 
-    items: list[RunView]
+    items: list[RunListItem]
     next_cursor: str | None
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -47,13 +47,13 @@ class RunPage:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.run_view import RunView
+        from ..models.run_list_item import RunListItem
 
         d = dict(src_dict)
         items = []
         _items = d.pop("items")
         for items_item_data in _items:
-            items_item = RunView.from_dict(items_item_data)
+            items_item = RunListItem.from_dict(items_item_data)
 
             items.append(items_item)
 

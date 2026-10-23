@@ -6,6 +6,7 @@ from typing import Any, TypeVar, cast
 from attrs import define as _attrs_define
 
 from ..._validation import validate_model
+from ..models.tool_search_group_capabilities_item import ToolSearchGroupCapabilitiesItem
 from ..types import UNSET, Unset
 
 T = TypeVar("T", bound="ToolSearchGroup")
@@ -16,18 +17,27 @@ class ToolSearchGroup:
     """
     Attributes:
         description (str):
+        capabilities (list[ToolSearchGroupCapabilitiesItem] | Unset):
         connections (list[str] | Unset):
         platform (bool | Unset):
         plugins (list[str] | Unset):
     """
 
     description: str
+    capabilities: list[ToolSearchGroupCapabilitiesItem] | Unset = UNSET
     connections: list[str] | Unset = UNSET
     platform: bool | Unset = UNSET
     plugins: list[str] | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
         description = self.description
+
+        capabilities: list[str] | Unset = UNSET
+        if not isinstance(self.capabilities, Unset):
+            capabilities = []
+            for capabilities_item_data in self.capabilities:
+                capabilities_item = capabilities_item_data.value
+                capabilities.append(capabilities_item)
 
         connections: list[str] | Unset = UNSET
         if not isinstance(self.connections, Unset):
@@ -46,6 +56,8 @@ class ToolSearchGroup:
                 "description": description,
             }
         )
+        if capabilities is not UNSET:
+            field_dict["capabilities"] = capabilities
         if connections is not UNSET:
             field_dict["connections"] = connections
         if platform is not UNSET:
@@ -62,6 +74,15 @@ class ToolSearchGroup:
         d = dict(src_dict)
         description = d.pop("description")
 
+        _capabilities = d.pop("capabilities", UNSET)
+        capabilities: list[ToolSearchGroupCapabilitiesItem] | Unset = UNSET
+        if _capabilities is not UNSET:
+            capabilities = []
+            for capabilities_item_data in _capabilities:
+                capabilities_item = ToolSearchGroupCapabilitiesItem(capabilities_item_data)
+
+                capabilities.append(capabilities_item)
+
         connections = cast(list[str], d.pop("connections", UNSET))
 
         platform = d.pop("platform", UNSET)
@@ -70,6 +91,7 @@ class ToolSearchGroup:
 
         tool_search_group = cls(
             description=description,
+            capabilities=capabilities,
             connections=connections,
             platform=platform,
             plugins=plugins,

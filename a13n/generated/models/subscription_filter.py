@@ -12,15 +12,17 @@ T = TypeVar("T", bound="SubscriptionFilter")
 
 @_attrs_define(repr=False)
 class SubscriptionFilter:
-    """Absent fields match every run.
+    """Absent fields match every event; a specified identity must exist and match.
 
     Attributes:
         agent_id (None | str | Unset):
+        schedule_id (None | str | Unset):
         session_id (None | str | Unset):
         thread_id (None | str | Unset):
     """
 
     agent_id: str | Unset | None = UNSET
+    schedule_id: str | Unset | None = UNSET
     session_id: str | Unset | None = UNSET
     thread_id: str | Unset | None = UNSET
 
@@ -30,6 +32,12 @@ class SubscriptionFilter:
             agent_id = UNSET
         else:
             agent_id = self.agent_id
+
+        schedule_id: str | Unset | None
+        if isinstance(self.schedule_id, Unset):
+            schedule_id = UNSET
+        else:
+            schedule_id = self.schedule_id
 
         session_id: str | Unset | None
         if isinstance(self.session_id, Unset):
@@ -48,6 +56,8 @@ class SubscriptionFilter:
         field_dict.update({})
         if agent_id is not UNSET:
             field_dict["agent_id"] = agent_id
+        if schedule_id is not UNSET:
+            field_dict["schedule_id"] = schedule_id
         if session_id is not UNSET:
             field_dict["session_id"] = session_id
         if thread_id is not UNSET:
@@ -67,6 +77,15 @@ class SubscriptionFilter:
             return cast(str | Unset | None, data)
 
         agent_id = _parse_agent_id(d.pop("agent_id", UNSET))
+
+        def _parse_schedule_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        schedule_id = _parse_schedule_id(d.pop("schedule_id", UNSET))
 
         def _parse_session_id(data: object) -> str | Unset | None:
             if data is None:
@@ -88,6 +107,7 @@ class SubscriptionFilter:
 
         subscription_filter = cls(
             agent_id=agent_id,
+            schedule_id=schedule_id,
             session_id=session_id,
             thread_id=thread_id,
         )

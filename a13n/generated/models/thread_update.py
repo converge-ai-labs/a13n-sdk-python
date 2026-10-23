@@ -8,6 +8,7 @@ from attrs import define as _attrs_define
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
+    from ..models.execution_override import ExecutionOverride
     from ..models.mcp_headers import McpHeaders
     from ..models.thread_update_labels_type_0 import ThreadUpdateLabelsType0
 
@@ -19,16 +20,27 @@ T = TypeVar("T", bound="ThreadUpdate")
 class ThreadUpdate:
     """
     Attributes:
+        execution (ExecutionOverride | None | Unset):
         labels (None | ThreadUpdateLabelsType0 | Unset):
         mcp_headers (McpHeaders | None | Unset):
     """
 
+    execution: ExecutionOverride | Unset | None = UNSET
     labels: ThreadUpdateLabelsType0 | Unset | None = UNSET
     mcp_headers: McpHeaders | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.execution_override import ExecutionOverride
         from ..models.mcp_headers import McpHeaders
         from ..models.thread_update_labels_type_0 import ThreadUpdateLabelsType0
+
+        execution: dict[str, Any] | Unset | None
+        if isinstance(self.execution, Unset):
+            execution = UNSET
+        elif isinstance(self.execution, ExecutionOverride):
+            execution = self.execution.to_dict()
+        else:
+            execution = self.execution
 
         labels: dict[str, Any] | Unset | None
         if isinstance(self.labels, Unset):
@@ -49,6 +61,8 @@ class ThreadUpdate:
         field_dict: dict[str, Any] = {}
 
         field_dict.update({})
+        if execution is not UNSET:
+            field_dict["execution"] = execution
         if labels is not UNSET:
             field_dict["labels"] = labels
         if mcp_headers is not UNSET:
@@ -58,10 +72,28 @@ class ThreadUpdate:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.execution_override import ExecutionOverride
         from ..models.mcp_headers import McpHeaders
         from ..models.thread_update_labels_type_0 import ThreadUpdateLabelsType0
 
         d = dict(src_dict)
+
+        def _parse_execution(data: object) -> ExecutionOverride | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                execution_type_0 = ExecutionOverride.from_dict(data)
+
+                return execution_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(ExecutionOverride | Unset | None, data)
+
+        execution = _parse_execution(d.pop("execution", UNSET))
 
         def _parse_labels(data: object) -> ThreadUpdateLabelsType0 | Unset | None:
             if data is None:
@@ -98,6 +130,7 @@ class ThreadUpdate:
         mcp_headers = _parse_mcp_headers(d.pop("mcp_headers", UNSET))
 
         thread_update = cls(
+            execution=execution,
             labels=labels,
             mcp_headers=mcp_headers,
         )
