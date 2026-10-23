@@ -17,6 +17,7 @@ from ._values import (
     Answer,
     Approve,
     Deny,
+    ExecutionOverride,
     Failed,
     Failure,
     Input,
@@ -404,9 +405,9 @@ class AgentMethods(Resource):
         agent_revision_id: str | Unset | None = UNSET,
         session_id: str | Unset | None = UNSET,
         session: wire.SessionCreate | Unset | None = UNSET,
-        execution: wire.ExecutionOverride | Unset | None = UNSET,
         delivery: wire.Delivery | Unset = UNSET,
         options: RunOptions | Unset = UNSET,
+        execution: ExecutionOverride | wire.ExecutionOverride | Unset | None = UNSET,
         environments: list[MountCreate] | Unset = UNSET,
         memories: list[MemoryMount] | Unset = UNSET,
         mcp_headers: Mapping[str, Mapping[str, str]] | Unset = UNSET,
@@ -419,9 +420,11 @@ class AgentMethods(Resource):
             agent_revision_id=agent_revision_id,
             session_id=session_id,
             session=session,
-            execution=execution,
             delivery=delivery,
             options=_options(options),
+            execution=wire.ExecutionOverride.from_dict(execution.to_dict())
+            if isinstance(execution, ExecutionOverride)
+            else execution,
             environments=_mounts(environments),
             memories=_memories(memories),
             mcp_headers=mcp_headers if isinstance(mcp_headers, Unset) else wire.McpHeaders.from_dict(mcp_headers),
@@ -598,7 +601,10 @@ class Run(RunMethods):
     """One exact Run; advanced resources remain available at client.api.runs."""
 
     async def get(self) -> Result[wire.RunView]:
-        return await self._client.api.runs(self.id).get()
+        result = await self._client.api.runs(self.id).get(view=wire.ReadView.DETAILED)
+        if not isinstance(result.value, wire.RunView):
+            raise ProtocolError("Expected detailed Run response")
+        return Result(result.value, result.status_code, result.headers, result.content)
 
     @property
     def items(self) -> protocol.RunsRunIdItems:
@@ -610,4 +616,11 @@ class Run(RunMethods):
 
 class InboxEntry(InboxEntryMethods):
     async def get(self) -> Result[wire.EntryView]:
-        return await self._client.api.threads(self.selectors["thread_id"]).inbox_entries(self.id).get()
+        result = (
+            await self._client.api.threads(self.selectors["thread_id"])
+            .inbox_entries(self.id)
+            .get(view=wire.ReadView.DETAILED)
+        )
+        if not isinstance(result.value, wire.EntryView):
+            raise ProtocolError("Expected detailed Entry response")
+        return Result(result.value, result.status_code, result.headers, result.content)

@@ -114,8 +114,23 @@ class UsageLimit(_Value):
 
 
 @dataclass(frozen=True, kw_only=True)
+class ToolExecutionOverride(_Value):
+    mode: Literal["inline", "auto"] | Unset | None = UNSET
+    foreground_wait_seconds: float | Unset | None = UNSET
+
+
+@dataclass(frozen=True, kw_only=True)
+class ExecutionOverride(_Value):
+    """Sparse execution choices; Service owns inheritance and Run freezing."""
+
+    tools: ToolExecutionOverride | Unset | None = UNSET
+    steering: Literal["boundary", "immediate"] | Unset | None = UNSET
+    environment: Mapping[str, str] | Unset | None = UNSET
+
+
+@dataclass(frozen=True, kw_only=True)
 class RunOptions(_Value):
-    execution: Mapping[str, JsonValue] | Unset | None = UNSET
+    execution: ExecutionOverride | Mapping[str, JsonValue] | Unset | None = UNSET
     configuration: RunConfiguration | Unset | None = UNSET
     overrides: AgentOverride | Unset | None = UNSET
     labels: Mapping[str, str] | Unset = UNSET

@@ -16,7 +16,6 @@ def build_request(
     span_id: str,
     *,
     section: ReadSpanContentSection | Unset = UNSET,
-    cursor: str | Unset | None = UNSET,
     offset: int | Unset = UNSET,
     limit: int | Unset = UNSET,
     version: str | Unset | None = UNSET,
@@ -34,13 +33,6 @@ def build_request(
         json_section = section.value
 
     params["section"] = json_section
-
-    json_cursor: str | Unset | None
-    if isinstance(cursor, Unset):
-        json_cursor = UNSET
-    else:
-        json_cursor = cursor
-    params["cursor"] = json_cursor
 
     params["offset"] = offset
 
@@ -115,7 +107,6 @@ def sync_detailed(
     *,
     client: AuthenticatedClient,
     section: ReadSpanContentSection | Unset = UNSET,
-    cursor: str | Unset | None = UNSET,
     offset: int | Unset = UNSET,
     limit: int | Unset = UNSET,
     version: str | Unset | None = UNSET,
@@ -124,15 +115,14 @@ def sync_detailed(
 ) -> Response[ErrorEnvelope | SpanContentPage]:
     """Read Span Content
 
-     Locate a span in bounded backend pages. Follow next_cursor when empty. Once found, retain that
-    request's
-    cursor while continuing fragments with version and next_offset.
+     Read a fragment of one span's content. The backend is queried for that span alone; items is empty
+    when the
+    trace has no such span. Continue fragments with version and next_offset.
 
     Args:
         trace_id (str):
         span_id (str):
         section (ReadSpanContentSection | Unset):
-        cursor (None | str | Unset):
         offset (int | Unset): Unicode code-point offset; continue with next_offset.
         limit (int | Unset): Maximum Unicode code points in this fragment.
         version (None | str | Unset): Content version from the first read; required after offset
@@ -154,7 +144,6 @@ def sync_detailed(
         trace_id=trace_id,
         span_id=span_id,
         section=section,
-        cursor=cursor,
         offset=offset,
         limit=limit,
         version=version,
@@ -175,7 +164,6 @@ def sync(
     *,
     client: AuthenticatedClient,
     section: ReadSpanContentSection | Unset = UNSET,
-    cursor: str | Unset | None = UNSET,
     offset: int | Unset = UNSET,
     limit: int | Unset = UNSET,
     version: str | Unset | None = UNSET,
@@ -184,15 +172,14 @@ def sync(
 ) -> ErrorEnvelope | SpanContentPage | None:
     """Read Span Content
 
-     Locate a span in bounded backend pages. Follow next_cursor when empty. Once found, retain that
-    request's
-    cursor while continuing fragments with version and next_offset.
+     Read a fragment of one span's content. The backend is queried for that span alone; items is empty
+    when the
+    trace has no such span. Continue fragments with version and next_offset.
 
     Args:
         trace_id (str):
         span_id (str):
         section (ReadSpanContentSection | Unset):
-        cursor (None | str | Unset):
         offset (int | Unset): Unicode code-point offset; continue with next_offset.
         limit (int | Unset): Maximum Unicode code points in this fragment.
         version (None | str | Unset): Content version from the first read; required after offset
@@ -215,7 +202,6 @@ def sync(
         span_id=span_id,
         client=client,
         section=section,
-        cursor=cursor,
         offset=offset,
         limit=limit,
         version=version,
@@ -230,7 +216,6 @@ async def asyncio_detailed(
     *,
     client: AuthenticatedClient,
     section: ReadSpanContentSection | Unset = UNSET,
-    cursor: str | Unset | None = UNSET,
     offset: int | Unset = UNSET,
     limit: int | Unset = UNSET,
     version: str | Unset | None = UNSET,
@@ -239,15 +224,14 @@ async def asyncio_detailed(
 ) -> Response[ErrorEnvelope | SpanContentPage]:
     """Read Span Content
 
-     Locate a span in bounded backend pages. Follow next_cursor when empty. Once found, retain that
-    request's
-    cursor while continuing fragments with version and next_offset.
+     Read a fragment of one span's content. The backend is queried for that span alone; items is empty
+    when the
+    trace has no such span. Continue fragments with version and next_offset.
 
     Args:
         trace_id (str):
         span_id (str):
         section (ReadSpanContentSection | Unset):
-        cursor (None | str | Unset):
         offset (int | Unset): Unicode code-point offset; continue with next_offset.
         limit (int | Unset): Maximum Unicode code points in this fragment.
         version (None | str | Unset): Content version from the first read; required after offset
@@ -269,7 +253,6 @@ async def asyncio_detailed(
         trace_id=trace_id,
         span_id=span_id,
         section=section,
-        cursor=cursor,
         offset=offset,
         limit=limit,
         version=version,
@@ -288,7 +271,6 @@ async def asyncio(
     *,
     client: AuthenticatedClient,
     section: ReadSpanContentSection | Unset = UNSET,
-    cursor: str | Unset | None = UNSET,
     offset: int | Unset = UNSET,
     limit: int | Unset = UNSET,
     version: str | Unset | None = UNSET,
@@ -297,15 +279,14 @@ async def asyncio(
 ) -> ErrorEnvelope | SpanContentPage | None:
     """Read Span Content
 
-     Locate a span in bounded backend pages. Follow next_cursor when empty. Once found, retain that
-    request's
-    cursor while continuing fragments with version and next_offset.
+     Read a fragment of one span's content. The backend is queried for that span alone; items is empty
+    when the
+    trace has no such span. Continue fragments with version and next_offset.
 
     Args:
         trace_id (str):
         span_id (str):
         section (ReadSpanContentSection | Unset):
-        cursor (None | str | Unset):
         offset (int | Unset): Unicode code-point offset; continue with next_offset.
         limit (int | Unset): Maximum Unicode code points in this fragment.
         version (None | str | Unset): Content version from the first read; required after offset
@@ -329,7 +310,6 @@ async def asyncio(
             span_id=span_id,
             client=client,
             section=section,
-            cursor=cursor,
             offset=offset,
             limit=limit,
             version=version,
