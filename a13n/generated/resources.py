@@ -229,6 +229,7 @@ from .api.providers import (
     update_memory_provider,
     update_model_provider,
     update_web_provider,
+    vercel_provider_options,
 )
 from .api.runs import (
     archive_thread,
@@ -401,6 +402,10 @@ class ServiceResources(Resource):
     @property
     def devices(self) -> Devices:
         return Devices(self._client, self._bindings)
+
+    @property
+    def environment_provider_options(self) -> EnvironmentProviderOptions:
+        return EnvironmentProviderOptions(self._client, self._bindings)
 
     @property
     def environment_providers(self) -> EnvironmentProviders:
@@ -1788,6 +1793,20 @@ class DevicesDeviceIdMetrics(Resource):
         return await self._call(
             lambda client: query_device_metrics.asyncio_detailed(
                 client=client, device_id=self._bindings["device_id"], body=body, x_workspace_id=x_workspace_id
+            )
+        )
+
+
+class EnvironmentProviderOptions(Resource):
+    """Bound Native resource: /environment-provider-options."""
+
+    async def vercel(
+        self, *, body: wire.VercelOptionsRequest, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.VercelOptions]:
+        """Vercel Provider Options. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: vercel_provider_options.asyncio_detailed(
+                client=client, body=body, x_workspace_id=x_workspace_id
             )
         )
 

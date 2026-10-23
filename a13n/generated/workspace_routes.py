@@ -43,6 +43,7 @@ WORKSPACE_PATHS = (
     re.compile("/api/v1/devices/[^/]+\\Z"),
     re.compile("/api/v1/devices/[^/]+/metrics/query\\Z"),
     re.compile("/api/v1/devices/[^/]+/rotate\\-credential\\Z"),
+    re.compile("/api/v1/environment\\-provider\\-options/vercel\\Z"),
     re.compile("/api/v1/environment\\-providers\\Z"),
     re.compile("/api/v1/environment\\-providers/[^/]+\\Z"),
     re.compile("/api/v1/environment\\-providers/[^/]+/references\\Z"),

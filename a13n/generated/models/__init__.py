@@ -714,6 +714,9 @@ from .usage_overview import UsageOverview
 from .usage_summary import UsageSummary
 from .user_key_create import UserKeyCreate
 from .verb import Verb
+from .vercel_option import VercelOption
+from .vercel_options import VercelOptions
+from .vercel_options_request import VercelOptionsRequest
 from .video_input_policy import VideoInputPolicy
 from .video_url_type import VideoUrlType
 from .view import View
@@ -1443,6 +1446,9 @@ __all__ = (
     "UsageSummary",
     "UserKeyCreate",
     "Verb",
+    "VercelOption",
+    "VercelOptions",
+    "VercelOptionsRequest",
     "VideoInputPolicy",
     "VideoUrlType",
     "View",
