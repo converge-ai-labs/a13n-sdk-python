@@ -126,7 +126,7 @@ async def read_after_gap(client: Client, gap: GapFrame) -> None:
 
 ## Observe a Session snapshot connection
 
-`SessionStream` is an advanced single-connection reader for the Session's Threads and live output. Each new instance starts with a fresh snapshot. It exposes four distinct frame classes with generated typed data: `SessionThreadFrame`, `SessionItemsFrame`, `SessionDeltaFrame`, and `SessionGapFrame`. These frames have no cursor; Session connections never send `Last-Event-ID`. Session snapshots have no default frame-size cap; set `max_event_bytes` to a positive integer when your application needs an explicit bound. HTTP error-body reads remain bounded.
+`SessionStream` is an advanced single-connection reader for the Session's Threads and live output. Each new instance starts with a fresh snapshot. It exposes six distinct frame classes with generated typed data: `SessionThreadFrame`, `SessionItemsFrame`, `SessionDeltaFrame`, `SessionGapFrame`, `SessionScheduleFrame`, and `SessionOccurrenceFrame`. These frames have no cursor; Session connections never send `Last-Event-ID`. Session snapshots have no default frame-size cap; set `max_event_bytes` to a positive integer when your application needs an explicit bound. HTTP error-body reads remain bounded.
 
 ```python
 from a13n import Client, SessionStream
