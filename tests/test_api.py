@@ -19,6 +19,7 @@ FAMILIES = {
     "connections",
     "connector_providers",
     "desktop_assistance",
+    "environment_provider_options",
     "environment_providers",
     "environment_templates",
     "environments",
