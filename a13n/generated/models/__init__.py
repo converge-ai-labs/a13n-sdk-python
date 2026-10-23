@@ -205,6 +205,7 @@ from .environment_query_history import EnvironmentQueryHistory
 from .environment_query_metric_type_0 import EnvironmentQueryMetricType0
 from .environment_query_metric_type_1 import EnvironmentQueryMetricType1
 from .environment_update import EnvironmentUpdate
+from .environment_variables import EnvironmentVariables
 from .environment_view import EnvironmentView
 from .environment_view_metrics_labels import EnvironmentViewMetricsLabels
 from .error_body import ErrorBody
@@ -939,6 +940,7 @@ __all__ = (
     "EnvironmentQueryMetricType0",
     "EnvironmentQueryMetricType1",
     "EnvironmentUpdate",
+    "EnvironmentVariables",
     "EnvironmentView",
     "EnvironmentViewMetricsLabels",
     "ErrorBody",

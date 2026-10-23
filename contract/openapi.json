@@ -6746,6 +6746,13 @@
         "title": "EnvironmentUpdate",
         "type": "object"
       },
+      "EnvironmentVariables": {
+        "additionalProperties": {
+          "type": "string"
+        },
+        "description": "Default variables for Agent commands. Ordinary readable configuration, not secret storage. Command variables override these defaults.",
+        "type": "object"
+      },
       "EnvironmentView": {
         "properties": {
           "created_at": {
@@ -7082,6 +7089,16 @@
         "additionalProperties": false,
         "description": "Sparse choices: null inherits; Thread PATCH distinguishes omission from null.",
         "properties": {
+          "environment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EnvironmentVariables"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "steering": {
             "anyOf": [
               {
@@ -19673,7 +19690,7 @@
         "type": "object"
       },
       "SpanContentPage": {
-        "description": "A matching span's selected content, or a continuation to keep locating that span.",
+        "description": "A matching span's selected content, or no items when the trace has no such span.",
         "properties": {
           "items": {
             "items": {
@@ -48517,7 +48534,7 @@
     },
     "/api/v1/traces/{trace_id}/spans/{span_id}/content": {
       "get": {
-        "description": "Locate a span in bounded backend pages. Follow next_cursor when empty. Once found, retain that request's\ncursor while continuing fragments with version and next_offset.",
+        "description": "Read a fragment of one span's content. The backend is queried for that span alone; items is empty when the\ntrace has no such span. Continue fragments with version and next_offset.",
         "operationId": "read_span_content",
         "parameters": [
           {
@@ -48558,22 +48575,6 @@
               ],
               "title": "Section",
               "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "cursor",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Cursor"
             }
           },
           {

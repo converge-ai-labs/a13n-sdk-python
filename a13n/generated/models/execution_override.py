@@ -9,6 +9,7 @@ from ..models.steering import Steering
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
+    from ..models.environment_variables import EnvironmentVariables
     from ..models.tool_execution_override import ToolExecutionOverride
 
 
@@ -20,15 +21,26 @@ class ExecutionOverride:
     """Sparse choices: null inherits; Thread PATCH distinguishes omission from null.
 
     Attributes:
+        environment (EnvironmentVariables | None | Unset):
         steering (None | Steering | Unset):
         tools (None | ToolExecutionOverride | Unset):
     """
 
+    environment: EnvironmentVariables | Unset | None = UNSET
     steering: Steering | Unset | None = UNSET
     tools: ToolExecutionOverride | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.environment_variables import EnvironmentVariables
         from ..models.tool_execution_override import ToolExecutionOverride
+
+        environment: dict[str, Any] | Unset | None
+        if isinstance(self.environment, Unset):
+            environment = UNSET
+        elif isinstance(self.environment, EnvironmentVariables):
+            environment = self.environment.to_dict()
+        else:
+            environment = self.environment
 
         steering: str | Unset | None
         if isinstance(self.steering, Unset):
@@ -49,6 +61,8 @@ class ExecutionOverride:
         field_dict: dict[str, Any] = {}
 
         field_dict.update({})
+        if environment is not UNSET:
+            field_dict["environment"] = environment
         if steering is not UNSET:
             field_dict["steering"] = steering
         if tools is not UNSET:
@@ -58,9 +72,27 @@ class ExecutionOverride:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.environment_variables import EnvironmentVariables
         from ..models.tool_execution_override import ToolExecutionOverride
 
         d = dict(src_dict)
+
+        def _parse_environment(data: object) -> EnvironmentVariables | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                environment_type_0 = EnvironmentVariables.from_dict(data)
+
+                return environment_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(EnvironmentVariables | Unset | None, data)
+
+        environment = _parse_environment(d.pop("environment", UNSET))
 
         def _parse_steering(data: object) -> Steering | Unset | None:
             if data is None:
@@ -97,6 +129,7 @@ class ExecutionOverride:
         tools = _parse_tools(d.pop("tools", UNSET))
 
         execution_override = cls(
+            environment=environment,
             steering=steering,
             tools=tools,
         )

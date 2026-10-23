@@ -15,7 +15,7 @@ T = TypeVar("T", bound="SpanContentPage")
 
 @_attrs_define(repr=False)
 class SpanContentPage:
-    """A matching span's selected content, or a continuation to keep locating that span.
+    """A matching span's selected content, or no items when the trace has no such span.
 
     Attributes:
         items (list[TextRead]):

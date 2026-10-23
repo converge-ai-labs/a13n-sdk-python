@@ -137,3 +137,5 @@ The [Python SDK guide](docs/README.md) takes you from your first conversation to
 For development and testing, see [Contributing](CONTRIBUTING.md). The [SDK specification](spec/README.md) and [pinned Service source](contract/source.json) describe compatibility and implementation contracts.
 
 Licensed under Apache-2.0.
+
+See [Execution options and migration](docs/execution-and-migration.md) for scoped command variables and compatibility notes.

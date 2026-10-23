@@ -7098,7 +7098,6 @@ class TracesTraceIdSpansSpanIdContent(Resource):
         self,
         *,
         section: wire.ReadSpanContentSection | Unset = UNSET,
-        cursor: str | Unset | None = UNSET,
         offset: int | Unset = UNSET,
         limit: int | Unset = UNSET,
         version: str | Unset | None = UNSET,
@@ -7112,65 +7111,12 @@ class TracesTraceIdSpansSpanIdContent(Resource):
                 trace_id=self._bindings["trace_id"],
                 span_id=self._bindings["span_id"],
                 section=section,
-                cursor=cursor,
                 offset=offset,
                 limit=limit,
                 version=version,
                 query=query,
                 x_workspace_id=x_workspace_id,
             )
-        )
-
-    def pages(
-        self,
-        *,
-        section: wire.ReadSpanContentSection | Unset = UNSET,
-        cursor: str | Unset | None = UNSET,
-        offset: int | Unset = UNSET,
-        limit: int | Unset = UNSET,
-        version: str | Unset | None = UNSET,
-        query: str | Unset | None = UNSET,
-        x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[Result[wire.SpanContentPage]]:
-        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
-        return pages(
-            lambda next_cursor: self.list(
-                section=section,
-                offset=offset,
-                limit=limit,
-                version=version,
-                query=query,
-                x_workspace_id=x_workspace_id,
-                cursor=next_cursor,
-            ),
-            lambda value: value.next_cursor,
-            cursor,
-        )
-
-    def iter(
-        self,
-        *,
-        section: wire.ReadSpanContentSection | Unset = UNSET,
-        cursor: str | Unset | None = UNSET,
-        offset: int | Unset = UNSET,
-        limit: int | Unset = UNSET,
-        version: str | Unset | None = UNSET,
-        query: str | Unset | None = UNSET,
-        x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[wire.TextRead]:
-        """Yield ordinary wire values lazily with a filter snapshot and server order."""
-        return (
-            item
-            async for page in self.pages(
-                section=section,
-                cursor=cursor,
-                offset=offset,
-                limit=limit,
-                version=version,
-                query=query,
-                x_workspace_id=x_workspace_id,
-            )
-            for item in page.value.items
         )
 
 
