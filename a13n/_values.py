@@ -98,7 +98,6 @@ class AgentOverride(_Value):
     model_characteristics: Mapping[str, JsonValue] | Unset | None = UNSET
     model_settings: Mapping[str, JsonValue] | Unset | None = UNSET
     output_spec: Mapping[str, JsonValue] | Unset | None = UNSET
-    platform_tools: Mapping[str, JsonValue] | Unset | None = UNSET
     plugins: list[dict[str, JsonValue]] | Unset | None = UNSET
     retries: Mapping[str, JsonValue] | Unset | None = UNSET
     reviewer: Mapping[str, JsonValue] | Unset | None = UNSET
@@ -116,6 +115,7 @@ class UsageLimit(_Value):
 
 @dataclass(frozen=True, kw_only=True)
 class RunOptions(_Value):
+    execution: Mapping[str, JsonValue] | Unset | None = UNSET
     configuration: RunConfiguration | Unset | None = UNSET
     overrides: AgentOverride | Unset | None = UNSET
     labels: Mapping[str, str] | Unset = UNSET

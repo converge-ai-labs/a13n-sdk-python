@@ -21,7 +21,7 @@ class CreatedSubscription:
         created_at (datetime.datetime):
         created_by_id (str):
         enabled (bool):
-        filter_ (SubscriptionFilter): Absent fields match every run.
+        filter_ (SubscriptionFilter): Absent fields match every event; a specified identity must exist and match.
         id (str):
         kinds (list[str]):
         name (str):

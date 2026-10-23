@@ -268,9 +268,9 @@ Follow the returned `method`: `manual_callback` accepts a pasted callback throug
 
 `await provider.authorization.delete(...)` clears local Provider tokens and reports external revocation separately through nullable `revocation_confirmed`. Treat unknown exchange/revocation outcomes as reported facts, not permission to replay mutations. Hosted callback setup and issuer approval are operator responsibilities.
 
-## Select platform tools independently of instructions
+## Select built-in instructions
 
-`AgentOverride` also accepts native `builtin_skills` and `platform_tools` selections:
+`AgentOverride.builtin_skills` selects built-in instruction bundles:
 
 ```python
 from a13n import AgentOverride, RunOptions
@@ -278,7 +278,6 @@ from a13n import AgentOverride, RunOptions
 platform_options = RunOptions(
     overrides=AgentOverride(
         builtin_skills=["platform-operations"],
-        platform_tools={"groups": ["execution", "models"], "read_permission": "allow", "write_permission": "ask"},
     )
 )
 ```
@@ -370,3 +369,9 @@ Generated Thread creation and inbox submission return `Result[wire.Submitted]`, 
 The [generated resources](../a13n/generated/resources.py) expose operation signatures, and [generated models](../a13n/generated/models) describe request and response fields. The [pinned source](../contract/source.json) identifies the Service contract used to generate them. A complete generated surface does not grant a credential permission to invoke every operation.
 
 [Back to the guide](README.md) · [Next: errors and recovery](errors-and-recovery.md)
+
+## Browse bounded run history
+
+Run lists return `RunListItem` metadata with `input_preview.text` (at most 200 Unicode code points) and `input_preview.truncated`. Fetch an individual Run for full input, output, options or memory mounts. List `view` selection is removed.
+
+Thread runs are newest first. `ThreadRunPage` exposes `total`, `first_number`, `previous_cursor` (newer) and `next_cursor` (older). Use `anchor` for the first page around an exact Run; subsequent requests send the returned cursor without the anchor. Reads and page iterators are lazy. Session streams also expose native schedule and occurrence frames.

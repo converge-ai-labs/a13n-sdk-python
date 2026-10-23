@@ -48,6 +48,8 @@ from .session_streaming import (
     SessionFrame,
     SessionGapFrame,
     SessionItemsFrame,
+    SessionOccurrenceFrame,
+    SessionScheduleFrame,
     SessionStream,
     SessionThreadFrame,
 )
@@ -104,6 +106,8 @@ __all__ = [
     "SessionFrame",
     "SessionGapFrame",
     "SessionItemsFrame",
+    "SessionOccurrenceFrame",
+    "SessionScheduleFrame",
     "SessionStream",
     "SessionThreadFrame",
     "StreamResponse",

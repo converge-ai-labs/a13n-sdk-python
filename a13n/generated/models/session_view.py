@@ -12,6 +12,7 @@ from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.session_memory_settings import SessionMemorySettings
+    from ..models.session_origin import SessionOrigin
     from ..models.session_preview import SessionPreview
     from ..models.session_view_labels import SessionViewLabels
 
@@ -33,9 +34,12 @@ class SessionView:
         workspace_id (str):
         memory (SessionMemorySettings | Unset): Participation and complete Space selection; policy belongs to each
             Space.
+        origin (None | SessionOrigin | Unset):
         preview (None | SessionPreview | Unset):
         purpose (SessionViewPurpose | Unset):
         run_count (int | Unset):
+        schedule_id (None | str | Unset):
+        title (None | str | Unset):
     """
 
     created_at: datetime.datetime
@@ -47,12 +51,16 @@ class SessionView:
     version: int
     workspace_id: str
     memory: SessionMemorySettings | Unset = UNSET
+    origin: SessionOrigin | Unset | None = UNSET
     preview: SessionPreview | Unset | None = UNSET
     purpose: SessionViewPurpose | Unset = UNSET
     run_count: int | Unset = UNSET
+    schedule_id: str | Unset | None = UNSET
+    title: str | Unset | None = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.session_origin import SessionOrigin
         from ..models.session_preview import SessionPreview
 
         created_at = self.created_at.isoformat()
@@ -76,6 +84,14 @@ class SessionView:
         if not isinstance(self.memory, Unset):
             memory = self.memory.to_dict()
 
+        origin: dict[str, Any] | Unset | None
+        if isinstance(self.origin, Unset):
+            origin = UNSET
+        elif isinstance(self.origin, SessionOrigin):
+            origin = self.origin.to_dict()
+        else:
+            origin = self.origin
+
         preview: dict[str, Any] | Unset | None
         if isinstance(self.preview, Unset):
             preview = UNSET
@@ -89,6 +105,18 @@ class SessionView:
             purpose = self.purpose.value
 
         run_count = self.run_count
+
+        schedule_id: str | Unset | None
+        if isinstance(self.schedule_id, Unset):
+            schedule_id = UNSET
+        else:
+            schedule_id = self.schedule_id
+
+        title: str | Unset | None
+        if isinstance(self.title, Unset):
+            title = UNSET
+        else:
+            title = self.title
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
@@ -106,18 +134,25 @@ class SessionView:
         )
         if memory is not UNSET:
             field_dict["memory"] = memory
+        if origin is not UNSET:
+            field_dict["origin"] = origin
         if preview is not UNSET:
             field_dict["preview"] = preview
         if purpose is not UNSET:
             field_dict["purpose"] = purpose
         if run_count is not UNSET:
             field_dict["run_count"] = run_count
+        if schedule_id is not UNSET:
+            field_dict["schedule_id"] = schedule_id
+        if title is not UNSET:
+            field_dict["title"] = title
 
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.session_memory_settings import SessionMemorySettings
+        from ..models.session_origin import SessionOrigin
         from ..models.session_preview import SessionPreview
         from ..models.session_view_labels import SessionViewLabels
 
@@ -150,6 +185,23 @@ class SessionView:
         else:
             memory = SessionMemorySettings.from_dict(_memory)
 
+        def _parse_origin(data: object) -> SessionOrigin | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                origin_type_0 = SessionOrigin.from_dict(data)
+
+                return origin_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(SessionOrigin | Unset | None, data)
+
+        origin = _parse_origin(d.pop("origin", UNSET))
+
         def _parse_preview(data: object) -> SessionPreview | Unset | None:
             if data is None:
                 return data
@@ -176,6 +228,24 @@ class SessionView:
 
         run_count = d.pop("run_count", UNSET)
 
+        def _parse_schedule_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        schedule_id = _parse_schedule_id(d.pop("schedule_id", UNSET))
+
+        def _parse_title(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        title = _parse_title(d.pop("title", UNSET))
+
         session_view = cls(
             created_at=created_at,
             created_by_id=created_by_id,
@@ -186,9 +256,12 @@ class SessionView:
             version=version,
             workspace_id=workspace_id,
             memory=memory,
+            origin=origin,
             preview=preview,
             purpose=purpose,
             run_count=run_count,
+            schedule_id=schedule_id,
+            title=title,
         )
 
         session_view.additional_properties = d

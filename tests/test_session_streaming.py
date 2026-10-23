@@ -1,4 +1,6 @@
 import asyncio
+import json
+from pathlib import Path
 
 import httpx2
 import pytest
@@ -45,6 +47,15 @@ def session_delta() -> dict:
         "event": {"type": "future-agui-event", "raw": [None, False, 0, {"nested": "value"}]},
         "item": {"id": "itm_1", "kind": "text_message", "state": "in_progress"},
     }
+
+
+@pytest.mark.parametrize("event,model", [("schedule", "ScheduleEvent"), ("occurrence", "OccurrenceEvent")])
+def test_schedule_and_occurrence_frames_preserve_native_payloads(event: str, model: str) -> None:
+    payload = json.loads((Path(__file__).parent / "fixtures" / f"{model}.json").read_text())
+    frame = _session_frame(event, [json.dumps(payload)], None)
+    assert frame is not None and frame.event_type == event
+    assert type(frame.data).__name__ == model
+    assert frame.data.to_dict() == payload
 
 
 def test_session_four_typed_frames_are_distinct_from_thread_cursor_frames() -> None:

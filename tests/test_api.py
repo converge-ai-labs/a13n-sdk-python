@@ -9,12 +9,17 @@ from a13n import Client, TransportError
 from tests.test_interaction import entry_view, run_view, submitted
 
 FAMILIES = {
+    "metrics_data_sources",
+    "metrics_dashboards",
+    "schedules",
+    "devices",
     "agents",
     "assets",
     "auth",
     "connections",
     "connector_providers",
     "desktop_assistance",
+    "environment_provider_options",
     "environment_providers",
     "environment_templates",
     "environments",

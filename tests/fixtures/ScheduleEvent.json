@@ -1,0 +1,23 @@
+{
+  "session_id": "test",
+  "schedule_id": "test",
+  "configuration": {
+    "id": "test",
+    "session_id": "test",
+    "name": "test",
+    "state": "paused",
+    "pause_reason": null,
+    "version": 1,
+    "principal_id": "test",
+    "schedule": {
+      "expression": "test",
+      "timezone": "test"
+    },
+    "max_lateness_seconds": 1
+  },
+  "progress": {
+    "next_fire_at": null,
+    "pending_occurrence_id": null,
+    "last_occurrence_id": null
+  }
+}

@@ -25,8 +25,7 @@ TARGET = ROOT / "a13n/generated"
 VALIDATED_MODELS = frozenset(
     {
         "ToolSearch",
-        "NativeToolSearchConfig",
-        "ProxyToolSearchConfig",
+        "ToolSearchConfig",
         "ToolSearchGroup",
         "ContextUsage",
         "Access",
@@ -139,7 +138,7 @@ def prepare(document: dict) -> dict:
         strip_defaults(schema)
         # Pydantic gives its distinct input/output components the same title;
         # the generator otherwise collides their names and drops response refs.
-        if name.endswith(("-Input", "-Output")):
+        if name.endswith(("-Input", "-Output")) or name == "ToolSearchConfig":
             schema.pop("title", None)
         if name == "UploadCreate":
             file_part = schema["properties"]["file"]
@@ -168,6 +167,11 @@ def prepare(document: dict) -> dict:
                 content = response.get("content", {})
                 if content.get("*/*"):
                     content["application/octet-stream"] = content.pop("*/*")
+                if content and all(media.startswith("image/") and not entry for media, entry in content.items()):
+                    response["content"] = {
+                        "application/octet-stream": {"schema": {"type": "string", "format": "binary"}}
+                    }
+                    continue
                 if content and all(
                     entry.get("schema") == {"type": "string", "format": "binary"} for entry in content.values()
                 ):
@@ -195,6 +199,11 @@ def with_session_models(document: dict, session: dict) -> dict:
         for name in definitions
     }
 
+    # Schedule stream configuration and observability HTTP configuration are
+    # distinct contracts whose standalone exports share a short name.
+    if "Configuration" in names:
+        names["Configuration"] = "ScheduleConfiguration"
+
     def project(value: object, *, annotations: bool = True) -> object:
         if isinstance(value, dict):
             return {
@@ -214,7 +223,10 @@ def with_session_models(document: dict, session: dict) -> dict:
             if project(schema, annotations=False) != project(schemas[target], annotations=False):
                 raise ValueError(f"Session and OpenAPI disagree on shared model: {name}")
         else:
-            schemas[target] = project(schema)
+            projected = project(schema)
+            if target != name and isinstance(projected, dict):
+                projected["title"] = target
+            schemas[target] = projected
     return document
 
 

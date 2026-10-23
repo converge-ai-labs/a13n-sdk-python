@@ -1,5 +1,7 @@
 # The HTTP API
 
+[Schedule management](13-schedules.md#management-api) adds HTTP configuration, preview, status and paginated trigger history. These routes intentionally have no MCP admission.
+
 ## Design position
 
 The Service exposes one HTTP namespace, `/api/v1`. The exported OpenAPI document is the exact contract for paths, parameters and request and response shapes. This chapter owns what applies across routes: authentication at the HTTP boundary, path resolution, collections, preconditions, request-key replay, errors and statuses. It also indexes every route with the chapter that owns its behavior; it does not repeat that behavior.
@@ -10,7 +12,7 @@ Resource routes are served by the `all` and `control` roles; the `worker` role s
 
 `/api/v1/mcp/` serves Streamable HTTP MCP on API-serving roles. It is an alternate transport for workspace resource management and read-only execution queries, not an execution engine or an arbitrary HTTP proxy. The original HTTP operations retain ownership of authentication, authorization, validation, audit, preconditions, pagination and trace redaction.
 
-The assembled application's OpenAPI admits operations individually through `x-a13n-mcp: true`. Admission covers JSON workspace resource operations, including resources that reference existing upload IDs, environment management, read-only Session, Thread, inbox, Run, Attempt, display-content and trace lookup, the scoped usage summary (`GET /usage`), and per-record model request metrics (`GET /usage/records/{record_id}/metrics`). Agent execution/submission/resume/cancellation/waiting, live output/SSE, file transfers and binary content, organization/member/permission administration, and browser login/OAuth authorization flows remain outside this surface. Findings list/detail and Analysis history are admitted read-only JSON queries. Finding submission/review and analysis start/preset preparation remain direct HTTP operations. Distribution routes follow the same explicit admission and JSON constraints. Unmarked operations stay absent; invalid admitted operations and tool-name collisions fail assembly. Generated tool names are deterministic for their operation IDs, independent of route traversal order. Arguments cannot redirect dispatch to a different operation.
+The assembled application's OpenAPI admits operations individually through `x-a13n-mcp: true`. Admission covers JSON workspace resource operations, including resources that reference existing upload IDs, environment management, read-only Session, Thread, inbox, Run, Attempt, display-content and trace lookup, the scoped usage summary (`GET /usage`), and per-record model request metrics (`GET /usage/records/{record_id}/metrics`). Schedule configuration, enable/pause/archive, time preview, trigger history and manual dispatch are admitted under the [Schedule delegation contract](13-schedules.md#management-api). Direct Agent execution/submission/resume/cancellation/waiting, live output/SSE, file transfers and binary content, organization/member/permission administration, and browser login/OAuth authorization flows remain outside this surface. Findings list/detail and Analysis history are admitted read-only JSON queries. Finding submission is admitted as the `execution` group's only write; a Run credential makes that Run the finding's source. Finding review and analysis start/preset preparation remain direct HTTP operations. Distribution routes follow the same explicit admission and JSON constraints. Unmarked operations stay absent; invalid admitted operations and tool-name collisions fail assembly. Each operation ID is its route name, such as `list_agent_revisions`, and duplicate route names fail assembly. Tool names are deterministic for their operation IDs, independent of route traversal order. Arguments cannot redirect dispatch to a different operation.
 
 Discovery and invocation require a Bearer credential: the selected Distribution authenticator supplies external workspace credentials; the application validates [Run platform credentials](03-tenancy.md#run-platform-credentials) for internal Agents. Both yield a workspace-confined principal. Browser cookies are not used. An explicit `X-Workspace-ID` must agree with confinement. Credentials and workspace selection are connection context, not tool arguments. Each generated call forwards the caller's credential to the original HTTP application, which authorizes again; neither identities nor cookies are shared across invocations. The transport supplies no additional approval authority.
 
@@ -68,7 +70,21 @@ Failures on these routes still use the JSON [error envelope](#errors). Stored te
 
 A collection answers `{"items": [...], "next_cursor": "…" | null}`; `null` means there is no next page. `limit` is 1 to 100 and defaults to 50. `cursor` is opaque and at most 2048 characters. A cursor is bound to its collection, to the scope that produced it and to every filter of the query that issued it, so it continues only that query; a malformed cursor, or one presented with another collection, scope or filter set, is 400 `invalid_cursor`. Each list's order and filters are in its owning chapter.
 
-Some reads are bounded catalogues and return all their items with `next_cursor: null`, taking no `limit` or `cursor`: provider types, a connection's tools, a connector app's actions and a thread's mounts. Toolsets and a run's attempts return `{"items": [...]}` only and the model catalog `{"items": [...], "status": ...}`; lineage takes only `cursor`. Trace pages keep the backend's native order, can hold fewer items than the limit, and keep the first page's resolved time window on every later page; their cursor is also bound to the window parameters as given ([07](07-facts-and-delivery.md#trace-query)).
+Some reads are bounded catalogues and return all their items with `next_cursor: null`, taking no `limit` or `cursor`: provider types, a connection's tools, a connector app's actions and a thread's mounts. Toolsets and a run's attempts return `{"items": [...]}` only and the model catalog `{"items": [...], "status": ...}`; lineage defaults to 50 and also accepts an explicit `limit`. Trace pages keep the backend's native order, can hold fewer items than the limit, and keep the first page's resolved time window on every later page; their cursor is also bound to the window parameters as given ([07](07-facts-and-delivery.md#trace-query)).
+
+### Bounded read representations
+
+Run details, Agent revisions, Run configuration, inbox, display items/content, model catalog and trace reads accept `view=detailed|compact`. Omission keeps the original detailed response and behavior. HTTP owns these representations; MCP forwards the same body and defaults. New read routes require explicit MCP/platform admission and reuse the original business authorization. ETags and write preconditions do not change.
+
+Run collections use the single metadata representation defined in [Runs](05-runs.md#reads), without a `view` parameter. Workspace, Thread and lineage discovery pages use the same whole-record response budget below, and input previews retain at most 200 Unicode code points. Thread pages additionally report their total, chronological position and both directional cursors. The page membership and counts share one database snapshot. `limit` is a maximum record count; the character budget can return fewer records, and callers continue with the returned cursor rather than assuming a full page.
+
+Compact collections default to ten records and stop at whole-record boundaries when the serialized body approaches 10,000 characters, reserving space toward a 12,000-character model-visible response target. This is a character budget, not a token count. Continuation resumes before every unreturned matching record. Individual summaries shorten only their text previews to fit; identity and state remain exact. Existing unfiltered detailed calls can still exceed that budget. Scoped detailed calls may refuse an oversized record with `payload_too_large`, directing callers to its section/fragment read.
+
+A preview is `{text, truncated}`: text retains a source prefix, at most 300 Unicode code points (errors 500, catalog descriptions 200, content previews 2000), potentially fewer to fit the budget. Structured previews are JSON text, never partial objects. `omitted_sections` identifies deliberately excluded values. `source_truncated` and `source_truncated_fields` describe truncation already applied to retained content, independently of the current preview. Summaries use fixed code rules, never a model call; no page-local count is presented as a query-wide statistic.
+
+Explicit `section` or content reads return `representation=fragment`, `source`, content `version`, `media_type`, `offset`, `text`, `total_chars`, `next_offset` and `has_more`. Offsets and limits count Unicode code points. JSON values use deterministic serialization and fragments are not independent JSON documents. `offset=0` starts a read; later offsets require the returned version, and any changed content returns `409 conflict` with reason `content_changed`. Literal `query` search returns the next match and context, its `match_offset`, and a next offset for the next match. A search result is evidence of a match, not an exhaustive extraction. Reassemble complete configuration/definitions before treating them as writable configuration or complete schemas.
+
+Catalog indexes sort stable names and bind cursors to scope, query and a digest of the catalog snapshot. A catalog refresh invalidates an old cursor explicitly. Other collections retain their existing order and cursor semantics; filtered display windows use explicit ordinal continuations. Empty filtered windows can have a continuation. These reads never bypass ownership checks for referenced content.
 
 ### Preconditions
 
@@ -224,47 +240,51 @@ Paths are relative to `/api/v1` unless they start at the root. `{org}` is an org
 
 ### Agents, skills and toolsets
 
-| Path                                                | Methods          | Owner                                  |
-| --------------------------------------------------- | ---------------- | -------------------------------------- |
-| `/agents`                                           | GET, POST        | [04](04-resources.md#agents)           |
-| `/agents/validate`                                  | POST             | [04](04-resources.md#operations)       |
-| `/agents/{agent}`                                   | GET, PATCH       | [04](04-resources.md#operations)       |
-| `/agents/{agent}/archive`                           | POST             | [04](04-resources.md#revisioned-heads) |
-| `/agents/{agent}/unarchive`                         | POST             | [04](04-resources.md#revisioned-heads) |
-| `/agents/{agent}/duplicate`                         | POST             | [04](04-resources.md#operations)       |
-| `/agents/{agent}/avatar`                            | GET, PUT, DELETE | [04](04-resources.md#operations)       |
-| `/agents/{agent}/revisions`                         | GET, POST        | [04](04-resources.md#revisioned-heads) |
-| `/agents/{agent}/revisions/{revision}`              | GET              | [04](04-resources.md#revisioned-heads) |
-| `/agents/{agent}/revisions/{revision}/set-default`  | POST             | [04](04-resources.md#revisioned-heads) |
-| `/agent-composer`                                   | POST             | [04](04-resources.md#agent-composer)   |
-| `/toolsets`                                         | GET              | [04](04-resources.md#agents)           |
-| `/skills`                                           | GET, POST        | [04](04-resources.md#skills)           |
-| `/skills/validate`                                  | POST             | [04](04-resources.md#skills)           |
-| `/skills/{skill}`                                   | GET, PATCH       | [04](04-resources.md#skills)           |
-| `/skills/{skill}/archive`                           | POST             | [04](04-resources.md#revisioned-heads) |
-| `/skills/{skill}/unarchive`                         | POST             | [04](04-resources.md#revisioned-heads) |
-| `/skills/{skill}/revisions`                         | GET, POST        | [04](04-resources.md#skills)           |
-| `/skills/{skill}/revisions/{revision}`              | GET              | [04](04-resources.md#skills)           |
-| `/skills/{skill}/revisions/{revision}/content`      | GET              | [04](04-resources.md#skills)           |
-| `/skills/{skill}/revisions/{revision}/files/{path}` | GET              | [04](04-resources.md#skills)           |
-| `/skills/{skill}/revisions/{revision}/set-default`  | POST             | [04](04-resources.md#revisioned-heads) |
+| Path                                                | Methods          | Owner                                            |
+| --------------------------------------------------- | ---------------- | ------------------------------------------------ |
+| `/agents`                                           | GET, POST        | [04](04-resources.md#agents)                     |
+| `/agents/validate`                                  | POST             | [04](04-resources.md#operations)                 |
+| `/agents/{agent}`                                   | GET, PATCH       | [04](04-resources.md#operations)                 |
+| `/agents/{agent}/archive`                           | POST             | [04](04-resources.md#revisioned-heads)           |
+| `/agents/{agent}/unarchive`                         | POST             | [04](04-resources.md#revisioned-heads)           |
+| `/agents/{agent}/duplicate`                         | POST             | [04](04-resources.md#operations)                 |
+| `/agents/{agent}/avatar`                            | GET, PUT, DELETE | [04](04-resources.md#operations)                 |
+| `/agents/{agent}/revisions`                         | GET, POST        | [04](04-resources.md#revisioned-heads)           |
+| `/agents/{agent}/revisions/{revision}`              | GET              | [04](04-resources.md#revisioned-heads)           |
+| `/agents/{agent}/revisions/{revision}/compare`      | GET              | [04](04-resources.md#bounded-resource-discovery) |
+| `/agents/{agent}/revisions/{revision}/set-default`  | POST             | [04](04-resources.md#revisioned-heads)           |
+| `/agent-composer`                                   | POST             | [04](04-resources.md#agent-composer)             |
+| `/toolsets`                                         | GET              | [04](04-resources.md#agents)                     |
+| `/toolsets/index`, `/toolsets/definitions`          | GET              | [04](04-resources.md#bounded-resource-discovery) |
+| `/skills`                                           | GET, POST        | [04](04-resources.md#skills)                     |
+| `/skills/validate`                                  | POST             | [04](04-resources.md#skills)                     |
+| `/skills/{skill}`                                   | GET, PATCH       | [04](04-resources.md#skills)                     |
+| `/skills/{skill}/archive`                           | POST             | [04](04-resources.md#revisioned-heads)           |
+| `/skills/{skill}/unarchive`                         | POST             | [04](04-resources.md#revisioned-heads)           |
+| `/skills/{skill}/revisions`                         | GET, POST        | [04](04-resources.md#skills)                     |
+| `/skills/{skill}/revisions/{revision}`              | GET              | [04](04-resources.md#skills)                     |
+| `/skills/{skill}/revisions/{revision}/content`      | GET              | [04](04-resources.md#skills)                     |
+| `/skills/{skill}/revisions/{revision}/files/{path}` | GET              | [04](04-resources.md#skills)                     |
+| `/skills/{skill}/revisions/{revision}/set-default`  | POST             | [04](04-resources.md#revisioned-heads)           |
 
 ### Connections
 
-| Path                                                 | Methods    | Owner                                                   |
-| ---------------------------------------------------- | ---------- | ------------------------------------------------------- |
-| `/connections`                                       | GET, POST  | [04](04-resources.md#connections)                       |
-| `/connections/{connection}`                          | GET, PATCH | [04](04-resources.md#connections)                       |
-| `/connections/{connection}/authorize`                | POST       | [04](04-resources.md#connections)                       |
-| `/connections/{connection}/revoke`                   | POST       | [04](04-resources.md#connections)                       |
-| `/connections/{connection}/test`                     | POST       | [04](04-resources.md#connections)                       |
-| `/connections/{connection}/tools`                    | GET        | [04](04-resources.md#connections)                       |
-| `/connector-providers/{provider}/apps`               | GET        | [04](04-resources.md#provider-resources)                |
-| `/connector-providers/{provider}/apps/{app}`         | GET        | [04](04-resources.md#provider-resources)                |
-| `/connector-providers/{provider}/apps/{app}/actions` | GET        | [04](04-resources.md#provider-resources)                |
-| `/connections/callback`                              | GET        | [04](04-resources.md#connections) (public)              |
-| `/connections/redirect-uri`                          | GET        | [04](04-resources.md#connections) (deployment)          |
-| `/mcp-servers`                                       | GET        | [08](08-providers.md#mcp-server-catalogue) (deployment) |
+| Path                                                                                                                         | Methods    | Owner                                                   |
+| ---------------------------------------------------------------------------------------------------------------------------- | ---------- | ------------------------------------------------------- |
+| `/connections`                                                                                                               | GET, POST  | [04](04-resources.md#connections)                       |
+| `/connections/{connection}`                                                                                                  | GET, PATCH | [04](04-resources.md#connections)                       |
+| `/connections/{connection}/authorize`                                                                                        | POST       | [04](04-resources.md#connections)                       |
+| `/connections/{connection}/revoke`                                                                                           | POST       | [04](04-resources.md#connections)                       |
+| `/connections/{connection}/test`                                                                                             | POST       | [04](04-resources.md#connections)                       |
+| `/connections/{connection}/tools`                                                                                            | GET        | [04](04-resources.md#connections)                       |
+| `/connections/{connection}/tools/index`, `/connections/{connection}/tools/definitions`                                       | GET        | [04](04-resources.md#bounded-resource-discovery)        |
+| `/connector-providers/{provider}/apps`                                                                                       | GET        | [04](04-resources.md#provider-resources)                |
+| `/connector-providers/{provider}/apps/{app}`                                                                                 | GET        | [04](04-resources.md#provider-resources)                |
+| `/connector-providers/{provider}/apps/{app}/actions`                                                                         | GET        | [04](04-resources.md#provider-resources)                |
+| `/connector-providers/{provider}/apps/{app}/actions/index`, `/connector-providers/{provider}/apps/{app}/actions/definitions` | GET        | [04](04-resources.md#bounded-resource-discovery)        |
+| `/connections/callback`                                                                                                      | GET        | [04](04-resources.md#connections) (public)              |
+| `/connections/redirect-uri`                                                                                                  | GET        | [04](04-resources.md#connections) (deployment)          |
+| `/mcp-servers`                                                                                                               | GET        | [08](08-providers.md#mcp-server-catalogue) (deployment) |
 
 ### Uploads and assets
 
@@ -286,6 +306,15 @@ Paths are relative to `/api/v1` unless they start at the root. `{org}` is an org
 
 ### Sessions, threads and runs
 
+Retained-execution list, detail and bounded-result queries are admitted to MCP under execution/read. Cancellation remains an HTTP command outside MCP.
+
+| Path                                                   | Methods | Owner                                     |
+| ------------------------------------------------------ | ------- | ----------------------------------------- |
+| `/threads/{thread}/tool-executions`                    | GET     | [05](05-runs.md#retained-tool-executions) |
+| `/threads/{thread}/tool-executions/{execution}`        | GET     | [05](05-runs.md#retained-tool-executions) |
+| `/threads/{thread}/tool-executions/{execution}/result` | GET     | [05](05-runs.md#retained-tool-executions) |
+| `/threads/{thread}/tool-executions/{execution}/cancel` | POST    | [05](05-runs.md#retained-tool-executions) |
+
 | Path                                  | Methods            | Owner                                             |
 | ------------------------------------- | ------------------ | ------------------------------------------------- |
 | `/sessions`                           | GET, POST          | [05](05-runs.md#reads)                            |
@@ -306,6 +335,7 @@ Paths are relative to `/api/v1` unless they start at the root. `{org}` is an org
 | `/runs/{run}/fork`                    | POST               | [05](05-runs.md#waiting-interrupt-and-fork)       |
 | `/runs/{run}/resume`                  | POST               | [05](05-runs.md#waiting-interrupt-and-fork)       |
 | `/runs/{run}/items`                   | GET                | [05](05-runs.md#reads)                            |
+| `/runs/{run}/items/{item}/content`    | GET                | [05](05-runs.md#reads)                            |
 | `/runs/{run}/contents/{content}`      | GET                | [05](05-runs.md#reads)                            |
 | `/runs/{run}/images/{image}`          | GET                | [05](05-runs.md#reads)                            |
 | `/runs/{run}/agent`                   | GET                | [05](05-runs.md#reads)                            |
@@ -366,6 +396,8 @@ A file `{path}` is the file's path in the memory, with its `/` separators. A fil
 | `/traces`                              | GET     | [07](07-facts-and-delivery.md#trace-query)              |
 | `/traces/{trace}`                      | GET     | [07](07-facts-and-delivery.md#trace-query)              |
 | `/traces/{trace}/spans`                | GET     | [07](07-facts-and-delivery.md#trace-query)              |
+| `/traces/{trace}/spans/{span}`         | GET     | [07](07-facts-and-delivery.md#trace-query)              |
+| `/traces/{trace}/spans/{span}/content` | GET     | [07](07-facts-and-delivery.md#trace-query)              |
 | `/trace-backend`                       | GET     | [07](07-facts-and-delivery.md#trace-query)              |
 
 ## Exported contracts
@@ -373,7 +405,7 @@ A file `{path}` is the file's path in the memory, with its `/` separators. A fil
 `proto/a13n-service/` holds the two wire contracts generated from the code:
 
 - `openapi.json`, the OpenAPI document the application serves at `/api/v1/openapi.json`;
-- `session-stream.schema.json`, the JSON Schema of each session-stream frame's `data`, keyed by SSE event name (`thread`, `items`, `delta`, `gap`).
+- `session-stream.schema.json`, the JSON Schema of each session-stream frame's `data`, keyed by SSE event name (`thread`, `items`, `delta`, `gap`, plus `schedule` and `occurrence` in Schedule view).
 - `thread-stream.schema.json`, the JSON Schema of each thread-stream frame's `data`, keyed by SSE event name (`delta`, `boundary`, `changed`, `reset`, `gap`).
 
 `make service-contract-generate` exports both and regenerates the Console's typed client; `make service-contract-check` fails when either export or the client differs from the code. A change to a route, schema or frame updates these exports in the same change.

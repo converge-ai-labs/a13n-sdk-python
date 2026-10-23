@@ -12,6 +12,7 @@ from ..models.thread_view_purpose import ThreadViewPurpose
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
+    from ..models.execution_override import ExecutionOverride
     from ..models.thread_view_labels import ThreadViewLabels
     from ..models.thread_view_mcp_headers import ThreadViewMcpHeaders
 
@@ -39,7 +40,9 @@ class ThreadView:
         updated_at (datetime.datetime):
         version (int):
         workspace_id (str):
+        execution (ExecutionOverride | None | Unset):
         purpose (ThreadViewPurpose | Unset):
+        schedule_occurrence_id (None | str | Unset):
     """
 
     archived_at: datetime.datetime | None
@@ -58,10 +61,14 @@ class ThreadView:
     updated_at: datetime.datetime
     version: int
     workspace_id: str
+    execution: ExecutionOverride | Unset | None = UNSET
     purpose: ThreadViewPurpose | Unset = UNSET
+    schedule_occurrence_id: str | Unset | None = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.execution_override import ExecutionOverride
+
         archived_at: str | None
         if isinstance(self.archived_at, datetime.datetime):
             archived_at = self.archived_at.isoformat()
@@ -104,9 +111,23 @@ class ThreadView:
 
         workspace_id = self.workspace_id
 
+        execution: dict[str, Any] | Unset | None
+        if isinstance(self.execution, Unset):
+            execution = UNSET
+        elif isinstance(self.execution, ExecutionOverride):
+            execution = self.execution.to_dict()
+        else:
+            execution = self.execution
+
         purpose: str | Unset = UNSET
         if not isinstance(self.purpose, Unset):
             purpose = self.purpose.value
+
+        schedule_occurrence_id: str | Unset | None
+        if isinstance(self.schedule_occurrence_id, Unset):
+            schedule_occurrence_id = UNSET
+        else:
+            schedule_occurrence_id = self.schedule_occurrence_id
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
@@ -130,13 +151,18 @@ class ThreadView:
                 "workspace_id": workspace_id,
             }
         )
+        if execution is not UNSET:
+            field_dict["execution"] = execution
         if purpose is not UNSET:
             field_dict["purpose"] = purpose
+        if schedule_occurrence_id is not UNSET:
+            field_dict["schedule_occurrence_id"] = schedule_occurrence_id
 
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.execution_override import ExecutionOverride
         from ..models.thread_view_labels import ThreadViewLabels
         from ..models.thread_view_mcp_headers import ThreadViewMcpHeaders
 
@@ -217,12 +243,38 @@ class ThreadView:
 
         workspace_id = d.pop("workspace_id")
 
+        def _parse_execution(data: object) -> ExecutionOverride | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                execution_type_0 = ExecutionOverride.from_dict(data)
+
+                return execution_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(ExecutionOverride | Unset | None, data)
+
+        execution = _parse_execution(d.pop("execution", UNSET))
+
         _purpose = d.pop("purpose", UNSET)
         purpose: ThreadViewPurpose | Unset
         if isinstance(_purpose, Unset):
             purpose = UNSET
         else:
             purpose = ThreadViewPurpose(_purpose)
+
+        def _parse_schedule_occurrence_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        schedule_occurrence_id = _parse_schedule_occurrence_id(d.pop("schedule_occurrence_id", UNSET))
 
         thread_view = cls(
             archived_at=archived_at,
@@ -241,7 +293,9 @@ class ThreadView:
             updated_at=updated_at,
             version=version,
             workspace_id=workspace_id,
+            execution=execution,
             purpose=purpose,
+            schedule_occurrence_id=schedule_occurrence_id,
         )
 
         thread_view.additional_properties = d

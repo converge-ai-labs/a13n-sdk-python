@@ -8,6 +8,7 @@ class PlatformGroup(StrEnum):
     EXECUTION = "execution"
     MODELS = "models"
     PROVIDERS = "providers"
+    SCHEDULES = "schedules"
     SKILLS = "skills"
 
     def __str__(self) -> str:

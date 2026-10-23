@@ -16,11 +16,11 @@ if TYPE_CHECKING:
     from ..models.agent_reviewer import AgentReviewer
     from ..models.client_tool_definition import ClientToolDefinition
     from ..models.connection_selection import ConnectionSelection
+    from ..models.execution_override import ExecutionOverride
     from ..models.isolated_skill_sync import IsolatedSkillSync
     from ..models.media_understanding_selection import MediaUnderstandingSelection
     from ..models.memory_mount import MemoryMount
     from ..models.output_spec import OutputSpec
-    from ..models.platform_selection import PlatformSelection
     from ..models.plugin_selection import PluginSelection
     from ..models.retry_config import RetryConfig
     from ..models.session_memory_settings import SessionMemorySettings
@@ -41,6 +41,7 @@ class AgentConfigInput:
         client_tools (list[ClientToolDefinition] | Unset):
         connection_tools (list[ConnectionSelection] | Unset):
         default_environment_template_id (None | str | Unset):
+        execution (ExecutionOverride | None | Unset):
         instructions (str | Unset):
         lazy_environment (bool | Unset):
         media_understanding (MediaUnderstandingSelection | Unset): The model, by key, describing each media kind a model
@@ -52,8 +53,6 @@ class AgentConfigInput:
             model declares.
         model_settings (AgentConfigInputModelSettings | Unset):
         output_spec (None | OutputSpec | Unset):
-        platform_tools (PlatformSelection | Unset): Platform MCP groups selected independently of local operating
-            instructions.
         plugins (list[PluginSelection] | Unset):
         retries (None | RetryConfig | Unset):
         reviewer (AgentReviewer | None | Unset):
@@ -71,6 +70,7 @@ class AgentConfigInput:
     client_tools: list[ClientToolDefinition] | Unset = UNSET
     connection_tools: list[ConnectionSelection] | Unset = UNSET
     default_environment_template_id: str | Unset | None = UNSET
+    execution: ExecutionOverride | Unset | None = UNSET
     instructions: str | Unset = UNSET
     lazy_environment: bool | Unset = UNSET
     media_understanding: MediaUnderstandingSelection | Unset = UNSET
@@ -79,7 +79,6 @@ class AgentConfigInput:
     model_characteristics: AgentModelCharacteristics | Unset = UNSET
     model_settings: AgentConfigInputModelSettings | Unset = UNSET
     output_spec: OutputSpec | Unset | None = UNSET
-    platform_tools: PlatformSelection | Unset = UNSET
     plugins: list[PluginSelection] | Unset = UNSET
     retries: RetryConfig | Unset | None = UNSET
     reviewer: AgentReviewer | Unset | None = UNSET
@@ -93,6 +92,7 @@ class AgentConfigInput:
 
     def to_dict(self) -> dict[str, Any]:
         from ..models.agent_reviewer import AgentReviewer
+        from ..models.execution_override import ExecutionOverride
         from ..models.output_spec import OutputSpec
         from ..models.retry_config import RetryConfig
         from ..models.shared_skill_sync import SharedSkillSync
@@ -123,6 +123,14 @@ class AgentConfigInput:
             default_environment_template_id = UNSET
         else:
             default_environment_template_id = self.default_environment_template_id
+
+        execution: dict[str, Any] | Unset | None
+        if isinstance(self.execution, Unset):
+            execution = UNSET
+        elif isinstance(self.execution, ExecutionOverride):
+            execution = self.execution.to_dict()
+        else:
+            execution = self.execution
 
         instructions = self.instructions
 
@@ -158,10 +166,6 @@ class AgentConfigInput:
             output_spec = self.output_spec.to_dict()
         else:
             output_spec = self.output_spec
-
-        platform_tools: dict[str, Any] | Unset = UNSET
-        if not isinstance(self.platform_tools, Unset):
-            platform_tools = self.platform_tools.to_dict()
 
         plugins: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.plugins, Unset):
@@ -238,6 +242,8 @@ class AgentConfigInput:
             field_dict["connection_tools"] = connection_tools
         if default_environment_template_id is not UNSET:
             field_dict["default_environment_template_id"] = default_environment_template_id
+        if execution is not UNSET:
+            field_dict["execution"] = execution
         if instructions is not UNSET:
             field_dict["instructions"] = instructions
         if lazy_environment is not UNSET:
@@ -254,8 +260,6 @@ class AgentConfigInput:
             field_dict["model_settings"] = model_settings
         if output_spec is not UNSET:
             field_dict["output_spec"] = output_spec
-        if platform_tools is not UNSET:
-            field_dict["platform_tools"] = platform_tools
         if plugins is not UNSET:
             field_dict["plugins"] = plugins
         if retries is not UNSET:
@@ -288,11 +292,11 @@ class AgentConfigInput:
         from ..models.agent_reviewer import AgentReviewer
         from ..models.client_tool_definition import ClientToolDefinition
         from ..models.connection_selection import ConnectionSelection
+        from ..models.execution_override import ExecutionOverride
         from ..models.isolated_skill_sync import IsolatedSkillSync
         from ..models.media_understanding_selection import MediaUnderstandingSelection
         from ..models.memory_mount import MemoryMount
         from ..models.output_spec import OutputSpec
-        from ..models.platform_selection import PlatformSelection
         from ..models.plugin_selection import PluginSelection
         from ..models.retry_config import RetryConfig
         from ..models.session_memory_settings import SessionMemorySettings
@@ -343,6 +347,23 @@ class AgentConfigInput:
         default_environment_template_id = _parse_default_environment_template_id(
             d.pop("default_environment_template_id", UNSET)
         )
+
+        def _parse_execution(data: object) -> ExecutionOverride | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                execution_type_0 = ExecutionOverride.from_dict(data)
+
+                return execution_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(ExecutionOverride | Unset | None, data)
+
+        execution = _parse_execution(d.pop("execution", UNSET))
 
         instructions = d.pop("instructions", UNSET)
 
@@ -401,13 +422,6 @@ class AgentConfigInput:
             return cast(OutputSpec | Unset | None, data)
 
         output_spec = _parse_output_spec(d.pop("output_spec", UNSET))
-
-        _platform_tools = d.pop("platform_tools", UNSET)
-        platform_tools: PlatformSelection | Unset
-        if isinstance(_platform_tools, Unset):
-            platform_tools = UNSET
-        else:
-            platform_tools = PlatformSelection.from_dict(_platform_tools)
 
         _plugins = d.pop("plugins", UNSET)
         plugins: list[PluginSelection] | Unset = UNSET
@@ -526,6 +540,7 @@ class AgentConfigInput:
             client_tools=client_tools,
             connection_tools=connection_tools,
             default_environment_template_id=default_environment_template_id,
+            execution=execution,
             instructions=instructions,
             lazy_environment=lazy_environment,
             media_understanding=media_understanding,
@@ -534,7 +549,6 @@ class AgentConfigInput:
             model_characteristics=model_characteristics,
             model_settings=model_settings,
             output_spec=output_spec,
-            platform_tools=platform_tools,
             plugins=plugins,
             retries=retries,
             reviewer=reviewer,

@@ -20,7 +20,7 @@ from pydantic import JsonValue
 
 from ._resources import Resource
 from .errors import ApiError, ProtocolError, TransportError
-from .generated.api.runs import thread_stream_api_v1_threads_thread_id_stream_get
+from .generated.api.runs import thread_stream
 from .generated.models import ErrorEnvelope
 from .generated.types import UNSET
 
@@ -585,7 +585,7 @@ class ThreadStream(_StreamContext[ThreadFrame]):
                 await self._recover(TransportError("Thread stream transport failed"))
 
     async def _attach(self) -> None:
-        request = thread_stream_api_v1_threads_thread_id_stream_get.build_request(
+        request = thread_stream.build_request(
             thread_id=self._thread.id,
             run=self._run if self._run is not None else UNSET,
             position=self._position if self._position is not None else UNSET,

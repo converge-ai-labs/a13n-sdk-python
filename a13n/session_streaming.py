@@ -16,8 +16,8 @@ from jsonschema import Draft202012Validator, ValidationError
 
 from ._resources import Resource
 from .errors import ProtocolError, TransportError
-from .generated.api.runs import session_stream_api_v1_sessions_session_id_stream_get
-from .generated.models import Delta, Gap, RunSnapshot, ThreadState
+from .generated.api.runs import session_stream
+from .generated.models import Delta, Gap, OccurrenceEvent, RunSnapshot, ScheduleEvent, ThreadState
 from .streaming import _events, _StreamContext
 
 
@@ -45,8 +45,34 @@ class SessionGapFrame:
     event_type: Literal["gap"] = field(default="gap", init=False)
 
 
-SessionFrame = SessionThreadFrame | SessionItemsFrame | SessionDeltaFrame | SessionGapFrame
-_DEFINITIONS = {"thread": "ThreadState", "items": "RunSnapshot", "delta": "Delta", "gap": "Gap"}
+@dataclass(frozen=True, repr=False)
+class SessionScheduleFrame:
+    data: ScheduleEvent
+    event_type: Literal["schedule"] = field(default="schedule", init=False)
+
+
+@dataclass(frozen=True, repr=False)
+class SessionOccurrenceFrame:
+    data: OccurrenceEvent
+    event_type: Literal["occurrence"] = field(default="occurrence", init=False)
+
+
+SessionFrame = (
+    SessionThreadFrame
+    | SessionItemsFrame
+    | SessionDeltaFrame
+    | SessionGapFrame
+    | SessionScheduleFrame
+    | SessionOccurrenceFrame
+)
+_DEFINITIONS = {
+    "thread": "ThreadState",
+    "items": "RunSnapshot",
+    "delta": "Delta",
+    "gap": "Gap",
+    "schedule": "ScheduleEvent",
+    "occurrence": "OccurrenceEvent",
+}
 
 
 @cache
@@ -73,6 +99,10 @@ def _session_frame(event: str, data: list[str], cursor: str | None) -> SessionFr
             return SessionItemsFrame(RunSnapshot.from_dict(value))
         if event == "delta":
             return SessionDeltaFrame(Delta.from_dict(value))
+        if event == "schedule":
+            return SessionScheduleFrame(ScheduleEvent.from_dict(value))
+        if event == "occurrence":
+            return SessionOccurrenceFrame(OccurrenceEvent.from_dict(value))
         return SessionGapFrame(Gap.from_dict(value))
     except (ValueError, TypeError, KeyError, AttributeError, ValidationError):
         raise ProtocolError("Malformed Session stream frame") from None
@@ -104,7 +134,7 @@ class SessionStream(_StreamContext[SessionFrame]):
         return self._resource
 
     async def _attach_with_recovery(self) -> None:
-        request = session_stream_api_v1_sessions_session_id_stream_get.build_request(session_id=self._resource.id)
+        request = session_stream.build_request(session_id=self._resource.id)
         try:
             await self._open_attachment(
                 request, lambda response, _limit: _session_frames(response, self._session_max_event_bytes)

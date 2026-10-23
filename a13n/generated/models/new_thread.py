@@ -9,12 +9,14 @@ from ..models.delivery import Delivery
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
+    from ..models.execution_override import ExecutionOverride
     from ..models.mcp_headers import McpHeaders
     from ..models.memory_mount import MemoryMount
     from ..models.message_history_item import MessageHistoryItem
     from ..models.message_payload import MessagePayload
     from ..models.mount_create import MountCreate
     from ..models.run_options_input import RunOptionsInput
+    from ..models.session_create import SessionCreate
 
 
 T = TypeVar("T", bound="NewThread")
@@ -29,6 +31,7 @@ class NewThread:
         agent_revision_id (None | str | Unset):
         delivery (Delivery | Unset):
         environments (list[MountCreate] | Unset):
+        execution (ExecutionOverride | None | Unset):
         kind (Literal['message'] | Unset):
         mcp_headers (McpHeaders | Unset):
         memories (list[MemoryMount] | Unset):
@@ -37,6 +40,7 @@ class NewThread:
             media or suspended execution. At most 256 messages and 256 KiB of normalized JSON.
         options (RunOptionsInput | Unset): What a message may choose for the run it starts. A steer joins a run with the
             defaults or equal options.
+        session (None | SessionCreate | Unset):
         session_id (None | str | Unset):
     """
 
@@ -45,14 +49,19 @@ class NewThread:
     agent_revision_id: str | Unset | None = UNSET
     delivery: Delivery | Unset = UNSET
     environments: list[MountCreate] | Unset = UNSET
+    execution: ExecutionOverride | Unset | None = UNSET
     kind: Literal["message"] | Unset = UNSET
     mcp_headers: McpHeaders | Unset = UNSET
     memories: list[MemoryMount] | Unset = UNSET
     message_history: list[MessageHistoryItem] | Unset = UNSET
     options: RunOptionsInput | Unset = UNSET
+    session: SessionCreate | Unset | None = UNSET
     session_id: str | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.execution_override import ExecutionOverride
+        from ..models.session_create import SessionCreate
+
         agent_id = self.agent_id
 
         payload = self.payload.to_dict()
@@ -73,6 +82,14 @@ class NewThread:
             for componentsschemas_initial_mounts_item_data in self.environments:
                 componentsschemas_initial_mounts_item = componentsschemas_initial_mounts_item_data.to_dict()
                 environments.append(componentsschemas_initial_mounts_item)
+
+        execution: dict[str, Any] | Unset | None
+        if isinstance(self.execution, Unset):
+            execution = UNSET
+        elif isinstance(self.execution, ExecutionOverride):
+            execution = self.execution.to_dict()
+        else:
+            execution = self.execution
 
         kind = self.kind
 
@@ -98,6 +115,14 @@ class NewThread:
         if not isinstance(self.options, Unset):
             options = self.options.to_dict()
 
+        session: dict[str, Any] | Unset | None
+        if isinstance(self.session, Unset):
+            session = UNSET
+        elif isinstance(self.session, SessionCreate):
+            session = self.session.to_dict()
+        else:
+            session = self.session
+
         session_id: str | Unset | None
         if isinstance(self.session_id, Unset):
             session_id = UNSET
@@ -118,6 +143,8 @@ class NewThread:
             field_dict["delivery"] = delivery
         if environments is not UNSET:
             field_dict["environments"] = environments
+        if execution is not UNSET:
+            field_dict["execution"] = execution
         if kind is not UNSET:
             field_dict["kind"] = kind
         if mcp_headers is not UNSET:
@@ -128,6 +155,8 @@ class NewThread:
             field_dict["message_history"] = message_history
         if options is not UNSET:
             field_dict["options"] = options
+        if session is not UNSET:
+            field_dict["session"] = session
         if session_id is not UNSET:
             field_dict["session_id"] = session_id
 
@@ -135,12 +164,14 @@ class NewThread:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.execution_override import ExecutionOverride
         from ..models.mcp_headers import McpHeaders
         from ..models.memory_mount import MemoryMount
         from ..models.message_history_item import MessageHistoryItem
         from ..models.message_payload import MessagePayload
         from ..models.mount_create import MountCreate
         from ..models.run_options_input import RunOptionsInput
+        from ..models.session_create import SessionCreate
 
         d = dict(src_dict)
         agent_id = d.pop("agent_id")
@@ -173,6 +204,23 @@ class NewThread:
                 )
 
                 environments.append(componentsschemas_initial_mounts_item)
+
+        def _parse_execution(data: object) -> ExecutionOverride | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                execution_type_0 = ExecutionOverride.from_dict(data)
+
+                return execution_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(ExecutionOverride | Unset | None, data)
+
+        execution = _parse_execution(d.pop("execution", UNSET))
 
         kind = cast(Literal["message"] | Unset, d.pop("kind", UNSET))
         if kind != "message" and not isinstance(kind, Unset):
@@ -212,6 +260,23 @@ class NewThread:
         else:
             options = RunOptionsInput.from_dict(_options)
 
+        def _parse_session(data: object) -> SessionCreate | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                session_type_0 = SessionCreate.from_dict(data)
+
+                return session_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(SessionCreate | Unset | None, data)
+
+        session = _parse_session(d.pop("session", UNSET))
+
         def _parse_session_id(data: object) -> str | Unset | None:
             if data is None:
                 return data
@@ -227,11 +292,13 @@ class NewThread:
             agent_revision_id=agent_revision_id,
             delivery=delivery,
             environments=environments,
+            execution=execution,
             kind=kind,
             mcp_headers=mcp_headers,
             memories=memories,
             message_history=message_history,
             options=options,
+            session=session,
             session_id=session_id,
         )
 

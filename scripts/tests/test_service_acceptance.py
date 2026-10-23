@@ -304,9 +304,9 @@ def test_desktop_discovery_context_acceptance_uses_native_sdk_boundaries_locally
             )
         assert evidence["selectors_equal"] == 3 and evidence["absent_desktop_null"]
         assert evidence["failed_context_null"] == "run_failed"
-        assert len(evidence["stored_discovery_agents"]) == 4
+        assert len(evidence["stored_discovery_agents"]) == 1
         assert evidence["invalid_variants_rejected_locally"] == 4
-        assert len(stored) == 4 and all(config["tool_search"]["groups"] == {} for config in stored)
+        assert len(stored) == 1 and all(config["tool_search"]["groups"] == {} for config in stored)
         assert not any("/desktop-assistance/" in request.url.path for request in seen)
 
     asyncio.run(scenario())
