@@ -46,6 +46,7 @@ from .generated.models import Delivery, RunStatus
 from .generated.resources import Organization, Session, Workspace
 from .generated.types import UNSET, Unset
 from .session_streaming import (
+    SessionAppReadyFrame,
     SessionDeltaFrame,
     SessionFrame,
     SessionGapFrame,
@@ -105,6 +106,7 @@ __all__ = [
     "RunOutcome",
     "RunStatus",
     "Session",
+    "SessionAppReadyFrame",
     "SessionDeltaFrame",
     "SessionFrame",
     "SessionGapFrame",

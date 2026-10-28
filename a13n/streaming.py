@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import codecs
 import json
 import random
 import re
@@ -136,6 +137,10 @@ class StreamResponse:
     request_id: str | None
 
 
+class _TruncatedStreamError(ProtocolError):
+    """The response ended inside an undispatched SSE frame."""
+
+
 async def _lines(response: httpx2.Response, limit: int | None) -> AsyncGenerator[bytes]:
     pending = bytearray()
     skip_lf = False
@@ -161,7 +166,12 @@ async def _lines(response: httpx2.Response, limit: int | None) -> AsyncGenerator
             if limit is not None and len(pending) > limit:
                 raise ProtocolError("SSE line exceeds the configured bound")
         if pending:
-            raise ProtocolError("Stream ended with a truncated SSE line")
+            try:
+                # Accept an incomplete trailing code point, but not invalid bytes.
+                codecs.utf_8_decode(pending, "strict", False)
+            except UnicodeError:
+                raise ProtocolError("Invalid UTF-8 in SSE stream") from None
+            raise _TruncatedStreamError("Stream ended with a truncated SSE line")
 
 
 def _memory_sources(value: Any) -> None:
@@ -306,7 +316,7 @@ async def _events(response: httpx2.Response, limit: int | None) -> AsyncGenerato
             elif field == "id":
                 cursor = value
         if data or event_type or cursor is not None:
-            raise ProtocolError("Stream ended with a truncated SSE frame")
+            raise _TruncatedStreamError("Stream ended with a truncated SSE frame")
 
 
 async def _frames(response: httpx2.Response, limit: int) -> AsyncGenerator[ThreadFrame]:
@@ -543,6 +553,10 @@ class ThreadStream(_StreamContext[ThreadFrame]):
                     await self._recover(TransportError("Thread stream ended; re-read state if needed"))
                     await self._attach_with_recovery()
                     continue
+                except _TruncatedStreamError as error:
+                    await self._recover(error)
+                    await self._attach_with_recovery()
+                    continue
                 except ProtocolError:
                     await self._finish()
                     raise
@@ -593,7 +607,7 @@ class ThreadStream(_StreamContext[ThreadFrame]):
         )
         await self._open_attachment(request, _frames)
 
-    async def _recover(self, error: ApiError | TransportError) -> None:
+    async def _recover(self, error: ApiError | TransportError | _TruncatedStreamError) -> None:
         await self._close_attachment()
         if not self._reconnect or self._retries >= self._max_reconnects:
             await self._finish()

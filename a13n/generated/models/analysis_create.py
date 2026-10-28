@@ -17,6 +17,7 @@ class AnalysisCreate:
     """
     Attributes:
         agent_id (None | str | Unset):
+        instructions (str | Unset):
         max_traces (int | Unset):
         presets (list[Preset] | Unset):
         started_after (datetime.datetime | None | Unset):
@@ -25,6 +26,7 @@ class AnalysisCreate:
     """
 
     agent_id: str | Unset | None = UNSET
+    instructions: str | Unset = UNSET
     max_traces: int | Unset = UNSET
     presets: list[Preset] | Unset = UNSET
     started_after: datetime.datetime | Unset | None = UNSET
@@ -37,6 +39,8 @@ class AnalysisCreate:
             agent_id = UNSET
         else:
             agent_id = self.agent_id
+
+        instructions = self.instructions
 
         max_traces = self.max_traces
 
@@ -74,6 +78,8 @@ class AnalysisCreate:
         field_dict.update({})
         if agent_id is not UNSET:
             field_dict["agent_id"] = agent_id
+        if instructions is not UNSET:
+            field_dict["instructions"] = instructions
         if max_traces is not UNSET:
             field_dict["max_traces"] = max_traces
         if presets is not UNSET:
@@ -99,6 +105,8 @@ class AnalysisCreate:
             return cast(str | Unset | None, data)
 
         agent_id = _parse_agent_id(d.pop("agent_id", UNSET))
+
+        instructions = d.pop("instructions", UNSET)
 
         max_traces = d.pop("max_traces", UNSET)
 
@@ -156,6 +164,7 @@ class AnalysisCreate:
 
         analysis_create = cls(
             agent_id=agent_id,
+            instructions=instructions,
             max_traces=max_traces,
             presets=presets,
             started_after=started_after,

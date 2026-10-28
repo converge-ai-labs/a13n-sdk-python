@@ -130,6 +130,7 @@ class ExecutionOverride(_Value):
 
 @dataclass(frozen=True, kw_only=True)
 class RunOptions(_Value):
+    context: Mapping[str, JsonValue] | Unset | None = UNSET
     execution: ExecutionOverride | Mapping[str, JsonValue] | Unset | None = UNSET
     configuration: RunConfiguration | Unset | None = UNSET
     overrides: AgentOverride | Unset | None = UNSET

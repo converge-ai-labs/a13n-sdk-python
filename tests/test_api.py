@@ -9,6 +9,8 @@ from a13n import Client, TransportError
 from tests.test_interaction import entry_view, run_view, submitted
 
 FAMILIES = {
+    "builtin_skills",
+    "plugins",
     "metrics_data_sources",
     "metrics_dashboards",
     "schedules",

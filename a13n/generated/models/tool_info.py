@@ -11,6 +11,7 @@ from ..types import UNSET, Unset
 if TYPE_CHECKING:
     from ..models.tool_info_annotations import ToolInfoAnnotations
     from ..models.tool_info_input_schema import ToolInfoInputSchema
+    from ..models.tool_info_metadata import ToolInfoMetadata
     from ..models.tool_info_output_schema_type_0 import ToolInfoOutputSchemaType0
 
 
@@ -25,6 +26,7 @@ class ToolInfo:
         input_schema (ToolInfoInputSchema):
         name (str):
         annotations (ToolInfoAnnotations | Unset):
+        metadata (ToolInfoMetadata | Unset):
         output_schema (None | ToolInfoOutputSchemaType0 | Unset):
         provider_version (None | str | Unset):
     """
@@ -33,6 +35,7 @@ class ToolInfo:
     input_schema: ToolInfoInputSchema
     name: str
     annotations: ToolInfoAnnotations | Unset = UNSET
+    metadata: ToolInfoMetadata | Unset = UNSET
     output_schema: ToolInfoOutputSchemaType0 | Unset | None = UNSET
     provider_version: str | Unset | None = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
@@ -50,6 +53,10 @@ class ToolInfo:
         annotations: dict[str, Any] | Unset = UNSET
         if not isinstance(self.annotations, Unset):
             annotations = self.annotations.to_dict()
+
+        metadata: dict[str, Any] | Unset = UNSET
+        if not isinstance(self.metadata, Unset):
+            metadata = self.metadata.to_dict()
 
         output_schema: dict[str, Any] | Unset | None
         if isinstance(self.output_schema, Unset):
@@ -76,6 +83,8 @@ class ToolInfo:
         )
         if annotations is not UNSET:
             field_dict["annotations"] = annotations
+        if metadata is not UNSET:
+            field_dict["metadata"] = metadata
         if output_schema is not UNSET:
             field_dict["output_schema"] = output_schema
         if provider_version is not UNSET:
@@ -87,6 +96,7 @@ class ToolInfo:
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.tool_info_annotations import ToolInfoAnnotations
         from ..models.tool_info_input_schema import ToolInfoInputSchema
+        from ..models.tool_info_metadata import ToolInfoMetadata
         from ..models.tool_info_output_schema_type_0 import ToolInfoOutputSchemaType0
 
         d = dict(src_dict)
@@ -108,6 +118,13 @@ class ToolInfo:
             annotations = UNSET
         else:
             annotations = ToolInfoAnnotations.from_dict(_annotations)
+
+        _metadata = d.pop("metadata", UNSET)
+        metadata: ToolInfoMetadata | Unset
+        if isinstance(_metadata, Unset):
+            metadata = UNSET
+        else:
+            metadata = ToolInfoMetadata.from_dict(_metadata)
 
         def _parse_output_schema(data: object) -> ToolInfoOutputSchemaType0 | Unset | None:
             if data is None:
@@ -140,6 +157,7 @@ class ToolInfo:
             input_schema=input_schema,
             name=name,
             annotations=annotations,
+            metadata=metadata,
             output_schema=output_schema,
             provider_version=provider_version,
         )

@@ -363,3 +363,47 @@ def test_session_error_body_disconnect_is_transport_error_and_releases_response(
 def test_session_validator_is_cached_and_unknown_events_ignore_payload() -> None:
     assert _validators() is _validators()
     assert _session_frame("future", ["invalid-json"], "not-a-cursor") is None
+
+
+def test_app_ready_preserves_repeated_committed_references_and_rejects_invalid_envelopes() -> None:
+    from a13n import SessionAppReadyFrame
+
+    payload = {
+        "thread_id": "thr_1",
+        "run_id": "run_1",
+        "apps": [
+            {
+                "app_id": "app_1",
+                "connection_id": "conn_1",
+                "agent_revision_id": "rev_1",
+                "source_run_id": "run_1",
+                "tool_call_id": "call_1",
+                "tool_name": "chart",
+                "resource_uri": "ui://chart",
+                "unavailable": False,
+            }
+        ],
+    }
+
+    async def scenario() -> None:
+        def handle(request: httpx2.Request) -> httpx2.Response:
+            return httpx2.Response(
+                200, content=sse("app_ready", payload) * 2, headers={"Content-Type": "text/event-stream"}
+            )
+
+        async with Client("https://service.example", "token", transport=httpx2.MockTransport(handle)) as client:
+            async with SessionStream(client.api.sessions("ses_1")) as stream:
+                frames = [frame async for frame in stream]
+            assert len(frames) == 2
+            assert all(isinstance(frame, SessionAppReadyFrame) and frame.data.to_dict() == payload for frame in frames)
+
+    asyncio.run(scenario())
+    for field in ("thread_id", "run_id", "apps"):
+        invalid = {k: v for k, v in payload.items() if k != field}
+        with pytest.raises(ProtocolError):
+            _session_frame("app_ready", [json.dumps(invalid)], None)
+    for invalid in ({**payload, "apps": [{}]}, {**payload, "apps": None}):
+        with pytest.raises(ProtocolError):
+            _session_frame("app_ready", [json.dumps(invalid)], None)
+    with pytest.raises(ProtocolError):
+        _session_frame("app_ready", [json.dumps(payload)], "1-0")

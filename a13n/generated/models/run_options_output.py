@@ -10,6 +10,7 @@ from ..types import UNSET, Unset
 if TYPE_CHECKING:
     from ..models.agent_override_output import AgentOverrideOutput
     from ..models.execution_override import ExecutionOverride
+    from ..models.request_context import RequestContext
     from ..models.run_configuration_output import RunConfigurationOutput
     from ..models.run_options_output_labels import RunOptionsOutputLabels
     from ..models.usage_limit import UsageLimit
@@ -24,6 +25,7 @@ class RunOptionsOutput:
 
     Attributes:
         configuration (None | RunConfigurationOutput | Unset):
+        context (None | RequestContext | Unset):
         execution (ExecutionOverride | None | Unset):
         labels (RunOptionsOutputLabels | Unset):
         max_usage (None | Unset | UsageLimit):
@@ -31,6 +33,7 @@ class RunOptionsOutput:
     """
 
     configuration: RunConfigurationOutput | Unset | None = UNSET
+    context: RequestContext | Unset | None = UNSET
     execution: ExecutionOverride | Unset | None = UNSET
     labels: RunOptionsOutputLabels | Unset = UNSET
     max_usage: Unset | UsageLimit | None = UNSET
@@ -39,6 +42,7 @@ class RunOptionsOutput:
     def to_dict(self) -> dict[str, Any]:
         from ..models.agent_override_output import AgentOverrideOutput
         from ..models.execution_override import ExecutionOverride
+        from ..models.request_context import RequestContext
         from ..models.run_configuration_output import RunConfigurationOutput
         from ..models.usage_limit import UsageLimit
 
@@ -49,6 +53,14 @@ class RunOptionsOutput:
             configuration = self.configuration.to_dict()
         else:
             configuration = self.configuration
+
+        context: dict[str, Any] | Unset | None
+        if isinstance(self.context, Unset):
+            context = UNSET
+        elif isinstance(self.context, RequestContext):
+            context = self.context.to_dict()
+        else:
+            context = self.context
 
         execution: dict[str, Any] | Unset | None
         if isinstance(self.execution, Unset):
@@ -83,6 +95,8 @@ class RunOptionsOutput:
         field_dict.update({})
         if configuration is not UNSET:
             field_dict["configuration"] = configuration
+        if context is not UNSET:
+            field_dict["context"] = context
         if execution is not UNSET:
             field_dict["execution"] = execution
         if labels is not UNSET:
@@ -98,6 +112,7 @@ class RunOptionsOutput:
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.agent_override_output import AgentOverrideOutput
         from ..models.execution_override import ExecutionOverride
+        from ..models.request_context import RequestContext
         from ..models.run_configuration_output import RunConfigurationOutput
         from ..models.run_options_output_labels import RunOptionsOutputLabels
         from ..models.usage_limit import UsageLimit
@@ -120,6 +135,23 @@ class RunOptionsOutput:
             return cast(RunConfigurationOutput | Unset | None, data)
 
         configuration = _parse_configuration(d.pop("configuration", UNSET))
+
+        def _parse_context(data: object) -> RequestContext | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                context_type_0 = RequestContext.from_dict(data)
+
+                return context_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(RequestContext | Unset | None, data)
+
+        context = _parse_context(d.pop("context", UNSET))
 
         def _parse_execution(data: object) -> ExecutionOverride | Unset | None:
             if data is None:
@@ -181,6 +213,7 @@ class RunOptionsOutput:
 
         run_options_output = cls(
             configuration=configuration,
+            context=context,
             execution=execution,
             labels=labels,
             max_usage=max_usage,

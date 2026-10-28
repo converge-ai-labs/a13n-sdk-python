@@ -49,6 +49,15 @@ from .analysis_page import AnalysisPage
 from .any_change_trigger import AnyChangeTrigger
 from .api_key import ApiKey
 from .api_key_page import ApiKeyPage
+from .app_ready import AppReady
+from .app_reference import AppReference
+from .app_resource import AppResource
+from .app_resource_metadata import AppResourceMetadata
+from .app_resource_read import AppResourceRead
+from .app_tool_call import AppToolCall
+from .app_tool_call_arguments import AppToolCallArguments
+from .app_tool_result import AppToolResult
+from .app_tool_result_result import AppToolResultResult
 from .approve import Approve
 from .arguments import Arguments
 from .arguments_event_type_0 import ArgumentsEventType0
@@ -76,8 +85,12 @@ from .authorization_result import AuthorizationResult
 from .authorization_start import AuthorizationStart
 from .authorization_status import AuthorizationStatus
 from .authorization_status_state import AuthorizationStatusState
+from .background_compaction_policy import BackgroundCompactionPolicy
 from .bearer_credential import BearerCredential
 from .bootstrap_input import BootstrapInput
+from .builtin_skill import BuiltinSkill
+from .builtin_skill_catalog import BuiltinSkillCatalog
+from .builtin_skill_detail import BuiltinSkillDetail
 from .busy_occurrence import BusyOccurrence
 from .busy_occurrence_page import BusyOccurrencePage
 from .callback_outcome import CallbackOutcome
@@ -293,7 +306,9 @@ from .list_inbox_kind_type_0 import ListInboxKindType0
 from .list_members_kind_type_0 import ListMembersKindType0
 from .list_provider_types_kind import ListProviderTypesKind
 from .list_runs_status_type_0 import ListRunsStatusType0
+from .list_session_threads_origin_type_0_item import ListSessionThreadsOriginType0Item
 from .list_skills_source_type_0 import ListSkillsSourceType0
+from .list_threads_origin_type_0_item import ListThreadsOriginType0Item
 from .list_trace_spans_status_type_0 import ListTraceSpansStatusType0
 from .list_trace_spans_view import ListTraceSpansView
 from .list_traces_status_type_0 import ListTracesStatusType0
@@ -312,6 +327,10 @@ from .mcp_server_page import McpServerPage
 from .media_defaults import MediaDefaults
 from .media_understanding_selection import MediaUnderstandingSelection
 from .member_page import MemberPage
+from .member_usage import MemberUsage
+from .member_usage_kind import MemberUsageKind
+from .member_usage_page import MemberUsagePage
+from .member_usage_status import MemberUsageStatus
 from .memory import Memory
 from .memory_access import MemoryAccess
 from .memory_create import MemoryCreate
@@ -417,6 +436,10 @@ from .occurrence_summary import OccurrenceSummary
 from .occurrence_summary_execution_outcome_type_0 import OccurrenceSummaryExecutionOutcomeType0
 from .once_schedule import OnceSchedule
 from .open_view import OpenView
+from .opened_app import OpenedApp
+from .opened_app_arguments import OpenedAppArguments
+from .opened_app_result import OpenedAppResult
+from .opened_app_tool import OpenedAppTool
 from .operating_system import OperatingSystem
 from .operation_kind import OperationKind
 from .organization import Organization
@@ -443,8 +466,11 @@ from .pending_call import PendingCall
 from .pending_call_arguments import PendingCallArguments
 from .pending_call_presentation_type_0 import PendingCallPresentationType0
 from .platform_group import PlatformGroup
+from .plugin_catalog import PluginCatalog
 from .plugin_selection import PluginSelection
 from .plugin_selection_config import PluginSelectionConfig
+from .plugin_type import PluginType
+from .plugin_type_config_schema_type_0 import PluginTypeConfigSchemaType0
 from .position import Position
 from .preset import Preset
 from .preset_kind import PresetKind
@@ -501,6 +527,8 @@ from .read_span_content_section import ReadSpanContentSection
 from .read_view import ReadView
 from .record_source import RecordSource
 from .request import Request
+from .request_context import RequestContext
+from .request_context_headers import RequestContextHeaders
 from .resume import Resume
 from .resume_approvals import ResumeApprovals
 from .resume_calls import ResumeCalls
@@ -536,6 +564,7 @@ from .run_summary import RunSummary
 from .run_summary_lineage import RunSummaryLineage
 from .run_summary_revision_selection import RunSummaryRevisionSelection
 from .run_usage import RunUsage
+from .run_usage_page import RunUsagePage
 from .run_view import RunView
 from .run_view_input_type_0 import RunViewInputType0
 from .run_view_labels import RunViewLabels
@@ -651,7 +680,12 @@ from .template_update_labels_type_0 import TemplateUpdateLabelsType0
 from .text_part import TextPart
 from .text_read import TextRead
 from .text_read_media_type import TextReadMediaType
+from .thread_navigation import ThreadNavigation
+from .thread_navigation_origin import ThreadNavigationOrigin
+from .thread_navigation_page import ThreadNavigationPage
 from .thread_page import ThreadPage
+from .thread_reference import ThreadReference
+from .thread_reference_origin import ThreadReferenceOrigin
 from .thread_run_page import ThreadRunPage
 from .thread_state import ThreadState
 from .thread_update import ThreadUpdate
@@ -670,6 +704,7 @@ from .tool_execution_override_mode_type_0 import ToolExecutionOverrideModeType0
 from .tool_info import ToolInfo
 from .tool_info_annotations import ToolInfoAnnotations
 from .tool_info_input_schema import ToolInfoInputSchema
+from .tool_info_metadata import ToolInfoMetadata
 from .tool_info_output_schema_type_0 import ToolInfoOutputSchemaType0
 from .tool_page import ToolPage
 from .tool_permission_mode import ToolPermissionMode
@@ -784,6 +819,15 @@ __all__ = (
     "AnyChangeTrigger",
     "ApiKey",
     "ApiKeyPage",
+    "AppReady",
+    "AppReference",
+    "AppResource",
+    "AppResourceMetadata",
+    "AppResourceRead",
+    "AppToolCall",
+    "AppToolCallArguments",
+    "AppToolResult",
+    "AppToolResultResult",
     "Approve",
     "Arguments",
     "ArgumentsEventType0",
@@ -811,8 +855,12 @@ __all__ = (
     "AuthorizationStart",
     "AuthorizationStatus",
     "AuthorizationStatusState",
+    "BackgroundCompactionPolicy",
     "BearerCredential",
     "BootstrapInput",
+    "BuiltinSkill",
+    "BuiltinSkillCatalog",
+    "BuiltinSkillDetail",
     "BusyOccurrence",
     "BusyOccurrencePage",
     "CallbackOutcome",
@@ -1028,7 +1076,9 @@ __all__ = (
     "ListMembersKindType0",
     "ListProviderTypesKind",
     "ListRunsStatusType0",
+    "ListSessionThreadsOriginType0Item",
     "ListSkillsSourceType0",
+    "ListThreadsOriginType0Item",
     "ListTraceSpansStatusType0",
     "ListTraceSpansView",
     "ListTracesStatusType0",
@@ -1047,6 +1097,10 @@ __all__ = (
     "MediaDefaults",
     "MediaUnderstandingSelection",
     "MemberPage",
+    "MemberUsage",
+    "MemberUsageKind",
+    "MemberUsagePage",
+    "MemberUsageStatus",
     "Memory",
     "MemoryAccess",
     "MemoryCreate",
@@ -1152,6 +1206,10 @@ __all__ = (
     "OccurrenceSummaryExecutionOutcomeType0",
     "OnceSchedule",
     "OpenView",
+    "OpenedApp",
+    "OpenedAppArguments",
+    "OpenedAppResult",
+    "OpenedAppTool",
     "OperatingSystem",
     "OperationKind",
     "Organization",
@@ -1178,8 +1236,11 @@ __all__ = (
     "PendingCallArguments",
     "PendingCallPresentationType0",
     "PlatformGroup",
+    "PluginCatalog",
     "PluginSelection",
     "PluginSelectionConfig",
+    "PluginType",
+    "PluginTypeConfigSchemaType0",
     "Position",
     "Preset",
     "PresetKind",
@@ -1234,6 +1295,8 @@ __all__ = (
     "ReadView",
     "RecordSource",
     "Request",
+    "RequestContext",
+    "RequestContextHeaders",
     "Resume",
     "ResumeApprovals",
     "ResumeCalls",
@@ -1269,6 +1332,7 @@ __all__ = (
     "RunSummaryLineage",
     "RunSummaryRevisionSelection",
     "RunUsage",
+    "RunUsagePage",
     "RunView",
     "RunViewInputType0",
     "RunViewLabels",
@@ -1384,7 +1448,12 @@ __all__ = (
     "TextPart",
     "TextRead",
     "TextReadMediaType",
+    "ThreadNavigation",
+    "ThreadNavigationOrigin",
+    "ThreadNavigationPage",
     "ThreadPage",
+    "ThreadReference",
+    "ThreadReferenceOrigin",
     "ThreadRunPage",
     "ThreadState",
     "ThreadUpdate",
@@ -1403,6 +1472,7 @@ __all__ = (
     "ToolInfo",
     "ToolInfoAnnotations",
     "ToolInfoInputSchema",
+    "ToolInfoMetadata",
     "ToolInfoOutputSchemaType0",
     "ToolPage",
     "ToolPermissionMode",

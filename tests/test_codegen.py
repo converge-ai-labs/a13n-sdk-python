@@ -77,6 +77,7 @@ def test_every_pinned_named_model_and_inline_schema_has_generated_coverage() -> 
     # Primitive aliases, arrays and unions are inlined into consuming signatures.
     inline = {
         "ApprovalDecision",
+        "BuiltinSkillName",
         "CallResult",
         "ConnectionConfig",
         "EnteredCredential",
@@ -100,7 +101,7 @@ def test_every_pinned_named_model_and_inline_schema_has_generated_coverage() -> 
             assert exported in wire.__all__, name
             named.add(name)
     assert named | inline == schemas.keys()
-    assert len(schemas) == 502
+    assert len(schemas) == 522
     for name in inline:
         reference = f"#/components/schemas/{name}"
         assert reference in json.dumps(document), name
@@ -114,8 +115,9 @@ def test_session_only_models_share_native_types_without_changing_native_inventor
     augmented = with_session_models(document, session)
     native = document["components"]["schemas"]
     combined = augmented["components"]["schemas"]
-    assert len(native) == 502 and len(session["$defs"]) == 102
+    assert len(native) == 522 and len(session["$defs"]) == 106
     assert combined.keys() - native.keys() == {
+        "AppReady",
         "ScheduleConfiguration",
         "Progress",
         "ScheduleEvent",

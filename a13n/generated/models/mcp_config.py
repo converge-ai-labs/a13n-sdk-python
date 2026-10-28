@@ -19,12 +19,14 @@ class McpConfig:
     """
     Attributes:
         url (str):
+        forward_context_headers (bool | Unset):
         headers (list[str] | Unset):
         oauth (None | OAuthSettings | Unset):
         tools (list[str] | None | Unset):
     """
 
     url: str
+    forward_context_headers: bool | Unset = UNSET
     headers: list[str] | Unset = UNSET
     oauth: OAuthSettings | Unset | None = UNSET
     tools: list[str] | Unset | None = UNSET
@@ -33,6 +35,8 @@ class McpConfig:
         from ..models.o_auth_settings import OAuthSettings
 
         url = self.url
+
+        forward_context_headers = self.forward_context_headers
 
         headers: list[str] | Unset = UNSET
         if not isinstance(self.headers, Unset):
@@ -62,6 +66,8 @@ class McpConfig:
                 "url": url,
             }
         )
+        if forward_context_headers is not UNSET:
+            field_dict["forward_context_headers"] = forward_context_headers
         if headers is not UNSET:
             field_dict["headers"] = headers
         if oauth is not UNSET:
@@ -77,6 +83,8 @@ class McpConfig:
 
         d = dict(src_dict)
         url = d.pop("url")
+
+        forward_context_headers = d.pop("forward_context_headers", UNSET)
 
         headers = cast(list[str], d.pop("headers", UNSET))
 
@@ -116,6 +124,7 @@ class McpConfig:
 
         mcp_config = cls(
             url=url,
+            forward_context_headers=forward_context_headers,
             headers=headers,
             oauth=oauth,
             tools=tools,

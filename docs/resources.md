@@ -333,7 +333,7 @@ async def request_metrics(client: Client, record_id: str) -> wire.ModelRequestMe
 
 Read retained image IDs explicitly from committed history. JPEG and PNG bytes retain their actual Content-Type; this call does not capture a new screenshot. For large images use `.get_stream()` and check status before consuming bytes, as in [Asset downloads](files-and-memory.md#download-without-buffering-the-whole-file). Observation never auto-fetches image references.
 
-Timing is derived by Service, not recomputed by the SDK. `None` means no eligible timing, not zero; zero output on a measured positive-duration request can have zero speed. `UsageSummary` now includes required `runs` with per-Run model totals, and `ModelUsage` includes required nullable `average_time_to_first_chunk_seconds` and `output_tokens_per_second`. Older hand-built response fixtures must supply these fields; do not replace missing facts with zeros.
+Timing is derived by Service, not recomputed by the SDK. `None` means no eligible timing, not zero; zero output on a measured positive-duration request can have zero speed. `UsageSummary.models` covers the entire filtered scope. Read per-Run totals separately with `client.api.usage.runs.pages(...)`; each page has required `items` and nullable `next_cursor`. `ModelUsage` includes required nullable `average_time_to_first_chunk_seconds` and `output_tokens_per_second`; preserve unavailable values rather than replacing them with zeros.
 
 ## Read latest-generation context usage
 

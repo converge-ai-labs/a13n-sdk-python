@@ -17,7 +17,7 @@ from jsonschema import Draft202012Validator, ValidationError
 from ._resources import Resource
 from .errors import ProtocolError, TransportError
 from .generated.api.runs import session_stream
-from .generated.models import Delta, Gap, OccurrenceEvent, RunSnapshot, ScheduleEvent, ThreadState
+from .generated.models import AppReady, Delta, Gap, OccurrenceEvent, RunSnapshot, ScheduleEvent, ThreadState
 from .streaming import _events, _StreamContext
 
 
@@ -57,6 +57,12 @@ class SessionOccurrenceFrame:
     event_type: Literal["occurrence"] = field(default="occurrence", init=False)
 
 
+@dataclass(frozen=True, repr=False)
+class SessionAppReadyFrame:
+    data: AppReady
+    event_type: Literal["app_ready"] = field(default="app_ready", init=False)
+
+
 SessionFrame = (
     SessionThreadFrame
     | SessionItemsFrame
@@ -64,6 +70,7 @@ SessionFrame = (
     | SessionGapFrame
     | SessionScheduleFrame
     | SessionOccurrenceFrame
+    | SessionAppReadyFrame
 )
 _DEFINITIONS = {
     "thread": "ThreadState",
@@ -72,6 +79,7 @@ _DEFINITIONS = {
     "gap": "Gap",
     "schedule": "ScheduleEvent",
     "occurrence": "OccurrenceEvent",
+    "app_ready": "AppReady",
 }
 
 
@@ -103,6 +111,8 @@ def _session_frame(event: str, data: list[str], cursor: str | None) -> SessionFr
             return SessionScheduleFrame(ScheduleEvent.from_dict(value))
         if event == "occurrence":
             return SessionOccurrenceFrame(OccurrenceEvent.from_dict(value))
+        if event == "app_ready":
+            return SessionAppReadyFrame(AppReady.from_dict(value))
         return SessionGapFrame(Gap.from_dict(value))
     except (ValueError, TypeError, KeyError, AttributeError, ValidationError):
         raise ProtocolError("Malformed Session stream frame") from None

@@ -14,6 +14,7 @@ def build_request(
     *,
     start: datetime.datetime,
     end: datetime.datetime,
+    principal_id: str | Unset | None = UNSET,
     timezone: str | Unset = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> dict[str, Any]:
@@ -28,6 +29,13 @@ def build_request(
 
     json_end = end.isoformat()
     params["end"] = json_end
+
+    json_principal_id: str | Unset | None
+    if isinstance(principal_id, Unset):
+        json_principal_id = UNSET
+    else:
+        json_principal_id = principal_id
+    params["principal_id"] = json_principal_id
 
     params["timezone"] = timezone
 
@@ -80,6 +88,7 @@ def sync_detailed(
     client: AuthenticatedClient,
     start: datetime.datetime,
     end: datetime.datetime,
+    principal_id: str | Unset | None = UNSET,
     timezone: str | Unset = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> Response[ErrorEnvelope | UsageOverview]:
@@ -88,6 +97,8 @@ def sync_detailed(
     Args:
         start (datetime.datetime):
         end (datetime.datetime):
+        principal_id (None | str | Unset): Filter by Run execution identity; requires workspace
+            admin.
         timezone (str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
@@ -104,6 +115,7 @@ def sync_detailed(
     kwargs = build_request(
         start=start,
         end=end,
+        principal_id=principal_id,
         timezone=timezone,
         x_workspace_id=x_workspace_id,
     )
@@ -120,6 +132,7 @@ def sync(
     client: AuthenticatedClient,
     start: datetime.datetime,
     end: datetime.datetime,
+    principal_id: str | Unset | None = UNSET,
     timezone: str | Unset = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> ErrorEnvelope | UsageOverview | None:
@@ -128,6 +141,8 @@ def sync(
     Args:
         start (datetime.datetime):
         end (datetime.datetime):
+        principal_id (None | str | Unset): Filter by Run execution identity; requires workspace
+            admin.
         timezone (str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
@@ -145,6 +160,7 @@ def sync(
         client=client,
         start=start,
         end=end,
+        principal_id=principal_id,
         timezone=timezone,
         x_workspace_id=x_workspace_id,
     ).parsed
@@ -155,6 +171,7 @@ async def asyncio_detailed(
     client: AuthenticatedClient,
     start: datetime.datetime,
     end: datetime.datetime,
+    principal_id: str | Unset | None = UNSET,
     timezone: str | Unset = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> Response[ErrorEnvelope | UsageOverview]:
@@ -163,6 +180,8 @@ async def asyncio_detailed(
     Args:
         start (datetime.datetime):
         end (datetime.datetime):
+        principal_id (None | str | Unset): Filter by Run execution identity; requires workspace
+            admin.
         timezone (str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
@@ -179,6 +198,7 @@ async def asyncio_detailed(
     kwargs = build_request(
         start=start,
         end=end,
+        principal_id=principal_id,
         timezone=timezone,
         x_workspace_id=x_workspace_id,
     )
@@ -193,6 +213,7 @@ async def asyncio(
     client: AuthenticatedClient,
     start: datetime.datetime,
     end: datetime.datetime,
+    principal_id: str | Unset | None = UNSET,
     timezone: str | Unset = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> ErrorEnvelope | UsageOverview | None:
@@ -201,6 +222,8 @@ async def asyncio(
     Args:
         start (datetime.datetime):
         end (datetime.datetime):
+        principal_id (None | str | Unset): Filter by Run execution identity; requires workspace
+            admin.
         timezone (str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
@@ -219,6 +242,7 @@ async def asyncio(
             client=client,
             start=start,
             end=end,
+            principal_id=principal_id,
             timezone=timezone,
             x_workspace_id=x_workspace_id,
         )
