@@ -5,6 +5,7 @@ import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
 from ...models.error_envelope import ErrorEnvelope
+from ...models.list_threads_origin_type_0_item import ListThreadsOriginType0Item
 from ...models.thread_page import ThreadPage
 from ...types import UNSET, Response, Unset
 
@@ -13,6 +14,8 @@ def build_request(
     *,
     session_id: str | Unset | None = UNSET,
     occurrence_id: str | Unset | None = UNSET,
+    origin: list[ListThreadsOriginType0Item] | Unset | None = UNSET,
+    origin_run_id: str | Unset | None = UNSET,
     text_query: str | Unset | None = UNSET,
     label: list[str] | Unset | None = UNSET,
     limit: int | Unset = UNSET,
@@ -38,6 +41,26 @@ def build_request(
     else:
         json_occurrence_id = occurrence_id
     params["occurrence_id"] = json_occurrence_id
+
+    json_origin: list[str] | Unset | None
+    if isinstance(origin, Unset):
+        json_origin = UNSET
+    elif isinstance(origin, list):
+        json_origin = []
+        for origin_type_0_item_data in origin:
+            origin_type_0_item = origin_type_0_item_data.value
+            json_origin.append(origin_type_0_item)
+
+    else:
+        json_origin = origin
+    params["origin"] = json_origin
+
+    json_origin_run_id: str | Unset | None
+    if isinstance(origin_run_id, Unset):
+        json_origin_run_id = UNSET
+    else:
+        json_origin_run_id = origin_run_id
+    params["origin_run_id"] = json_origin_run_id
 
     json_text_query: str | Unset | None
     if isinstance(text_query, Unset):
@@ -114,6 +137,8 @@ def sync_detailed(
     client: AuthenticatedClient,
     session_id: str | Unset | None = UNSET,
     occurrence_id: str | Unset | None = UNSET,
+    origin: list[ListThreadsOriginType0Item] | Unset | None = UNSET,
+    origin_run_id: str | Unset | None = UNSET,
     text_query: str | Unset | None = UNSET,
     label: list[str] | Unset | None = UNSET,
     limit: int | Unset = UNSET,
@@ -125,6 +150,8 @@ def sync_detailed(
     Args:
         session_id (None | str | Unset):
         occurrence_id (None | str | Unset):
+        origin (list[ListThreadsOriginType0Item] | None | Unset):
+        origin_run_id (None | str | Unset):
         text_query (None | str | Unset):
         label (list[str] | None | Unset):
         limit (int | Unset):
@@ -144,6 +171,8 @@ def sync_detailed(
     kwargs = build_request(
         session_id=session_id,
         occurrence_id=occurrence_id,
+        origin=origin,
+        origin_run_id=origin_run_id,
         text_query=text_query,
         label=label,
         limit=limit,
@@ -163,6 +192,8 @@ def sync(
     client: AuthenticatedClient,
     session_id: str | Unset | None = UNSET,
     occurrence_id: str | Unset | None = UNSET,
+    origin: list[ListThreadsOriginType0Item] | Unset | None = UNSET,
+    origin_run_id: str | Unset | None = UNSET,
     text_query: str | Unset | None = UNSET,
     label: list[str] | Unset | None = UNSET,
     limit: int | Unset = UNSET,
@@ -174,6 +205,8 @@ def sync(
     Args:
         session_id (None | str | Unset):
         occurrence_id (None | str | Unset):
+        origin (list[ListThreadsOriginType0Item] | None | Unset):
+        origin_run_id (None | str | Unset):
         text_query (None | str | Unset):
         label (list[str] | None | Unset):
         limit (int | Unset):
@@ -194,6 +227,8 @@ def sync(
         client=client,
         session_id=session_id,
         occurrence_id=occurrence_id,
+        origin=origin,
+        origin_run_id=origin_run_id,
         text_query=text_query,
         label=label,
         limit=limit,
@@ -207,6 +242,8 @@ async def asyncio_detailed(
     client: AuthenticatedClient,
     session_id: str | Unset | None = UNSET,
     occurrence_id: str | Unset | None = UNSET,
+    origin: list[ListThreadsOriginType0Item] | Unset | None = UNSET,
+    origin_run_id: str | Unset | None = UNSET,
     text_query: str | Unset | None = UNSET,
     label: list[str] | Unset | None = UNSET,
     limit: int | Unset = UNSET,
@@ -218,6 +255,8 @@ async def asyncio_detailed(
     Args:
         session_id (None | str | Unset):
         occurrence_id (None | str | Unset):
+        origin (list[ListThreadsOriginType0Item] | None | Unset):
+        origin_run_id (None | str | Unset):
         text_query (None | str | Unset):
         label (list[str] | None | Unset):
         limit (int | Unset):
@@ -237,6 +276,8 @@ async def asyncio_detailed(
     kwargs = build_request(
         session_id=session_id,
         occurrence_id=occurrence_id,
+        origin=origin,
+        origin_run_id=origin_run_id,
         text_query=text_query,
         label=label,
         limit=limit,
@@ -254,6 +295,8 @@ async def asyncio(
     client: AuthenticatedClient,
     session_id: str | Unset | None = UNSET,
     occurrence_id: str | Unset | None = UNSET,
+    origin: list[ListThreadsOriginType0Item] | Unset | None = UNSET,
+    origin_run_id: str | Unset | None = UNSET,
     text_query: str | Unset | None = UNSET,
     label: list[str] | Unset | None = UNSET,
     limit: int | Unset = UNSET,
@@ -265,6 +308,8 @@ async def asyncio(
     Args:
         session_id (None | str | Unset):
         occurrence_id (None | str | Unset):
+        origin (list[ListThreadsOriginType0Item] | None | Unset):
+        origin_run_id (None | str | Unset):
         text_query (None | str | Unset):
         label (list[str] | None | Unset):
         limit (int | Unset):
@@ -286,6 +331,8 @@ async def asyncio(
             client=client,
             session_id=session_id,
             occurrence_id=occurrence_id,
+            origin=origin,
+            origin_run_id=origin_run_id,
             text_query=text_query,
             label=label,
             limit=limit,

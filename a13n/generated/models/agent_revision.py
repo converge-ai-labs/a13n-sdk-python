@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
+from ..types import UNSET, Unset
+
 if TYPE_CHECKING:
     from ..models.agent_config_output import AgentConfigOutput
 
@@ -26,6 +28,8 @@ class AgentRevision:
         id (str):
         note (None | str):
         number (int):
+        builtin_instructions (None | str | Unset): Current deployment guidance for this builtin Agent, not a revision or
+            Run snapshot.
     """
 
     agent_id: str
@@ -36,6 +40,7 @@ class AgentRevision:
     id: str
     note: str | None
     number: int
+    builtin_instructions: str | Unset | None = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -56,6 +61,12 @@ class AgentRevision:
 
         number = self.number
 
+        builtin_instructions: str | Unset | None
+        if isinstance(self.builtin_instructions, Unset):
+            builtin_instructions = UNSET
+        else:
+            builtin_instructions = self.builtin_instructions
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -70,6 +81,8 @@ class AgentRevision:
                 "number": number,
             }
         )
+        if builtin_instructions is not UNSET:
+            field_dict["builtin_instructions"] = builtin_instructions
 
         return field_dict
 
@@ -99,6 +112,15 @@ class AgentRevision:
 
         number = d.pop("number")
 
+        def _parse_builtin_instructions(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        builtin_instructions = _parse_builtin_instructions(d.pop("builtin_instructions", UNSET))
+
         agent_revision = cls(
             agent_id=agent_id,
             config=config,
@@ -108,6 +130,7 @@ class AgentRevision:
             id=id,
             note=note,
             number=number,
+            builtin_instructions=builtin_instructions,
         )
 
         agent_revision.additional_properties = d

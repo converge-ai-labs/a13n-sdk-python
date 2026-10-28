@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from ..models.agent_config_input_toolsets import AgentConfigInputToolsets
     from ..models.agent_model_characteristics import AgentModelCharacteristics
     from ..models.agent_reviewer import AgentReviewer
+    from ..models.background_compaction_policy import BackgroundCompactionPolicy
     from ..models.client_tool_definition import ClientToolDefinition
     from ..models.connection_selection import ConnectionSelection
     from ..models.execution_override import ExecutionOverride
@@ -37,6 +38,8 @@ class AgentConfigInput:
     """
     Attributes:
         model (str):
+        background_compaction (BackgroundCompactionPolicy | Unset): Host-selected overlap policy, separate from the
+            common compaction trigger.
         builtin_skills (list[Literal['platform-operations']] | Unset):
         client_tools (list[ClientToolDefinition] | Unset):
         connection_tools (list[ConnectionSelection] | Unset):
@@ -66,6 +69,7 @@ class AgentConfigInput:
     """
 
     model: str
+    background_compaction: BackgroundCompactionPolicy | Unset = UNSET
     builtin_skills: list[Literal["platform-operations"]] | Unset = UNSET
     client_tools: list[ClientToolDefinition] | Unset = UNSET
     connection_tools: list[ConnectionSelection] | Unset = UNSET
@@ -99,6 +103,10 @@ class AgentConfigInput:
         from ..models.tool_search import ToolSearch
 
         model = self.model
+
+        background_compaction: dict[str, Any] | Unset = UNSET
+        if not isinstance(self.background_compaction, Unset):
+            background_compaction = self.background_compaction.to_dict()
 
         builtin_skills: list[Literal["platform-operations"]] | Unset = UNSET
         if not isinstance(self.builtin_skills, Unset):
@@ -234,6 +242,8 @@ class AgentConfigInput:
                 "model": model,
             }
         )
+        if background_compaction is not UNSET:
+            field_dict["background_compaction"] = background_compaction
         if builtin_skills is not UNSET:
             field_dict["builtin_skills"] = builtin_skills
         if client_tools is not UNSET:
@@ -290,6 +300,7 @@ class AgentConfigInput:
         from ..models.agent_config_input_toolsets import AgentConfigInputToolsets
         from ..models.agent_model_characteristics import AgentModelCharacteristics
         from ..models.agent_reviewer import AgentReviewer
+        from ..models.background_compaction_policy import BackgroundCompactionPolicy
         from ..models.client_tool_definition import ClientToolDefinition
         from ..models.connection_selection import ConnectionSelection
         from ..models.execution_override import ExecutionOverride
@@ -306,6 +317,13 @@ class AgentConfigInput:
 
         d = dict(src_dict)
         model = d.pop("model")
+
+        _background_compaction = d.pop("background_compaction", UNSET)
+        background_compaction: BackgroundCompactionPolicy | Unset
+        if isinstance(_background_compaction, Unset):
+            background_compaction = UNSET
+        else:
+            background_compaction = BackgroundCompactionPolicy.from_dict(_background_compaction)
 
         _builtin_skills = d.pop("builtin_skills", UNSET)
         builtin_skills: list[Literal["platform-operations"]] | Unset = UNSET
@@ -536,6 +554,7 @@ class AgentConfigInput:
 
         agent_config_input = cls(
             model=model,
+            background_compaction=background_compaction,
             builtin_skills=builtin_skills,
             client_tools=client_tools,
             connection_tools=connection_tools,

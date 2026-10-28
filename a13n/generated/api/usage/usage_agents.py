@@ -14,6 +14,7 @@ def build_request(
     *,
     start: datetime.datetime,
     end: datetime.datetime,
+    principal_id: str | Unset | None = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
@@ -29,6 +30,13 @@ def build_request(
 
     json_end = end.isoformat()
     params["end"] = json_end
+
+    json_principal_id: str | Unset | None
+    if isinstance(principal_id, Unset):
+        json_principal_id = UNSET
+    else:
+        json_principal_id = principal_id
+    params["principal_id"] = json_principal_id
 
     params["limit"] = limit
 
@@ -90,6 +98,7 @@ def sync_detailed(
     client: AuthenticatedClient,
     start: datetime.datetime,
     end: datetime.datetime,
+    principal_id: str | Unset | None = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
@@ -99,6 +108,8 @@ def sync_detailed(
     Args:
         start (datetime.datetime):
         end (datetime.datetime):
+        principal_id (None | str | Unset): Filter by Run execution identity; requires workspace
+            admin.
         limit (int | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
@@ -116,6 +127,7 @@ def sync_detailed(
     kwargs = build_request(
         start=start,
         end=end,
+        principal_id=principal_id,
         limit=limit,
         cursor=cursor,
         x_workspace_id=x_workspace_id,
@@ -133,6 +145,7 @@ def sync(
     client: AuthenticatedClient,
     start: datetime.datetime,
     end: datetime.datetime,
+    principal_id: str | Unset | None = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
@@ -142,6 +155,8 @@ def sync(
     Args:
         start (datetime.datetime):
         end (datetime.datetime):
+        principal_id (None | str | Unset): Filter by Run execution identity; requires workspace
+            admin.
         limit (int | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
@@ -160,6 +175,7 @@ def sync(
         client=client,
         start=start,
         end=end,
+        principal_id=principal_id,
         limit=limit,
         cursor=cursor,
         x_workspace_id=x_workspace_id,
@@ -171,6 +187,7 @@ async def asyncio_detailed(
     client: AuthenticatedClient,
     start: datetime.datetime,
     end: datetime.datetime,
+    principal_id: str | Unset | None = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
@@ -180,6 +197,8 @@ async def asyncio_detailed(
     Args:
         start (datetime.datetime):
         end (datetime.datetime):
+        principal_id (None | str | Unset): Filter by Run execution identity; requires workspace
+            admin.
         limit (int | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
@@ -197,6 +216,7 @@ async def asyncio_detailed(
     kwargs = build_request(
         start=start,
         end=end,
+        principal_id=principal_id,
         limit=limit,
         cursor=cursor,
         x_workspace_id=x_workspace_id,
@@ -212,6 +232,7 @@ async def asyncio(
     client: AuthenticatedClient,
     start: datetime.datetime,
     end: datetime.datetime,
+    principal_id: str | Unset | None = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
@@ -221,6 +242,8 @@ async def asyncio(
     Args:
         start (datetime.datetime):
         end (datetime.datetime):
+        principal_id (None | str | Unset): Filter by Run execution identity; requires workspace
+            admin.
         limit (int | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
@@ -240,6 +263,7 @@ async def asyncio(
             client=client,
             start=start,
             end=end,
+            principal_id=principal_id,
             limit=limit,
             cursor=cursor,
             x_workspace_id=x_workspace_id,

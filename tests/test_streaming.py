@@ -333,3 +333,95 @@ def test_item_ref_known_optional_fields_follow_nullable_schema(metadata: dict) -
 def test_delta_missing_required_nullable_item_is_rejected() -> None:
     data = {"run_id": "run_1", "attempt": 1, "sequence": 5, "event": {"type": "CUSTOM", "value": None}}
     test_malformed_frame_is_not_silent_recovery(sse("delta", data, "500-0"))
+
+
+@pytest.mark.parametrize("tail", [b"id: 2-0\ndata: partial", b"id: 2-0\ndata: partial\n", b"data: \xf0\x9f"])
+def test_truncated_thread_stream_resumes_after_applied_cursor(tail: bytes, monkeypatch: pytest.MonkeyPatch) -> None:
+    async def scenario() -> None:
+        seen: list[str | None] = []
+
+        def handle(request: httpx2.Request) -> httpx2.Response:
+            seen.append(request.headers.get("last-event-id"))
+            body = sse("boundary", {"run_id": "run_1", "attempt": 1, "sequence": len(seen)}, f"{len(seen)}-0")
+            return httpx2.Response(
+                200, content=body + (tail if len(seen) == 1 else b""), headers={"Content-Type": "text/event-stream"}
+            )
+
+        monkeypatch.setattr("a13n.streaming.random.uniform", lambda _low, _high: 0)
+        async with Client("https://service.example", "token", transport=httpx2.MockTransport(handle)) as client:
+            async with ThreadStream(client.threads("thr_1"), max_reconnects=1) as stream:
+                assert (await anext(stream)).cursor == "1-0"
+                assert (await anext(stream)).cursor == "2-0"
+            assert seen == [None, "1-0"]
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("reconnect,attempts", [(True, 3), (False, 1)])
+def test_truncation_respects_retry_budget(reconnect: bool, attempts: int, monkeypatch: pytest.MonkeyPatch) -> None:
+    async def scenario() -> None:
+        seen: list[str | None] = []
+
+        def handle(request: httpx2.Request) -> httpx2.Response:
+            seen.append(request.headers.get("last-event-id"))
+            return httpx2.Response(
+                200, content=b"id: 2-0\ndata: partial", headers={"Content-Type": "text/event-stream"}
+            )
+
+        monkeypatch.setattr("a13n.streaming.random.uniform", lambda _low, _high: 0)
+        async with Client("https://service.example", "token", transport=httpx2.MockTransport(handle)) as client:
+            async with ThreadStream(
+                client.threads("thr_1"), after="1-0", reconnect=reconnect, max_reconnects=2
+            ) as stream:
+                with pytest.raises(ProtocolError, match="truncated"):
+                    await anext(stream)
+                assert stream.is_closed
+            assert seen == ["1-0"] * attempts
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize(
+    "tail",
+    [b"data: \xff", b"data: \x80", b"data: \xc0", b"data: \xf0\x9fA", b"data: \xf0\x9f\n", b"data: bad-json\n\n"],
+)
+def test_invalid_stream_data_stays_fatal(tail: bytes, monkeypatch: pytest.MonkeyPatch) -> None:
+    async def scenario() -> None:
+        calls = 0
+
+        def handle(_request: httpx2.Request) -> httpx2.Response:
+            nonlocal calls
+            calls += 1
+            return httpx2.Response(200, content=tail, headers={"Content-Type": "text/event-stream"})
+
+        monkeypatch.setattr("a13n.streaming.random.uniform", lambda _low, _high: 0)
+        async with Client("https://service.example", "token", transport=httpx2.MockTransport(handle)) as client:
+            async with ThreadStream(client.threads("thr_1"), max_reconnects=2) as stream:
+                with pytest.raises(ProtocolError):
+                    await anext(stream)
+            assert calls == 1
+
+    asyncio.run(scenario())
+
+
+def test_session_truncation_keeps_caller_owned_reconnect() -> None:
+    from a13n import SessionStream
+
+    async def scenario() -> None:
+        calls = 0
+
+        def handle(_request: httpx2.Request) -> httpx2.Response:
+            nonlocal calls
+            calls += 1
+            return httpx2.Response(
+                200, content=b"event: thread\ndata: partial", headers={"Content-Type": "text/event-stream"}
+            )
+
+        async with Client("https://service.example", "token", transport=httpx2.MockTransport(handle)) as client:
+            async with SessionStream(client.api.sessions("ses_1")) as stream:
+                with pytest.raises(ProtocolError, match="truncated"):
+                    await anext(stream)
+                assert stream.is_closed
+            assert calls == 1
+
+    asyncio.run(scenario())

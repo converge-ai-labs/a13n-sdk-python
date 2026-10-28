@@ -35,6 +35,14 @@ SDKs only serialize choices. Service freezes the Agent/Thread/Run overlay at acc
 
 On Thread PATCH, an omitted field retains its existing setting. A supplied environment map replaces that Thread map in full; null or `{}` clears that layer, exposing lower defaults. An empty string is an explicit empty value, not removal. `execution: null` clears all Thread execution overrides. A per-Run null map inherits; it does not erase lower layers. Existing accepted Runs retain their frozen settings. A conflicting override for an active Run's steer is validated by Service; the SDK does not silently retry or create another Run.
 
+## Request context and the refreshed native surface
+
+Use `RunOptions(context={"headers": {"X-Tenant": "demo"}})` to submit explicit Run context. Omission, `None`, and an object remain distinct on the wire. HTTP authentication and transport headers are never copied into this field. Service normalizes and freezes accepted context; recovery, resume and child Runs retain it. New messages and forks start with empty context when omitted; steering retains the accepted context when omitted.
+
+Usage summaries contain `models`; read Run breakdowns through `client.api.usage.runs.pages(...)`. The refreshed API also exposes built-in Skill catalogs/details/ZIP archives, plugin catalogs, Session Thread navigation, member usage, provider deletion with optional `If-Match`, and committed App open/resource/tool operations. Session streams add repeatable `app_ready` frames after committed Items.
+
+Thread SSE transport truncation, including EOF within a UTF-8 code point, uses the existing bounded reconnect policy from the last applied cursor. Complete malformed UTF-8 or JSON remains a protocol failure. SessionStream continues to expose a single connection with caller-owned reconnect.
+
 ## Additional snapshot change
 
 Span-content reads now locate the requested span directly. The native span-content operation no longer takes a search cursor or exposes cursor-page iteration; continue text fragments with `version` and `next_offset` instead.
@@ -48,4 +56,4 @@ Span-content reads now locate the requested span directly. The native span-conte
 - Tool discovery now uses proxy `ToolSearchConfig`. Retired native-mode/strategy types and the `platform_tools` override have been removed. Select tools via the current `toolsets` contract and built-in instructions via `builtin_skills`; Service owns authorization.
 - Newly exposed native resources include schedules, devices, metrics data sources and dashboards. This sync does not add SDK-owned scheduling, retries or telemetry collection.
 
-The contract snapshot is pinned to merged Service commit [`2b404fbe3b76`](https://github.com/converge-ai-labs/agent-foundation/commit/2b404fbe3b76f503624ecbdcb55dfac038d52775); [source metadata](../contract/source.json) records every consumed input.
+The contract snapshot is pinned to merged Service commit [`b4c9b1345752`](https://github.com/converge-ai-labs/agent-foundation/commit/b4c9b1345752bbaef3a8b076475112535357fbc7); [source metadata](../contract/source.json) records every consumed input.

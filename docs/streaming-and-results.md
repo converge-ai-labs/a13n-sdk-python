@@ -126,7 +126,7 @@ async def read_after_gap(client: Client, gap: GapFrame) -> None:
 
 ## Observe a Session snapshot connection
 
-`SessionStream` is an advanced single-connection reader for the Session's Threads and live output. Each new instance starts with a fresh snapshot. It exposes six distinct frame classes with generated typed data: `SessionThreadFrame`, `SessionItemsFrame`, `SessionDeltaFrame`, `SessionGapFrame`, `SessionScheduleFrame`, and `SessionOccurrenceFrame`. These frames have no cursor; Session connections never send `Last-Event-ID`. Session snapshots have no default frame-size cap; set `max_event_bytes` to a positive integer when your application needs an explicit bound. HTTP error-body reads remain bounded.
+`SessionStream` is an advanced single-connection reader for the Session's Threads and live output. Each new instance starts with a fresh snapshot. It exposes seven distinct frame classes with generated typed data: `SessionThreadFrame`, `SessionItemsFrame`, `SessionDeltaFrame`, `SessionGapFrame`, `SessionScheduleFrame`, `SessionOccurrenceFrame`, and `SessionAppReadyFrame`. These frames have no cursor; Session connections never send `Last-Event-ID`. Session snapshots have no default frame-size cap; set `max_event_bytes` to a positive integer when your application needs an explicit bound. HTTP error-body reads remain bounded.
 
 ```python
 from a13n import Client, SessionStream
@@ -144,11 +144,15 @@ async def observe_session(client: Client, session_id: str) -> None:
                 print(frame.data.items, frame.data.continuation, frame.data.complete)
             elif frame.event_type == "delta":
                 print("Provisional event:", frame.data.run_id, frame.data.event.to_dict())
-            else:
+            elif frame.event_type == "app_ready":
+                print("Committed Apps:", frame.data.run_id, frame.data.apps)
+            elif frame.event_type == "gap":
                 print("Wait for an items repair for:", frame.data.run_id)
 ```
 
 A `thread` frame replaces the Thread, its current/last Run views and its ordered open inbox entries. An `items` frame replaces that Run's Items starting at `first`; earlier Items remain final. A `gap` holds that Run's deltas until a later Items base repairs it. Service owns sequencing and bases; the SDK adds no display reducer or fragment assembler. Sealed Runs missed while disconnected are read explicitly through Items. `RunView.display_position` and `ThreadView.message_history` are absent from current readback.
+
+`app_ready` follows committed Items and may repeat after reconnect or repair. Track readiness by `(run_id, app_id)`; it has no delta sequence. A provisional `a13n.mcp_apps` custom event alone is not readiness. Open committed references explicitly through `client.api.runs(run_id).apps(app_id).open()`; each open rechecks access.
 
 The context boundary is the fresh-snapshot boundary: clean EOF ends iteration, transport failures raise `TransportError`, HTTP refusals retain `ApiError` status/request ID/Retry-After, and invalid known frames raise `ProtocolError` and close the response. Unknown event names are ignored before JSON decoding. Successful handshake metadata is available through `stream.response`. Exit, `aclose()`, cancellation and Client shutdown release local I/O without a remote command. Raw HTTP access remains `client.api.sessions(session_id).stream.get_stream()`.
 

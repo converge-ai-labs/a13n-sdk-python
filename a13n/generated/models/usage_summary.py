@@ -8,7 +8,6 @@ from attrs import field as _attrs_field
 
 if TYPE_CHECKING:
     from ..models.model_usage import ModelUsage
-    from ..models.run_usage import RunUsage
 
 
 T = TypeVar("T", bound="UsageSummary")
@@ -19,11 +18,9 @@ class UsageSummary:
     """
     Attributes:
         models (list[ModelUsage]):
-        runs (list[RunUsage]):
     """
 
     models: list[ModelUsage]
-    runs: list[RunUsage]
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -32,17 +29,11 @@ class UsageSummary:
             models_item = models_item_data.to_dict()
             models.append(models_item)
 
-        runs = []
-        for runs_item_data in self.runs:
-            runs_item = runs_item_data.to_dict()
-            runs.append(runs_item)
-
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
                 "models": models,
-                "runs": runs,
             }
         )
 
@@ -51,7 +42,6 @@ class UsageSummary:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.model_usage import ModelUsage
-        from ..models.run_usage import RunUsage
 
         d = dict(src_dict)
         models = []
@@ -61,16 +51,8 @@ class UsageSummary:
 
             models.append(models_item)
 
-        runs = []
-        _runs = d.pop("runs")
-        for runs_item_data in _runs:
-            runs_item = RunUsage.from_dict(runs_item_data)
-
-            runs.append(runs_item)
-
         usage_summary = cls(
             models=models,
-            runs=runs,
         )
 
         usage_summary.additional_properties = d

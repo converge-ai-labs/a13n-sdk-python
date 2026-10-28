@@ -65,9 +65,11 @@ def sync_detailed(
 ) -> Response[Agent | ErrorEnvelope]:
     """Prepare Composer
 
-     The workspace's Agent Composer, created or brought up to date with the deployment's definition.
+     The workspace's Agent Composer, initialized or offered an updated official revision without changing
+    its default.
 
-    Refused with `model_required` while the workspace has no model the caller can use.
+    Initial preparation requires a usable model; later preparation preserves the selected model and
+    revision.
 
     Args:
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
@@ -100,9 +102,11 @@ def sync(
 ) -> Agent | ErrorEnvelope | None:
     """Prepare Composer
 
-     The workspace's Agent Composer, created or brought up to date with the deployment's definition.
+     The workspace's Agent Composer, initialized or offered an updated official revision without changing
+    its default.
 
-    Refused with `model_required` while the workspace has no model the caller can use.
+    Initial preparation requires a usable model; later preparation preserves the selected model and
+    revision.
 
     Args:
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
@@ -130,9 +134,11 @@ async def asyncio_detailed(
 ) -> Response[Agent | ErrorEnvelope]:
     """Prepare Composer
 
-     The workspace's Agent Composer, created or brought up to date with the deployment's definition.
+     The workspace's Agent Composer, initialized or offered an updated official revision without changing
+    its default.
 
-    Refused with `model_required` while the workspace has no model the caller can use.
+    Initial preparation requires a usable model; later preparation preserves the selected model and
+    revision.
 
     Args:
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
@@ -163,9 +169,11 @@ async def asyncio(
 ) -> Agent | ErrorEnvelope | None:
     """Prepare Composer
 
-     The workspace's Agent Composer, created or brought up to date with the deployment's definition.
+     The workspace's Agent Composer, initialized or offered an updated official revision without changing
+    its default.
 
-    Refused with `model_required` while the workspace has no model the caller can use.
+    Initial preparation requires a usable model; later preparation preserves the selected model and
+    revision.
 
     Args:
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required

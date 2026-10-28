@@ -353,16 +353,19 @@ def test_required_nullable_usage_metrics_and_per_run_summary():
         "average_time_to_first_chunk_seconds": None,
         "output_tokens_per_second": 0,
     }
-    summary = {
-        "models": [model],
-        "runs": [{"run_id": "run_1", "thread_id": "thr_1", "run_number": 42, "models": [model]}],
+    summary = {"models": [model]}
+    runs = {
+        "items": [{"run_id": "run_1", "thread_id": "thr_1", "run_number": 42, "models": [model]}],
+        "next_cursor": None,
     }
     assert wire.UsageSummary.from_dict(summary).to_dict() == summary
+    assert wire.RunUsagePage.from_dict(runs).to_dict() == runs
+    assert wire.UsageSummary.from_dict({"models": []}).to_dict() == {"models": []}
     assert wire.ModelRequestMetrics.from_dict(METRICS).to_dict() == METRICS
     with pytest.raises(KeyError):
         wire.ModelUsage.from_dict({k: v for k, v in model.items() if k != "average_time_to_first_chunk_seconds"})
     with pytest.raises(KeyError):
-        wire.UsageSummary.from_dict({"models": []})
+        wire.RunUsagePage.from_dict({"items": []})
 
 
 def test_new_cursor_pages_are_lazy_with_stable_filters():
