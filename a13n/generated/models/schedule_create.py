@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from ..models.once_schedule import OnceSchedule
     from ..models.schedule_create_labels import ScheduleCreateLabels
     from ..models.schedule_invocation_input import ScheduleInvocationInput
+    from ..models.schedule_target import ScheduleTarget
 
 
 T = TypeVar("T", bound="ScheduleCreate")
@@ -29,6 +30,7 @@ class ScheduleCreate:
         labels (ScheduleCreateLabels | Unset):
         max_lateness_seconds (int | Unset):
         state (ScheduleCreateState | Unset):
+        target (ScheduleTarget | Unset): Omitted IDs create a session and, for thread mode, one empty reusable thread.
     """
 
     invocation: ScheduleInvocationInput
@@ -38,6 +40,7 @@ class ScheduleCreate:
     labels: ScheduleCreateLabels | Unset = UNSET
     max_lateness_seconds: int | Unset = UNSET
     state: ScheduleCreateState | Unset = UNSET
+    target: ScheduleTarget | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
         from ..models.cron_schedule import CronSchedule
@@ -68,6 +71,10 @@ class ScheduleCreate:
         if not isinstance(self.state, Unset):
             state = self.state.value
 
+        target: dict[str, Any] | Unset = UNSET
+        if not isinstance(self.target, Unset):
+            target = self.target.to_dict()
+
         field_dict: dict[str, Any] = {}
 
         field_dict.update(
@@ -85,6 +92,8 @@ class ScheduleCreate:
             field_dict["max_lateness_seconds"] = max_lateness_seconds
         if state is not UNSET:
             field_dict["state"] = state
+        if target is not UNSET:
+            field_dict["target"] = target
 
         return field_dict
 
@@ -94,6 +103,7 @@ class ScheduleCreate:
         from ..models.once_schedule import OnceSchedule
         from ..models.schedule_create_labels import ScheduleCreateLabels
         from ..models.schedule_invocation_input import ScheduleInvocationInput
+        from ..models.schedule_target import ScheduleTarget
 
         d = dict(src_dict)
         invocation = ScheduleInvocationInput.from_dict(d.pop("invocation"))
@@ -142,6 +152,13 @@ class ScheduleCreate:
         else:
             state = ScheduleCreateState(_state)
 
+        _target = d.pop("target", UNSET)
+        target: ScheduleTarget | Unset
+        if isinstance(_target, Unset):
+            target = UNSET
+        else:
+            target = ScheduleTarget.from_dict(_target)
+
         schedule_create = cls(
             invocation=invocation,
             name=name,
@@ -150,6 +167,7 @@ class ScheduleCreate:
             labels=labels,
             max_lateness_seconds=max_lateness_seconds,
             state=state,
+            target=target,
         )
 
         return schedule_create

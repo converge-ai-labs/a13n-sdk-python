@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from ..models.once_schedule import OnceSchedule
     from ..models.schedule_invocation_output import ScheduleInvocationOutput
     from ..models.schedule_labels import ScheduleLabels
+    from ..models.schedule_target import ScheduleTarget
 
 
 T = TypeVar("T", bound="Schedule")
@@ -36,6 +37,7 @@ class Schedule:
         session_id (str):
         state (ScheduleState):
         stream_url (str):
+        target (ScheduleTarget): Omitted IDs create a session and, for thread mode, one empty reusable thread.
         updated_at (datetime.datetime):
         updated_by_id (str):
         version (int):
@@ -57,6 +59,7 @@ class Schedule:
     session_id: str
     state: ScheduleState
     stream_url: str
+    target: ScheduleTarget
     updated_at: datetime.datetime
     updated_by_id: str
     version: int
@@ -104,6 +107,8 @@ class Schedule:
 
         stream_url = self.stream_url
 
+        target = self.target.to_dict()
+
         updated_at = self.updated_at.isoformat()
 
         updated_by_id = self.updated_by_id
@@ -140,6 +145,7 @@ class Schedule:
                 "session_id": session_id,
                 "state": state,
                 "stream_url": stream_url,
+                "target": target,
                 "updated_at": updated_at,
                 "updated_by_id": updated_by_id,
                 "version": version,
@@ -161,6 +167,7 @@ class Schedule:
         from ..models.once_schedule import OnceSchedule
         from ..models.schedule_invocation_output import ScheduleInvocationOutput
         from ..models.schedule_labels import ScheduleLabels
+        from ..models.schedule_target import ScheduleTarget
 
         d = dict(src_dict)
 
@@ -229,6 +236,8 @@ class Schedule:
 
         stream_url = d.pop("stream_url")
 
+        target = ScheduleTarget.from_dict(d.pop("target"))
+
         updated_at = datetime.datetime.fromisoformat(d.pop("updated_at"))
 
         updated_by_id = d.pop("updated_by_id")
@@ -268,6 +277,7 @@ class Schedule:
             session_id=session_id,
             state=state,
             stream_url=stream_url,
+            target=target,
             updated_at=updated_at,
             updated_by_id=updated_by_id,
             version=version,

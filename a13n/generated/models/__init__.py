@@ -591,6 +591,8 @@ from .schedule_preview import SchedulePreview
 from .schedule_preview_request import SchedulePreviewRequest
 from .schedule_state import ScheduleState
 from .schedule_status import ScheduleStatus
+from .schedule_target import ScheduleTarget
+from .schedule_target_mode import ScheduleTargetMode
 from .schedule_time import ScheduleTime
 from .schedule_trigger import ScheduleTrigger
 from .schedule_update import ScheduleUpdate
@@ -1364,6 +1366,8 @@ __all__ = (
     "SchedulePreviewRequest",
     "ScheduleState",
     "ScheduleStatus",
+    "ScheduleTarget",
+    "ScheduleTargetMode",
     "ScheduleTime",
     "ScheduleTrigger",
     "ScheduleUpdate",
