@@ -6,6 +6,8 @@ import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
 from ...models.error_envelope import ErrorEnvelope
+from ...models.list_sessions_direction import ListSessionsDirection
+from ...models.list_sessions_sort import ListSessionsSort
 from ...models.run_status import RunStatus
 from ...models.session_page import SessionPage
 from ...models.trigger import Trigger
@@ -23,6 +25,8 @@ def build_request(
     updated_after: datetime.datetime | Unset | None = UNSET,
     updated_before: datetime.datetime | Unset | None = UNSET,
     label: list[str] | Unset = UNSET,
+    sort: ListSessionsSort | Unset = UNSET,
+    direction: ListSessionsDirection | Unset = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
@@ -103,6 +107,18 @@ def build_request(
 
     params["label"] = json_label
 
+    json_sort: str | Unset = UNSET
+    if not isinstance(sort, Unset):
+        json_sort = sort.value
+
+    params["sort"] = json_sort
+
+    json_direction: str | Unset = UNSET
+    if not isinstance(direction, Unset):
+        json_direction = direction.value
+
+    params["direction"] = json_direction
+
     params["limit"] = limit
 
     json_cursor: str | Unset | None
@@ -168,6 +184,8 @@ def sync_detailed(
     updated_after: datetime.datetime | Unset | None = UNSET,
     updated_before: datetime.datetime | Unset | None = UNSET,
     label: list[str] | Unset = UNSET,
+    sort: ListSessionsSort | Unset = UNSET,
+    direction: ListSessionsDirection | Unset = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
@@ -186,6 +204,8 @@ def sync_detailed(
         updated_after (datetime.datetime | None | Unset):
         updated_before (datetime.datetime | None | Unset):
         label (list[str] | Unset):
+        sort (ListSessionsSort | Unset):
+        direction (ListSessionsDirection | Unset):
         limit (int | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
@@ -210,6 +230,8 @@ def sync_detailed(
         updated_after=updated_after,
         updated_before=updated_before,
         label=label,
+        sort=sort,
+        direction=direction,
         limit=limit,
         cursor=cursor,
         x_workspace_id=x_workspace_id,
@@ -234,6 +256,8 @@ def sync(
     updated_after: datetime.datetime | Unset | None = UNSET,
     updated_before: datetime.datetime | Unset | None = UNSET,
     label: list[str] | Unset = UNSET,
+    sort: ListSessionsSort | Unset = UNSET,
+    direction: ListSessionsDirection | Unset = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
@@ -252,6 +276,8 @@ def sync(
         updated_after (datetime.datetime | None | Unset):
         updated_before (datetime.datetime | None | Unset):
         label (list[str] | Unset):
+        sort (ListSessionsSort | Unset):
+        direction (ListSessionsDirection | Unset):
         limit (int | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
@@ -277,6 +303,8 @@ def sync(
         updated_after=updated_after,
         updated_before=updated_before,
         label=label,
+        sort=sort,
+        direction=direction,
         limit=limit,
         cursor=cursor,
         x_workspace_id=x_workspace_id,
@@ -295,6 +323,8 @@ async def asyncio_detailed(
     updated_after: datetime.datetime | Unset | None = UNSET,
     updated_before: datetime.datetime | Unset | None = UNSET,
     label: list[str] | Unset = UNSET,
+    sort: ListSessionsSort | Unset = UNSET,
+    direction: ListSessionsDirection | Unset = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
@@ -313,6 +343,8 @@ async def asyncio_detailed(
         updated_after (datetime.datetime | None | Unset):
         updated_before (datetime.datetime | None | Unset):
         label (list[str] | Unset):
+        sort (ListSessionsSort | Unset):
+        direction (ListSessionsDirection | Unset):
         limit (int | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
@@ -337,6 +369,8 @@ async def asyncio_detailed(
         updated_after=updated_after,
         updated_before=updated_before,
         label=label,
+        sort=sort,
+        direction=direction,
         limit=limit,
         cursor=cursor,
         x_workspace_id=x_workspace_id,
@@ -359,6 +393,8 @@ async def asyncio(
     updated_after: datetime.datetime | Unset | None = UNSET,
     updated_before: datetime.datetime | Unset | None = UNSET,
     label: list[str] | Unset = UNSET,
+    sort: ListSessionsSort | Unset = UNSET,
+    direction: ListSessionsDirection | Unset = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
@@ -377,6 +413,8 @@ async def asyncio(
         updated_after (datetime.datetime | None | Unset):
         updated_before (datetime.datetime | None | Unset):
         label (list[str] | Unset):
+        sort (ListSessionsSort | Unset):
+        direction (ListSessionsDirection | Unset):
         limit (int | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
@@ -403,6 +441,8 @@ async def asyncio(
             updated_after=updated_after,
             updated_before=updated_before,
             label=label,
+            sort=sort,
+            direction=direction,
             limit=limit,
             cursor=cursor,
             x_workspace_id=x_workspace_id,
