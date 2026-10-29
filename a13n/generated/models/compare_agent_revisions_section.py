@@ -23,6 +23,7 @@ class CompareAgentRevisionsSection(StrEnum):
     SKILL_SYNC = "skill_sync"
     SUBAGENTS = "subagents"
     SUBAGENT_MODE = "subagent_mode"
+    SUMMARIZE = "summarize"
     TOOLSETS = "toolsets"
     TOOL_SEARCH = "tool_search"
     USER_QUESTIONS = "user_questions"
