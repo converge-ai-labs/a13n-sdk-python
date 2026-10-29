@@ -6,6 +6,8 @@ import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
 from ...models.error_envelope import ErrorEnvelope
+from ...models.list_thread_runs_direction import ListThreadRunsDirection
+from ...models.list_thread_runs_sort_type_0 import ListThreadRunsSortType0
 from ...models.thread_run_page import ThreadRunPage
 from ...types import UNSET, Response, Unset
 
@@ -16,6 +18,8 @@ def build_request(
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
     anchor: str | Unset | None = UNSET,
+    sort: ListThreadRunsSortType0 | Unset | None = UNSET,
+    direction: ListThreadRunsDirection | Unset = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> dict[str, Any]:
     headers: dict[str, Any] = {}
@@ -39,6 +43,21 @@ def build_request(
     else:
         json_anchor = anchor
     params["anchor"] = json_anchor
+
+    json_sort: str | Unset | None
+    if isinstance(sort, Unset):
+        json_sort = UNSET
+    elif isinstance(sort, ListThreadRunsSortType0):
+        json_sort = sort.value
+    else:
+        json_sort = sort
+    params["sort"] = json_sort
+
+    json_direction: str | Unset = UNSET
+    if not isinstance(direction, Unset):
+        json_direction = direction.value
+
+    params["direction"] = json_direction
 
     params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
 
@@ -93,17 +112,21 @@ def sync_detailed(
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
     anchor: str | Unset | None = UNSET,
+    sort: ListThreadRunsSortType0 | Unset | None = UNSET,
+    direction: ListThreadRunsDirection | Unset = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> Response[ErrorEnvelope | ThreadRunPage]:
     """List Thread Runs
 
-     Newest first, optionally starting at an anchor run; cursors page towards older or newer runs.
+     Page chronological history from an anchor, or rank all Thread runs by a recorded metric.
 
     Args:
         thread_id (str):
         limit (int | Unset):
         cursor (None | str | Unset):
         anchor (None | str | Unset):
+        sort (ListThreadRunsSortType0 | None | Unset):
+        direction (ListThreadRunsDirection | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
@@ -121,6 +144,8 @@ def sync_detailed(
         limit=limit,
         cursor=cursor,
         anchor=anchor,
+        sort=sort,
+        direction=direction,
         x_workspace_id=x_workspace_id,
     )
 
@@ -138,17 +163,21 @@ def sync(
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
     anchor: str | Unset | None = UNSET,
+    sort: ListThreadRunsSortType0 | Unset | None = UNSET,
+    direction: ListThreadRunsDirection | Unset = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> ErrorEnvelope | ThreadRunPage | None:
     """List Thread Runs
 
-     Newest first, optionally starting at an anchor run; cursors page towards older or newer runs.
+     Page chronological history from an anchor, or rank all Thread runs by a recorded metric.
 
     Args:
         thread_id (str):
         limit (int | Unset):
         cursor (None | str | Unset):
         anchor (None | str | Unset):
+        sort (ListThreadRunsSortType0 | None | Unset):
+        direction (ListThreadRunsDirection | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
@@ -167,6 +196,8 @@ def sync(
         limit=limit,
         cursor=cursor,
         anchor=anchor,
+        sort=sort,
+        direction=direction,
         x_workspace_id=x_workspace_id,
     ).parsed
 
@@ -178,17 +209,21 @@ async def asyncio_detailed(
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
     anchor: str | Unset | None = UNSET,
+    sort: ListThreadRunsSortType0 | Unset | None = UNSET,
+    direction: ListThreadRunsDirection | Unset = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> Response[ErrorEnvelope | ThreadRunPage]:
     """List Thread Runs
 
-     Newest first, optionally starting at an anchor run; cursors page towards older or newer runs.
+     Page chronological history from an anchor, or rank all Thread runs by a recorded metric.
 
     Args:
         thread_id (str):
         limit (int | Unset):
         cursor (None | str | Unset):
         anchor (None | str | Unset):
+        sort (ListThreadRunsSortType0 | None | Unset):
+        direction (ListThreadRunsDirection | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
@@ -206,6 +241,8 @@ async def asyncio_detailed(
         limit=limit,
         cursor=cursor,
         anchor=anchor,
+        sort=sort,
+        direction=direction,
         x_workspace_id=x_workspace_id,
     )
 
@@ -221,17 +258,21 @@ async def asyncio(
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
     anchor: str | Unset | None = UNSET,
+    sort: ListThreadRunsSortType0 | Unset | None = UNSET,
+    direction: ListThreadRunsDirection | Unset = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> ErrorEnvelope | ThreadRunPage | None:
     """List Thread Runs
 
-     Newest first, optionally starting at an anchor run; cursors page towards older or newer runs.
+     Page chronological history from an anchor, or rank all Thread runs by a recorded metric.
 
     Args:
         thread_id (str):
         limit (int | Unset):
         cursor (None | str | Unset):
         anchor (None | str | Unset):
+        sort (ListThreadRunsSortType0 | None | Unset):
+        direction (ListThreadRunsDirection | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
@@ -251,6 +292,8 @@ async def asyncio(
             limit=limit,
             cursor=cursor,
             anchor=anchor,
+            sort=sort,
+            direction=direction,
             x_workspace_id=x_workspace_id,
         )
     ).parsed

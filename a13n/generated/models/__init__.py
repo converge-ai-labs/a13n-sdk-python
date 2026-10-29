@@ -307,7 +307,11 @@ from .list_members_kind_type_0 import ListMembersKindType0
 from .list_provider_types_kind import ListProviderTypesKind
 from .list_runs_status_type_0 import ListRunsStatusType0
 from .list_session_threads_origin_type_0_item import ListSessionThreadsOriginType0Item
+from .list_sessions_direction import ListSessionsDirection
+from .list_sessions_sort import ListSessionsSort
 from .list_skills_source_type_0 import ListSkillsSourceType0
+from .list_thread_runs_direction import ListThreadRunsDirection
+from .list_thread_runs_sort_type_0 import ListThreadRunsSortType0
 from .list_threads_origin_type_0_item import ListThreadsOriginType0Item
 from .list_trace_spans_status_type_0 import ListTraceSpansStatusType0
 from .list_trace_spans_view import ListTraceSpansView
@@ -686,6 +690,7 @@ from .thread_navigation_page import ThreadNavigationPage
 from .thread_page import ThreadPage
 from .thread_reference import ThreadReference
 from .thread_reference_origin import ThreadReferenceOrigin
+from .thread_run_item import ThreadRunItem
 from .thread_run_page import ThreadRunPage
 from .thread_state import ThreadState
 from .thread_update import ThreadUpdate
@@ -1077,7 +1082,11 @@ __all__ = (
     "ListProviderTypesKind",
     "ListRunsStatusType0",
     "ListSessionThreadsOriginType0Item",
+    "ListSessionsDirection",
+    "ListSessionsSort",
     "ListSkillsSourceType0",
+    "ListThreadRunsDirection",
+    "ListThreadRunsSortType0",
     "ListThreadsOriginType0Item",
     "ListTraceSpansStatusType0",
     "ListTraceSpansView",
@@ -1454,6 +1463,7 @@ __all__ = (
     "ThreadPage",
     "ThreadReference",
     "ThreadReferenceOrigin",
+    "ThreadRunItem",
     "ThreadRunPage",
     "ThreadState",
     "ThreadUpdate",
