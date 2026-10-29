@@ -5481,6 +5481,8 @@ class Sessions(Resource):
         updated_after: datetime.datetime | Unset | None = UNSET,
         updated_before: datetime.datetime | Unset | None = UNSET,
         label: list[str] | Unset = UNSET,
+        sort: wire.ListSessionsSort | Unset = UNSET,
+        direction: wire.ListSessionsDirection | Unset = UNSET,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
@@ -5498,6 +5500,8 @@ class Sessions(Resource):
                 updated_after=updated_after,
                 updated_before=updated_before,
                 label=label,
+                sort=sort,
+                direction=direction,
                 limit=limit,
                 cursor=cursor,
                 x_workspace_id=x_workspace_id,
@@ -5516,6 +5520,8 @@ class Sessions(Resource):
         updated_after: datetime.datetime | Unset | None = UNSET,
         updated_before: datetime.datetime | Unset | None = UNSET,
         label: list[str] | Unset = UNSET,
+        sort: wire.ListSessionsSort | Unset = UNSET,
+        direction: wire.ListSessionsDirection | Unset = UNSET,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
@@ -5535,6 +5541,8 @@ class Sessions(Resource):
                 updated_after=updated_after,
                 updated_before=updated_before,
                 label=label,
+                sort=sort,
+                direction=direction,
                 limit=limit,
                 x_workspace_id=x_workspace_id,
                 cursor=next_cursor,
@@ -5555,6 +5563,8 @@ class Sessions(Resource):
         updated_after: datetime.datetime | Unset | None = UNSET,
         updated_before: datetime.datetime | Unset | None = UNSET,
         label: list[str] | Unset = UNSET,
+        sort: wire.ListSessionsSort | Unset = UNSET,
+        direction: wire.ListSessionsDirection | Unset = UNSET,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
@@ -5572,6 +5582,8 @@ class Sessions(Resource):
                 updated_after=updated_after,
                 updated_before=updated_before,
                 label=label,
+                sort=sort,
+                direction=direction,
                 limit=limit,
                 cursor=cursor,
                 x_workspace_id=x_workspace_id,
@@ -6719,6 +6731,8 @@ class ThreadsThreadIdRuns(Resource):
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
         anchor: str | Unset | None = UNSET,
+        sort: wire.ListThreadRunsSortType0 | Unset | None = UNSET,
+        direction: wire.ListThreadRunsDirection | Unset = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> Result[wire.ThreadRunPage]:
         """List Thread Runs. One HTTP request; no automatic replay."""
@@ -6729,6 +6743,8 @@ class ThreadsThreadIdRuns(Resource):
                 limit=limit,
                 cursor=cursor,
                 anchor=anchor,
+                sort=sort,
+                direction=direction,
                 x_workspace_id=x_workspace_id,
             )
         )
@@ -6739,6 +6755,8 @@ class ThreadsThreadIdRuns(Resource):
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
         anchor: str | Unset | None = UNSET,
+        sort: wire.ListThreadRunsSortType0 | Unset | None = UNSET,
+        direction: wire.ListThreadRunsDirection | Unset = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> AsyncIterator[Result[wire.ThreadRunPage]]:
         """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
@@ -6746,6 +6764,8 @@ class ThreadsThreadIdRuns(Resource):
             lambda next_cursor: self.list(
                 limit=limit,
                 anchor=anchor if isinstance(next_cursor, Unset) or next_cursor is None else UNSET,
+                sort=sort,
+                direction=direction,
                 x_workspace_id=x_workspace_id,
                 cursor=next_cursor,
             ),
@@ -6759,12 +6779,16 @@ class ThreadsThreadIdRuns(Resource):
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
         anchor: str | Unset | None = UNSET,
+        sort: wire.ListThreadRunsSortType0 | Unset | None = UNSET,
+        direction: wire.ListThreadRunsDirection | Unset = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[wire.RunListItem]:
+    ) -> AsyncIterator[wire.ThreadRunItem]:
         """Yield ordinary wire values lazily with a filter snapshot and server order."""
         return (
             item
-            async for page in self.pages(limit=limit, cursor=cursor, anchor=anchor, x_workspace_id=x_workspace_id)
+            async for page in self.pages(
+                limit=limit, cursor=cursor, anchor=anchor, sort=sort, direction=direction, x_workspace_id=x_workspace_id
+            )
             for item in page.value.items
         )
 

@@ -24,11 +24,14 @@ T = TypeVar("T", bound="SessionView")
 class SessionView:
     """
     Attributes:
+        cost (None | str):
         created_at (datetime.datetime):
         created_by_id (str):
         id (str):
         labels (SessionViewLabels):
         last_run_id (None | str):
+        run_count (int):
+        unpriced_requests (int):
         updated_at (datetime.datetime):
         version (int):
         workspace_id (str):
@@ -37,16 +40,18 @@ class SessionView:
         origin (None | SessionOrigin | Unset):
         preview (None | SessionPreview | Unset):
         purpose (SessionViewPurpose | Unset):
-        run_count (int | Unset):
         schedule_id (None | str | Unset):
         title (None | str | Unset):
     """
 
+    cost: str | None
     created_at: datetime.datetime
     created_by_id: str
     id: str
     labels: SessionViewLabels
     last_run_id: str | None
+    run_count: int
+    unpriced_requests: int
     updated_at: datetime.datetime
     version: int
     workspace_id: str
@@ -54,7 +59,6 @@ class SessionView:
     origin: SessionOrigin | Unset | None = UNSET
     preview: SessionPreview | Unset | None = UNSET
     purpose: SessionViewPurpose | Unset = UNSET
-    run_count: int | Unset = UNSET
     schedule_id: str | Unset | None = UNSET
     title: str | Unset | None = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
@@ -62,6 +66,9 @@ class SessionView:
     def to_dict(self) -> dict[str, Any]:
         from ..models.session_origin import SessionOrigin
         from ..models.session_preview import SessionPreview
+
+        cost: str | None
+        cost = self.cost
 
         created_at = self.created_at.isoformat()
 
@@ -73,6 +80,10 @@ class SessionView:
 
         last_run_id: str | None
         last_run_id = self.last_run_id
+
+        run_count = self.run_count
+
+        unpriced_requests = self.unpriced_requests
 
         updated_at = self.updated_at.isoformat()
 
@@ -104,8 +115,6 @@ class SessionView:
         if not isinstance(self.purpose, Unset):
             purpose = self.purpose.value
 
-        run_count = self.run_count
-
         schedule_id: str | Unset | None
         if isinstance(self.schedule_id, Unset):
             schedule_id = UNSET
@@ -122,11 +131,14 @@ class SessionView:
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
+                "cost": cost,
                 "created_at": created_at,
                 "created_by_id": created_by_id,
                 "id": id,
                 "labels": labels,
                 "last_run_id": last_run_id,
+                "run_count": run_count,
+                "unpriced_requests": unpriced_requests,
                 "updated_at": updated_at,
                 "version": version,
                 "workspace_id": workspace_id,
@@ -140,8 +152,6 @@ class SessionView:
             field_dict["preview"] = preview
         if purpose is not UNSET:
             field_dict["purpose"] = purpose
-        if run_count is not UNSET:
-            field_dict["run_count"] = run_count
         if schedule_id is not UNSET:
             field_dict["schedule_id"] = schedule_id
         if title is not UNSET:
@@ -157,6 +167,14 @@ class SessionView:
         from ..models.session_view_labels import SessionViewLabels
 
         d = dict(src_dict)
+
+        def _parse_cost(data: object) -> str | None:
+            if data is None:
+                return data
+            return cast(str | None, data)
+
+        cost = _parse_cost(d.pop("cost"))
+
         created_at = datetime.datetime.fromisoformat(d.pop("created_at"))
 
         created_by_id = d.pop("created_by_id")
@@ -171,6 +189,10 @@ class SessionView:
             return cast(str | None, data)
 
         last_run_id = _parse_last_run_id(d.pop("last_run_id"))
+
+        run_count = d.pop("run_count")
+
+        unpriced_requests = d.pop("unpriced_requests")
 
         updated_at = datetime.datetime.fromisoformat(d.pop("updated_at"))
 
@@ -226,8 +248,6 @@ class SessionView:
         else:
             purpose = SessionViewPurpose(_purpose)
 
-        run_count = d.pop("run_count", UNSET)
-
         def _parse_schedule_id(data: object) -> str | Unset | None:
             if data is None:
                 return data
@@ -247,11 +267,14 @@ class SessionView:
         title = _parse_title(d.pop("title", UNSET))
 
         session_view = cls(
+            cost=cost,
             created_at=created_at,
             created_by_id=created_by_id,
             id=id,
             labels=labels,
             last_run_id=last_run_id,
+            run_count=run_count,
+            unpriced_requests=unpriced_requests,
             updated_at=updated_at,
             version=version,
             workspace_id=workspace_id,
@@ -259,7 +282,6 @@ class SessionView:
             origin=origin,
             preview=preview,
             purpose=purpose,
-            run_count=run_count,
             schedule_id=schedule_id,
             title=title,
         )

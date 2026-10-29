@@ -63,6 +63,7 @@ class AgentConfigInput:
         skills (list[SkillSelection] | Unset):
         subagent_mode (AgentConfigInputSubagentMode | Unset):
         subagents (AgentConfigInputSubagents | Unset):
+        summarize (bool | Unset):
         tool_search (None | ToolSearch | Unset):
         toolsets (AgentConfigInputToolsets | Unset):
         user_questions (bool | Unset):
@@ -90,6 +91,7 @@ class AgentConfigInput:
     skills: list[SkillSelection] | Unset = UNSET
     subagent_mode: AgentConfigInputSubagentMode | Unset = UNSET
     subagents: AgentConfigInputSubagents | Unset = UNSET
+    summarize: bool | Unset = UNSET
     tool_search: ToolSearch | Unset | None = UNSET
     toolsets: AgentConfigInputToolsets | Unset = UNSET
     user_questions: bool | Unset = UNSET
@@ -221,6 +223,8 @@ class AgentConfigInput:
         if not isinstance(self.subagents, Unset):
             subagents = self.subagents.to_dict()
 
+        summarize = self.summarize
+
         tool_search: dict[str, Any] | Unset | None
         if isinstance(self.tool_search, Unset):
             tool_search = UNSET
@@ -284,6 +288,8 @@ class AgentConfigInput:
             field_dict["subagent_mode"] = subagent_mode
         if subagents is not UNSET:
             field_dict["subagents"] = subagents
+        if summarize is not UNSET:
+            field_dict["summarize"] = summarize
         if tool_search is not UNSET:
             field_dict["tool_search"] = tool_search
         if toolsets is not UNSET:
@@ -526,6 +532,8 @@ class AgentConfigInput:
         else:
             subagents = AgentConfigInputSubagents.from_dict(_subagents)
 
+        summarize = d.pop("summarize", UNSET)
+
         def _parse_tool_search(data: object) -> ToolSearch | Unset | None:
             if data is None:
                 return data
@@ -575,6 +583,7 @@ class AgentConfigInput:
             skills=skills,
             subagent_mode=subagent_mode,
             subagents=subagents,
+            summarize=summarize,
             tool_search=tool_search,
             toolsets=toolsets,
             user_questions=user_questions,
