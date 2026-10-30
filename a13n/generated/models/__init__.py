@@ -88,6 +88,17 @@ from .authorization_status_state import AuthorizationStatusState
 from .background_compaction_policy import BackgroundCompactionPolicy
 from .bearer_credential import BearerCredential
 from .bootstrap_input import BootstrapInput
+from .browser import Browser
+from .browser_attach import BrowserAttach
+from .browser_attach_headers import BrowserAttachHeaders
+from .browser_binding import BrowserBinding
+from .browser_binding_preparation import BrowserBindingPreparation
+from .browser_binding_tab_access import BrowserBindingTabAccess
+from .browser_create import BrowserCreate
+from .browser_create_recipe import BrowserCreateRecipe
+from .browser_page import BrowserPage
+from .browser_source import BrowserSource
+from .browser_status import BrowserStatus
 from .builtin_skill import BuiltinSkill
 from .builtin_skill_catalog import BuiltinSkillCatalog
 from .builtin_skill_detail import BuiltinSkillDetail
@@ -151,6 +162,7 @@ from .content_ref_media_type import ContentRefMediaType
 from .content_summary import ContentSummary
 from .context_usage import ContextUsage
 from .control import Control
+from .control_status import ControlStatus
 from .cpu_time_seconds import CpuTimeSeconds
 from .created_subscription import CreatedSubscription
 from .creation_progress import CreationProgress
@@ -530,6 +542,7 @@ from .read_run_item_content_field import ReadRunItemContentField
 from .read_span_content_section import ReadSpanContentSection
 from .read_view import ReadView
 from .record_source import RecordSource
+from .renew_control import RenewControl
 from .request import Request
 from .request_context import RequestContext
 from .request_context_headers import RequestContextHeaders
@@ -674,6 +687,7 @@ from .subscription_page import SubscriptionPage
 from .subscription_update import SubscriptionUpdate
 from .system_info import SystemInfo
 from .system_metrics import SystemMetrics
+from .takeover import Takeover
 from .template import Template
 from .template_config import TemplateConfig
 from .template_config_recipe import TemplateConfigRecipe
@@ -765,6 +779,7 @@ from .video_url_type import VideoUrlType
 from .view import View
 from .view_cause import ViewCause
 from .view_outcome_type_0 import ViewOutcomeType0
+from .viewer import Viewer
 from .wait_reason import WaitReason
 from .web_operation import WebOperation
 from .webhook_delivery import WebhookDelivery
@@ -865,6 +880,17 @@ __all__ = (
     "BackgroundCompactionPolicy",
     "BearerCredential",
     "BootstrapInput",
+    "Browser",
+    "BrowserAttach",
+    "BrowserAttachHeaders",
+    "BrowserBinding",
+    "BrowserBindingPreparation",
+    "BrowserBindingTabAccess",
+    "BrowserCreate",
+    "BrowserCreateRecipe",
+    "BrowserPage",
+    "BrowserSource",
+    "BrowserStatus",
     "BuiltinSkill",
     "BuiltinSkillCatalog",
     "BuiltinSkillDetail",
@@ -928,6 +954,7 @@ __all__ = (
     "ContentSummary",
     "ContextUsage",
     "Control",
+    "ControlStatus",
     "CpuTimeSeconds",
     "CreatedSubscription",
     "CreationProgress",
@@ -1305,6 +1332,7 @@ __all__ = (
     "ReadSpanContentSection",
     "ReadView",
     "RecordSource",
+    "RenewControl",
     "Request",
     "RequestContext",
     "RequestContextHeaders",
@@ -1449,6 +1477,7 @@ __all__ = (
     "SubscriptionUpdate",
     "SystemInfo",
     "SystemMetrics",
+    "Takeover",
     "Template",
     "TemplateConfig",
     "TemplateConfigRecipe",
@@ -1540,6 +1569,7 @@ __all__ = (
     "View",
     "ViewCause",
     "ViewOutcomeType0",
+    "Viewer",
     "WaitReason",
     "WebOperation",
     "WebhookDelivery",

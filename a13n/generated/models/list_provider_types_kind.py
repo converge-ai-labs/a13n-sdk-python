@@ -2,6 +2,7 @@ from enum import StrEnum
 
 
 class ListProviderTypesKind(StrEnum):
+    BROWSER = "browser"
     CONNECTOR = "connector"
     ENVIRONMENT = "environment"
     MEMORY = "memory"
