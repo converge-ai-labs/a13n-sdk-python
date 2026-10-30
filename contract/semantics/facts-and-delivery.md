@@ -115,7 +115,7 @@ The object store holds immutable bytes under owner-named keys: lowercase slash-s
 | `compactions/{workspace}/{operation_hash}/{kind}.json`      | A background compaction operation's independent payloads                   |
 | `users/{user}/images/{random}`                              | User avatars                                                               |
 
-Run objects are compressed with zstd at `worker.compression_level`; a reference's digest and size describe the stored bytes. Publication writes the bytes outside any database session, then commits the reference. A checkpoint writes its state, tail and new pages concurrently and finishes every write before reporting a failure, so failure sealing cannot race a still-running write. A failed publication leaves unused objects.
+Run objects are compressed with zstd at `worker.compression_level`; a reference's digest and size describe the stored bytes. Publication writes the bytes outside any database session, then commits the reference. A checkpoint writes its state, changed tail and new pages concurrently and finishes every write before reporting a failure, so failure sealing cannot race a still-running write. A failed publication leaves unused objects.
 
 **Run object cleanup is owner-driven.** Only a run's own attempts write under its prefix, and only its pointers, its page catalog and the dependencies recorded with its checkpoint, tail and pages make an object reachable:
 
@@ -148,11 +148,11 @@ run_item_pages
 ```
 
 - A **page** holds consecutive final items. It is written once, catalogued in `run_item_pages` by the checkpoint transaction that commits it, and kept with the run; a trigger refuses every change to a catalogued page.
-- The **tail** holds every later item, `first` through `count`, plus the shared normalization continuation, and each checkpoint replaces it. Restoration preserves stable ordinals and active parser state rather than inferring continuation from visible items.
+- The **tail** holds every later item, `first` through `count`, plus the shared normalization continuation. A checkpoint replaces it when its complete serialized content changes. Restoration preserves stable ordinals and active parser state rather than inferring continuation from visible items.
 
 An item is **final** when no later event of the run can change it. Capturing a checkpoint preserves active text, reasoning, calls and parsing continuation without interrupting them. Terminal and retry policy is separate from snapshot capture; a terminal worker interrupts unfinished items except calls retained by a suspended native response. The tail's leading final items become a page once they reach `worker.page_items` items or `worker.page_bytes` serialized UTF-8 bytes before field externalization. Active items and their later items remain in the tail even when it exceeds a page limit. An argument observation that the next event can still extend is not pageable. An event that changes an item already in a page fails the attempt.
 
-Every checkpoint commit writes the tail and any new pages, so the durable view always describes exactly the restored history, and output after recovery continues it. Output streamed after the last checkpoint is provisional; a crash removes it from the durable view and the next attempt regenerates it.
+Every checkpoint commit selects the exact tail and records any new pages, so the durable view always describes exactly the restored history, and output after recovery continues it. An attempt may reuse its last successfully committed tail pointer only when the complete JSON bytes, after content externalization, are identical, including stream position, resume hint, continuation, dependencies and search metadata. This cache is attempt-local, advances only after the database commit succeeds, and is not restored by fetching an old object solely for comparison. Without cached bytes the attempt publishes a new tail. State checkpoints and new pages are still written. Output streamed after the last checkpoint is provisional; a crash removes it from the durable view and the next attempt regenerates it.
 
 Each tail may store `resume_after`, a confirmed Redis delta ID from its attempt covered by the snapshot. Saving a checkpoint reads the latest confirmed position without waiting for Redis; pending, failed or timed-out writes leave the earlier position available. Terminal displays reuse the position retained after bounded stream cleanup; new attempts start without one. Missing IDs read as null.
 
@@ -240,7 +240,7 @@ After appending a boundary the writer may trim only from the committed checkpoin
 | `gap`            | `{thread_id, run_id}`                                       | Output of the run was lost: its deltas pause until its next `items`                                                              |
 | `app_ready`      | `{thread_id, run_id, apps}`                                 | Enable the identified Apps; their originals and references are committed                                                         |
 
-Frames carry no SSE `id:`. Clients ignore event names they do not know. Schedule-owned Sessions add compact `schedule` and `occurrence` state through the same endpoint, with no extra query parameters or changes to full Thread selection; see [Schedule observation](13-schedules.md#session-observation-and-console). The output recovery rules below apply unchanged to every Thread.
+Frames carry no SSE `id:`. Clients ignore event names they do not know. Sessions with current Schedule targets or historical Occurrences add compact `schedule` and `occurrence` state through the same endpoint, with no extra query parameters or changes to full Thread selection; see [Schedule observation](13-schedules.md#session-observation-and-console). The output recovery rules below apply unchanged to every Thread.
 
 A connection first sends a `thread` frame for every thread of the session, oldest first, each followed by `items` for its current run and that run's retained output. A thread's first frame is `thread`; a run's first frame is `items`. A `thread` frame follows any change of the thread's version or of the version of its current or last run, and a thread created later starts with its `thread` frame. A checkpoint commit changes none of these versions. When a run seals while the connection follows it, the `thread` frame of its new state precedes the run's final `items` with `complete=true`; a base that finds the run already sealed sends those final `items` first, and that `thread` frame follows within one refresh. No `items`, `delta` or `gap` frame of a run follows its final `items`.
 
@@ -285,7 +285,7 @@ outbox   (obx_)
   id  organization_id NULL  workspace_id NULL  kind  dedupe_key  target  payload  subscription_id NULL
   status  available_at  attempts  lease_owner NULL  lease_token_hash NULL  lease_expires_at NULL
   last_error NULL  created_at  delivered_at NULL  settled_at NULL
-  kind IN ('webhook', 'child_result', 'tool_result', 'email', 'memory_purge', 'checkpoint_cleanup')
+  kind IN ('webhook', 'child_result', 'tool_result', 'browser_handback', 'email', 'memory_purge', 'checkpoint_cleanup')
   status IN ('pending', 'delivered', 'dead')
   CHECK (organization_id IS NOT NULL OR kind = 'email')
   CHECK ((status = 'delivered') = (delivered_at IS NOT NULL))
@@ -293,9 +293,11 @@ outbox   (obx_)
   UNIQUE (kind, dedupe_key)
 ```
 
-The outbox is durable at-least-once delivery of what a transaction committed. The six kinds are closed by the CHECK; it is not a general job system. Only account mail has no organization. `target` and `payload` hold everything delivery needs; `subscription_id` is diagnostic provenance, not a foreign key.
+The outbox is durable at-least-once delivery of what a transaction committed. The seven kinds are closed by the CHECK; it is not a general job system. Only account mail has no organization. `target` and `payload` hold everything delivery needs; `subscription_id` is diagnostic provenance, not a foreign key.
 
 `tool_result` delivers one bounded completion hint for a retained invocation. Its origin suppression, inbox capacity, deduplication and result-retention rules are owned by [retained tool executions](05-runs.md#results-and-delivery). The result payload stays in its immutable object and late usage follows the existing original-attempt attribution.
+
+`browser_handback` delivers a bounded availability observation through the existing inbox. [Browsers](14-browsers.md#handback-input-and-durable-observation) owns generation/episode validity, originating authority, suppression, coalescing and incorporation. Full inboxes defer delivery without consuming an attempt; successful append and outbox settlement commit together.
 
 **Staging** happens in the transaction of the change that needs the delivery. A row without an explicit dedupe key uses its own ID. A row keyed by a durable fact, such as one sealed child run, is staged at most once. A delivery that can never be sent is staged already `dead` with its reason.
 

@@ -3,6 +3,7 @@ from enum import StrEnum
 
 class ToolsetKeyType0(StrEnum):
     ASSETS = "assets"
+    BROWSER = "browser"
     COMPUTER = "computer"
     FILES = "files"
     MEMORY = "memory"

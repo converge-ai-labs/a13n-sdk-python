@@ -62,6 +62,20 @@ from .api.auth import (
     session_profile,
     update_profile,
 )
+from .api.browsers import (
+    attach_browser,
+    bind_browser,
+    browser_viewer,
+    create_browser,
+    get_binding,
+    get_browser,
+    handback_browser,
+    list_browsers,
+    prepare_browser,
+    release_browser,
+    renew_browser_control,
+    takeover_browser,
+)
 from .api.connections import (
     authorize_connection,
     complete_authorization,
@@ -202,11 +216,13 @@ from .api.monitoring_devices import (
 from .api.providers import (
     authorize_model,
     complete_model_authorization,
+    create_browser_provider,
     create_connector_provider,
     create_environment_provider,
     create_memory_provider,
     create_model_provider,
     create_web_provider,
+    delete_browser_provider,
     delete_connector_provider,
     delete_environment_provider,
     delete_memory_provider,
@@ -215,11 +231,13 @@ from .api.providers import (
     disconnect_model_authorization,
     discover_model_provider_models,
     environment_provider_references,
+    get_browser_provider,
     get_connector_provider,
     get_environment_provider,
     get_memory_provider,
     get_model_provider,
     get_web_provider,
+    list_browser_providers,
     list_connector_providers,
     list_environment_providers,
     list_memory_providers,
@@ -227,11 +245,13 @@ from .api.providers import (
     list_provider_types,
     list_web_providers,
     model_authorization,
+    test_browser_provider,
     test_connector_provider,
     test_environment_provider,
     test_memory_provider,
     test_model_provider,
     test_web_provider,
+    update_browser_provider,
     update_connector_provider,
     update_environment_provider,
     update_memory_provider,
@@ -407,6 +427,14 @@ class ServiceResources(Resource):
     @property
     def auth(self) -> Auth:
         return Auth(self._client, self._bindings)
+
+    @property
+    def browser_providers(self) -> BrowserProviders:
+        return BrowserProviders(self._client, self._bindings)
+
+    @property
+    def browsers(self) -> Browsers:
+        return Browsers(self._client, self._bindings)
 
     @property
     def builtin_skills(self) -> BuiltinSkills:
@@ -1136,6 +1164,253 @@ class AuthSession(Resource):
     async def get(self) -> Result[wire.SessionProfile]:
         """Session Profile. One HTTP request; no automatic replay."""
         return await self._call(lambda client: session_profile.asyncio_detailed(client=client))
+
+
+class BrowserProviders(Resource):
+    """Bound Native resource: /browser-providers."""
+
+    async def list(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.ProviderPage]:
+        """List browser providers. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: list_browser_providers.asyncio_detailed(
+                client=client, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
+            )
+        )
+
+    def pages(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[Result[wire.ProviderPage]]:
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        return pages(
+            lambda next_cursor: self.list(limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor),
+            lambda value: value.next_cursor,
+            cursor,
+        )
+
+    def iter(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[wire.Provider]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(limit=limit, cursor=cursor, x_workspace_id=x_workspace_id)
+            for item in page.value.items
+        )
+
+    async def create(
+        self, *, body: wire.ProviderCreate, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.Provider]:
+        """Create browser provider. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: create_browser_provider.asyncio_detailed(
+                client=client, body=body, x_workspace_id=x_workspace_id
+            )
+        )
+
+    def __call__(self, provider_id: str) -> BrowserProvidersProviderId:
+        return BrowserProvidersProviderId(self._client, self._bind("provider_id", provider_id))
+
+
+class BrowserProvidersProviderId(Resource):
+    """Bound Native resource: /browser-providers / {provider_id}."""
+
+    async def delete(
+        self, *, if_match: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[None]:
+        """Delete Browser Provider. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: delete_browser_provider.asyncio_detailed(
+                client=client,
+                provider_id=self._bindings["provider_id"],
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Provider]:
+        """Get browser provider. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_browser_provider.asyncio_detailed(
+                client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def update(
+        self,
+        *,
+        body: wire.ProviderUpdate,
+        if_match: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.Provider]:
+        """Update browser provider. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: update_browser_provider.asyncio_detailed(
+                client=client,
+                provider_id=self._bindings["provider_id"],
+                body=body,
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    async def test(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ProviderTest]:
+        """Test browser provider. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: test_browser_provider.asyncio_detailed(
+                client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+
+class Browsers(Resource):
+    """Bound Native resource: /browsers."""
+
+    async def list(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.BrowserPage]:
+        """List Browsers. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: list_browsers.asyncio_detailed(
+                client=client, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
+            )
+        )
+
+    def pages(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[Result[wire.BrowserPage]]:
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        return pages(
+            lambda next_cursor: self.list(limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor),
+            lambda value: value.next_cursor,
+            cursor,
+        )
+
+    def iter(
+        self,
+        *,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[wire.Browser]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(limit=limit, cursor=cursor, x_workspace_id=x_workspace_id)
+            for item in page.value.items
+        )
+
+    async def create(
+        self, *, body: wire.BrowserCreate, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.Browser]:
+        """Create Browser. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: create_browser.asyncio_detailed(client=client, body=body, x_workspace_id=x_workspace_id)
+        )
+
+    async def attach(
+        self, *, body: wire.BrowserAttach, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.Browser]:
+        """Attach Browser. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: attach_browser.asyncio_detailed(client=client, body=body, x_workspace_id=x_workspace_id)
+        )
+
+    def __call__(self, browser_id: str) -> BrowsersBrowserId:
+        return BrowsersBrowserId(self._client, self._bind("browser_id", browser_id))
+
+
+class BrowsersBrowserId(Resource):
+    """Bound Native resource: /browsers / {browser_id}."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Browser]:
+        """Get Browser. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_browser.asyncio_detailed(
+                client=client, browser_id=self._bindings["browser_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def handback(
+        self, *, if_match: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.Browser]:
+        """Handback Browser. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: handback_browser.asyncio_detailed(
+                client=client, browser_id=self._bindings["browser_id"], if_match=if_match, x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def prepare(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Browser]:
+        """Prepare Browser. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: prepare_browser.asyncio_detailed(
+                client=client, browser_id=self._bindings["browser_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def release(
+        self, *, if_match: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.Browser]:
+        """Release Browser. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: release_browser.asyncio_detailed(
+                client=client, browser_id=self._bindings["browser_id"], if_match=if_match, x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def renew(
+        self, *, body: wire.RenewControl, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.Browser]:
+        """Renew Browser Control. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: renew_browser_control.asyncio_detailed(
+                client=client, browser_id=self._bindings["browser_id"], body=body, x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def takeover(
+        self, *, body: wire.Takeover, if_match: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.Browser]:
+        """Takeover Browser. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: takeover_browser.asyncio_detailed(
+                client=client,
+                browser_id=self._bindings["browser_id"],
+                body=body,
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    async def viewer(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Viewer]:
+        """Browser Viewer. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: browser_viewer.asyncio_detailed(
+                client=client, browser_id=self._bindings["browser_id"], x_workspace_id=x_workspace_id
+            )
+        )
 
 
 class BuiltinSkills(Resource):
@@ -6381,6 +6656,10 @@ class Thread(Resource):
         )
 
     @property
+    def browser(self) -> ThreadsThreadIdBrowser:
+        return ThreadsThreadIdBrowser(self._client, self._bindings)
+
+    @property
     def environments(self) -> ThreadsThreadIdEnvironments:
         return ThreadsThreadIdEnvironments(self._client, self._bindings)
 
@@ -6403,6 +6682,36 @@ class Thread(Resource):
     @property
     def tool_executions(self) -> ThreadsThreadIdToolExecutions:
         return ThreadsThreadIdToolExecutions(self._client, self._bindings)
+
+
+class ThreadsThreadIdBrowser(Resource):
+    """Bound Native resource: /threads / {thread_id} / browser."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.BrowserBinding | None]:
+        """Get Binding. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_binding.asyncio_detailed(
+                client=client, thread_id=self._bindings["thread_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def replace(
+        self,
+        *,
+        body: wire.BrowserBinding | Unset | None = UNSET,
+        if_match: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.BrowserBinding | None]:
+        """Bind Browser. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: bind_browser.asyncio_detailed(
+                client=client,
+                thread_id=self._bindings["thread_id"],
+                body=body,
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
 
 
 class ThreadsThreadIdEnvironments(Resource):
