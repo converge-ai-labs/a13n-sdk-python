@@ -8057,6 +8057,8 @@ class UsageOverview(Resource):
         start: datetime.datetime,
         end: datetime.datetime,
         principal_id: str | Unset | None = UNSET,
+        group_by: Unset | wire.UsageOverviewGroupByType0 | None = UNSET,
+        metric: wire.UsageOverviewMetric | Unset = UNSET,
         timezone: str | Unset = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> Result[wire.UsageOverview]:
@@ -8067,6 +8069,8 @@ class UsageOverview(Resource):
                 start=start,
                 end=end,
                 principal_id=principal_id,
+                group_by=group_by,
+                metric=metric,
                 timezone=timezone,
                 x_workspace_id=x_workspace_id,
             )

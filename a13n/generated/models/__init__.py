@@ -768,6 +768,9 @@ from .usage_limit import UsageLimit
 from .usage_limits_input import UsageLimitsInput
 from .usage_limits_output import UsageLimitsOutput
 from .usage_overview import UsageOverview
+from .usage_overview_group_by_type_0 import UsageOverviewGroupByType0
+from .usage_overview_metric import UsageOverviewMetric
+from .usage_series import UsageSeries
 from .usage_summary import UsageSummary
 from .user_key_create import UserKeyCreate
 from .verb import Verb
@@ -1558,6 +1561,9 @@ __all__ = (
     "UsageLimitsInput",
     "UsageLimitsOutput",
     "UsageOverview",
+    "UsageOverviewGroupByType0",
+    "UsageOverviewMetric",
+    "UsageSeries",
     "UsageSummary",
     "UserKeyCreate",
     "Verb",
