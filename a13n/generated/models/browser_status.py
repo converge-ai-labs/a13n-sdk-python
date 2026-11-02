@@ -8,6 +8,9 @@ class BrowserStatus(StrEnum):
     LOST = "lost"
     READY = "ready"
     RESERVED = "reserved"
+    STARTING = "starting"
+    STOPPED = "stopped"
+    STOPPING = "stopping"
 
     def __str__(self) -> str:
         return str(self.value)

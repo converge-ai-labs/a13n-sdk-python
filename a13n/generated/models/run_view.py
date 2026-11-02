@@ -15,6 +15,7 @@ from ..models.wait_reason import WaitReason
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
+    from ..models.browser_binding import BrowserBinding
     from ..models.environment_mount import EnvironmentMount
     from ..models.failure import Failure
     from ..models.frozen_memory_mount import FrozenMemoryMount
@@ -69,6 +70,7 @@ class RunView:
         version (int):
         wait_reason (None | WaitReason):
         workspace_id (str):
+        browser_binding (BrowserBinding | None | Unset):
         input_ (None | RunViewInputType0 | Unset):
         schedule_origin (None | ScheduleOrigin | Unset):
     """
@@ -106,11 +108,13 @@ class RunView:
     version: int
     wait_reason: WaitReason | None
     workspace_id: str
+    browser_binding: BrowserBinding | Unset | None = UNSET
     input_: RunViewInputType0 | Unset | None = UNSET
     schedule_origin: ScheduleOrigin | Unset | None = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.browser_binding import BrowserBinding
         from ..models.failure import Failure
         from ..models.memory_mount import MemoryMount
         from ..models.pending import Pending
@@ -233,6 +237,14 @@ class RunView:
 
         workspace_id = self.workspace_id
 
+        browser_binding: dict[str, Any] | Unset | None
+        if isinstance(self.browser_binding, Unset):
+            browser_binding = UNSET
+        elif isinstance(self.browser_binding, BrowserBinding):
+            browser_binding = self.browser_binding.to_dict()
+        else:
+            browser_binding = self.browser_binding
+
         input_: dict[str, Any] | Unset | None
         if isinstance(self.input_, Unset):
             input_ = UNSET
@@ -288,6 +300,8 @@ class RunView:
                 "workspace_id": workspace_id,
             }
         )
+        if browser_binding is not UNSET:
+            field_dict["browser_binding"] = browser_binding
         if input_ is not UNSET:
             field_dict["input"] = input_
         if schedule_origin is not UNSET:
@@ -297,6 +311,7 @@ class RunView:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.browser_binding import BrowserBinding
         from ..models.environment_mount import EnvironmentMount
         from ..models.failure import Failure
         from ..models.frozen_memory_mount import FrozenMemoryMount
@@ -533,6 +548,23 @@ class RunView:
 
         workspace_id = d.pop("workspace_id")
 
+        def _parse_browser_binding(data: object) -> BrowserBinding | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                browser_binding_type_0 = BrowserBinding.from_dict(data)
+
+                return browser_binding_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(BrowserBinding | Unset | None, data)
+
+        browser_binding = _parse_browser_binding(d.pop("browser_binding", UNSET))
+
         def _parse_input_(data: object) -> RunViewInputType0 | Unset | None:
             if data is None:
                 return data
@@ -601,6 +633,7 @@ class RunView:
             version=version,
             wait_reason=wait_reason,
             workspace_id=workspace_id,
+            browser_binding=browser_binding,
             input_=input_,
             schedule_origin=schedule_origin,
         )

@@ -28,6 +28,7 @@ WORKSPACE_PATHS = (
     re.compile("/api/v1/browsers/[^/]+/prepare\\Z"),
     re.compile("/api/v1/browsers/[^/]+/release\\Z"),
     re.compile("/api/v1/browsers/[^/]+/renew\\Z"),
+    re.compile("/api/v1/browsers/[^/]+/stop\\Z"),
     re.compile("/api/v1/browsers/[^/]+/takeover\\Z"),
     re.compile("/api/v1/browsers/[^/]+/viewer\\Z"),
     re.compile("/api/v1/builtin\\-skills\\Z"),

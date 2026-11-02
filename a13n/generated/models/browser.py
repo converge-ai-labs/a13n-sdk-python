@@ -21,6 +21,7 @@ class Browser:
         control (ControlStatus):
         control_expires_at (datetime.datetime | None):
         created_at (datetime.datetime):
+        delete_after_seconds (int | None):
         episode (int):
         expires_at (datetime.datetime | None):
         failure (None | str):
@@ -32,6 +33,7 @@ class Browser:
         provider_id (None | str):
         source (BrowserSource):
         status (BrowserStatus):
+        stop_after_seconds (int | None):
         updated_at (datetime.datetime):
         version (int):
         workspace_id (str):
@@ -40,6 +42,7 @@ class Browser:
     control: ControlStatus
     control_expires_at: datetime.datetime | None
     created_at: datetime.datetime
+    delete_after_seconds: int | None
     episode: int
     expires_at: datetime.datetime | None
     failure: str | None
@@ -51,6 +54,7 @@ class Browser:
     provider_id: str | None
     source: BrowserSource
     status: BrowserStatus
+    stop_after_seconds: int | None
     updated_at: datetime.datetime
     version: int
     workspace_id: str
@@ -66,6 +70,9 @@ class Browser:
             control_expires_at = self.control_expires_at
 
         created_at = self.created_at.isoformat()
+
+        delete_after_seconds: int | None
+        delete_after_seconds = self.delete_after_seconds
 
         episode = self.episode
 
@@ -96,6 +103,9 @@ class Browser:
 
         status = self.status.value
 
+        stop_after_seconds: int | None
+        stop_after_seconds = self.stop_after_seconds
+
         updated_at = self.updated_at.isoformat()
 
         version = self.version
@@ -109,6 +119,7 @@ class Browser:
                 "control": control,
                 "control_expires_at": control_expires_at,
                 "created_at": created_at,
+                "delete_after_seconds": delete_after_seconds,
                 "episode": episode,
                 "expires_at": expires_at,
                 "failure": failure,
@@ -120,6 +131,7 @@ class Browser:
                 "provider_id": provider_id,
                 "source": source,
                 "status": status,
+                "stop_after_seconds": stop_after_seconds,
                 "updated_at": updated_at,
                 "version": version,
                 "workspace_id": workspace_id,
@@ -149,6 +161,13 @@ class Browser:
         control_expires_at = _parse_control_expires_at(d.pop("control_expires_at"))
 
         created_at = datetime.datetime.fromisoformat(d.pop("created_at"))
+
+        def _parse_delete_after_seconds(data: object) -> int | None:
+            if data is None:
+                return data
+            return cast(int | None, data)
+
+        delete_after_seconds = _parse_delete_after_seconds(d.pop("delete_after_seconds"))
 
         episode = d.pop("episode")
 
@@ -200,6 +219,13 @@ class Browser:
 
         status = BrowserStatus(d.pop("status"))
 
+        def _parse_stop_after_seconds(data: object) -> int | None:
+            if data is None:
+                return data
+            return cast(int | None, data)
+
+        stop_after_seconds = _parse_stop_after_seconds(d.pop("stop_after_seconds"))
+
         updated_at = datetime.datetime.fromisoformat(d.pop("updated_at"))
 
         version = d.pop("version")
@@ -210,6 +236,7 @@ class Browser:
             control=control,
             control_expires_at=control_expires_at,
             created_at=created_at,
+            delete_after_seconds=delete_after_seconds,
             episode=episode,
             expires_at=expires_at,
             failure=failure,
@@ -221,6 +248,7 @@ class Browser:
             provider_id=provider_id,
             source=source,
             status=status,
+            stop_after_seconds=stop_after_seconds,
             updated_at=updated_at,
             version=version,
             workspace_id=workspace_id,

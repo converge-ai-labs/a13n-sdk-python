@@ -783,6 +783,7 @@ from .view import View
 from .view_cause import ViewCause
 from .view_outcome_type_0 import ViewOutcomeType0
 from .viewer import Viewer
+from .viewer_protocol import ViewerProtocol
 from .wait_reason import WaitReason
 from .web_operation import WebOperation
 from .webhook_delivery import WebhookDelivery
@@ -1576,6 +1577,7 @@ __all__ = (
     "ViewCause",
     "ViewOutcomeType0",
     "Viewer",
+    "ViewerProtocol",
     "WaitReason",
     "WebOperation",
     "WebhookDelivery",

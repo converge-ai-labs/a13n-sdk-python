@@ -74,6 +74,7 @@ from .api.browsers import (
     prepare_browser,
     release_browser,
     renew_browser_control,
+    stop_browser,
     takeover_browser,
 )
 from .api.connections import (
@@ -1387,6 +1388,16 @@ class BrowsersBrowserId(Resource):
         return await self._call(
             lambda client: renew_browser_control.asyncio_detailed(
                 client=client, browser_id=self._bindings["browser_id"], body=body, x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def stop(
+        self, *, if_match: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.Browser]:
+        """Stop Browser. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: stop_browser.asyncio_detailed(
+                client=client, browser_id=self._bindings["browser_id"], if_match=if_match, x_workspace_id=x_workspace_id
             )
         )
 
