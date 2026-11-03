@@ -11,6 +11,7 @@ from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.authentication import Authentication
+    from ..models.provider_type_browser_recipe_schema_type_0 import ProviderTypeBrowserRecipeSchemaType0
     from ..models.provider_type_configuration_schema import ProviderTypeConfigurationSchema
     from ..models.provider_type_credential_schema_type_0 import ProviderTypeCredentialSchemaType0
     from ..models.provider_type_environment_schema_type_0 import ProviderTypeEnvironmentSchemaType0
@@ -33,6 +34,7 @@ class ProviderType:
         setup_url (None | str):
         supports_test (bool):
         type_ (str):
+        browser_recipe_schema (None | ProviderTypeBrowserRecipeSchemaType0 | Unset):
         catalog_providers (list[str] | None | Unset):
         default_model_api (None | str | Unset):
         environment_schema (None | ProviderTypeEnvironmentSchemaType0 | Unset):
@@ -44,6 +46,7 @@ class ProviderType:
         supports_destroy (bool | None | Unset):
         supports_model_discovery (bool | Unset):
         supports_stop (bool | None | Unset):
+        supports_viewer (bool | None | Unset):
     """
 
     authentication: Authentication
@@ -54,6 +57,7 @@ class ProviderType:
     setup_url: str | None
     supports_test: bool
     type_: str
+    browser_recipe_schema: ProviderTypeBrowserRecipeSchemaType0 | Unset | None = UNSET
     catalog_providers: list[str] | Unset | None = UNSET
     default_model_api: str | Unset | None = UNSET
     environment_schema: ProviderTypeEnvironmentSchemaType0 | Unset | None = UNSET
@@ -65,9 +69,11 @@ class ProviderType:
     supports_destroy: bool | Unset | None = UNSET
     supports_model_discovery: bool | Unset = UNSET
     supports_stop: bool | Unset | None = UNSET
+    supports_viewer: bool | Unset | None = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.provider_type_browser_recipe_schema_type_0 import ProviderTypeBrowserRecipeSchemaType0
         from ..models.provider_type_credential_schema_type_0 import ProviderTypeCredentialSchemaType0
         from ..models.provider_type_environment_schema_type_0 import ProviderTypeEnvironmentSchemaType0
         from ..models.provider_type_model_api_labels_type_0 import ProviderTypeModelApiLabelsType0
@@ -94,6 +100,14 @@ class ProviderType:
         supports_test = self.supports_test
 
         type_ = self.type_
+
+        browser_recipe_schema: dict[str, Any] | Unset | None
+        if isinstance(self.browser_recipe_schema, Unset):
+            browser_recipe_schema = UNSET
+        elif isinstance(self.browser_recipe_schema, ProviderTypeBrowserRecipeSchemaType0):
+            browser_recipe_schema = self.browser_recipe_schema.to_dict()
+        else:
+            browser_recipe_schema = self.browser_recipe_schema
 
         catalog_providers: list[str] | Unset | None
         if isinstance(self.catalog_providers, Unset):
@@ -175,6 +189,12 @@ class ProviderType:
         else:
             supports_stop = self.supports_stop
 
+        supports_viewer: bool | Unset | None
+        if isinstance(self.supports_viewer, Unset):
+            supports_viewer = UNSET
+        else:
+            supports_viewer = self.supports_viewer
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -189,6 +209,8 @@ class ProviderType:
                 "type": type_,
             }
         )
+        if browser_recipe_schema is not UNSET:
+            field_dict["browser_recipe_schema"] = browser_recipe_schema
         if catalog_providers is not UNSET:
             field_dict["catalog_providers"] = catalog_providers
         if default_model_api is not UNSET:
@@ -211,12 +233,17 @@ class ProviderType:
             field_dict["supports_model_discovery"] = supports_model_discovery
         if supports_stop is not UNSET:
             field_dict["supports_stop"] = supports_stop
+        if supports_viewer is not UNSET:
+            field_dict["supports_viewer"] = supports_viewer
 
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.authentication import Authentication
+        from ..models.provider_type_browser_recipe_schema_type_0 import (
+            ProviderTypeBrowserRecipeSchemaType0,
+        )
         from ..models.provider_type_configuration_schema import ProviderTypeConfigurationSchema
         from ..models.provider_type_credential_schema_type_0 import ProviderTypeCredentialSchemaType0
         from ..models.provider_type_environment_schema_type_0 import ProviderTypeEnvironmentSchemaType0
@@ -262,6 +289,23 @@ class ProviderType:
         supports_test = d.pop("supports_test")
 
         type_ = d.pop("type")
+
+        def _parse_browser_recipe_schema(data: object) -> ProviderTypeBrowserRecipeSchemaType0 | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                browser_recipe_schema_type_0 = ProviderTypeBrowserRecipeSchemaType0.from_dict(data)
+
+                return browser_recipe_schema_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(ProviderTypeBrowserRecipeSchemaType0 | Unset | None, data)
+
+        browser_recipe_schema = _parse_browser_recipe_schema(d.pop("browser_recipe_schema", UNSET))
 
         def _parse_catalog_providers(data: object) -> list[str] | Unset | None:
             if data is None:
@@ -408,6 +452,15 @@ class ProviderType:
 
         supports_stop = _parse_supports_stop(d.pop("supports_stop", UNSET))
 
+        def _parse_supports_viewer(data: object) -> bool | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(bool | Unset | None, data)
+
+        supports_viewer = _parse_supports_viewer(d.pop("supports_viewer", UNSET))
+
         provider_type = cls(
             authentication=authentication,
             configuration_schema=configuration_schema,
@@ -417,6 +470,7 @@ class ProviderType:
             setup_url=setup_url,
             supports_test=supports_test,
             type_=type_,
+            browser_recipe_schema=browser_recipe_schema,
             catalog_providers=catalog_providers,
             default_model_api=default_model_api,
             environment_schema=environment_schema,
@@ -428,6 +482,7 @@ class ProviderType:
             supports_destroy=supports_destroy,
             supports_model_discovery=supports_model_discovery,
             supports_stop=supports_stop,
+            supports_viewer=supports_viewer,
         )
 
         provider_type.additional_properties = d

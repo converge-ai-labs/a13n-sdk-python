@@ -519,6 +519,7 @@ from .provider_reference import ProviderReference
 from .provider_test import ProviderTest
 from .provider_test_status import ProviderTestStatus
 from .provider_type import ProviderType
+from .provider_type_browser_recipe_schema_type_0 import ProviderTypeBrowserRecipeSchemaType0
 from .provider_type_configuration_schema import ProviderTypeConfigurationSchema
 from .provider_type_credential_schema_type_0 import ProviderTypeCredentialSchemaType0
 from .provider_type_environment_schema_type_0 import ProviderTypeEnvironmentSchemaType0
@@ -1315,6 +1316,7 @@ __all__ = (
     "ProviderTest",
     "ProviderTestStatus",
     "ProviderType",
+    "ProviderTypeBrowserRecipeSchemaType0",
     "ProviderTypeConfigurationSchema",
     "ProviderTypeCredentialSchemaType0",
     "ProviderTypeEnvironmentSchemaType0",
