@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from ..models.cron_schedule import CronSchedule
     from ..models.once_schedule import OnceSchedule
     from ..models.schedule_invocation_input import ScheduleInvocationInput
+    from ..models.schedule_target import ScheduleTarget
     from ..models.schedule_update_labels_type_0 import ScheduleUpdateLabelsType0
 
 
@@ -27,6 +28,7 @@ class ScheduleUpdate:
         max_lateness_seconds (int | None | Unset):
         name (None | str | Unset):
         schedule (CronSchedule | None | OnceSchedule | Unset):
+        target (None | ScheduleTarget | Unset):
     """
 
     description: str | Unset | None = UNSET
@@ -35,11 +37,13 @@ class ScheduleUpdate:
     max_lateness_seconds: int | Unset | None = UNSET
     name: str | Unset | None = UNSET
     schedule: CronSchedule | OnceSchedule | Unset | None = UNSET
+    target: ScheduleTarget | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
         from ..models.cron_schedule import CronSchedule
         from ..models.once_schedule import OnceSchedule
         from ..models.schedule_invocation_input import ScheduleInvocationInput
+        from ..models.schedule_target import ScheduleTarget
         from ..models.schedule_update_labels_type_0 import ScheduleUpdateLabelsType0
 
         description: str | Unset | None
@@ -86,6 +90,14 @@ class ScheduleUpdate:
         else:
             schedule = self.schedule
 
+        target: dict[str, Any] | Unset | None
+        if isinstance(self.target, Unset):
+            target = UNSET
+        elif isinstance(self.target, ScheduleTarget):
+            target = self.target.to_dict()
+        else:
+            target = self.target
+
         field_dict: dict[str, Any] = {}
 
         field_dict.update({})
@@ -101,6 +113,8 @@ class ScheduleUpdate:
             field_dict["name"] = name
         if schedule is not UNSET:
             field_dict["schedule"] = schedule
+        if target is not UNSET:
+            field_dict["target"] = target
 
         return field_dict
 
@@ -109,6 +123,7 @@ class ScheduleUpdate:
         from ..models.cron_schedule import CronSchedule
         from ..models.once_schedule import OnceSchedule
         from ..models.schedule_invocation_input import ScheduleInvocationInput
+        from ..models.schedule_target import ScheduleTarget
         from ..models.schedule_update_labels_type_0 import ScheduleUpdateLabelsType0
 
         d = dict(src_dict)
@@ -199,6 +214,23 @@ class ScheduleUpdate:
 
         schedule = _parse_schedule(d.pop("schedule", UNSET))
 
+        def _parse_target(data: object) -> ScheduleTarget | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                target_type_0 = ScheduleTarget.from_dict(data)
+
+                return target_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(ScheduleTarget | Unset | None, data)
+
+        target = _parse_target(d.pop("target", UNSET))
+
         schedule_update = cls(
             description=description,
             invocation=invocation,
@@ -206,6 +238,7 @@ class ScheduleUpdate:
             max_lateness_seconds=max_lateness_seconds,
             name=name,
             schedule=schedule,
+            target=target,
         )
 
         return schedule_update

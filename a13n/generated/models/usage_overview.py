@@ -6,10 +6,13 @@ from typing import TYPE_CHECKING, Any, TypeVar
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
+from ..types import UNSET, Unset
+
 if TYPE_CHECKING:
     from ..models.daily_usage import DailyUsage
     from ..models.model_metrics import ModelMetrics
     from ..models.run_metrics import RunMetrics
+    from ..models.usage_series import UsageSeries
 
 
 T = TypeVar("T", bound="UsageOverview")
@@ -22,11 +25,13 @@ class UsageOverview:
         daily (list[DailyUsage]):
         runs (RunMetrics):
         usage (ModelMetrics):
+        series (list[UsageSeries] | Unset):
     """
 
     daily: list[DailyUsage]
     runs: RunMetrics
     usage: ModelMetrics
+    series: list[UsageSeries] | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -39,6 +44,13 @@ class UsageOverview:
 
         usage = self.usage.to_dict()
 
+        series: list[dict[str, Any]] | Unset = UNSET
+        if not isinstance(self.series, Unset):
+            series = []
+            for series_item_data in self.series:
+                series_item = series_item_data.to_dict()
+                series.append(series_item)
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -48,6 +60,8 @@ class UsageOverview:
                 "usage": usage,
             }
         )
+        if series is not UNSET:
+            field_dict["series"] = series
 
         return field_dict
 
@@ -56,6 +70,7 @@ class UsageOverview:
         from ..models.daily_usage import DailyUsage
         from ..models.model_metrics import ModelMetrics
         from ..models.run_metrics import RunMetrics
+        from ..models.usage_series import UsageSeries
 
         d = dict(src_dict)
         daily = []
@@ -69,10 +84,20 @@ class UsageOverview:
 
         usage = ModelMetrics.from_dict(d.pop("usage"))
 
+        _series = d.pop("series", UNSET)
+        series: list[UsageSeries] | Unset = UNSET
+        if _series is not UNSET:
+            series = []
+            for series_item_data in _series:
+                series_item = UsageSeries.from_dict(series_item_data)
+
+                series.append(series_item)
+
         usage_overview = cls(
             daily=daily,
             runs=runs,
             usage=usage,
+            series=series,
         )
 
         usage_overview.additional_properties = d

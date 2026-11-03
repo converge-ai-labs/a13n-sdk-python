@@ -56,7 +56,13 @@ ATTEMPT = {
     "started_at": None,
     "finished_at": None,
 }
-MOUNT = {"name": "work", "environment_id": "env_1", "working_directory": None, "permission_ceiling": {"operations": []}}
+MOUNT = {
+    "desktop_enabled": False,
+    "name": "work",
+    "environment_id": "env_1",
+    "working_directory": None,
+    "permission_ceiling": {"operations": []},
+}
 METRICS = {"time_to_first_chunk_seconds": None, "request_duration_seconds": 0, "output_tokens_per_second": None}
 ORGANIZATION = {"pending": False, "processed_seq": 0, "active_run_id": None, "history_gap": False, "due_at": None}
 

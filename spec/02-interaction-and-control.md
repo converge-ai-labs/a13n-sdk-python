@@ -56,17 +56,15 @@ The context is single-use and one reader is active at a time. Normal completion 
 
 Resume splits one public answer mapping into both wire maps in one mutation, including empty categories. Service validates exact atomic coverage and matching categories. Returned requires an explicit JSON value; null is a value, not omission. Deny preserves omitted, null and empty reasons. Built-in questions are calls whose returned JSON conforms to Harness UserQuestionAnswers. Optional input uses ordinary public parts in the same mutation; omission leaves the wire field absent, `None` supplies explicit null, and parts supply an ordinary MessagePayload. Input does not fill missing answers or grant approval. No client tool or approval is executed automatically.
 
-The application owns answer drafts, edits and complete-batch submission. Service permits up to 128 combined answers and a canonical body within 262144 bytes. A desktop-only wait has empty approval/call categories and accepts an explicit empty batch after stored control completion; ordinary pending calls and approvals still require exact full coverage. Pending-coverage or question-validation failures are known `ApiError` rejections and create no successor. Identical explicit replay under the same key returns the same successor; a changed body conflicts. The SDK sends each invocation once.
+The application owns answer drafts, edits and complete-batch submission. Service permits up to 128 combined answers and a canonical body within 262144 bytes. Pending calls and approvals require exact full coverage. Pending-coverage or question-validation failures are known `ApiError` rejections and create no successor. Identical explicit replay under the same key returns the same successor; a changed body conflicts. The SDK sends each invocation once.
 
 The resume receipt identifies a distinct Run with Thread/Workspace identity. Its returned Interaction reuses finite result/raw/text observation, retains the response and key, and never follows later successors. Fork uses the current native wire operation, changes no scheduling semantics and does not implicitly create a Session. Interrupt acceptance is not proof of rolled-back external effects.
 
-## Desktop Waiting and Control
+## Desktop Control and Historical Waiting
 
-`wait_reason=desktop_control` seals the exact Run for finite observation. Public `Pending.desktop_control_id` preserves the native optional nullable ID, independently of calls and approvals. The authoritative reason remains in `RunOutcome.evidence.value.wait_reason`; neither Session projection nor result observation manufactures a deferred tool answer or follows a successor.
+Current desktop control is an Environment-scoped episode, not a Run waiting reason or a deferred assistance call. It is separate from ordinary approval and call continuation; handback is not a `run.resume()` request. [Resource management](04-resource-management.md#desktop-control) owns the control operations and their authority boundaries.
 
-Agent assistance and user control have distinct completion paths. Agent-requested assistance is a deferred call: the application completes its assistance resource, then submits that exact persisted outcome with every other pending answer. User-requested control may pause a Run with empty calls and approvals. Completing that control persists cleanup and `ready_to_resume`; a subsequent explicit `run.resume({})` starts its successor after Service reconciliation. Mixed batches still require all other answers. Neither completion endpoint starts a Run automatically.
-
-[Resource management](04-resource-management.md#desktop-assistance-and-user-control) owns native access operations and browser-session authority. Local disconnect, observation cancellation and lease expiry leave a paused Run paused; the SDK renews no lease and issues no automatic control or resume.
+Sealed historical records can retain `wait_reason=desktop_control` and `HistoricalDesktopPending.desktop_control_id`. The ID is historical evidence, not an active Environment control handle. Current `Pending` contains approvals and calls only. Neither observation nor local cancellation manufactures a tool answer, follows a successor, or automatically resumes a Run.
 
 ## Invariants
 

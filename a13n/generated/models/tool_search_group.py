@@ -6,7 +6,7 @@ from typing import Any, TypeVar, cast
 from attrs import define as _attrs_define
 
 from ..._validation import validate_model
-from ..models.tool_search_group_capabilities_item import ToolSearchGroupCapabilitiesItem
+from ..models.builtin_toolset_key import BuiltinToolsetKey
 from ..types import UNSET, Unset
 
 T = TypeVar("T", bound="ToolSearchGroup")
@@ -17,14 +17,14 @@ class ToolSearchGroup:
     """
     Attributes:
         description (str):
-        capabilities (list[ToolSearchGroupCapabilitiesItem] | Unset):
+        capabilities (list[BuiltinToolsetKey] | Unset):
         connections (list[str] | Unset):
         platform (bool | Unset):
         plugins (list[str] | Unset):
     """
 
     description: str
-    capabilities: list[ToolSearchGroupCapabilitiesItem] | Unset = UNSET
+    capabilities: list[BuiltinToolsetKey] | Unset = UNSET
     connections: list[str] | Unset = UNSET
     platform: bool | Unset = UNSET
     plugins: list[str] | Unset = UNSET
@@ -75,11 +75,11 @@ class ToolSearchGroup:
         description = d.pop("description")
 
         _capabilities = d.pop("capabilities", UNSET)
-        capabilities: list[ToolSearchGroupCapabilitiesItem] | Unset = UNSET
+        capabilities: list[BuiltinToolsetKey] | Unset = UNSET
         if _capabilities is not UNSET:
             capabilities = []
             for capabilities_item_data in _capabilities:
-                capabilities_item = ToolSearchGroupCapabilitiesItem(capabilities_item_data)
+                capabilities_item = BuiltinToolsetKey(capabilities_item_data)
 
                 capabilities.append(capabilities_item)
 

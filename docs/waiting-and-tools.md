@@ -1,6 +1,6 @@
 # Waiting, approvals, questions, and client tools
 
-A finite Interaction ends at `waiting` if its Run has deferred calls or desktop control has paused execution. Your application must collect **all** decisions and results for that exact waiting Run before resuming it. It does not automatically approve actions, execute client tools, or answer questions.
+A finite Interaction ends at `waiting` if its Run has deferred calls. Your application must collect **all** decisions and results for that exact waiting Run before resuming it. It does not automatically approve actions, execute client tools, or answer questions.
 
 ## Inspect the complete pending batch
 
@@ -123,59 +123,26 @@ resumed = await outcome.run.resume(
 
 `input` is optional ordinary user content submitted **atomically with all answers** to the successor Run. It can be a string or ordered public text, JSON, Asset or URL parts. Omitting `input` leaves the field absent; `input=None` explicitly sends null. `Returned(None)` explicitly supplies JSON null; omitting a value is not an answer. `Deny()` omits its reason while `Deny(None)` and `Deny("")` preserve null and empty string. It cannot fill missing call results, answer a question by itself, or authorize an approval. The SDK performs one resume request, not a resume followed by `send()`. The returned Interaction has no fabricated Entry; `.run` is its exact successor, `.receipt` retains the resume HTTP evidence, and `.result()`, native iteration and `.text_stream()` use the same finite observer. The successor may wait again; inspect its own pending batch instead of automatically resolving it.
 
-## Inspect and complete desktop control
+## Control an Environment desktop
 
-Desktop waits are distinct from ordinary client tools. Inspect `outcome.evidence.value.wait_reason` and `outcome.pending.desktop_control_id`. A user-control wait can contain empty calls and approvals. Completion records cleanup and readiness; **resume remains a separate explicit command**:
-
-```python
-from a13n import Client, RunOutcome
-from a13n.generated import models as wire
-
-
-async def complete_user_control(
-    client: Client,
-    outcome: RunOutcome,
-    browser_session: str,
-    epoch: int,
-    resume_key: str,
-) -> str:
-    pending = outcome.pending
-    if pending is None or not isinstance(pending.desktop_control_id, str):
-        raise ValueError("No desktop control wait")
-    if pending.calls or pending.approvals:
-        raise ValueError("This example handles a desktop-only wait")
-    control = client.api.desktop_assistance(pending.desktop_control_id)
-    completed = await control.complete(
-        body=wire.Completion(session_id=browser_session, epoch=epoch, outcome=wire.CompletionOutcome.COMPLETED),
-    )
-    if completed.value.state != "ready_to_resume":
-        raise ValueError("Desktop cleanup is not ready")
-    successor = await outcome.run.resume({}, idempotency_key=resume_key)
-    assert successor.run is not None
-    return successor.run.id
-```
-
-`browser_session` is an application-generated 20–72-character token using letters, digits, `_` or `-`, **not** a Service Session resource ID. Epoch is the current nonnegative desktop epoch. Obtain both from your application's explicit desktop access flow:
+Desktop control belongs to an Environment, not a Run wait. Takeover and handback do not start, stop, or resume a Run. Use the Environment's current ETag and the controlling Thread ID. A takeover may need to drain in-flight Computer operations before control becomes human; inspect the returned control state before opening a control viewer.
 
 ```python
 from a13n import Client
 from a13n.generated import models as wire
 
 
-async def open_desktop_view(client: Client, run_id: str, browser_session: str) -> wire.Access:
-    opened = await client.api.runs(run_id).desktop_control.create(
-        body=wire.Request(mount="computer", reason="Finish sign in"),
-    )
+async def take_over_desktop(client: Client, environment_id: str, thread_id: str, etag: str) -> wire.Control:
     return (
-        await client.api.desktop_assistance(opened.value.id).view(
-            body=wire.Control(session_id=browser_session, epoch=opened.value.epoch),
+        await client.api.environments(environment_id).desktop_control.takeover(
+            body=wire.DesktopTakeover(thread_id=thread_id), if_match=etag
         )
     ).value
 ```
 
-Opening creates a viewing context without reserving execution. `desktop_assistance(id).request_control()` explicitly requests suspension and may return preparing; read the Run and native metadata before requesting a control grant with `.control(body=Control(...))`. Metadata reads use `runs(id).desktop_control.get()` (nullable) or, for an Agent assistance call, `runs(id).desktop_assistance(call_id).get()`. Access requires current Service execution authority, the frozen mount and a matching provider generation. Keep the no-store `Access.websocket_url` and password private; the SDK launches no browser and renews no lease automatically.
+Use `desktop_control.get()` to inspect the current episode and generation, `desktop_viewer(body=wire.OpenViewer(...))` to request viewer credentials, and `desktop_control.handback()` to return control. Keep the viewer URL and password private. The SDK neither opens a browser nor renews control automatically. Handback may still be in progress while Service confirms input cleanup.
 
-For **Agent-requested assistance**, complete the assistance resource first, then return its **exact persisted outcome** under that deferred call ID together with every other pending answer. Do not turn a user-control ID into a synthetic call result. Mixed waits still require all real calls and approvals. `.disconnect(body=Control(...))` releases the caller's browser access without completing assistance; local disconnection, lease expiry and observation cancellation do not resume execution. Neither kind of completion starts a Run automatically.
+Historical Run records can retain `wait_reason=desktop_control` and `pending.desktop_control_id` as evidence from the retired assistance flow. This is not a current Environment control episode and is not a resumable active desktop wait.
 
 ## Branch instead of resuming
 

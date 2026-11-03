@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 
+from ..models.builtin_toolset_key import BuiltinToolsetKey
 from ..models.platform_group import PlatformGroup
-from ..models.toolset_key_type_0 import ToolsetKeyType0
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
@@ -24,7 +24,7 @@ class ToolsetDefinition:
         config_schema (ToolsetDefinitionConfigSchema):
         default_enabled (bool):
         display_name (str):
-        key (PlatformGroup | ToolsetKeyType0):
+        key (BuiltinToolsetKey | PlatformGroup):
         tools (list[ToolDefinition]):
         description (str | Unset):
         platform (bool | Unset):
@@ -33,7 +33,7 @@ class ToolsetDefinition:
     config_schema: ToolsetDefinitionConfigSchema
     default_enabled: bool
     display_name: str
-    key: PlatformGroup | ToolsetKeyType0
+    key: BuiltinToolsetKey | PlatformGroup
     tools: list[ToolDefinition]
     description: str | Unset = UNSET
     platform: bool | Unset = UNSET
@@ -46,7 +46,7 @@ class ToolsetDefinition:
         display_name = self.display_name
 
         key: str
-        if isinstance(self.key, ToolsetKeyType0):
+        if isinstance(self.key, BuiltinToolsetKey):
             key = self.key.value
         else:
             key = self.key.value
@@ -90,11 +90,11 @@ class ToolsetDefinition:
 
         display_name = d.pop("display_name")
 
-        def _parse_key(data: object) -> PlatformGroup | ToolsetKeyType0:
+        def _parse_key(data: object) -> BuiltinToolsetKey | PlatformGroup:
             try:
                 if not isinstance(data, str):
                     raise TypeError()
-                componentsschemas_toolset_key_type_0 = ToolsetKeyType0(data)
+                componentsschemas_toolset_key_type_0 = BuiltinToolsetKey(data)
 
                 return componentsschemas_toolset_key_type_0
             except (TypeError, ValueError, AttributeError, KeyError):

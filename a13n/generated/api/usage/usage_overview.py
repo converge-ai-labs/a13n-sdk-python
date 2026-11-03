@@ -7,6 +7,8 @@ import httpx2 as httpx
 from ...client import AuthenticatedClient, Client
 from ...models.error_envelope import ErrorEnvelope
 from ...models.usage_overview import UsageOverview
+from ...models.usage_overview_group_by_type_0 import UsageOverviewGroupByType0
+from ...models.usage_overview_metric import UsageOverviewMetric
 from ...types import UNSET, Response, Unset
 
 
@@ -15,6 +17,8 @@ def build_request(
     start: datetime.datetime,
     end: datetime.datetime,
     principal_id: str | Unset | None = UNSET,
+    group_by: Unset | UsageOverviewGroupByType0 | None = UNSET,
+    metric: UsageOverviewMetric | Unset = UNSET,
     timezone: str | Unset = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> dict[str, Any]:
@@ -36,6 +40,21 @@ def build_request(
     else:
         json_principal_id = principal_id
     params["principal_id"] = json_principal_id
+
+    json_group_by: str | Unset | None
+    if isinstance(group_by, Unset):
+        json_group_by = UNSET
+    elif isinstance(group_by, UsageOverviewGroupByType0):
+        json_group_by = group_by.value
+    else:
+        json_group_by = group_by
+    params["group_by"] = json_group_by
+
+    json_metric: str | Unset = UNSET
+    if not isinstance(metric, Unset):
+        json_metric = metric.value
+
+    params["metric"] = json_metric
 
     params["timezone"] = timezone
 
@@ -89,6 +108,8 @@ def sync_detailed(
     start: datetime.datetime,
     end: datetime.datetime,
     principal_id: str | Unset | None = UNSET,
+    group_by: Unset | UsageOverviewGroupByType0 | None = UNSET,
+    metric: UsageOverviewMetric | Unset = UNSET,
     timezone: str | Unset = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> Response[ErrorEnvelope | UsageOverview]:
@@ -99,6 +120,8 @@ def sync_detailed(
         end (datetime.datetime):
         principal_id (None | str | Unset): Filter by Run execution identity; requires workspace
             admin.
+        group_by (None | Unset | UsageOverviewGroupByType0):
+        metric (UsageOverviewMetric | Unset):
         timezone (str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
@@ -116,6 +139,8 @@ def sync_detailed(
         start=start,
         end=end,
         principal_id=principal_id,
+        group_by=group_by,
+        metric=metric,
         timezone=timezone,
         x_workspace_id=x_workspace_id,
     )
@@ -133,6 +158,8 @@ def sync(
     start: datetime.datetime,
     end: datetime.datetime,
     principal_id: str | Unset | None = UNSET,
+    group_by: Unset | UsageOverviewGroupByType0 | None = UNSET,
+    metric: UsageOverviewMetric | Unset = UNSET,
     timezone: str | Unset = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> ErrorEnvelope | UsageOverview | None:
@@ -143,6 +170,8 @@ def sync(
         end (datetime.datetime):
         principal_id (None | str | Unset): Filter by Run execution identity; requires workspace
             admin.
+        group_by (None | Unset | UsageOverviewGroupByType0):
+        metric (UsageOverviewMetric | Unset):
         timezone (str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
@@ -161,6 +190,8 @@ def sync(
         start=start,
         end=end,
         principal_id=principal_id,
+        group_by=group_by,
+        metric=metric,
         timezone=timezone,
         x_workspace_id=x_workspace_id,
     ).parsed
@@ -172,6 +203,8 @@ async def asyncio_detailed(
     start: datetime.datetime,
     end: datetime.datetime,
     principal_id: str | Unset | None = UNSET,
+    group_by: Unset | UsageOverviewGroupByType0 | None = UNSET,
+    metric: UsageOverviewMetric | Unset = UNSET,
     timezone: str | Unset = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> Response[ErrorEnvelope | UsageOverview]:
@@ -182,6 +215,8 @@ async def asyncio_detailed(
         end (datetime.datetime):
         principal_id (None | str | Unset): Filter by Run execution identity; requires workspace
             admin.
+        group_by (None | Unset | UsageOverviewGroupByType0):
+        metric (UsageOverviewMetric | Unset):
         timezone (str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
@@ -199,6 +234,8 @@ async def asyncio_detailed(
         start=start,
         end=end,
         principal_id=principal_id,
+        group_by=group_by,
+        metric=metric,
         timezone=timezone,
         x_workspace_id=x_workspace_id,
     )
@@ -214,6 +251,8 @@ async def asyncio(
     start: datetime.datetime,
     end: datetime.datetime,
     principal_id: str | Unset | None = UNSET,
+    group_by: Unset | UsageOverviewGroupByType0 | None = UNSET,
+    metric: UsageOverviewMetric | Unset = UNSET,
     timezone: str | Unset = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> ErrorEnvelope | UsageOverview | None:
@@ -224,6 +263,8 @@ async def asyncio(
         end (datetime.datetime):
         principal_id (None | str | Unset): Filter by Run execution identity; requires workspace
             admin.
+        group_by (None | Unset | UsageOverviewGroupByType0):
+        metric (UsageOverviewMetric | Unset):
         timezone (str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
@@ -243,6 +284,8 @@ async def asyncio(
             start=start,
             end=end,
             principal_id=principal_id,
+            group_by=group_by,
+            metric=metric,
             timezone=timezone,
             x_workspace_id=x_workspace_id,
         )

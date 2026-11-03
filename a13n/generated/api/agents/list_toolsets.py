@@ -11,15 +11,31 @@ from ...types import UNSET, Response, Unset
 
 def build_request(
     *,
+    connection_ids: list[str] | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> dict[str, Any]:
     headers: dict[str, Any] = {}
     if not isinstance(x_workspace_id, Unset):
         headers["X-Workspace-ID"] = x_workspace_id
 
+    params: dict[str, Any] = {}
+
+    json_connection_ids: list[str] | Unset | None
+    if isinstance(connection_ids, Unset):
+        json_connection_ids = UNSET
+    elif isinstance(connection_ids, list):
+        json_connection_ids = connection_ids
+
+    else:
+        json_connection_ids = connection_ids
+    params["connection_ids"] = json_connection_ids
+
+    params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
+
     _kwargs: dict[str, Any] = {
         "method": "get",
         "url": "/api/v1/toolsets",
+        "params": params,
     }
 
     _kwargs["headers"] = headers
@@ -63,11 +79,13 @@ def _build_response(
 def sync_detailed(
     *,
     client: AuthenticatedClient,
+    connection_ids: list[str] | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> Response[ErrorEnvelope | ToolsetCatalog]:
     """List Toolsets
 
     Args:
+        connection_ids (list[str] | None | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
@@ -81,6 +99,7 @@ def sync_detailed(
     """
 
     kwargs = build_request(
+        connection_ids=connection_ids,
         x_workspace_id=x_workspace_id,
     )
 
@@ -94,11 +113,13 @@ def sync_detailed(
 def sync(
     *,
     client: AuthenticatedClient,
+    connection_ids: list[str] | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> ErrorEnvelope | ToolsetCatalog | None:
     """List Toolsets
 
     Args:
+        connection_ids (list[str] | None | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
@@ -113,6 +134,7 @@ def sync(
 
     return sync_detailed(
         client=client,
+        connection_ids=connection_ids,
         x_workspace_id=x_workspace_id,
     ).parsed
 
@@ -120,11 +142,13 @@ def sync(
 async def asyncio_detailed(
     *,
     client: AuthenticatedClient,
+    connection_ids: list[str] | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> Response[ErrorEnvelope | ToolsetCatalog]:
     """List Toolsets
 
     Args:
+        connection_ids (list[str] | None | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
@@ -138,6 +162,7 @@ async def asyncio_detailed(
     """
 
     kwargs = build_request(
+        connection_ids=connection_ids,
         x_workspace_id=x_workspace_id,
     )
 
@@ -149,11 +174,13 @@ async def asyncio_detailed(
 async def asyncio(
     *,
     client: AuthenticatedClient,
+    connection_ids: list[str] | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> ErrorEnvelope | ToolsetCatalog | None:
     """List Toolsets
 
     Args:
+        connection_ids (list[str] | None | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
@@ -169,6 +196,7 @@ async def asyncio(
     return (
         await asyncio_detailed(
             client=client,
+            connection_ids=connection_ids,
             x_workspace_id=x_workspace_id,
         )
     ).parsed

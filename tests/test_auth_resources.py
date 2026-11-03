@@ -201,7 +201,20 @@ def test_session_scope_matches_encoded_prefix_and_bound_selectors_without_overri
         def handle(request):
             seen.append(request)
             if request.url.path.endswith("/desktop-control"):
-                return httpx2.Response(200, content=b"null", headers={"Content-Type": "application/json"})
+                return httpx2.Response(
+                    200,
+                    json={
+                        "control": "automation",
+                        "controller_id": None,
+                        "controller_thread_id": None,
+                        "episode": 0,
+                        "expires_at": None,
+                        "failure": None,
+                        "generation": 0,
+                        "id": "ctl_1",
+                        "version": 0,
+                    },
+                )
             return httpx2.Response(200, json={"items": [], "next_cursor": None})
 
         async with Client.session(
@@ -210,12 +223,12 @@ def test_session_scope_matches_encoded_prefix_and_bound_selectors_without_overri
             workspace_id="ws_default",
             transport=httpx2.MockTransport(handle),
         ) as client:
-            control = client.api.runs("run /?#%计划").desktop_control
+            control = client.api.environments("env /?#%计划").desktop_control
             await control.get()
             await control.get(x_workspace_id="ws_explicit")
             await client.api.organizations.list()
         assert len(seen) == 3
-        encoded = "/%E4%BB%A3%E7%90%86/native/api/v1/runs/run%20%2F%3F%23%25%E8%AE%A1%E5%88%92/desktop-control"
+        encoded = "/%E4%BB%A3%E7%90%86/native/api/v1/environments/env%20%2F%3F%23%25%E8%AE%A1%E5%88%92/desktop-control"
         assert seen[0].url.raw_path.decode() == encoded
         assert seen[0].headers["x-workspace-id"] == "ws_default"
         assert seen[1].headers["x-workspace-id"] == "ws_explicit"

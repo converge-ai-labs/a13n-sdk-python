@@ -134,24 +134,38 @@ def test_typed_tool_search_validates_serialization_and_omission_null_empty() -> 
 
 
 @pytest.mark.parametrize("mode", ["bearer", "session"])
-def test_all_nine_operations_share_bound_paths_credentials_evidence_and_one_request(mode: str) -> None:
+def test_environment_desktop_control_auth_binding_and_lifetime(mode: str) -> None:
     async def scenario() -> None:
         requests = []
+        control = {
+            "control": "human",
+            "controller_id": "usr_1",
+            "controller_thread_id": "thr_1",
+            "episode": 1,
+            "expires_at": None,
+            "failure": None,
+            "generation": 1,
+            "id": "env_1",
+            "version": 2,
+        }
+        viewer = {
+            "websocket_url": "wss://desktop.example",
+            "expires_at": NOW,
+            "episode": 1,
+            "generation": 1,
+            "mode": "control",
+            "password": "one-use",
+        }
 
         def handle(request):
             requests.append(request)
-            if request.url.path.endswith("/context"):
-                value = CONTEXT
-            elif request.url.path.endswith(("/view", "/control")):
-                value = {
-                    "assistance": desktop_view(),
-                    "mode": "view",
-                    "password": "one-use",
-                    "websocket_url": "wss://desktop.example/socket",
-                    "expires_in_seconds": 30,
-                }
-            else:
-                value = desktop_view()
+            value = (
+                CONTEXT
+                if request.url.path.endswith("/context")
+                else viewer
+                if request.url.path.endswith("/desktop-viewer")
+                else control
+            )
             return httpx2.Response(200, json=value, headers={"X-Request-ID": "req_new", "Cache-Control": "no-store"})
 
         client = (
@@ -166,53 +180,38 @@ def test_all_nine_operations_share_bound_paths_credentials_evidence_and_one_requ
             else Client("https://service.example", "token", transport=httpx2.MockTransport(handle))
         )
         async with client:
-            api = client.api
-            assistance = api.desktop_assistance("dsk /?#%")
-            control = wire.Control(session_id=BROWSER_SESSION, epoch=0)
+            env = client.api.environments("env /?#%")
             assert not requests
             responses = [
-                await api.runs("run /?#%").desktop_assistance("call /?#%").get(),
-                await api.runs("run /?#%").desktop_control.get(),
-                await api.runs("run /?#%").desktop_control.create(
-                    body=wire.Request(mount="computer", reason="Finish sign in")
+                await env.desktop_control.get(),
+                await env.desktop_control.takeover(
+                    body=wire.DesktopTakeover(thread_id="thr_1", lease_seconds=30), if_match='"env:1"'
                 ),
-                await assistance.view(body=control),
-                await assistance.request_control(),
-                await assistance.control(body=control, renew=False),
-                await assistance.disconnect(body=control),
-                await assistance.complete(body=wire.Completion(session_id=BROWSER_SESSION, epoch=0)),
-                await api.usage.context.get(record_id="rec_1"),
+                await env.desktop_viewer(
+                    body=wire.OpenViewer.from_dict({"mode": "control", "episode": 1, "generation": 1})
+                ),
+                await env.desktop_control.handback(if_match='"env:2"'),
+                await client.api.usage.context.get(record_id="rec_1"),
             ]
             assert all(
                 result.request_id == "req_new" and result.headers["cache-control"] == "no-store" for result in responses
             )
+            assert isinstance(responses[1].value, wire.Control)
+            assert isinstance(responses[2].value, wire.DesktopViewer)
             assert responses[-1].value.to_dict() == CONTEXT
-        assert len(requests) == 9
-        assert [request.method for request in requests] == [
-            "GET",
-            "GET",
-            "POST",
-            "POST",
-            "POST",
-            "POST",
-            "POST",
-            "POST",
-            "GET",
-        ]
-        expected_paths = [
-            "/api/v1/runs/run%20%2F%3F%23%25/desktop-assistance/call%20%2F%3F%23%25",
-            "/api/v1/runs/run%20%2F%3F%23%25/desktop-control",
-            "/api/v1/runs/run%20%2F%3F%23%25/desktop-control",
-            *[
-                "/api/v1/desktop-assistance/dsk%20%2F%3F%23%25/" + suffix
-                for suffix in ["view", "request-control", "control", "disconnect", "complete"]
-            ],
+        assert [r.method for r in requests] == ["GET", "POST", "POST", "POST", "GET"]
+        base = "/api/v1/environments/env%20%2F%3F%23%25"
+        assert [r.url.raw_path.decode().split("?")[0] for r in requests] == [
+            base + "/desktop-control",
+            base + "/desktop-control/takeover",
+            base + "/desktop-viewer",
+            base + "/desktop-control/handback",
             "/api/v1/usage/context",
         ]
-        assert [request.url.raw_path.decode().split("?")[0] for request in requests] == expected_paths
-        assert dict(requests[5].url.params) == {"renew": "false"}
-        assert "renew" not in requests[3].url.params
-        assert json.loads(requests[3].content) == {"session_id": BROWSER_SESSION, "epoch": 0}
+        assert json.loads(requests[1].content) == {"thread_id": "thr_1", "lease_seconds": 30}
+        assert json.loads(requests[2].content) == {"mode": "control", "episode": 1, "generation": 1}
+        assert requests[1].headers["if-match"] == '"env:1"'
+        assert requests[3].headers["if-match"] == '"env:2"'
         for request in requests:
             if mode == "session":
                 assert request.headers["x-workspace-id"] == "ws_1"
@@ -220,30 +219,15 @@ def test_all_nine_operations_share_bound_paths_credentials_evidence_and_one_requ
                 if request.method == "POST":
                     assert request.headers["x-csrf-token"] == "proof"
             else:
-                assert request.headers["authorization"] == "Bearer token"
+                assert request.headers["authorization"] == "Bearer " + "token"
                 assert "x-workspace-id" not in request.headers
+        assert not any("/runs/" in request.url.path for request in requests)
 
     asyncio.run(scenario())
 
 
-@pytest.mark.parametrize(
-    "model,value",
-    [
-        (wire.Control, {"session_id": "ses_service", "epoch": 0}),
-        (wire.Control, {"session_id": BROWSER_SESSION, "epoch": -1}),
-        (wire.Control, {"session_id": BROWSER_SESSION, "epoch": False}),
-        (wire.Completion, {"session_id": BROWSER_SESSION, "epoch": 0, "outcome": "other"}),
-        (wire.Request, {"mount": "computer", "reason": ""}),
-    ],
-)
-def test_desktop_typed_request_constraints(model, value: dict) -> None:
-    with pytest.raises(ValueError):
-        model.from_dict(value)
-
-
-@pytest.mark.parametrize("kind", ["context", "desktop"])
 @pytest.mark.parametrize("value", [None, {}, False, [], {"run_id": "run_1"}])
-def test_nullable_reads_accept_only_null_or_complete_native_model(kind: str, value) -> None:
+def test_nullable_context_read_accepts_only_null_or_complete_native_model(value) -> None:
     async def scenario() -> None:
         requests = []
 
@@ -256,13 +240,12 @@ def test_nullable_reads_accept_only_null_or_complete_native_model(kind: str, val
             )
 
         async with Client("https://service.example", transport=httpx2.MockTransport(handle)) as client:
-            resource = client.api.usage.context if kind == "context" else client.api.runs("run_1").desktop_control
             if value is None:
-                result = await resource.get()
+                result = await client.api.usage.context.get()
                 assert result.value is None and result.status_code == 200 and result.request_id == "nullable"
             else:
                 with pytest.raises(ProtocolError):
-                    await resource.get()
+                    await client.api.usage.context.get()
         assert len(requests) == 1
 
     asyncio.run(scenario())
@@ -303,26 +286,17 @@ def test_context_selectors_are_forwarded_for_service_validation_and_errors_do_no
     asyncio.run(scenario())
 
 
-def test_desktop_wait_ends_exact_consumed_entry_interaction_and_explicit_empty_resume() -> None:
+def test_historical_desktop_wait_preserves_exact_consumed_entry_without_automatic_followup() -> None:
     async def scenario() -> None:
         requests = []
-        completed = False
 
         def handle(request):
-            nonlocal completed
             requests.append(request)
-            path = request.url.path
-            if path == "/api/v1/threads":
+            if request.url.path == "/api/v1/threads":
                 return httpx2.Response(201, json=submitted())
-            if "/inbox/" in path:
+            if "/inbox/" in request.url.path:
                 return httpx2.Response(200, json={**entry_view(status="consumed"), "assigned_run_id": "run_1"})
-            if path.endswith("/complete"):
-                completed = True
-                return httpx2.Response(200, json=desktop_view(state="ready_to_resume", outcome={"status": "completed"}))
-            if path.endswith("/resume"):
-                assert completed and json.loads(request.content) == {"approvals": {}, "calls": {}}
-                return httpx2.Response(201, json=run_view("run_2"))
-            assert path == "/api/v1/runs/run_1"
+            assert request.url.path == "/api/v1/runs/run_1"
             return httpx2.Response(200, json=desktop_wait())
 
         async with Client("https://service.example", transport=httpx2.MockTransport(handle)) as client:
@@ -334,14 +308,7 @@ def test_desktop_wait_ends_exact_consumed_entry_interaction_and_explicit_empty_r
             assert outcome.pending is not None and outcome.pending.desktop_control_id == "dsk_1"
             assert outcome.pending.calls == outcome.pending.approvals == ()
             assert outcome.evidence.value.wait_reason == wire.WaitReason.DESKTOP_CONTROL
-            assert len(requests) == 3  # No SSE, synthetic answer, control, or successor observation.
-            await client.api.desktop_assistance("dsk_1").complete(
-                body=wire.Completion(session_id=BROWSER_SESSION, epoch=0)
-            )
-            assert len(requests) == 4
-            successor = await outcome.run.resume({}, idempotency_key="resume")
-            assert successor.run is not None and successor.run.id == "run_2"
-            assert outcome.run.id == "run_1" and len(requests) == 5
+            assert len(requests) == 3
 
     asyncio.run(scenario())
 

@@ -1,7 +1,5 @@
 """Contains all the data models used in inputs/outputs"""
 
-from .access import Access
-from .access_mode import AccessMode
 from .account_disable import AccountDisable
 from .agent import Agent
 from .agent_config_input import AgentConfigInput
@@ -85,12 +83,25 @@ from .authorization_result import AuthorizationResult
 from .authorization_start import AuthorizationStart
 from .authorization_status import AuthorizationStatus
 from .authorization_status_state import AuthorizationStatusState
+from .automatic_tool_search import AutomaticToolSearch
 from .background_compaction_policy import BackgroundCompactionPolicy
 from .bearer_credential import BearerCredential
 from .bootstrap_input import BootstrapInput
+from .browser import Browser
+from .browser_attach import BrowserAttach
+from .browser_attach_headers import BrowserAttachHeaders
+from .browser_binding import BrowserBinding
+from .browser_binding_preparation import BrowserBindingPreparation
+from .browser_binding_tab_access import BrowserBindingTabAccess
+from .browser_create import BrowserCreate
+from .browser_create_recipe import BrowserCreateRecipe
+from .browser_page import BrowserPage
+from .browser_source import BrowserSource
+from .browser_status import BrowserStatus
 from .builtin_skill import BuiltinSkill
 from .builtin_skill_catalog import BuiltinSkillCatalog
 from .builtin_skill_detail import BuiltinSkillDetail
+from .builtin_toolset_key import BuiltinToolsetKey
 from .busy_occurrence import BusyOccurrence
 from .busy_occurrence_page import BusyOccurrencePage
 from .callback_outcome import CallbackOutcome
@@ -117,8 +128,6 @@ from .collector_capability_reason_type_0 import CollectorCapabilityReasonType0
 from .collector_status import CollectorStatus
 from .collector_status_state_type_1 import CollectorStatusStateType1
 from .compare_agent_revisions_section import CompareAgentRevisionsSection
-from .completion import Completion
-from .completion_outcome import CompletionOutcome
 from .computer_check import ComputerCheck
 from .computer_check_status import ComputerCheckStatus
 from .config_section import ConfigSection
@@ -151,6 +160,8 @@ from .content_ref_media_type import ContentRefMediaType
 from .content_summary import ContentSummary
 from .context_usage import ContextUsage
 from .control import Control
+from .control_control import ControlControl
+from .control_status import ControlStatus
 from .cpu_time_seconds import CpuTimeSeconds
 from .created_subscription import CreatedSubscription
 from .creation_progress import CreationProgress
@@ -184,11 +195,16 @@ from .delta import Delta
 from .delta_event import DeltaEvent
 from .deny import Deny
 from .deployment_preset import DeploymentPreset
+from .desktop_takeover import DesktopTakeover
+from .desktop_viewer import DesktopViewer
+from .desktop_viewer_mode import DesktopViewerMode
 from .device import Device
 from .device_create import DeviceCreate
 from .device_credential import DeviceCredential
 from .device_page import DevicePage
 from .device_update import DeviceUpdate
+from .discovery_source import DiscoverySource
+from .discovery_source_kind import DiscoverySourceKind
 from .disk_io_metrics import DiskIoMetrics
 from .disk_metrics import DiskMetrics
 from .disk_metrics_devices import DiskMetricsDevices
@@ -270,6 +286,7 @@ from .harness_model_characteristics_output import HarnessModelCharacteristicsOut
 from .headers_credential import HeadersCredential
 from .headers_credential_headers import HeadersCredentialHeaders
 from .health_response_health import HealthResponseHealth
+from .historical_desktop_pending import HistoricalDesktopPending
 from .history import History
 from .history_purge import HistoryPurge
 from .image_input_policy import ImageInputPolicy
@@ -439,7 +456,8 @@ from .occurrence_status import OccurrenceStatus
 from .occurrence_summary import OccurrenceSummary
 from .occurrence_summary_execution_outcome_type_0 import OccurrenceSummaryExecutionOutcomeType0
 from .once_schedule import OnceSchedule
-from .open_view import OpenView
+from .open_viewer import OpenViewer
+from .open_viewer_mode import OpenViewerMode
 from .opened_app import OpenedApp
 from .opened_app_arguments import OpenedAppArguments
 from .opened_app_result import OpenedAppResult
@@ -507,6 +525,7 @@ from .provider_reference import ProviderReference
 from .provider_test import ProviderTest
 from .provider_test_status import ProviderTestStatus
 from .provider_type import ProviderType
+from .provider_type_browser_recipe_schema_type_0 import ProviderTypeBrowserRecipeSchemaType0
 from .provider_type_configuration_schema import ProviderTypeConfigurationSchema
 from .provider_type_credential_schema_type_0 import ProviderTypeCredentialSchemaType0
 from .provider_type_environment_schema_type_0 import ProviderTypeEnvironmentSchemaType0
@@ -530,7 +549,8 @@ from .read_run_item_content_field import ReadRunItemContentField
 from .read_span_content_section import ReadSpanContentSection
 from .read_view import ReadView
 from .record_source import RecordSource
-from .request import Request
+from .renew import Renew
+from .renew_control import RenewControl
 from .request_context import RequestContext
 from .request_context_headers import RequestContextHeaders
 from .resume import Resume
@@ -591,6 +611,8 @@ from .schedule_preview import SchedulePreview
 from .schedule_preview_request import SchedulePreviewRequest
 from .schedule_state import ScheduleState
 from .schedule_status import ScheduleStatus
+from .schedule_target import ScheduleTarget
+from .schedule_target_mode import ScheduleTargetMode
 from .schedule_time import ScheduleTime
 from .schedule_trigger import ScheduleTrigger
 from .schedule_update import ScheduleUpdate
@@ -672,6 +694,7 @@ from .subscription_page import SubscriptionPage
 from .subscription_update import SubscriptionUpdate
 from .system_info import SystemInfo
 from .system_metrics import SystemMetrics
+from .takeover import Takeover
 from .template import Template
 from .template_config import TemplateConfig
 from .template_config_recipe import TemplateConfigRecipe
@@ -720,14 +743,12 @@ from .tool_risk_level import ToolRiskLevel
 from .tool_search import ToolSearch
 from .tool_search_config import ToolSearchConfig
 from .tool_search_group import ToolSearchGroup
-from .tool_search_group_capabilities_item import ToolSearchGroupCapabilitiesItem
 from .tool_search_groups import ToolSearchGroups
 from .tool_selection import ToolSelection
 from .tool_selection_config import ToolSelectionConfig
 from .toolset_catalog import ToolsetCatalog
 from .toolset_definition import ToolsetDefinition
 from .toolset_definition_config_schema import ToolsetDefinitionConfigSchema
-from .toolset_key_type_0 import ToolsetKeyType0
 from .toolset_selection import ToolsetSelection
 from .toolset_selection_config import ToolsetSelectionConfig
 from .toolset_selection_tools import ToolsetSelectionTools
@@ -740,6 +761,7 @@ from .typed_query import TypedQuery
 from .typed_query_history import TypedQueryHistory
 from .typed_query_metric_type_0 import TypedQueryMetricType0
 from .typed_query_metric_type_1 import TypedQueryMetricType1
+from .unavailable_configuration import UnavailableConfiguration
 from .unlimited_cpu_limit import UnlimitedCpuLimit
 from .unlimited_memory_limit import UnlimitedMemoryLimit
 from .upload import Upload
@@ -752,6 +774,9 @@ from .usage_limit import UsageLimit
 from .usage_limits_input import UsageLimitsInput
 from .usage_limits_output import UsageLimitsOutput
 from .usage_overview import UsageOverview
+from .usage_overview_group_by_type_0 import UsageOverviewGroupByType0
+from .usage_overview_metric import UsageOverviewMetric
+from .usage_series import UsageSeries
 from .usage_summary import UsageSummary
 from .user_key_create import UserKeyCreate
 from .verb import Verb
@@ -760,9 +785,8 @@ from .vercel_options import VercelOptions
 from .vercel_options_request import VercelOptionsRequest
 from .video_input_policy import VideoInputPolicy
 from .video_url_type import VideoUrlType
-from .view import View
-from .view_cause import ViewCause
-from .view_outcome_type_0 import ViewOutcomeType0
+from .viewer import Viewer
+from .viewer_protocol import ViewerProtocol
 from .wait_reason import WaitReason
 from .web_operation import WebOperation
 from .webhook_delivery import WebhookDelivery
@@ -775,8 +799,6 @@ from .workspace_settings import WorkspaceSettings
 from .workspace_update import WorkspaceUpdate
 
 __all__ = (
-    "Access",
-    "AccessMode",
     "AccountDisable",
     "Agent",
     "AgentConfigInput",
@@ -860,12 +882,25 @@ __all__ = (
     "AuthorizationStart",
     "AuthorizationStatus",
     "AuthorizationStatusState",
+    "AutomaticToolSearch",
     "BackgroundCompactionPolicy",
     "BearerCredential",
     "BootstrapInput",
+    "Browser",
+    "BrowserAttach",
+    "BrowserAttachHeaders",
+    "BrowserBinding",
+    "BrowserBindingPreparation",
+    "BrowserBindingTabAccess",
+    "BrowserCreate",
+    "BrowserCreateRecipe",
+    "BrowserPage",
+    "BrowserSource",
+    "BrowserStatus",
     "BuiltinSkill",
     "BuiltinSkillCatalog",
     "BuiltinSkillDetail",
+    "BuiltinToolsetKey",
     "BusyOccurrence",
     "BusyOccurrencePage",
     "CallbackOutcome",
@@ -892,8 +927,6 @@ __all__ = (
     "CollectorStatus",
     "CollectorStatusStateType1",
     "CompareAgentRevisionsSection",
-    "Completion",
-    "CompletionOutcome",
     "ComputerCheck",
     "ComputerCheckStatus",
     "ConfigSection",
@@ -926,6 +959,8 @@ __all__ = (
     "ContentSummary",
     "ContextUsage",
     "Control",
+    "ControlControl",
+    "ControlStatus",
     "CpuTimeSeconds",
     "CreatedSubscription",
     "CreationProgress",
@@ -959,11 +994,16 @@ __all__ = (
     "DeltaEvent",
     "Deny",
     "DeploymentPreset",
+    "DesktopTakeover",
+    "DesktopViewer",
+    "DesktopViewerMode",
     "Device",
     "DeviceCreate",
     "DeviceCredential",
     "DevicePage",
     "DeviceUpdate",
+    "DiscoverySource",
+    "DiscoverySourceKind",
     "DiskIoMetrics",
     "DiskMetrics",
     "DiskMetricsDevices",
@@ -1045,6 +1085,7 @@ __all__ = (
     "HeadersCredential",
     "HeadersCredentialHeaders",
     "HealthResponseHealth",
+    "HistoricalDesktopPending",
     "History",
     "HistoryPurge",
     "ImageInputPolicy",
@@ -1214,7 +1255,8 @@ __all__ = (
     "OccurrenceSummary",
     "OccurrenceSummaryExecutionOutcomeType0",
     "OnceSchedule",
-    "OpenView",
+    "OpenViewer",
+    "OpenViewerMode",
     "OpenedApp",
     "OpenedAppArguments",
     "OpenedAppResult",
@@ -1282,6 +1324,7 @@ __all__ = (
     "ProviderTest",
     "ProviderTestStatus",
     "ProviderType",
+    "ProviderTypeBrowserRecipeSchemaType0",
     "ProviderTypeConfigurationSchema",
     "ProviderTypeCredentialSchemaType0",
     "ProviderTypeEnvironmentSchemaType0",
@@ -1303,7 +1346,8 @@ __all__ = (
     "ReadSpanContentSection",
     "ReadView",
     "RecordSource",
-    "Request",
+    "Renew",
+    "RenewControl",
     "RequestContext",
     "RequestContextHeaders",
     "Resume",
@@ -1364,6 +1408,8 @@ __all__ = (
     "SchedulePreviewRequest",
     "ScheduleState",
     "ScheduleStatus",
+    "ScheduleTarget",
+    "ScheduleTargetMode",
     "ScheduleTime",
     "ScheduleTrigger",
     "ScheduleUpdate",
@@ -1445,6 +1491,7 @@ __all__ = (
     "SubscriptionUpdate",
     "SystemInfo",
     "SystemMetrics",
+    "Takeover",
     "Template",
     "TemplateConfig",
     "TemplateConfigRecipe",
@@ -1493,14 +1540,12 @@ __all__ = (
     "ToolSearch",
     "ToolSearchConfig",
     "ToolSearchGroup",
-    "ToolSearchGroupCapabilitiesItem",
     "ToolSearchGroups",
     "ToolSelection",
     "ToolSelectionConfig",
     "ToolsetCatalog",
     "ToolsetDefinition",
     "ToolsetDefinitionConfigSchema",
-    "ToolsetKeyType0",
     "ToolsetSelection",
     "ToolsetSelectionConfig",
     "ToolsetSelectionTools",
@@ -1513,6 +1558,7 @@ __all__ = (
     "TypedQueryHistory",
     "TypedQueryMetricType0",
     "TypedQueryMetricType1",
+    "UnavailableConfiguration",
     "UnlimitedCpuLimit",
     "UnlimitedMemoryLimit",
     "Upload",
@@ -1525,6 +1571,9 @@ __all__ = (
     "UsageLimitsInput",
     "UsageLimitsOutput",
     "UsageOverview",
+    "UsageOverviewGroupByType0",
+    "UsageOverviewMetric",
+    "UsageSeries",
     "UsageSummary",
     "UserKeyCreate",
     "Verb",
@@ -1533,9 +1582,8 @@ __all__ = (
     "VercelOptionsRequest",
     "VideoInputPolicy",
     "VideoUrlType",
-    "View",
-    "ViewCause",
-    "ViewOutcomeType0",
+    "Viewer",
+    "ViewerProtocol",
     "WaitReason",
     "WebOperation",
     "WebhookDelivery",

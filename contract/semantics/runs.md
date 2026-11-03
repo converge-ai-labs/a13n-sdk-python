@@ -25,12 +25,14 @@ At execution, accepted input distinguishes message content from a deferred-resul
 
 - A **session** groups related threads. Its `last_run_id` names the most recently accepted run of any of its threads.
 - A **thread** advances one history at a time. It has an inbox, desired environment and memory mounts ([06](06-environments.md#mounts), [11](11-memory.md#mounts)) and caller headers ([04](04-resources.md#caller-headers)).
-- An **entry** is one queued input: a `message`, `child_result` or `tool_result`. Only a pending message can change.
+- An **entry** is one queued input: a `message`, `child_result`, `tool_result` or `browser_handback`. Only a pending message can change.
 - A **run** starts from one source, either an entry or the answers that resume a waiting run. It freezes an agent revision, options and an execution identity, and may incorporate further compatible entries. Its initial history never changes.
 - An **attempt** executes a run under a renewable lease. Recovery and handoff replace the attempt; the run and its assigned inputs stay.
 - A **checkpoint** is resumable Harness state, committed by moving the run's pointer to an immutable object. The display committed with it is what viewers see ([07](07-facts-and-delivery.md#checkpoints-and-display)). A checkpoint never rolls back external effects.
 
-[Schedules](13-schedules.md#objects-and-ownership) create one fixed empty Session and new independent root Threads. Their nullable immutable Thread provenance and Session Memory restriction are owned by that contract; ordinary input and Run lifecycles remain unchanged.
+[Schedules](13-schedules.md#objects-and-ownership) select a mutable Session/Thread target, create new Threads or queue messages in a fixed Thread. Their trigger Entry and waiting/resume Run associations are owned by that contract; ordinary input and Run lifecycles remain unchanged.
+
+[Browsers](14-browsers.md#resource-and-binding) owns the Thread's desired Browser binding and its frozen Run selection. Its [handback input contract](14-browsers.md#handback-input-and-durable-observation) uses this chapter's existing assignment, capacity and continuation mechanisms, with revocation checked before durable incorporation and any derived model summary.
 
 ## Session display identity
 
@@ -64,7 +66,7 @@ The private tail object keeps per-message terms, compact user terms and complete
 
 ## Model-visible execution identity
 
-At each eligible input or tool-result boundary, the Service adds a `service-context` block containing only a JSON object with `service_run_id` from the executing Run. This is the ID used as `run_id` in Service Run query APIs and tools; query guidance belongs in the built-in platform operations skill. The Harness context's `harness_run_id` identifies one Harness execution and is not a Service Run resource ID. These identifiers grant no additional authority.
+At each normal model request, the Service adds a `service-context` JSON block with `service_run_id` from the executing Run and, for known native targets, the current [Computer admission projection](06a-environment-management.md#model-visible-admission). This is the ID used as `run_id` in Service Run query APIs and tools; query guidance belongs in the built-in platform operations skill. The Harness context's `harness_run_id` identifies one Harness execution and is not a Service Run resource ID. These identifiers grant no additional authority.
 
 Root agents and inline subagents receive the containing Service Run ID; their Harness execution IDs remain distinct. Recovery and handoff retain the Service Run ID, while a successor or separately scheduled child Run receives its own ID. Fresh context uses current execution bindings, leaving historical context unchanged under the [Harness projection contract](../a13n-harness/09-context-and-memory.md#eligible-requests-and-placement).
 
@@ -130,7 +132,7 @@ inbox_entries
   request_key NULL  request_digest NULL  request_kind NULL  request_target NULL
   status  assigned_run_id NULL  incorporated_checkpoint_seq NULL  failure NULL
   created_at  finished_at NULL
-  kind IN ('message', 'child_result', 'tool_result')
+  kind IN ('message', 'child_result', 'tool_result', 'browser_handback')
   delivery IN ('steer', 'next_run')
   status IN ('pending', 'assigned', 'consumed', 'failed', 'withdrawn')
   request_kind IN ('thread', 'message', 'fork')
@@ -151,7 +153,7 @@ inbox_entries
 runs
   id  organization_id  workspace_id  session_id  thread_id  agent_id  agent_revision_id
   revision_selection  principal_id  authority  options  options_digest  mcp_headers  environment_mounts
-  memory_mounts  memory_cursors
+  memory_mounts  memory_cursors  browser_binding NULL
   source_entry_id NULL  resume NULL  resumed_by_id NULL  request_key NULL  request_digest NULL
   trigger  lineage  parent_run_id NULL
   status  wait_reason NULL  pending NULL  cancel_requested_at NULL
@@ -160,10 +162,10 @@ runs
   checkpoint NULL  tail NULL  output NULL  failure NULL  usage_at_seal NULL
   labels  started_at NULL  sealed_at NULL  version  created_at  updated_at
   revision_selection IN ('pinned', 'default', 'inherited')
-  trigger IN ('input', 'queued', 'resume', 'child_result', 'tool_result', 'spawned')
+  trigger IN ('input', 'queued', 'resume', 'child_result', 'tool_result', 'browser_handback', 'spawned')
   lineage IN ('root', 'continue', 'fork')
   status IN ('accepted', 'running', 'waiting', 'completed', 'failed', 'cancelled')
-  wait_reason IN ('approval', 'call', 'multiple', 'desktop_control')
+  wait_reason IN ('approval', 'call', 'multiple')
   CHECK ((source_entry_id IS NULL) <> (resume IS NULL))
   CHECK ((resume IS NULL) = (resumed_by_id IS NULL))
   CHECK ((request_key IS NULL) = (request_digest IS NULL))
@@ -296,6 +298,8 @@ At each safe boundary, in the transaction that commits its checkpoint under the 
 
 Immediate-steering Runs also receive input while generation or tools are pending. After an input commit, a receiver in the same process wakes directly and uses the ordinary assignment and offer path. One shared worker scan finds pending user steers for registered Threads when a local wake is unavailable or missed; empty scans do not lock each active Run. Boundary-steering Runs use checkpoint delivery without an immediate-input listener. The wake is a hint: DB assignment, authority checks and checkpoint incorporation retain their existing ownership.
 
+User and subagent messages share one worker offer path. Immediate message steering uses Harness best effort: request immediate handoff when available, otherwise accept queued input for the next safe boundary without cancelling or replaying the running tool. A native-readiness `steering_timeout` or `run_not_active` refusal has not accepted the input; the worker retains its assignment and FIFO position for a later boundary, recovery, or ordinary terminal continuation instead of failing the Run. Other steering errors retain their existing failure semantics. Acceptance alone does not mark an entry consumed.
+
 The worker offers assigned entries to the Harness outside any transaction, before it acknowledges the boundary. A tool boundary waits for that acknowledgement, so a compatible entry already pending when the run reaches a tool boundary joins the model request that follows the tools. Each part reaches the model as follows: text as text, `json` as its JSON text, and an asset, read with the run principal's access, or a `url`'s content, fetched once by the worker through the endpoint policy ([08](08-providers.md#outbound-endpoint-policy)) and bounded by `providers.operation_seconds` and `providers.response_bytes`, as a [file](#how-files-reach-the-model). A child result is offered as a text notice. A `url` part that cannot be read is `invalid_argument` at `field` `content.{index}.url`: `reason` `endpoint_denied` for an address the policy refuses, `http_status` (with `status`) for a definitive status other than 200, and `unreadable` for another unreadable answer. A network error, a timeout or a status 408, 429, 500, 502, 503 or 504 is `unavailable` (dependency `url`): the attempt fails, and a later attempt fetches again.
 
 A steer whose content cannot be read, such as one naming an asset that is no longer usable, fails alone with the refusal's code and the run continues without it, whether it is offered at a boundary or again by a recovered attempt. Only the run's own source entry fails the run when it cannot be read, and an `unavailable` read ends the attempt instead. An attempt whose initial entries all fail alone ends as `unavailable` too, and the next continues without them.
@@ -361,7 +365,7 @@ Execution holds no database session across external I/O. An attempt:
 2. Attempts bounded cleanup of unreferenced objects of the run, then loads its own checkpoint or builds the initial state ([assignment and incorporation](#assignment-and-incorporation)).
 3. Constructs inert sources for the frozen mounts ([06](06-environments.md#execution)); `lazy_environment` selects instance creation/startup on first dependent use or directly in Service before entering Harness, while watching cancellation and drain. Harness opens execution connections on first dependent use in both modes. A drain during readiness yields the attempt as a handoff.
 4. Opens the run's host outside any session, with a store for each mounted record memory ([11](11-memory.md#execution)), and streams the Harness run. Every paid dispatch (model requests including inline children, connection tools, web operations) first passes the call check: cancellation, lease renewal, the request limit (`usage_limit_exceeded`) and the admission policy's `proceed` ([09](09-runtime.md#extension-points)). A refusal becomes the run's outcome. A model request names the model it selected by its ID ([04](04-resources.md#models)); the check admits it as that model and keeps the model under the call's ID for its usage records.
-5. At each safe boundary commits a checkpoint and assigns steers in one transaction, emits a stream boundary ([07](07-facts-and-delivery.md#the-session-stream)), offers the steers and then acknowledges the boundary. A boundary before a model request does not wait for the acknowledgement; a boundary before tool execution does, so the tools run after both the commit and the steer delivery.
+5. At each safe boundary commits a checkpoint and assigns steers in one transaction, emits a stream boundary ([07](07-facts-and-delivery.md#the-session-stream)), offers the steers and then acknowledges the boundary. An ordinary boundary before a model request does not wait for the acknowledgement; an context recovery boundary waits for its fenced checkpoint commit before dispatch; a boundary before tool execution does, so the tools run after both the commit and the steer delivery.
 6. Ends: a completed or waiting result commits a final checkpoint and seals the outcome in the same transaction; a failed or cancelled result seals with the display's interrupted tail; a handoff yields.
 
 Output larger than `worker.output_bytes` fails the run with `payload_too_large`. An attempt that ends, is cancelled or loses its lease records its usage not yet committed with a checkpoint in one write, shielded from cancellation and bounded by `database.statement_timeout`. An object write never starts within `objects.timeout` of the local lease deadline, so a stale attempt's writes land before a takeover can clean the run's objects; a commit that would start that late ends the attempt instead.
@@ -372,7 +376,7 @@ When a worker drains for shutdown, each attempt yields at its next model boundar
 
 ## Background compaction
 
-Ordinary conversation threads use Harness background compaction when their Agent revision enables `background_compaction.enabled`, which defaults to `false`. The revision's `background_compaction.blocking_threshold` defaults to `0.95`: counted input at or above that share of the window waits for existing work or compacts synchronously when none exists. Output reserve can require blocking earlier; the common compaction trigger remains independent. Inline and asynchronous child agents compact synchronously. Service supplies the `CompactionOperator`; Harness owns prefix capture, complete suffix preservation, generation retries, capacity checks, synchronous fallback, result application and runtime restoration under its [compaction contract](../a13n-harness/09-context-and-memory.md#background-execution-and-result-application).
+Ordinary conversation threads use Harness background compaction when their Agent revision enables `background_compaction.enabled`, which defaults to `false`. The revision's `background_compaction.blocking_threshold` defaults to `0.95`: latest model-response usage at or above that share of the window waits for existing work or compacts synchronously when none exists and the common compaction trigger is reached. A trigger at or above the blocking line leaves no asynchronous interval. Inline and asynchronous child agents compact synchronously. Service supplies the `CompactionOperator`; Harness owns prefix capture, complete suffix preservation, generation retries, usage-based mode selection, synchronous fallback, result application and runtime restoration under its [compaction contract](../a13n-harness/09-context-and-memory.md#background-execution-and-result-application).
 
 Admission freezes the originating model selection, request context and Run configuration, and persists the input under the current Attempt's authority before starting generation. The worker opens independent model clients and a separate usage scope. Each summary dispatch rechecks current principal and workspace authority against the originating Run's accepted ceiling, model/provider eligibility and the shared [request budget](07-facts-and-delivery.md#model-request-admission). Original outbound restrictions apply to both endpoint access and native media. An input exceeding `objects.max_bytes` declines background admission and enters Harness's synchronous fallback for that Run.
 
@@ -381,6 +385,12 @@ Generation has its own secret owner lease. Parent completion, cancellation, hand
 An active Run observes completion at eligible Harness boundaries. A subsequent Run loads its selected checkpoint and any ready result together as `previous_state` and `compaction_result`; Service never rewrites a sealed checkpoint to apply a summary. Disabling new background generation preserves delivery of already retained results. A fork consults only its destination Thread's operation, so it cannot inherit the source Thread's pending work.
 
 Before publishing a checkpoint, Service derives the applied or skipped disposition from that exact frozen state through `compaction_disposition`. Checkpoint pointer publication, operation settlement and cleanup intent share one lease-fenced transaction. Rollback preserves the operation for redelivery. A failed or cancelled Run without a matching committed checkpoint does not acknowledge it. Generation status and checkpoint disposition remain independent [durable facts](07-facts-and-delivery.md#background-compaction-facts).
+
+## Context recovery
+
+Service binds Harness's [context recovery scope](../a13n-harness/09-context-and-memory.md#context-recovery) to the durable run ID, which remains stable across worker attempts. The reconstructed history and consumed allowance travel in the existing Harness checkpoint. While context recovery is pending, the model boundary waits for the existing lease-fenced checkpoint writer to commit before dispatch. Commit failure or loss of authority prevents dispatch. A takeover restores the same allowance and cannot begin another reconstruction cycle for that run.
+
+Service inherits the default Harness context recovery policy as trusted runtime behavior, independent of Agent revision compaction settings. Primary and summary requests retain ordinary authorization and shared request-budget checks. Service supplies `/workspace/.a13n/history/<thread-id>/` in the primary Environment for best-effort historical transcripts. Files follow that Environment's actual lifetime, independently of durable checkpoint storage. Unavailable storage or readers leave explicit loss notices and do not veto reconstruction. Existing display persistence retains recovery diagnostics and warnings after success; every trigger requires immediate root-cause investigation.
 
 ## Retained tool executions
 
@@ -471,7 +481,7 @@ The seal transaction stages durable reclamation of objects outside the run's fin
 
 **Waits.** A run waits when the Harness suspends on deferred calls. `pending` has two required arrays: `approvals` authorizes or denies server-side execution, and `calls` receives externally supplied results. Client-side tools, built-in questions and custom human-operated tools all belong in `calls`. Each call has `tool_call_id`, `tool_name`, `arguments` and optional `presentation`. The combined batch contains one to 128 calls with unique IDs across both categories. `wait_reason` summarizes category presence: approvals alone is `approval`, calls alone is `call`, both is `multiple`. It does not identify whether a human or application supplies the result.
 
-A user-requested desktop pause also seals a waiting Run, with `pending.desktop_control_id` identifying the Service control record rather than a fabricated tool call. Both arrays may be empty for this wait (`wait_reason = desktop_control`); native calls present alongside it produce `multiple`. The [desktop control contract](06a-environment-management.md#user-requested-desktop-control) owns admission, quiescence and handback. A successor resumes the saved history after validated handback, while incomplete native calls still require the full result batch.
+Computer takeover leaves the Run lifecycle unchanged. Only blocked Computer callers receive a typed inbox handback notice under the [Computer-only control contract](06a-environment-management.md#handback-and-fresh-observation). It neither supplies deferred results nor changes the full-batch resume requirement.
 
 **Presentation.** Complete Harness requests, including each model call, target call, stable target identity and metadata, remain in the checkpoint. Public `pending` uses the target call ID, name and arguments; resume answers are keyed by that ID. Harness writes the result back to the associated model call. The public pending/resume schema is unchanged. Pending records use the [Harness deferred format transition](../a13n-harness/07-tool-execution.md#approval-and-deferred-calls); older native pending arrays are not silently converted. Pending approvals retain the existing approval presentation; pending calls have no presentation. Other metadata is never copied to public pending. Built-in question rendering and validation use the actual tool name and arguments; other calls display their tool names and arguments and use the generic call-result path.
 
