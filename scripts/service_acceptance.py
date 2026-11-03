@@ -541,7 +541,7 @@ async def _desktop_discovery_context_acceptance(
     missing = "run_" + "0" * 24
     for read in (
         lambda: client.api.usage.context.get(run_id=missing),
-        lambda: client.api.runs(missing).desktop_control.get(),
+        lambda: client.api.environments("env_" + "0" * 24).desktop_control.get(),
     ):
         try:
             await read()
@@ -550,16 +550,24 @@ async def _desktop_discovery_context_acceptance(
                 raise
         else:
             raise RuntimeError("Missing native scope was accepted")
-    absent = await client.api.runs(run.id).desktop_control.get()
-    if absent.value is not None or absent.status_code != 200:
-        raise RuntimeError("Absent desktop control did not remain successful null")
     failed = await client.agents(agent).start(failure_prompt, idempotency_key=_key("context-null"))
     outcome = await failed.result(timeout=120.0, poll_interval=0.1)
     if outcome.status != "failed":
         raise RuntimeError("Fixture failure prompt did not fail")
     empty = await client.api.usage.context.get(run_id=outcome.run_id)
-    if empty.value is not None or empty.status_code != 200:
-        raise RuntimeError("Run without completed contribution did not remain successful null")
+    if (
+        empty.status_code != 200
+        or empty.value is None
+        or empty.value.to_dict()
+        != {
+            "run_id": outcome.run_id,
+            "record_id": None,
+            "input_tokens": None,
+            "output_tokens": None,
+            "context_window_tokens": None,
+        }
+    ):
+        raise RuntimeError("Fixture failed Run context did not preserve unknown contribution and capacity")
     stored = []
     for configuration in [
         wire.ToolSearchConfig(
@@ -607,8 +615,8 @@ async def _desktop_discovery_context_acceptance(
         "run_id": run.id,
         "selectors_equal": 3,
         "capacity_null": True,
-        "failed_context_null": outcome.run_id,
-        "absent_desktop_null": True,
+        "failed_context_unknown": outcome.run_id,
+        "missing_desktop_environment_rejected": True,
         "stored_discovery_agents": stored,
         "invalid_variants_rejected_locally": rejected,
         "desktop_provider_execution": "not exercised",

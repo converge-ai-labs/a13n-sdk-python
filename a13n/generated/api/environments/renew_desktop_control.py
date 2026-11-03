@@ -5,14 +5,16 @@ from urllib.parse import quote
 import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
+from ...models.control import Control
 from ...models.error_envelope import ErrorEnvelope
-from ...models.view import View
+from ...models.renew import Renew
 from ...types import UNSET, Response, Unset
 
 
 def build_request(
-    assistance_id: str,
+    environment_id: str,
     *,
+    body: Renew,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> dict[str, Any]:
     headers: dict[str, Any] = {}
@@ -21,18 +23,22 @@ def build_request(
 
     _kwargs: dict[str, Any] = {
         "method": "post",
-        "url": "/api/v1/desktop-assistance/{assistance_id}/request-control".format(
-            assistance_id=quote(str(assistance_id), safe=""),
+        "url": "/api/v1/environments/{environment_id}/desktop-control/renew".format(
+            environment_id=quote(str(environment_id), safe=""),
         ),
     }
+
+    _kwargs["json"] = body.to_dict()
+
+    headers["Content-Type"] = "application/json"
 
     _kwargs["headers"] = headers
     return _kwargs
 
 
-def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> ErrorEnvelope | View:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Control | ErrorEnvelope:
     if response.status_code == 200:
-        response_200 = View.from_dict(response.json())
+        response_200 = Control.from_dict(response.json())
 
         return response_200
 
@@ -48,7 +54,7 @@ def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Res
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[ErrorEnvelope | View]:
+) -> Response[Control | ErrorEnvelope]:
     from ....errors import ProtocolError
 
     try:
@@ -63,29 +69,32 @@ def _build_response(
 
 
 def sync_detailed(
-    assistance_id: str,
+    environment_id: str,
     *,
     client: AuthenticatedClient,
+    body: Renew,
     x_workspace_id: str | Unset | None = UNSET,
-) -> Response[ErrorEnvelope | View]:
-    """Request Control
+) -> Response[Control | ErrorEnvelope]:
+    """Renew Desktop Control
 
     Args:
-        assistance_id (str):
+        environment_id (str):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
+        body (Renew):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorEnvelope | View]
+        Response[Control | ErrorEnvelope]
     """
 
     kwargs = build_request(
-        assistance_id=assistance_id,
+        environment_id=environment_id,
+        body=body,
         x_workspace_id=x_workspace_id,
     )
 
@@ -97,58 +106,64 @@ def sync_detailed(
 
 
 def sync(
-    assistance_id: str,
+    environment_id: str,
     *,
     client: AuthenticatedClient,
+    body: Renew,
     x_workspace_id: str | Unset | None = UNSET,
-) -> ErrorEnvelope | View | None:
-    """Request Control
+) -> Control | ErrorEnvelope | None:
+    """Renew Desktop Control
 
     Args:
-        assistance_id (str):
+        environment_id (str):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
+        body (Renew):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorEnvelope | View
+        Control | ErrorEnvelope
     """
 
     return sync_detailed(
-        assistance_id=assistance_id,
+        environment_id=environment_id,
         client=client,
+        body=body,
         x_workspace_id=x_workspace_id,
     ).parsed
 
 
 async def asyncio_detailed(
-    assistance_id: str,
+    environment_id: str,
     *,
     client: AuthenticatedClient,
+    body: Renew,
     x_workspace_id: str | Unset | None = UNSET,
-) -> Response[ErrorEnvelope | View]:
-    """Request Control
+) -> Response[Control | ErrorEnvelope]:
+    """Renew Desktop Control
 
     Args:
-        assistance_id (str):
+        environment_id (str):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
+        body (Renew):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorEnvelope | View]
+        Response[Control | ErrorEnvelope]
     """
 
     kwargs = build_request(
-        assistance_id=assistance_id,
+        environment_id=environment_id,
+        body=body,
         x_workspace_id=x_workspace_id,
     )
 
@@ -158,31 +173,34 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    assistance_id: str,
+    environment_id: str,
     *,
     client: AuthenticatedClient,
+    body: Renew,
     x_workspace_id: str | Unset | None = UNSET,
-) -> ErrorEnvelope | View | None:
-    """Request Control
+) -> Control | ErrorEnvelope | None:
+    """Renew Desktop Control
 
     Args:
-        assistance_id (str):
+        environment_id (str):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
+        body (Renew):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorEnvelope | View
+        Control | ErrorEnvelope
     """
 
     return (
         await asyncio_detailed(
-            assistance_id=assistance_id,
+            environment_id=environment_id,
             client=client,
+            body=body,
             x_workspace_id=x_workspace_id,
         )
     ).parsed

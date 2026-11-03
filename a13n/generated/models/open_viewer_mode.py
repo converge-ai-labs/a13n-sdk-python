@@ -1,9 +1,9 @@
 from enum import StrEnum
 
 
-class ViewCause(StrEnum):
-    AGENT = "agent"
-    USER = "user"
+class OpenViewerMode(StrEnum):
+    CONTROL = "control"
+    VIEW = "view"
 
     def __str__(self) -> str:
         return str(self.value)

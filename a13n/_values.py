@@ -208,11 +208,11 @@ class Pending:
     desktop_control_id: str | Unset | None = UNSET
 
     @classmethod
-    def from_wire(cls, value: wire.Pending) -> Pending:
+    def from_wire(cls, value: wire.Pending | wire.HistoricalDesktopPending) -> Pending:
         return cls(
             tuple(PendingRequest.from_wire(item) for item in value.approvals),
             tuple(PendingRequest.from_wire(item) for item in value.calls),
-            value.desktop_control_id,
+            value.desktop_control_id if isinstance(value, wire.HistoricalDesktopPending) else UNSET,
         )
 
 

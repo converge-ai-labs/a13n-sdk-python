@@ -5,36 +5,44 @@ from urllib.parse import quote
 import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
+from ...models.control import Control
+from ...models.desktop_takeover import DesktopTakeover
 from ...models.error_envelope import ErrorEnvelope
-from ...models.view import View
 from ...types import UNSET, Response, Unset
 
 
 def build_request(
-    run_id: str,
-    call_id: str,
+    environment_id: str,
     *,
+    body: DesktopTakeover,
+    if_match: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> dict[str, Any]:
     headers: dict[str, Any] = {}
+    if not isinstance(if_match, Unset):
+        headers["If-Match"] = if_match
+
     if not isinstance(x_workspace_id, Unset):
         headers["X-Workspace-ID"] = x_workspace_id
 
     _kwargs: dict[str, Any] = {
-        "method": "get",
-        "url": "/api/v1/runs/{run_id}/desktop-assistance/{call_id}".format(
-            run_id=quote(str(run_id), safe=""),
-            call_id=quote(str(call_id), safe=""),
+        "method": "post",
+        "url": "/api/v1/environments/{environment_id}/desktop-control/takeover".format(
+            environment_id=quote(str(environment_id), safe=""),
         ),
     }
+
+    _kwargs["json"] = body.to_dict()
+
+    headers["Content-Type"] = "application/json"
 
     _kwargs["headers"] = headers
     return _kwargs
 
 
-def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> ErrorEnvelope | View:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Control | ErrorEnvelope:
     if response.status_code == 200:
-        response_200 = View.from_dict(response.json())
+        response_200 = Control.from_dict(response.json())
 
         return response_200
 
@@ -50,7 +58,7 @@ def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Res
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[ErrorEnvelope | View]:
+) -> Response[Control | ErrorEnvelope]:
     from ....errors import ProtocolError
 
     try:
@@ -65,32 +73,36 @@ def _build_response(
 
 
 def sync_detailed(
-    run_id: str,
-    call_id: str,
+    environment_id: str,
     *,
     client: AuthenticatedClient,
+    body: DesktopTakeover,
+    if_match: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
-) -> Response[ErrorEnvelope | View]:
-    """Get Assistance
+) -> Response[Control | ErrorEnvelope]:
+    """Take Over Desktop
 
     Args:
-        run_id (str):
-        call_id (str):
+        environment_id (str):
+        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current
+            view, `"{key}:{version}"` for a model
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
+        body (DesktopTakeover):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorEnvelope | View]
+        Response[Control | ErrorEnvelope]
     """
 
     kwargs = build_request(
-        run_id=run_id,
-        call_id=call_id,
+        environment_id=environment_id,
+        body=body,
+        if_match=if_match,
         x_workspace_id=x_workspace_id,
     )
 
@@ -102,64 +114,72 @@ def sync_detailed(
 
 
 def sync(
-    run_id: str,
-    call_id: str,
+    environment_id: str,
     *,
     client: AuthenticatedClient,
+    body: DesktopTakeover,
+    if_match: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
-) -> ErrorEnvelope | View | None:
-    """Get Assistance
+) -> Control | ErrorEnvelope | None:
+    """Take Over Desktop
 
     Args:
-        run_id (str):
-        call_id (str):
+        environment_id (str):
+        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current
+            view, `"{key}:{version}"` for a model
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
+        body (DesktopTakeover):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorEnvelope | View
+        Control | ErrorEnvelope
     """
 
     return sync_detailed(
-        run_id=run_id,
-        call_id=call_id,
+        environment_id=environment_id,
         client=client,
+        body=body,
+        if_match=if_match,
         x_workspace_id=x_workspace_id,
     ).parsed
 
 
 async def asyncio_detailed(
-    run_id: str,
-    call_id: str,
+    environment_id: str,
     *,
     client: AuthenticatedClient,
+    body: DesktopTakeover,
+    if_match: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
-) -> Response[ErrorEnvelope | View]:
-    """Get Assistance
+) -> Response[Control | ErrorEnvelope]:
+    """Take Over Desktop
 
     Args:
-        run_id (str):
-        call_id (str):
+        environment_id (str):
+        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current
+            view, `"{key}:{version}"` for a model
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
+        body (DesktopTakeover):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ErrorEnvelope | View]
+        Response[Control | ErrorEnvelope]
     """
 
     kwargs = build_request(
-        run_id=run_id,
-        call_id=call_id,
+        environment_id=environment_id,
+        body=body,
+        if_match=if_match,
         x_workspace_id=x_workspace_id,
     )
 
@@ -169,34 +189,38 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    run_id: str,
-    call_id: str,
+    environment_id: str,
     *,
     client: AuthenticatedClient,
+    body: DesktopTakeover,
+    if_match: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
-) -> ErrorEnvelope | View | None:
-    """Get Assistance
+) -> Control | ErrorEnvelope | None:
+    """Take Over Desktop
 
     Args:
-        run_id (str):
-        call_id (str):
+        environment_id (str):
+        if_match (None | str | Unset): The resource's ETag: `"{id}:{version}"` of its current
+            view, `"{key}:{version}"` for a model
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
+        body (DesktopTakeover):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ErrorEnvelope | View
+        Control | ErrorEnvelope
     """
 
     return (
         await asyncio_detailed(
-            run_id=run_id,
-            call_id=call_id,
+            environment_id=environment_id,
             client=client,
+            body=body,
+            if_match=if_match,
             x_workspace_id=x_workspace_id,
         )
     ).parsed

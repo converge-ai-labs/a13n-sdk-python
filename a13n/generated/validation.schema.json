@@ -1,137 +1,13 @@
 {
   "components": {
     "schemas": {
-      "View": {
-        "properties": {
-          "cause": {
-            "enum": [
-              "agent",
-              "user"
-            ],
-            "title": "Cause",
-            "type": "string"
-          },
-          "controller_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Controller Id"
-          },
-          "deadline": {
-            "format": "date-time",
-            "title": "Deadline",
-            "type": "string"
-          },
-          "environment_id": {
-            "title": "Environment Id",
-            "type": "string"
-          },
-          "epoch": {
-            "title": "Epoch",
-            "type": "integer"
-          },
-          "failure": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Failure"
-          },
-          "id": {
-            "title": "Id",
-            "type": "string"
-          },
-          "lease_expires_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Lease Expires At"
-          },
-          "mount": {
-            "title": "Mount",
-            "type": "string"
-          },
-          "outcome": {
-            "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Outcome"
-          },
-          "reason": {
-            "title": "Reason",
-            "type": "string"
-          },
-          "run_id": {
-            "title": "Run Id",
-            "type": "string"
-          },
-          "state": {
-            "title": "State",
-            "type": "string"
-          },
-          "tool_call_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Tool Call Id"
-          }
-        },
-        "required": [
-          "id",
-          "run_id",
-          "tool_call_id",
-          "cause",
-          "environment_id",
-          "mount",
-          "reason",
-          "state",
-          "epoch",
-          "controller_id",
-          "deadline",
-          "lease_expires_at",
-          "failure",
-          "outcome"
-        ],
-        "title": "View",
-        "type": "object"
-      },
       "ToolSearchGroup": {
         "additionalProperties": false,
         "properties": {
           "capabilities": {
             "default": [],
             "items": {
-              "enum": [
-                "environment",
-                "web"
-              ],
-              "type": "string"
+              "$ref": "#/components/schemas/BuiltinToolsetKey"
             },
             "title": "Capabilities",
             "type": "array"
@@ -174,6 +50,18 @@
         ],
         "title": "ToolSearchGroup",
         "type": "object"
+      },
+      "BuiltinToolsetKey": {
+        "enum": [
+          "files",
+          "shell",
+          "computer",
+          "browser",
+          "web",
+          "memory",
+          "assets"
+        ],
+        "type": "string"
       },
       "ToolSearchConfig": {
         "additionalProperties": false,
@@ -228,6 +116,16 @@
         "additionalProperties": false,
         "description": "Presentation of already-selected sources, composed by Harness once per agent.",
         "properties": {
+          "automatic": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AutomaticToolSearch"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "config": {
             "$ref": "#/components/schemas/ToolSearchConfig"
           },
@@ -243,46 +141,234 @@
         "title": "ToolSearch",
         "type": "object"
       },
-      "Request": {
+      "AutomaticToolSearch": {
+        "additionalProperties": false,
+        "description": "Group Service-owned sources individually, following the agent's selections.",
+        "properties": {
+          "capabilities": {
+            "default": [
+              "browser",
+              "computer"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/BuiltinToolsetKey"
+            },
+            "title": "Capabilities",
+            "type": "array"
+          },
+          "connections": {
+            "default": true,
+            "title": "Connections",
+            "type": "boolean"
+          },
+          "exclude_connections": {
+            "default": [],
+            "items": {
+              "maxLength": 41,
+              "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+              "type": "string"
+            },
+            "maxItems": 128,
+            "title": "Exclude Connections",
+            "type": "array"
+          },
+          "exclude_platform": {
+            "default": false,
+            "title": "Exclude Platform",
+            "type": "boolean"
+          }
+        },
+        "title": "AutomaticToolSearch",
+        "type": "object"
+      },
+      "Pending": {
+        "additionalProperties": false,
+        "description": "Public projection; complete native requests and private metadata stay in the checkpoint.",
+        "properties": {
+          "approvals": {
+            "items": {
+              "$ref": "#/components/schemas/PendingCall"
+            },
+            "title": "Approvals",
+            "type": "array"
+          },
+          "calls": {
+            "items": {
+              "$ref": "#/components/schemas/PendingCall"
+            },
+            "title": "Calls",
+            "type": "array"
+          }
+        },
+        "required": [
+          "approvals",
+          "calls"
+        ],
+        "title": "Pending",
+        "type": "object"
+      },
+      "PendingCall": {
         "additionalProperties": false,
         "properties": {
-          "mount": {
-            "maxLength": 63,
-            "minLength": 1,
-            "title": "Mount",
-            "type": "string"
+          "arguments": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "title": "Arguments",
+            "type": "object"
           },
-          "reason": {
-            "maxLength": 2048,
-            "minLength": 1,
-            "title": "Reason",
+          "presentation": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/JsonValue"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Presentation"
+          },
+          "tool_call_id": {
+            "$ref": "#/components/schemas/ToolCallId"
+          },
+          "tool_name": {
+            "title": "Tool Name",
             "type": "string"
           }
         },
         "required": [
-          "mount",
-          "reason"
+          "tool_call_id",
+          "tool_name",
+          "arguments"
         ],
-        "title": "Request",
+        "title": "PendingCall",
+        "type": "object"
+      },
+      "ToolCallId": {
+        "maxLength": 1024,
+        "minLength": 1,
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "JsonValue": {},
+      "HistoricalDesktopPending": {
+        "additionalProperties": false,
+        "description": "Read-only projection of sealed desktop suspensions predating Computer-scoped control.",
+        "properties": {
+          "approvals": {
+            "items": {
+              "$ref": "#/components/schemas/PendingCall"
+            },
+            "title": "Approvals",
+            "type": "array"
+          },
+          "calls": {
+            "items": {
+              "$ref": "#/components/schemas/PendingCall"
+            },
+            "title": "Calls",
+            "type": "array"
+          },
+          "desktop_control_id": {
+            "title": "Desktop Control Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "approvals",
+          "calls",
+          "desktop_control_id"
+        ],
+        "title": "HistoricalDesktopPending",
         "type": "object"
       },
       "Control": {
-        "additionalProperties": false,
         "properties": {
-          "epoch": {
-            "minimum": 0.0,
-            "title": "Epoch",
+          "control": {
+            "enum": [
+              "automation",
+              "draining",
+              "human",
+              "returning"
+            ],
+            "title": "Control",
+            "type": "string"
+          },
+          "controller_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Controller Id"
+          },
+          "controller_thread_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Controller Thread Id"
+          },
+          "episode": {
+            "title": "Episode",
             "type": "integer"
           },
-          "session_id": {
-            "pattern": "^[a-zA-Z0-9_-]{20,72}$",
-            "title": "Session Id",
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "failure": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failure"
+          },
+          "generation": {
+            "title": "Generation",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
             "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
           }
         },
         "required": [
-          "session_id",
-          "epoch"
+          "id",
+          "version",
+          "generation",
+          "episode",
+          "control",
+          "controller_id",
+          "controller_thread_id",
+          "expires_at",
+          "failure"
         ],
         "title": "Control",
         "type": "object"
@@ -347,78 +433,6 @@
           "context_window_tokens"
         ],
         "title": "ContextUsage",
-        "type": "object"
-      },
-      "Completion": {
-        "additionalProperties": false,
-        "properties": {
-          "epoch": {
-            "minimum": 0.0,
-            "title": "Epoch",
-            "type": "integer"
-          },
-          "note": {
-            "default": "",
-            "maxLength": 2048,
-            "title": "Note",
-            "type": "string"
-          },
-          "outcome": {
-            "default": "completed",
-            "enum": [
-              "completed",
-              "abandoned"
-            ],
-            "title": "Outcome",
-            "type": "string"
-          },
-          "session_id": {
-            "pattern": "^[a-zA-Z0-9_-]{20,72}$",
-            "title": "Session Id",
-            "type": "string"
-          }
-        },
-        "required": [
-          "session_id",
-          "epoch"
-        ],
-        "title": "Completion",
-        "type": "object"
-      },
-      "Access": {
-        "properties": {
-          "assistance": {
-            "$ref": "#/components/schemas/View"
-          },
-          "expires_in_seconds": {
-            "title": "Expires In Seconds",
-            "type": "number"
-          },
-          "mode": {
-            "enum": [
-              "view",
-              "control"
-            ],
-            "title": "Mode",
-            "type": "string"
-          },
-          "password": {
-            "title": "Password",
-            "type": "string"
-          },
-          "websocket_url": {
-            "title": "Websocket Url",
-            "type": "string"
-          }
-        },
-        "required": [
-          "assistance",
-          "mode",
-          "websocket_url",
-          "password",
-          "expires_in_seconds"
-        ],
-        "title": "Access",
         "type": "object"
       }
     }

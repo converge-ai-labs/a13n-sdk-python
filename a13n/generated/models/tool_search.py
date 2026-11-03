@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 
@@ -9,6 +9,7 @@ from ..._validation import validate_model
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
+    from ..models.automatic_tool_search import AutomaticToolSearch
     from ..models.tool_search_config import ToolSearchConfig
     from ..models.tool_search_groups import ToolSearchGroups
 
@@ -21,14 +22,26 @@ class ToolSearch:
     """Presentation of already-selected sources, composed by Harness once per agent.
 
     Attributes:
+        automatic (AutomaticToolSearch | None | Unset):
         config (ToolSearchConfig | Unset): Names and bounded discovery settings for one Agent's proxy surface.
         groups (ToolSearchGroups | Unset):
     """
 
+    automatic: AutomaticToolSearch | Unset | None = UNSET
     config: ToolSearchConfig | Unset = UNSET
     groups: ToolSearchGroups | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.automatic_tool_search import AutomaticToolSearch
+
+        automatic: dict[str, Any] | Unset | None
+        if isinstance(self.automatic, Unset):
+            automatic = UNSET
+        elif isinstance(self.automatic, AutomaticToolSearch):
+            automatic = self.automatic.to_dict()
+        else:
+            automatic = self.automatic
+
         config: dict[str, Any] | Unset = UNSET
         if not isinstance(self.config, Unset):
             config = self.config.to_dict()
@@ -40,6 +53,8 @@ class ToolSearch:
         field_dict: dict[str, Any] = {}
 
         field_dict.update({})
+        if automatic is not UNSET:
+            field_dict["automatic"] = automatic
         if config is not UNSET:
             field_dict["config"] = config
         if groups is not UNSET:
@@ -51,10 +66,29 @@ class ToolSearch:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         validate_model("ToolSearch", src_dict)
+        from ..models.automatic_tool_search import AutomaticToolSearch
         from ..models.tool_search_config import ToolSearchConfig
         from ..models.tool_search_groups import ToolSearchGroups
 
         d = dict(src_dict)
+
+        def _parse_automatic(data: object) -> AutomaticToolSearch | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                automatic_type_0 = AutomaticToolSearch.from_dict(data)
+
+                return automatic_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(AutomaticToolSearch | Unset | None, data)
+
+        automatic = _parse_automatic(d.pop("automatic", UNSET))
+
         _config = d.pop("config", UNSET)
         config: ToolSearchConfig | Unset
         if isinstance(_config, Unset):
@@ -70,6 +104,7 @@ class ToolSearch:
             groups = ToolSearchGroups.from_dict(_groups)
 
         tool_search = cls(
+            automatic=automatic,
             config=config,
             groups=groups,
         )

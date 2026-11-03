@@ -5,16 +5,14 @@ from urllib.parse import quote
 import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
-from ...models.access import Access
+from ...models.control import Control
 from ...models.error_envelope import ErrorEnvelope
-from ...models.open_view import OpenView
 from ...types import UNSET, Response, Unset
 
 
 def build_request(
-    run_id: str,
+    environment_id: str,
     *,
-    body: OpenView,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> dict[str, Any]:
     headers: dict[str, Any] = {}
@@ -22,23 +20,19 @@ def build_request(
         headers["X-Workspace-ID"] = x_workspace_id
 
     _kwargs: dict[str, Any] = {
-        "method": "post",
-        "url": "/api/v1/runs/{run_id}/desktop-control/view".format(
-            run_id=quote(str(run_id), safe=""),
+        "method": "get",
+        "url": "/api/v1/environments/{environment_id}/desktop-control".format(
+            environment_id=quote(str(environment_id), safe=""),
         ),
     }
-
-    _kwargs["json"] = body.to_dict()
-
-    headers["Content-Type"] = "application/json"
 
     _kwargs["headers"] = headers
     return _kwargs
 
 
-def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Access | ErrorEnvelope:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Control | ErrorEnvelope:
     if response.status_code == 200:
-        response_200 = Access.from_dict(response.json())
+        response_200 = Control.from_dict(response.json())
 
         return response_200
 
@@ -54,7 +48,7 @@ def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Res
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[Access | ErrorEnvelope]:
+) -> Response[Control | ErrorEnvelope]:
     from ....errors import ProtocolError
 
     try:
@@ -69,32 +63,29 @@ def _build_response(
 
 
 def sync_detailed(
-    run_id: str,
+    environment_id: str,
     *,
     client: AuthenticatedClient,
-    body: OpenView,
     x_workspace_id: str | Unset | None = UNSET,
-) -> Response[Access | ErrorEnvelope]:
-    """Open View
+) -> Response[Control | ErrorEnvelope]:
+    """Get Desktop Control
 
     Args:
-        run_id (str):
+        environment_id (str):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
-        body (OpenView):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Access | ErrorEnvelope]
+        Response[Control | ErrorEnvelope]
     """
 
     kwargs = build_request(
-        run_id=run_id,
-        body=body,
+        environment_id=environment_id,
         x_workspace_id=x_workspace_id,
     )
 
@@ -106,64 +97,58 @@ def sync_detailed(
 
 
 def sync(
-    run_id: str,
+    environment_id: str,
     *,
     client: AuthenticatedClient,
-    body: OpenView,
     x_workspace_id: str | Unset | None = UNSET,
-) -> Access | ErrorEnvelope | None:
-    """Open View
+) -> Control | ErrorEnvelope | None:
+    """Get Desktop Control
 
     Args:
-        run_id (str):
+        environment_id (str):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
-        body (OpenView):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Access | ErrorEnvelope
+        Control | ErrorEnvelope
     """
 
     return sync_detailed(
-        run_id=run_id,
+        environment_id=environment_id,
         client=client,
-        body=body,
         x_workspace_id=x_workspace_id,
     ).parsed
 
 
 async def asyncio_detailed(
-    run_id: str,
+    environment_id: str,
     *,
     client: AuthenticatedClient,
-    body: OpenView,
     x_workspace_id: str | Unset | None = UNSET,
-) -> Response[Access | ErrorEnvelope]:
-    """Open View
+) -> Response[Control | ErrorEnvelope]:
+    """Get Desktop Control
 
     Args:
-        run_id (str):
+        environment_id (str):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
-        body (OpenView):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Access | ErrorEnvelope]
+        Response[Control | ErrorEnvelope]
     """
 
     kwargs = build_request(
-        run_id=run_id,
-        body=body,
+        environment_id=environment_id,
         x_workspace_id=x_workspace_id,
     )
 
@@ -173,34 +158,31 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    run_id: str,
+    environment_id: str,
     *,
     client: AuthenticatedClient,
-    body: OpenView,
     x_workspace_id: str | Unset | None = UNSET,
-) -> Access | ErrorEnvelope | None:
-    """Open View
+) -> Control | ErrorEnvelope | None:
+    """Get Desktop Control
 
     Args:
-        run_id (str):
+        environment_id (str):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
-        body (OpenView):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Access | ErrorEnvelope
+        Control | ErrorEnvelope
     """
 
     return (
         await asyncio_detailed(
-            run_id=run_id,
+            environment_id=environment_id,
             client=client,
-            body=body,
             x_workspace_id=x_workspace_id,
         )
     ).parsed

@@ -6,10 +6,13 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
+from ..types import UNSET, Unset
+
 if TYPE_CHECKING:
     from ..models.entry_view import EntryView
     from ..models.run_view import RunView
     from ..models.thread_view import ThreadView
+    from ..models.unavailable_configuration import UnavailableConfiguration
 
 
 T = TypeVar("T", bound="ThreadState")
@@ -24,12 +27,14 @@ class ThreadState:
         entries (list[EntryView]):
         last_run (None | RunView):
         thread (ThreadView):
+        unavailable (list[UnavailableConfiguration] | Unset):
     """
 
     current_run: RunView | None
     entries: list[EntryView]
     last_run: RunView | None
     thread: ThreadView
+    unavailable: list[UnavailableConfiguration] | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -54,6 +59,13 @@ class ThreadState:
 
         thread = self.thread.to_dict()
 
+        unavailable: list[dict[str, Any]] | Unset = UNSET
+        if not isinstance(self.unavailable, Unset):
+            unavailable = []
+            for unavailable_item_data in self.unavailable:
+                unavailable_item = unavailable_item_data.to_dict()
+                unavailable.append(unavailable_item)
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -64,6 +76,8 @@ class ThreadState:
                 "thread": thread,
             }
         )
+        if unavailable is not UNSET:
+            field_dict["unavailable"] = unavailable
 
         return field_dict
 
@@ -72,6 +86,7 @@ class ThreadState:
         from ..models.entry_view import EntryView
         from ..models.run_view import RunView
         from ..models.thread_view import ThreadView
+        from ..models.unavailable_configuration import UnavailableConfiguration
 
         d = dict(src_dict)
 
@@ -114,11 +129,21 @@ class ThreadState:
 
         thread = ThreadView.from_dict(d.pop("thread"))
 
+        _unavailable = d.pop("unavailable", UNSET)
+        unavailable: list[UnavailableConfiguration] | Unset = UNSET
+        if _unavailable is not UNSET:
+            unavailable = []
+            for unavailable_item_data in _unavailable:
+                unavailable_item = UnavailableConfiguration.from_dict(unavailable_item_data)
+
+                unavailable.append(unavailable_item)
+
         thread_state = cls(
             current_run=current_run,
             entries=entries,
             last_run=last_run,
             thread=thread,
+            unavailable=unavailable,
         )
 
         thread_state.additional_properties = d

@@ -1,7 +1,7 @@
 from enum import StrEnum
 
 
-class AccessMode(StrEnum):
+class DesktopViewerMode(StrEnum):
     CONTROL = "control"
     VIEW = "view"
 

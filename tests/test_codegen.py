@@ -101,7 +101,7 @@ def test_every_pinned_named_model_and_inline_schema_has_generated_coverage() -> 
             assert exported in wire.__all__, name
             named.add(name)
     assert named | inline == schemas.keys()
-    assert len(schemas) == 524
+    assert len(schemas) == 539
     for name in inline:
         reference = f"#/components/schemas/{name}"
         assert reference in json.dumps(document), name
@@ -115,7 +115,7 @@ def test_session_only_models_share_native_types_without_changing_native_inventor
     augmented = with_session_models(document, session)
     native = document["components"]["schemas"]
     combined = augmented["components"]["schemas"]
-    assert len(native) == 524 and len(session["$defs"]) == 106
+    assert len(native) == 539 and len(session["$defs"]) == 111
     assert combined.keys() - native.keys() == {
         "AppReady",
         "ScheduleConfiguration",
@@ -172,7 +172,13 @@ def test_boundary_validation_bundle_is_exact_reachable_pinned_subset() -> None:
     document = json.loads((ROOT / "contract/openapi.json").read_text())
     source = document["components"]["schemas"]
     selected = validation_schema(document)["components"]["schemas"]
-    assert set(selected) == VALIDATED_MODELS | {"ToolSearchConfig"}
+    assert set(selected) == VALIDATED_MODELS | {
+        "AutomaticToolSearch",
+        "BuiltinToolsetKey",
+        "JsonValue",
+        "PendingCall",
+        "ToolCallId",
+    }
     assert selected == {name: source[name] for name in selected}
     assert "AgentConfig-Input" not in selected  # Existing unrelated models retain their own codecs.
     assert json.loads((ROOT / "a13n/generated/validation.schema.json").read_text()) == validation_schema(document)

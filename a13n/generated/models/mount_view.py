@@ -19,12 +19,15 @@ T = TypeVar("T", bound="MountView")
 class MountView:
     """
     Attributes:
+        desktop_enabled (bool): Frozen instance configuration enables human desktop access; not authorization or a
+            health check.
         environment_id (str):
         name (str):
         working_directory (None | str):
         permission_ceiling (EnvironmentPermissionSetOutput | Unset):
     """
 
+    desktop_enabled: bool
     environment_id: str
     name: str
     working_directory: str | None
@@ -32,6 +35,8 @@ class MountView:
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        desktop_enabled = self.desktop_enabled
+
         environment_id = self.environment_id
 
         name = self.name
@@ -47,6 +52,7 @@ class MountView:
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
+                "desktop_enabled": desktop_enabled,
                 "environment_id": environment_id,
                 "name": name,
                 "working_directory": working_directory,
@@ -62,6 +68,8 @@ class MountView:
         from ..models.environment_permission_set_output import EnvironmentPermissionSetOutput
 
         d = dict(src_dict)
+        desktop_enabled = d.pop("desktop_enabled")
+
         environment_id = d.pop("environment_id")
 
         name = d.pop("name")
@@ -81,6 +89,7 @@ class MountView:
             permission_ceiling = EnvironmentPermissionSetOutput.from_dict(_permission_ceiling)
 
         mount_view = cls(
+            desktop_enabled=desktop_enabled,
             environment_id=environment_id,
             name=name,
             working_directory=working_directory,

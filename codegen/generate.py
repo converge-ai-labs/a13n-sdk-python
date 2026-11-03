@@ -28,11 +28,9 @@ VALIDATED_MODELS = frozenset(
         "ToolSearchConfig",
         "ToolSearchGroup",
         "ContextUsage",
-        "Access",
         "Control",
-        "Completion",
-        "Request",
-        "View",
+        "Pending",
+        "HistoricalDesktopPending",
     }
 )
 
@@ -133,6 +131,13 @@ def prepare(document: dict) -> dict:
         for keyword in ("anyOf", "oneOf", "allOf", "prefixItems"):
             for child in schema.get(keyword, []):
                 strip_defaults(child)
+
+    # Browser and desktop operations use distinct wire models with identical
+    # short titles. Preserve browser names and disambiguate desktop models.
+    for model in ("Takeover", "Viewer"):
+        name = f"a13n_service__runs__environments__desktop__schemas__{model}"
+        if name in schemas:
+            schemas[name]["title"] = f"Desktop{model}"
 
     for name, schema in schemas.items():
         strip_defaults(schema)

@@ -276,14 +276,21 @@ def test_desktop_discovery_context_acceptance_uses_native_sdk_boundaries_locally
             if path == "/api/v1/runs/run_failed":
                 return httpx2.Response(200, json=run_view("run_failed", status="failed"))
             missing = "run_" + "0" * 24
-            status = 404 if missing in str(request.url) else 400
-            if path.endswith("/desktop-control") and missing not in path:
-                return httpx2.Response(200, content=b"null")
+            status = 404 if missing in str(request.url) or "env_" + "0" * 24 in path else 400
             if path == "/api/v1/runs/run_1":
                 return httpx2.Response(200, json=run_view())
             if path == "/api/v1/usage/context":
                 if request.url.params.get("run_id") == "run_failed":
-                    return httpx2.Response(200, content=b"null")
+                    return httpx2.Response(
+                        200,
+                        json={
+                            "run_id": "run_failed",
+                            "record_id": None,
+                            "input_tokens": None,
+                            "output_tokens": None,
+                            "context_window_tokens": None,
+                        },
+                    )
                 if len(request.url.params) == 1 and missing not in str(request.url):
                     return httpx2.Response(200, json={**CONTEXT, "output_tokens": 0})
             return httpx2.Response(
@@ -302,8 +309,8 @@ def test_desktop_discovery_context_acceptance_uses_native_sdk_boundaries_locally
             evidence = await service_acceptance._desktop_discovery_context_acceptance(
                 client, "agt_1", "model", "rec_1", "failure"
             )
-        assert evidence["selectors_equal"] == 3 and evidence["absent_desktop_null"]
-        assert evidence["failed_context_null"] == "run_failed"
+        assert evidence["selectors_equal"] == 3 and evidence["missing_desktop_environment_rejected"]
+        assert evidence["failed_context_unknown"] == "run_failed"
         assert len(evidence["stored_discovery_agents"]) == 1
         assert evidence["invalid_variants_rejected_locally"] == 4
         assert len(stored) == 1 and all(config["tool_search"]["groups"] == {} for config in stored)

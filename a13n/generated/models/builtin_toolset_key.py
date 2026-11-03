@@ -1,7 +1,7 @@
 from enum import StrEnum
 
 
-class ToolsetKeyType0(StrEnum):
+class BuiltinToolsetKey(StrEnum):
     ASSETS = "assets"
     BROWSER = "browser"
     COMPUTER = "computer"

@@ -98,17 +98,6 @@ from .api.connections import (
     update_connection,
 )
 from .api.default import health, ready
-from .api.desktop_assistance import (
-    complete_assistance,
-    control_desktop,
-    disconnect_desktop,
-    get_assistance,
-    get_control,
-    open_control,
-    open_view,
-    request_control,
-    view_desktop,
-)
 from .api.environments import (
     add_environment_mount,
     check_computer,
@@ -116,6 +105,7 @@ from .api.environments import (
     create_environment_template,
     delete_environment,
     get_collector_status,
+    get_desktop_control,
     get_environment,
     get_environment_creation,
     get_environment_desktop_preview,
@@ -123,11 +113,15 @@ from .api.environments import (
     list_environment_mounts,
     list_environment_templates,
     list_environments,
+    open_desktop_viewer,
     query_environment_metrics,
     remove_environment_mount,
+    renew_desktop_control,
     retry_environment_creation,
+    return_desktop_control,
     select_metrics_source,
     stop_environment,
+    take_over_desktop,
     update_environment,
     update_environment_mount,
     update_environment_template,
@@ -448,10 +442,6 @@ class ServiceResources(Resource):
     @property
     def connector_providers(self) -> ConnectorProviders:
         return ConnectorProviders(self._client, self._bindings)
-
-    @property
-    def desktop_assistance(self) -> DesktopAssistance:
-        return DesktopAssistance(self._client, self._bindings)
 
     @property
     def devices(self) -> Devices:
@@ -1990,69 +1980,6 @@ class ConnectorProvidersProviderIdAppsAppActionsIndex(Resource):
         )
 
 
-class DesktopAssistance(Resource):
-    """Bound Native resource: /desktop-assistance."""
-
-    def __call__(self, assistance_id: str) -> DesktopAssistanceAssistanceId:
-        return DesktopAssistanceAssistanceId(self._client, self._bind("assistance_id", assistance_id))
-
-
-class DesktopAssistanceAssistanceId(Resource):
-    """Bound Native resource: /desktop-assistance / {assistance_id}."""
-
-    async def complete(self, *, body: wire.Completion, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.View]:
-        """Complete Assistance. One HTTP request; no automatic replay."""
-        return await self._call(
-            lambda client: complete_assistance.asyncio_detailed(
-                client=client, assistance_id=self._bindings["assistance_id"], body=body, x_workspace_id=x_workspace_id
-            )
-        )
-
-    async def control(
-        self, *, body: wire.Control, renew: bool | Unset = UNSET, x_workspace_id: str | Unset | None = UNSET
-    ) -> Result[wire.Access]:
-        """Control Desktop. One HTTP request; no automatic replay."""
-        return await self._call(
-            lambda client: control_desktop.asyncio_detailed(
-                client=client,
-                assistance_id=self._bindings["assistance_id"],
-                body=body,
-                renew=renew,
-                x_workspace_id=x_workspace_id,
-            )
-        )
-
-    async def disconnect(self, *, body: wire.Control, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.View]:
-        """Disconnect Desktop. One HTTP request; no automatic replay."""
-        return await self._call(
-            lambda client: disconnect_desktop.asyncio_detailed(
-                client=client, assistance_id=self._bindings["assistance_id"], body=body, x_workspace_id=x_workspace_id
-            )
-        )
-
-    async def request_control(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.View]:
-        """Request Control. One HTTP request; no automatic replay."""
-        return await self._call(
-            lambda client: request_control.asyncio_detailed(
-                client=client, assistance_id=self._bindings["assistance_id"], x_workspace_id=x_workspace_id
-            )
-        )
-
-    async def view(
-        self, *, body: wire.Control, renew: bool | Unset = UNSET, x_workspace_id: str | Unset | None = UNSET
-    ) -> Result[wire.Access]:
-        """View Desktop. One HTTP request; no automatic replay."""
-        return await self._call(
-            lambda client: view_desktop.asyncio_detailed(
-                client=client,
-                assistance_id=self._bindings["assistance_id"],
-                body=body,
-                renew=renew,
-                x_workspace_id=x_workspace_id,
-            )
-        )
-
-
 class Devices(Resource):
     """Bound Native resource: /devices."""
 
@@ -2527,8 +2454,22 @@ class EnvironmentsEnvironmentId(Resource):
         return EnvironmentsEnvironmentIdCreation(self._client, self._bindings)
 
     @property
+    def desktop_control(self) -> EnvironmentsEnvironmentIdDesktopControl:
+        return EnvironmentsEnvironmentIdDesktopControl(self._client, self._bindings)
+
+    @property
     def desktop_preview(self) -> EnvironmentsEnvironmentIdDesktopPreview:
         return EnvironmentsEnvironmentIdDesktopPreview(self._client, self._bindings)
+
+    async def desktop_viewer(
+        self, *, body: wire.OpenViewer, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.DesktopViewer]:
+        """Open Desktop Viewer. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: open_desktop_viewer.asyncio_detailed(
+                client=client, environment_id=self._bindings["environment_id"], body=body, x_workspace_id=x_workspace_id
+            )
+        )
 
     @property
     def metrics_binding(self) -> EnvironmentsEnvironmentIdMetricsBinding:
@@ -2585,6 +2526,57 @@ class EnvironmentsEnvironmentIdCreation(Resource):
         return await self._call(
             lambda client: get_environment_creation.asyncio_detailed(
                 client=client, environment_id=self._bindings["environment_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+
+class EnvironmentsEnvironmentIdDesktopControl(Resource):
+    """Bound Native resource: /environments / {environment_id} / desktop-control."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Control]:
+        """Get Desktop Control. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_desktop_control.asyncio_detailed(
+                client=client, environment_id=self._bindings["environment_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def handback(
+        self, *, if_match: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.Control]:
+        """Return Desktop Control. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: return_desktop_control.asyncio_detailed(
+                client=client,
+                environment_id=self._bindings["environment_id"],
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    async def renew(self, *, body: wire.Renew, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Control]:
+        """Renew Desktop Control. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: renew_desktop_control.asyncio_detailed(
+                client=client, environment_id=self._bindings["environment_id"], body=body, x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def takeover(
+        self,
+        *,
+        body: wire.DesktopTakeover,
+        if_match: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.Control]:
+        """Take Over Desktop. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: take_over_desktop.asyncio_detailed(
+                client=client,
+                environment_id=self._bindings["environment_id"],
+                body=body,
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
             )
         )
 
@@ -4851,14 +4843,6 @@ class Run(Resource):
     def contents(self) -> RunsRunIdContents:
         return RunsRunIdContents(self._client, self._bindings)
 
-    @property
-    def desktop_assistance(self) -> RunsRunIdDesktopAssistance:
-        return RunsRunIdDesktopAssistance(self._client, self._bindings)
-
-    @property
-    def desktop_control(self) -> RunsRunIdDesktopControl:
-        return RunsRunIdDesktopControl(self._client, self._bindings)
-
     async def fork(
         self, *, body: wire.Fork, idempotency_key: str, x_workspace_id: str | Unset | None = UNSET
     ) -> Result[wire.Submitted]:
@@ -5175,56 +5159,6 @@ class RunsRunIdContentsContentId(Resource):
                 version=version,
                 query=query,
                 x_workspace_id=x_workspace_id,
-            )
-        )
-
-
-class RunsRunIdDesktopAssistance(Resource):
-    """Bound Native resource: /runs / {run_id} / desktop-assistance."""
-
-    def __call__(self, call_id: str) -> RunsRunIdDesktopAssistanceCallId:
-        return RunsRunIdDesktopAssistanceCallId(self._client, self._bind("call_id", call_id))
-
-
-class RunsRunIdDesktopAssistanceCallId(Resource):
-    """Bound Native resource: /runs / {run_id} / desktop-assistance / {call_id}."""
-
-    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.View]:
-        """Get Assistance. One HTTP request; no automatic replay."""
-        return await self._call(
-            lambda client: get_assistance.asyncio_detailed(
-                client=client,
-                run_id=self._bindings["run_id"],
-                call_id=self._bindings["call_id"],
-                x_workspace_id=x_workspace_id,
-            )
-        )
-
-
-class RunsRunIdDesktopControl(Resource):
-    """Bound Native resource: /runs / {run_id} / desktop-control."""
-
-    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.View | None]:
-        """Get Control. One HTTP request; no automatic replay."""
-        return await self._call(
-            lambda client: get_control.asyncio_detailed(
-                client=client, run_id=self._bindings["run_id"], x_workspace_id=x_workspace_id
-            )
-        )
-
-    async def create(self, *, body: wire.Request, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.View]:
-        """Open Control. One HTTP request; no automatic replay."""
-        return await self._call(
-            lambda client: open_control.asyncio_detailed(
-                client=client, run_id=self._bindings["run_id"], body=body, x_workspace_id=x_workspace_id
-            )
-        )
-
-    async def view(self, *, body: wire.OpenView, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Access]:
-        """Open View. One HTTP request; no automatic replay."""
-        return await self._call(
-            lambda client: open_view.asyncio_detailed(
-                client=client, run_id=self._bindings["run_id"], body=body, x_workspace_id=x_workspace_id
             )
         )
 
@@ -7298,10 +7232,14 @@ class ThreadsThreadIdToolExecutionsExecutionIdResult(Resource):
 class Toolsets(Resource):
     """Bound Native resource: /toolsets."""
 
-    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ToolsetCatalog]:
+    async def get(
+        self, *, connection_ids: list[str] | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.ToolsetCatalog]:
         """List Toolsets. One HTTP request; no automatic replay."""
         return await self._call(
-            lambda client: list_toolsets.asyncio_detailed(client=client, x_workspace_id=x_workspace_id)
+            lambda client: list_toolsets.asyncio_detailed(
+                client=client, connection_ids=connection_ids, x_workspace_id=x_workspace_id
+            )
         )
 
     @property
