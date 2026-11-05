@@ -20,12 +20,14 @@ T = TypeVar("T", bound="SessionCreate")
 class SessionCreate:
     """
     Attributes:
+        auto_recreate_lost_environment (bool | Unset):
         labels (SessionCreateLabels | Unset):
         memory (None | SessionMemorySettings | Unset):
         origin (None | SessionOrigin | Unset):
         title (None | str | Unset):
     """
 
+    auto_recreate_lost_environment: bool | Unset = UNSET
     labels: SessionCreateLabels | Unset = UNSET
     memory: SessionMemorySettings | Unset | None = UNSET
     origin: SessionOrigin | Unset | None = UNSET
@@ -34,6 +36,8 @@ class SessionCreate:
     def to_dict(self) -> dict[str, Any]:
         from ..models.session_memory_settings import SessionMemorySettings
         from ..models.session_origin import SessionOrigin
+
+        auto_recreate_lost_environment = self.auto_recreate_lost_environment
 
         labels: dict[str, Any] | Unset = UNSET
         if not isinstance(self.labels, Unset):
@@ -64,6 +68,8 @@ class SessionCreate:
         field_dict: dict[str, Any] = {}
 
         field_dict.update({})
+        if auto_recreate_lost_environment is not UNSET:
+            field_dict["auto_recreate_lost_environment"] = auto_recreate_lost_environment
         if labels is not UNSET:
             field_dict["labels"] = labels
         if memory is not UNSET:
@@ -82,6 +88,8 @@ class SessionCreate:
         from ..models.session_origin import SessionOrigin
 
         d = dict(src_dict)
+        auto_recreate_lost_environment = d.pop("auto_recreate_lost_environment", UNSET)
+
         _labels = d.pop("labels", UNSET)
         labels: SessionCreateLabels | Unset
         if isinstance(_labels, Unset):
@@ -133,6 +141,7 @@ class SessionCreate:
         title = _parse_title(d.pop("title", UNSET))
 
         session_create = cls(
+            auto_recreate_lost_environment=auto_recreate_lost_environment,
             labels=labels,
             memory=memory,
             origin=origin,
