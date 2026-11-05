@@ -6,6 +6,7 @@ class GetRunAgentPart(StrEnum):
     BUILTIN_SKILLS = "builtin_skills"
     CLIENT_TOOLS = "client_tools"
     CONNECTION_TOOLS = "connection_tools"
+    DEFAULT_ENVIRONMENT_ID = "default_environment_id"
     DEFAULT_ENVIRONMENT_TEMPLATE_ID = "default_environment_template_id"
     INSTRUCTIONS = "instructions"
     LAZY_ENVIRONMENT = "lazy_environment"

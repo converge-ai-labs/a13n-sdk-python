@@ -42,6 +42,7 @@ class AgentConfigOutput:
         builtin_skills (list[Literal['platform-operations']] | Unset):
         client_tools (list[ClientToolDefinition] | Unset):
         connection_tools (list[ConnectionSelection] | Unset):
+        default_environment_id (None | str | Unset):
         default_environment_template_id (None | str | Unset):
         execution (ExecutionOverride | None | Unset):
         instructions (str | Unset):
@@ -72,6 +73,7 @@ class AgentConfigOutput:
     builtin_skills: list[Literal["platform-operations"]] | Unset = UNSET
     client_tools: list[ClientToolDefinition] | Unset = UNSET
     connection_tools: list[ConnectionSelection] | Unset = UNSET
+    default_environment_id: str | Unset | None = UNSET
     default_environment_template_id: str | Unset | None = UNSET
     execution: ExecutionOverride | Unset | None = UNSET
     instructions: str | Unset = UNSET
@@ -124,6 +126,12 @@ class AgentConfigOutput:
             for connection_tools_item_data in self.connection_tools:
                 connection_tools_item = connection_tools_item_data.to_dict()
                 connection_tools.append(connection_tools_item)
+
+        default_environment_id: str | Unset | None
+        if isinstance(self.default_environment_id, Unset):
+            default_environment_id = UNSET
+        else:
+            default_environment_id = self.default_environment_id
 
         default_environment_template_id: str | Unset | None
         if isinstance(self.default_environment_template_id, Unset):
@@ -247,6 +255,8 @@ class AgentConfigOutput:
             field_dict["client_tools"] = client_tools
         if connection_tools is not UNSET:
             field_dict["connection_tools"] = connection_tools
+        if default_environment_id is not UNSET:
+            field_dict["default_environment_id"] = default_environment_id
         if default_environment_template_id is not UNSET:
             field_dict["default_environment_template_id"] = default_environment_template_id
         if execution is not UNSET:
@@ -351,6 +361,15 @@ class AgentConfigOutput:
                 connection_tools_item = ConnectionSelection.from_dict(connection_tools_item_data)
 
                 connection_tools.append(connection_tools_item)
+
+        def _parse_default_environment_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        default_environment_id = _parse_default_environment_id(d.pop("default_environment_id", UNSET))
 
         def _parse_default_environment_template_id(data: object) -> str | Unset | None:
             if data is None:
@@ -550,6 +569,7 @@ class AgentConfigOutput:
             builtin_skills=builtin_skills,
             client_tools=client_tools,
             connection_tools=connection_tools,
+            default_environment_id=default_environment_id,
             default_environment_template_id=default_environment_template_id,
             execution=execution,
             instructions=instructions,

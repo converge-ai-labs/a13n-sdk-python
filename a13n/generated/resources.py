@@ -77,6 +77,14 @@ from .api.browsers import (
     stop_browser,
     takeover_browser,
 )
+from .api.client_environments import (
+    change_client_environment_status,
+    connect_client_environment,
+    get_client_environment,
+    register_client_environment,
+    revoke_client_environment_credential,
+    rotate_client_environment_credential,
+)
 from .api.connections import (
     authorize_connection,
     complete_authorization,
@@ -437,6 +445,10 @@ class ServiceResources(Resource):
     @property
     def builtin_skills(self) -> BuiltinSkills:
         return BuiltinSkills(self._client, self._bindings)
+
+    @property
+    def client_environments(self) -> ClientEnvironments:
+        return ClientEnvironments(self._client, self._bindings)
 
     @property
     def connections(self) -> Connections:
@@ -1466,6 +1478,97 @@ class BuiltinSkillsNameContent(Resource):
         return self._stream(
             read_builtin_skill_archive.build_request(
                 name=self._bindings["name"], package_digest=package_digest, x_workspace_id=x_workspace_id
+            )
+        )
+
+
+class ClientEnvironments(Resource):
+    """Bound Native resource: /client-environments."""
+
+    async def create(
+        self, *, body: wire.Registration, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.Registered]:
+        """Register Client Environment. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: register_client_environment.asyncio_detailed(
+                client=client, body=body, x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def connect(
+        self, *, body: wire.ConnectionRequest, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.Registered]:
+        """Connect Client Environment. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: connect_client_environment.asyncio_detailed(
+                client=client, body=body, x_workspace_id=x_workspace_id
+            )
+        )
+
+    def __call__(self, environment_id: str) -> ClientEnvironmentsEnvironmentId:
+        return ClientEnvironmentsEnvironmentId(self._client, self._bind("environment_id", environment_id))
+
+
+class ClientEnvironmentsEnvironmentId(Resource):
+    """Bound Native resource: /client-environments / {environment_id}."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ClientEnvironment]:
+        """Get Client Environment. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_client_environment.asyncio_detailed(
+                client=client, environment_id=self._bindings["environment_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def revoke_credential(
+        self, *, if_match: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.Registered]:
+        """Revoke Client Environment Credential. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: revoke_client_environment_credential.asyncio_detailed(
+                client=client,
+                environment_id=self._bindings["environment_id"],
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    async def rotate_credential(
+        self, *, if_match: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.Registered]:
+        """Rotate Client Environment Credential. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: rotate_client_environment_credential.asyncio_detailed(
+                client=client,
+                environment_id=self._bindings["environment_id"],
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    @property
+    def status(self) -> ClientEnvironmentsEnvironmentIdStatus:
+        return ClientEnvironmentsEnvironmentIdStatus(self._client, self._bindings)
+
+
+class ClientEnvironmentsEnvironmentIdStatus(Resource):
+    """Bound Native resource: /client-environments / {environment_id} / status."""
+
+    async def update(
+        self,
+        *,
+        body: wire.StatusChange,
+        if_match: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.ClientEnvironment]:
+        """Change Client Environment Status. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: change_client_environment_status.asyncio_detailed(
+                client=client,
+                environment_id=self._bindings["environment_id"],
+                body=body,
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
             )
         )
 

@@ -111,6 +111,10 @@ from .change_count_trigger import ChangeCountTrigger
 from .child_environment_policy import ChildEnvironmentPolicy
 from .child_environment_policy_mode import ChildEnvironmentPolicyMode
 from .client_authentication import ClientAuthentication
+from .client_connection_observation import ClientConnectionObservation
+from .client_connection_observation_state import ClientConnectionObservationState
+from .client_environment import ClientEnvironment
+from .client_environment_configuration import ClientEnvironmentConfiguration
 from .client_tool_definition import ClientToolDefinition
 from .client_tool_definition_metadata import ClientToolDefinitionMetadata
 from .client_tool_definition_parameters_json_schema import ClientToolDefinitionParametersJsonSchema
@@ -135,6 +139,7 @@ from .connection_failure_reason import ConnectionFailureReason
 from .connection_metrics import ConnectionMetrics
 from .connection_metrics_tcp_states import ConnectionMetricsTcpStates
 from .connection_page import ConnectionPage
+from .connection_request import ConnectionRequest
 from .connection_selection import ConnectionSelection
 from .connection_selection_permissions import ConnectionSelectionPermissions
 from .connection_status import ConnectionStatus
@@ -237,6 +242,8 @@ from .environment_state import EnvironmentState
 from .environment_update import EnvironmentUpdate
 from .environment_variables import EnvironmentVariables
 from .environment_view import EnvironmentView
+from .environment_view_desktop_preview import EnvironmentViewDesktopPreview
+from .environment_view_kind import EnvironmentViewKind
 from .environment_view_metrics_labels import EnvironmentViewMetricsLabels
 from .error_body import ErrorBody
 from .error_body_details import ErrorBodyDetails
@@ -558,6 +565,8 @@ from .read_span_content_section import ReadSpanContentSection
 from .read_view import ReadView
 from .reclamation import Reclamation
 from .record_source import RecordSource
+from .registered import Registered
+from .registration import Registration
 from .renew import Renew
 from .renew_control import RenewControl
 from .request_context import RequestContext
@@ -696,6 +705,8 @@ from .span_summary_status import SpanSummaryStatus
 from .span_usage import SpanUsage
 from .state import State
 from .status import Status
+from .status_change import StatusChange
+from .status_change_status import StatusChangeStatus
 from .steering import Steering
 from .stream_position import StreamPosition
 from .subagent_selection_input import SubagentSelectionInput
@@ -930,6 +941,10 @@ __all__ = (
     "ChildEnvironmentPolicy",
     "ChildEnvironmentPolicyMode",
     "ClientAuthentication",
+    "ClientConnectionObservation",
+    "ClientConnectionObservationState",
+    "ClientEnvironment",
+    "ClientEnvironmentConfiguration",
     "ClientToolDefinition",
     "ClientToolDefinitionMetadata",
     "ClientToolDefinitionParametersJsonSchema",
@@ -954,6 +969,7 @@ __all__ = (
     "ConnectionMetrics",
     "ConnectionMetricsTcpStates",
     "ConnectionPage",
+    "ConnectionRequest",
     "ConnectionSelection",
     "ConnectionSelectionPermissions",
     "ConnectionStatus",
@@ -1056,6 +1072,8 @@ __all__ = (
     "EnvironmentUpdate",
     "EnvironmentVariables",
     "EnvironmentView",
+    "EnvironmentViewDesktopPreview",
+    "EnvironmentViewKind",
     "EnvironmentViewMetricsLabels",
     "ErrorBody",
     "ErrorBodyDetails",
@@ -1375,6 +1393,8 @@ __all__ = (
     "ReadView",
     "Reclamation",
     "RecordSource",
+    "Registered",
+    "Registration",
     "Renew",
     "RenewControl",
     "RequestContext",
@@ -1513,6 +1533,8 @@ __all__ = (
     "SpanUsage",
     "State",
     "Status",
+    "StatusChange",
+    "StatusChangeStatus",
     "Steering",
     "StreamPosition",
     "SubagentSelectionInput",

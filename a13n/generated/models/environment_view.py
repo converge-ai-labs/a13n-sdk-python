@@ -7,9 +7,12 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
+from ..models.environment_view_desktop_preview import EnvironmentViewDesktopPreview
+from ..models.environment_view_kind import EnvironmentViewKind
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
+    from ..models.client_connection_observation import ClientConnectionObservation
     from ..models.environment_failure import EnvironmentFailure
     from ..models.environment_state import EnvironmentState
     from ..models.environment_view_metrics_labels import EnvironmentViewMetricsLabels
@@ -30,6 +33,7 @@ class EnvironmentView:
         endpoint (None | str):
         failure (EnvironmentFailure | None):
         id (str):
+        kind (EnvironmentViewKind):
         last_used_at (datetime.datetime | None):
         name (str):
         operation_id (None | str):
@@ -42,7 +46,9 @@ class EnvironmentView:
         updated_at (datetime.datetime):
         version (int):
         workspace_id (str):
+        client_connection (ClientConnectionObservation | None | Unset):
         debug_hold_until (datetime.datetime | None | Unset):
+        desktop_preview (EnvironmentViewDesktopPreview | Unset):
         metrics_application (MetricsApplication | None | Unset):
         metrics_data_source_id (None | str | Unset):
         metrics_labels (EnvironmentViewMetricsLabels | Unset):
@@ -58,6 +64,7 @@ class EnvironmentView:
     endpoint: str | None
     failure: EnvironmentFailure | None
     id: str
+    kind: EnvironmentViewKind
     last_used_at: datetime.datetime | None
     name: str
     operation_id: str | None
@@ -70,7 +77,9 @@ class EnvironmentView:
     updated_at: datetime.datetime
     version: int
     workspace_id: str
+    client_connection: ClientConnectionObservation | Unset | None = UNSET
     debug_hold_until: datetime.datetime | Unset | None = UNSET
+    desktop_preview: EnvironmentViewDesktopPreview | Unset = UNSET
     metrics_application: MetricsApplication | Unset | None = UNSET
     metrics_data_source_id: str | Unset | None = UNSET
     metrics_labels: EnvironmentViewMetricsLabels | Unset = UNSET
@@ -81,6 +90,7 @@ class EnvironmentView:
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.client_connection_observation import ClientConnectionObservation
         from ..models.environment_failure import EnvironmentFailure
         from ..models.environment_state import EnvironmentState
         from ..models.metrics_application import MetricsApplication
@@ -103,6 +113,8 @@ class EnvironmentView:
             failure = self.failure
 
         id = self.id
+
+        kind = self.kind.value
 
         last_used_at: str | None
         if isinstance(self.last_used_at, datetime.datetime):
@@ -140,6 +152,14 @@ class EnvironmentView:
 
         workspace_id = self.workspace_id
 
+        client_connection: dict[str, Any] | Unset | None
+        if isinstance(self.client_connection, Unset):
+            client_connection = UNSET
+        elif isinstance(self.client_connection, ClientConnectionObservation):
+            client_connection = self.client_connection.to_dict()
+        else:
+            client_connection = self.client_connection
+
         debug_hold_until: str | Unset | None
         if isinstance(self.debug_hold_until, Unset):
             debug_hold_until = UNSET
@@ -147,6 +167,10 @@ class EnvironmentView:
             debug_hold_until = self.debug_hold_until.isoformat()
         else:
             debug_hold_until = self.debug_hold_until
+
+        desktop_preview: str | Unset = UNSET
+        if not isinstance(self.desktop_preview, Unset):
+            desktop_preview = self.desktop_preview.value
 
         metrics_application: dict[str, Any] | Unset | None
         if isinstance(self.metrics_application, Unset):
@@ -208,6 +232,7 @@ class EnvironmentView:
                 "endpoint": endpoint,
                 "failure": failure,
                 "id": id,
+                "kind": kind,
                 "last_used_at": last_used_at,
                 "name": name,
                 "operation_id": operation_id,
@@ -222,8 +247,12 @@ class EnvironmentView:
                 "workspace_id": workspace_id,
             }
         )
+        if client_connection is not UNSET:
+            field_dict["client_connection"] = client_connection
         if debug_hold_until is not UNSET:
             field_dict["debug_hold_until"] = debug_hold_until
+        if desktop_preview is not UNSET:
+            field_dict["desktop_preview"] = desktop_preview
         if metrics_application is not UNSET:
             field_dict["metrics_application"] = metrics_application
         if metrics_data_source_id is not UNSET:
@@ -243,6 +272,7 @@ class EnvironmentView:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.client_connection_observation import ClientConnectionObservation
         from ..models.environment_failure import EnvironmentFailure
         from ..models.environment_state import EnvironmentState
         from ..models.environment_view_metrics_labels import EnvironmentViewMetricsLabels
@@ -284,6 +314,8 @@ class EnvironmentView:
         failure = _parse_failure(d.pop("failure"))
 
         id = d.pop("id")
+
+        kind = EnvironmentViewKind(d.pop("kind"))
 
         def _parse_last_used_at(data: object) -> datetime.datetime | None:
             if data is None:
@@ -355,6 +387,23 @@ class EnvironmentView:
 
         workspace_id = d.pop("workspace_id")
 
+        def _parse_client_connection(data: object) -> ClientConnectionObservation | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                client_connection_type_0 = ClientConnectionObservation.from_dict(data)
+
+                return client_connection_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(ClientConnectionObservation | Unset | None, data)
+
+        client_connection = _parse_client_connection(d.pop("client_connection", UNSET))
+
         def _parse_debug_hold_until(data: object) -> datetime.datetime | Unset | None:
             if data is None:
                 return data
@@ -371,6 +420,13 @@ class EnvironmentView:
             return cast(datetime.datetime | Unset | None, data)
 
         debug_hold_until = _parse_debug_hold_until(d.pop("debug_hold_until", UNSET))
+
+        _desktop_preview = d.pop("desktop_preview", UNSET)
+        desktop_preview: EnvironmentViewDesktopPreview | Unset
+        if isinstance(_desktop_preview, Unset):
+            desktop_preview = UNSET
+        else:
+            desktop_preview = EnvironmentViewDesktopPreview(_desktop_preview)
 
         def _parse_metrics_application(data: object) -> MetricsApplication | Unset | None:
             if data is None:
@@ -480,6 +536,7 @@ class EnvironmentView:
             endpoint=endpoint,
             failure=failure,
             id=id,
+            kind=kind,
             last_used_at=last_used_at,
             name=name,
             operation_id=operation_id,
@@ -492,7 +549,9 @@ class EnvironmentView:
             updated_at=updated_at,
             version=version,
             workspace_id=workspace_id,
+            client_connection=client_connection,
             debug_hold_until=debug_hold_until,
+            desktop_preview=desktop_preview,
             metrics_application=metrics_application,
             metrics_data_source_id=metrics_data_source_id,
             metrics_labels=metrics_labels,
