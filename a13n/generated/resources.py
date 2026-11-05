@@ -110,6 +110,8 @@ from .api.environments import (
     get_environment_creation,
     get_environment_desktop_preview,
     get_environment_template,
+    get_kubernetes_environment_diagnostics,
+    get_kubernetes_environment_logs,
     list_environment_mounts,
     list_environment_templates,
     list_environments,
@@ -120,6 +122,7 @@ from .api.environments import (
     retry_environment_creation,
     return_desktop_control,
     select_metrics_source,
+    set_environment_debug_hold,
     stop_environment,
     take_over_desktop,
     update_environment,
@@ -2454,6 +2457,10 @@ class EnvironmentsEnvironmentId(Resource):
         return EnvironmentsEnvironmentIdCreation(self._client, self._bindings)
 
     @property
+    def debug_hold(self) -> EnvironmentsEnvironmentIdDebugHold:
+        return EnvironmentsEnvironmentIdDebugHold(self._client, self._bindings)
+
+    @property
     def desktop_control(self) -> EnvironmentsEnvironmentIdDesktopControl:
         return EnvironmentsEnvironmentIdDesktopControl(self._client, self._bindings)
 
@@ -2470,6 +2477,10 @@ class EnvironmentsEnvironmentId(Resource):
                 client=client, environment_id=self._bindings["environment_id"], body=body, x_workspace_id=x_workspace_id
             )
         )
+
+    @property
+    def kubernetes(self) -> EnvironmentsEnvironmentIdKubernetes:
+        return EnvironmentsEnvironmentIdKubernetes(self._client, self._bindings)
 
     @property
     def metrics_binding(self) -> EnvironmentsEnvironmentIdMetricsBinding:
@@ -2526,6 +2537,24 @@ class EnvironmentsEnvironmentIdCreation(Resource):
         return await self._call(
             lambda client: get_environment_creation.asyncio_detailed(
                 client=client, environment_id=self._bindings["environment_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+
+class EnvironmentsEnvironmentIdDebugHold(Resource):
+    """Bound Native resource: /environments / {environment_id} / debug-hold."""
+
+    async def replace(
+        self, *, body: wire.DebugHold, if_match: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.EnvironmentView]:
+        """Set Environment Debug Hold. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: set_environment_debug_hold.asyncio_detailed(
+                client=client,
+                environment_id=self._bindings["environment_id"],
+                body=body,
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
             )
         )
 
@@ -2597,6 +2626,54 @@ class EnvironmentsEnvironmentIdDesktopPreview(Resource):
         return self._stream(
             get_environment_desktop_preview.build_request(
                 environment_id=self._bindings["environment_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+
+class EnvironmentsEnvironmentIdKubernetes(Resource):
+    """Bound Native resource: /environments / {environment_id} / kubernetes."""
+
+    @property
+    def diagnostics(self) -> EnvironmentsEnvironmentIdKubernetesDiagnostics:
+        return EnvironmentsEnvironmentIdKubernetesDiagnostics(self._client, self._bindings)
+
+    @property
+    def logs(self) -> EnvironmentsEnvironmentIdKubernetesLogs:
+        return EnvironmentsEnvironmentIdKubernetesLogs(self._client, self._bindings)
+
+
+class EnvironmentsEnvironmentIdKubernetesDiagnostics(Resource):
+    """Bound Native resource: /environments / {environment_id} / kubernetes / diagnostics."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.InstanceDiagnostics]:
+        """Get Kubernetes Environment Diagnostics. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_kubernetes_environment_diagnostics.asyncio_detailed(
+                client=client, environment_id=self._bindings["environment_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+
+class EnvironmentsEnvironmentIdKubernetesLogs(Resource):
+    """Bound Native resource: /environments / {environment_id} / kubernetes / logs."""
+
+    async def get(
+        self,
+        *,
+        container: str | Unset | None = UNSET,
+        previous: bool | Unset = UNSET,
+        tail_lines: int | Unset = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.Logs]:
+        """Get Kubernetes Environment Logs. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_kubernetes_environment_logs.asyncio_detailed(
+                client=client,
+                environment_id=self._bindings["environment_id"],
+                container=container,
+                previous=previous,
+                tail_lines=tail_lines,
+                x_workspace_id=x_workspace_id,
             )
         )
 

@@ -6,11 +6,11 @@ from typing import Any, TypeVar
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
-T = TypeVar("T", bound="AgentOverrideOutputSubagentsType0")
+T = TypeVar("T", bound="ResourceObservationStatus")
 
 
 @_attrs_define(repr=False)
-class AgentOverrideOutputSubagentsType0:
+class ResourceObservationStatus:
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -23,10 +23,10 @@ class AgentOverrideOutputSubagentsType0:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        agent_override_output_subagents_type_0 = cls()
+        resource_observation_status = cls()
 
-        agent_override_output_subagents_type_0.additional_properties = d
-        return agent_override_output_subagents_type_0
+        resource_observation_status.additional_properties = d
+        return resource_observation_status
 
     @property
     def additional_keys(self) -> list[str]:

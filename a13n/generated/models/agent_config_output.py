@@ -5,12 +5,10 @@ from typing import TYPE_CHECKING, Any, Literal, TypeVar, cast
 
 from attrs import define as _attrs_define
 
-from ..models.agent_config_output_subagent_mode import AgentConfigOutputSubagentMode
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.agent_config_output_model_settings import AgentConfigOutputModelSettings
-    from ..models.agent_config_output_subagents import AgentConfigOutputSubagents
     from ..models.agent_config_output_toolsets import AgentConfigOutputToolsets
     from ..models.agent_model_characteristics import AgentModelCharacteristics
     from ..models.agent_reviewer import AgentReviewer
@@ -27,6 +25,7 @@ if TYPE_CHECKING:
     from ..models.session_memory_settings import SessionMemorySettings
     from ..models.shared_skill_sync import SharedSkillSync
     from ..models.skill_selection import SkillSelection
+    from ..models.subagents_output import SubagentsOutput
     from ..models.tool_search import ToolSearch
 
 
@@ -61,8 +60,7 @@ class AgentConfigOutput:
         reviewer (AgentReviewer | None | Unset):
         skill_sync (IsolatedSkillSync | SharedSkillSync | Unset):
         skills (list[SkillSelection] | Unset):
-        subagent_mode (AgentConfigOutputSubagentMode | Unset):
-        subagents (AgentConfigOutputSubagents | Unset):
+        subagents (SubagentsOutput | Unset):
         summarize (bool | Unset):
         tool_search (None | ToolSearch | Unset):
         toolsets (AgentConfigOutputToolsets | Unset):
@@ -89,8 +87,7 @@ class AgentConfigOutput:
     reviewer: AgentReviewer | Unset | None = UNSET
     skill_sync: IsolatedSkillSync | SharedSkillSync | Unset = UNSET
     skills: list[SkillSelection] | Unset = UNSET
-    subagent_mode: AgentConfigOutputSubagentMode | Unset = UNSET
-    subagents: AgentConfigOutputSubagents | Unset = UNSET
+    subagents: SubagentsOutput | Unset = UNSET
     summarize: bool | Unset = UNSET
     tool_search: ToolSearch | Unset | None = UNSET
     toolsets: AgentConfigOutputToolsets | Unset = UNSET
@@ -215,10 +212,6 @@ class AgentConfigOutput:
                 skills_item = skills_item_data.to_dict()
                 skills.append(skills_item)
 
-        subagent_mode: str | Unset = UNSET
-        if not isinstance(self.subagent_mode, Unset):
-            subagent_mode = self.subagent_mode.value
-
         subagents: dict[str, Any] | Unset = UNSET
         if not isinstance(self.subagents, Unset):
             subagents = self.subagents.to_dict()
@@ -284,8 +277,6 @@ class AgentConfigOutput:
             field_dict["skill_sync"] = skill_sync
         if skills is not UNSET:
             field_dict["skills"] = skills
-        if subagent_mode is not UNSET:
-            field_dict["subagent_mode"] = subagent_mode
         if subagents is not UNSET:
             field_dict["subagents"] = subagents
         if summarize is not UNSET:
@@ -302,7 +293,6 @@ class AgentConfigOutput:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.agent_config_output_model_settings import AgentConfigOutputModelSettings
-        from ..models.agent_config_output_subagents import AgentConfigOutputSubagents
         from ..models.agent_config_output_toolsets import AgentConfigOutputToolsets
         from ..models.agent_model_characteristics import AgentModelCharacteristics
         from ..models.agent_reviewer import AgentReviewer
@@ -319,6 +309,7 @@ class AgentConfigOutput:
         from ..models.session_memory_settings import SessionMemorySettings
         from ..models.shared_skill_sync import SharedSkillSync
         from ..models.skill_selection import SkillSelection
+        from ..models.subagents_output import SubagentsOutput
         from ..models.tool_search import ToolSearch
 
         d = dict(src_dict)
@@ -518,19 +509,12 @@ class AgentConfigOutput:
 
                 skills.append(skills_item)
 
-        _subagent_mode = d.pop("subagent_mode", UNSET)
-        subagent_mode: AgentConfigOutputSubagentMode | Unset
-        if isinstance(_subagent_mode, Unset):
-            subagent_mode = UNSET
-        else:
-            subagent_mode = AgentConfigOutputSubagentMode(_subagent_mode)
-
         _subagents = d.pop("subagents", UNSET)
-        subagents: AgentConfigOutputSubagents | Unset
+        subagents: SubagentsOutput | Unset
         if isinstance(_subagents, Unset):
             subagents = UNSET
         else:
-            subagents = AgentConfigOutputSubagents.from_dict(_subagents)
+            subagents = SubagentsOutput.from_dict(_subagents)
 
         summarize = d.pop("summarize", UNSET)
 
@@ -581,7 +565,6 @@ class AgentConfigOutput:
             reviewer=reviewer,
             skill_sync=skill_sync,
             skills=skills,
-            subagent_mode=subagent_mode,
             subagents=subagents,
             summarize=summarize,
             tool_search=tool_search,

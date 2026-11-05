@@ -23,7 +23,7 @@ class RunAgentSummary:
         connection_ids (list[str]):
         overridden_paths (list[str]):
         references_truncated (bool):
-        revision_id (str):
+        revision_id (None | str):
         skill_ids (list[str]):
         subagent_ids (list[str]):
         omitted_sections (list[str] | Unset):
@@ -34,7 +34,7 @@ class RunAgentSummary:
     connection_ids: list[str]
     overridden_paths: list[str]
     references_truncated: bool
-    revision_id: str
+    revision_id: str | None
     skill_ids: list[str]
     subagent_ids: list[str]
     omitted_sections: list[str] | Unset = UNSET
@@ -50,6 +50,7 @@ class RunAgentSummary:
 
         references_truncated = self.references_truncated
 
+        revision_id: str | None
         revision_id = self.revision_id
 
         skill_ids = self.skill_ids
@@ -95,7 +96,12 @@ class RunAgentSummary:
 
         references_truncated = d.pop("references_truncated")
 
-        revision_id = d.pop("revision_id")
+        def _parse_revision_id(data: object) -> str | None:
+            if data is None:
+                return data
+            return cast(str | None, data)
+
+        revision_id = _parse_revision_id(d.pop("revision_id"))
 
         skill_ids = cast(list[str], d.pop("skill_ids"))
 

@@ -4,13 +4,9 @@ from .account_disable import AccountDisable
 from .agent import Agent
 from .agent_config_input import AgentConfigInput
 from .agent_config_input_model_settings import AgentConfigInputModelSettings
-from .agent_config_input_subagent_mode import AgentConfigInputSubagentMode
-from .agent_config_input_subagents import AgentConfigInputSubagents
 from .agent_config_input_toolsets import AgentConfigInputToolsets
 from .agent_config_output import AgentConfigOutput
 from .agent_config_output_model_settings import AgentConfigOutputModelSettings
-from .agent_config_output_subagent_mode import AgentConfigOutputSubagentMode
-from .agent_config_output_subagents import AgentConfigOutputSubagents
 from .agent_config_output_toolsets import AgentConfigOutputToolsets
 from .agent_create import AgentCreate
 from .agent_create_labels import AgentCreateLabels
@@ -20,11 +16,9 @@ from .agent_labels import AgentLabels
 from .agent_model_characteristics import AgentModelCharacteristics
 from .agent_override_input import AgentOverrideInput
 from .agent_override_input_model_settings_type_0 import AgentOverrideInputModelSettingsType0
-from .agent_override_input_subagents_type_0 import AgentOverrideInputSubagentsType0
 from .agent_override_input_toolsets_type_0 import AgentOverrideInputToolsetsType0
 from .agent_override_output import AgentOverrideOutput
 from .agent_override_output_model_settings_type_0 import AgentOverrideOutputModelSettingsType0
-from .agent_override_output_subagents_type_0 import AgentOverrideOutputSubagentsType0
 from .agent_override_output_toolsets_type_0 import AgentOverrideOutputToolsetsType0
 from .agent_page import AgentPage
 from .agent_reviewer import AgentReviewer
@@ -182,6 +176,7 @@ from .data_source import DataSource
 from .data_source_create import DataSourceCreate
 from .data_source_page import DataSourcePage
 from .data_source_update import DataSourceUpdate
+from .debug_hold import DebugHold
 from .definition import Definition
 from .definition_definition import DefinitionDefinition
 from .definition_reference import DefinitionReference
@@ -203,6 +198,9 @@ from .device_create import DeviceCreate
 from .device_credential import DeviceCredential
 from .device_page import DevicePage
 from .device_update import DeviceUpdate
+from .diagnostics import Diagnostics
+from .diagnostics_envd import DiagnosticsEnvd
+from .diagnostics_rendered_item import DiagnosticsRenderedItem
 from .discovery_source import DiscoverySource
 from .discovery_source_kind import DiscoverySourceKind
 from .disk_io_metrics import DiskIoMetrics
@@ -211,6 +209,8 @@ from .disk_metrics_devices import DiskMetricsDevices
 from .display_continuation import DisplayContinuation
 from .display_continuation_memory_sources import DisplayContinuationMemorySources
 from .display_continuation_response_groups import DisplayContinuationResponseGroups
+from .dynamic_subagents_input import DynamicSubagentsInput
+from .dynamic_subagents_output import DynamicSubagentsOutput
 from .email_change_confirm import EmailChangeConfirm
 from .entry_page import EntryPage
 from .entry_status import EntryStatus
@@ -233,6 +233,7 @@ from .environment_query import EnvironmentQuery
 from .environment_query_history import EnvironmentQueryHistory
 from .environment_query_metric_type_0 import EnvironmentQueryMetricType0
 from .environment_query_metric_type_1 import EnvironmentQueryMetricType1
+from .environment_state import EnvironmentState
 from .environment_update import EnvironmentUpdate
 from .environment_variables import EnvironmentVariables
 from .environment_view import EnvironmentView
@@ -241,6 +242,7 @@ from .error_body import ErrorBody
 from .error_body_details import ErrorBodyDetails
 from .error_code import ErrorCode
 from .error_envelope import ErrorEnvelope
+from .event import Event
 from .evidence import Evidence
 from .execution_observation import ExecutionObservation
 from .execution_observation_source import ExecutionObservationSource
@@ -248,6 +250,8 @@ from .execution_override import ExecutionOverride
 from .execution_page import ExecutionPage
 from .execution_view import ExecutionView
 from .execution_view_status import ExecutionViewStatus
+from .existing_run_environment_input import ExistingRunEnvironmentInput
+from .existing_run_environment_output import ExistingRunEnvironmentOutput
 from .export import Export
 from .export_health import ExportHealth
 from .export_protocol import ExportProtocol
@@ -268,6 +272,8 @@ from .finding_update import FindingUpdate
 from .fork import Fork
 from .fragment_state import FragmentState
 from .fragment_state_pending import FragmentStatePending
+from .fresh_run_environment_input import FreshRunEnvironmentInput
+from .fresh_run_environment_output import FreshRunEnvironmentOutput
 from .frozen_memory_mount import FrozenMemoryMount
 from .gap import Gap
 from .get_inbox_entry_section_type_0 import GetInboxEntrySectionType0
@@ -292,6 +298,7 @@ from .history_purge import HistoryPurge
 from .image_input_policy import ImageInputPolicy
 from .inbox_order import InboxOrder
 from .initial_run import InitialRun
+from .instance_diagnostics import InstanceDiagnostics
 from .instant_query import InstantQuery
 from .instrumentation_scope import InstrumentationScope
 from .invitation import Invitation
@@ -338,6 +345,7 @@ from .login_input import LoginInput
 from .login_output import LoginOutput
 from .login_session import LoginSession
 from .login_session_page import LoginSessionPage
+from .logs import Logs
 from .managed_environment_create import ManagedEnvironmentCreate
 from .managed_environment_create_metrics_labels import ManagedEnvironmentCreateMetricsLabels
 from .mcp_auth import McpAuth
@@ -548,11 +556,18 @@ from .range_query import RangeQuery
 from .read_run_item_content_field import ReadRunItemContentField
 from .read_span_content_section import ReadSpanContentSection
 from .read_view import ReadView
+from .reclamation import Reclamation
 from .record_source import RecordSource
 from .renew import Renew
 from .renew_control import RenewControl
 from .request_context import RequestContext
 from .request_context_headers import RequestContextHeaders
+from .resource import Resource
+from .resource_disposition import ResourceDisposition
+from .resource_kind import ResourceKind
+from .resource_observation import ResourceObservation
+from .resource_observation_observation import ResourceObservationObservation
+from .resource_observation_status import ResourceObservationStatus
 from .resume import Resume
 from .resume_approvals import ResumeApprovals
 from .resume_calls import ResumeCalls
@@ -564,6 +579,7 @@ from .revision_summary_page import RevisionSummaryPage
 from .revoked_connection import RevokedConnection
 from .revoked_connection_remote_revocation import RevokedConnectionRemoteRevocation
 from .run_agent import RunAgent
+from .run_agent_source import RunAgentSource
 from .run_agent_summary import RunAgentSummary
 from .run_configuration_input import RunConfigurationInput
 from .run_configuration_input_extensions import RunConfigurationInputExtensions
@@ -682,10 +698,14 @@ from .state import State
 from .status import Status
 from .steering import Steering
 from .stream_position import StreamPosition
-from .subagent_override_input import SubagentOverrideInput
-from .subagent_override_output import SubagentOverrideOutput
 from .subagent_selection_input import SubagentSelectionInput
 from .subagent_selection_output import SubagentSelectionOutput
+from .subagents_input import SubagentsInput
+from .subagents_input_mode import SubagentsInputMode
+from .subagents_input_named import SubagentsInputNamed
+from .subagents_output import SubagentsOutput
+from .subagents_output_mode import SubagentsOutputMode
+from .subagents_output_named import SubagentsOutputNamed
 from .submitted import Submitted
 from .subscription import Subscription
 from .subscription_create import SubscriptionCreate
@@ -803,13 +823,9 @@ __all__ = (
     "Agent",
     "AgentConfigInput",
     "AgentConfigInputModelSettings",
-    "AgentConfigInputSubagentMode",
-    "AgentConfigInputSubagents",
     "AgentConfigInputToolsets",
     "AgentConfigOutput",
     "AgentConfigOutputModelSettings",
-    "AgentConfigOutputSubagentMode",
-    "AgentConfigOutputSubagents",
     "AgentConfigOutputToolsets",
     "AgentCreate",
     "AgentCreateLabels",
@@ -819,11 +835,9 @@ __all__ = (
     "AgentModelCharacteristics",
     "AgentOverrideInput",
     "AgentOverrideInputModelSettingsType0",
-    "AgentOverrideInputSubagentsType0",
     "AgentOverrideInputToolsetsType0",
     "AgentOverrideOutput",
     "AgentOverrideOutputModelSettingsType0",
-    "AgentOverrideOutputSubagentsType0",
     "AgentOverrideOutputToolsetsType0",
     "AgentPage",
     "AgentReviewer",
@@ -981,6 +995,7 @@ __all__ = (
     "DataSourceCreate",
     "DataSourcePage",
     "DataSourceUpdate",
+    "DebugHold",
     "Definition",
     "DefinitionDefinition",
     "DefinitionReference",
@@ -1002,6 +1017,9 @@ __all__ = (
     "DeviceCredential",
     "DevicePage",
     "DeviceUpdate",
+    "Diagnostics",
+    "DiagnosticsEnvd",
+    "DiagnosticsRenderedItem",
     "DiscoverySource",
     "DiscoverySourceKind",
     "DiskIoMetrics",
@@ -1010,6 +1028,8 @@ __all__ = (
     "DisplayContinuation",
     "DisplayContinuationMemorySources",
     "DisplayContinuationResponseGroups",
+    "DynamicSubagentsInput",
+    "DynamicSubagentsOutput",
     "EmailChangeConfirm",
     "EntryPage",
     "EntryStatus",
@@ -1032,6 +1052,7 @@ __all__ = (
     "EnvironmentQueryHistory",
     "EnvironmentQueryMetricType0",
     "EnvironmentQueryMetricType1",
+    "EnvironmentState",
     "EnvironmentUpdate",
     "EnvironmentVariables",
     "EnvironmentView",
@@ -1040,6 +1061,7 @@ __all__ = (
     "ErrorBodyDetails",
     "ErrorCode",
     "ErrorEnvelope",
+    "Event",
     "Evidence",
     "ExecutionObservation",
     "ExecutionObservationSource",
@@ -1047,6 +1069,8 @@ __all__ = (
     "ExecutionPage",
     "ExecutionView",
     "ExecutionViewStatus",
+    "ExistingRunEnvironmentInput",
+    "ExistingRunEnvironmentOutput",
     "Export",
     "ExportHealth",
     "ExportProtocol",
@@ -1067,6 +1091,8 @@ __all__ = (
     "Fork",
     "FragmentState",
     "FragmentStatePending",
+    "FreshRunEnvironmentInput",
+    "FreshRunEnvironmentOutput",
     "FrozenMemoryMount",
     "Gap",
     "GetInboxEntrySectionType0",
@@ -1091,6 +1117,7 @@ __all__ = (
     "ImageInputPolicy",
     "InboxOrder",
     "InitialRun",
+    "InstanceDiagnostics",
     "InstantQuery",
     "InstrumentationScope",
     "Invitation",
@@ -1137,6 +1164,7 @@ __all__ = (
     "LoginOutput",
     "LoginSession",
     "LoginSessionPage",
+    "Logs",
     "ManagedEnvironmentCreate",
     "ManagedEnvironmentCreateMetricsLabels",
     "McpAuth",
@@ -1345,11 +1373,18 @@ __all__ = (
     "ReadRunItemContentField",
     "ReadSpanContentSection",
     "ReadView",
+    "Reclamation",
     "RecordSource",
     "Renew",
     "RenewControl",
     "RequestContext",
     "RequestContextHeaders",
+    "Resource",
+    "ResourceDisposition",
+    "ResourceKind",
+    "ResourceObservation",
+    "ResourceObservationObservation",
+    "ResourceObservationStatus",
     "Resume",
     "ResumeApprovals",
     "ResumeCalls",
@@ -1361,6 +1396,7 @@ __all__ = (
     "RevokedConnection",
     "RevokedConnectionRemoteRevocation",
     "RunAgent",
+    "RunAgentSource",
     "RunAgentSummary",
     "RunConfigurationInput",
     "RunConfigurationInputExtensions",
@@ -1479,10 +1515,14 @@ __all__ = (
     "Status",
     "Steering",
     "StreamPosition",
-    "SubagentOverrideInput",
-    "SubagentOverrideOutput",
     "SubagentSelectionInput",
     "SubagentSelectionOutput",
+    "SubagentsInput",
+    "SubagentsInputMode",
+    "SubagentsInputNamed",
+    "SubagentsOutput",
+    "SubagentsOutputMode",
+    "SubagentsOutputNamed",
     "Submitted",
     "Subscription",
     "SubscriptionCreate",

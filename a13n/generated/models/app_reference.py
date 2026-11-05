@@ -15,7 +15,7 @@ T = TypeVar("T", bound="AppReference")
 class AppReference:
     """
     Attributes:
-        agent_revision_id (str):
+        agent_definition_id (str):
         app_id (str):
         connection_id (str):
         resource_uri (str):
@@ -25,7 +25,7 @@ class AppReference:
         unavailable (bool | Unset):
     """
 
-    agent_revision_id: str
+    agent_definition_id: str
     app_id: str
     connection_id: str
     resource_uri: str
@@ -36,7 +36,7 @@ class AppReference:
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        agent_revision_id = self.agent_revision_id
+        agent_definition_id = self.agent_definition_id
 
         app_id = self.app_id
 
@@ -56,7 +56,7 @@ class AppReference:
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
-                "agent_revision_id": agent_revision_id,
+                "agent_definition_id": agent_definition_id,
                 "app_id": app_id,
                 "connection_id": connection_id,
                 "resource_uri": resource_uri,
@@ -73,7 +73,7 @@ class AppReference:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        agent_revision_id = d.pop("agent_revision_id")
+        agent_definition_id = d.pop("agent_definition_id")
 
         app_id = d.pop("app_id")
 
@@ -90,7 +90,7 @@ class AppReference:
         unavailable = d.pop("unavailable", UNSET)
 
         app_reference = cls(
-            agent_revision_id=agent_revision_id,
+            agent_definition_id=agent_definition_id,
             app_id=app_id,
             connection_id=connection_id,
             resource_uri=resource_uri,

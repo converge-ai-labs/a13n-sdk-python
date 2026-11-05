@@ -11,8 +11,10 @@ from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.environment_failure import EnvironmentFailure
+    from ..models.environment_state import EnvironmentState
     from ..models.environment_view_metrics_labels import EnvironmentViewMetricsLabels
     from ..models.metrics_application import MetricsApplication
+    from ..models.reclamation import Reclamation
 
 
 T = TypeVar("T", bound="EnvironmentView")
@@ -40,9 +42,14 @@ class EnvironmentView:
         updated_at (datetime.datetime):
         version (int):
         workspace_id (str):
+        debug_hold_until (datetime.datetime | None | Unset):
         metrics_application (MetricsApplication | None | Unset):
         metrics_data_source_id (None | str | Unset):
         metrics_labels (EnvironmentViewMetricsLabels | Unset):
+        preparation_deadline (datetime.datetime | None | Unset):
+        preparation_failed_at (datetime.datetime | None | Unset):
+        reclamation (None | Reclamation | Unset):
+        retirement_state (EnvironmentState | None | Unset):
     """
 
     created_at: datetime.datetime
@@ -63,14 +70,21 @@ class EnvironmentView:
     updated_at: datetime.datetime
     version: int
     workspace_id: str
+    debug_hold_until: datetime.datetime | Unset | None = UNSET
     metrics_application: MetricsApplication | Unset | None = UNSET
     metrics_data_source_id: str | Unset | None = UNSET
     metrics_labels: EnvironmentViewMetricsLabels | Unset = UNSET
+    preparation_deadline: datetime.datetime | Unset | None = UNSET
+    preparation_failed_at: datetime.datetime | Unset | None = UNSET
+    reclamation: Reclamation | Unset | None = UNSET
+    retirement_state: EnvironmentState | Unset | None = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         from ..models.environment_failure import EnvironmentFailure
+        from ..models.environment_state import EnvironmentState
         from ..models.metrics_application import MetricsApplication
+        from ..models.reclamation import Reclamation
 
         created_at = self.created_at.isoformat()
 
@@ -126,6 +140,14 @@ class EnvironmentView:
 
         workspace_id = self.workspace_id
 
+        debug_hold_until: str | Unset | None
+        if isinstance(self.debug_hold_until, Unset):
+            debug_hold_until = UNSET
+        elif isinstance(self.debug_hold_until, datetime.datetime):
+            debug_hold_until = self.debug_hold_until.isoformat()
+        else:
+            debug_hold_until = self.debug_hold_until
+
         metrics_application: dict[str, Any] | Unset | None
         if isinstance(self.metrics_application, Unset):
             metrics_application = UNSET
@@ -143,6 +165,38 @@ class EnvironmentView:
         metrics_labels: dict[str, Any] | Unset = UNSET
         if not isinstance(self.metrics_labels, Unset):
             metrics_labels = self.metrics_labels.to_dict()
+
+        preparation_deadline: str | Unset | None
+        if isinstance(self.preparation_deadline, Unset):
+            preparation_deadline = UNSET
+        elif isinstance(self.preparation_deadline, datetime.datetime):
+            preparation_deadline = self.preparation_deadline.isoformat()
+        else:
+            preparation_deadline = self.preparation_deadline
+
+        preparation_failed_at: str | Unset | None
+        if isinstance(self.preparation_failed_at, Unset):
+            preparation_failed_at = UNSET
+        elif isinstance(self.preparation_failed_at, datetime.datetime):
+            preparation_failed_at = self.preparation_failed_at.isoformat()
+        else:
+            preparation_failed_at = self.preparation_failed_at
+
+        reclamation: dict[str, Any] | Unset | None
+        if isinstance(self.reclamation, Unset):
+            reclamation = UNSET
+        elif isinstance(self.reclamation, Reclamation):
+            reclamation = self.reclamation.to_dict()
+        else:
+            reclamation = self.reclamation
+
+        retirement_state: dict[str, Any] | Unset | None
+        if isinstance(self.retirement_state, Unset):
+            retirement_state = UNSET
+        elif isinstance(self.retirement_state, EnvironmentState):
+            retirement_state = self.retirement_state.to_dict()
+        else:
+            retirement_state = self.retirement_state
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
@@ -168,20 +222,32 @@ class EnvironmentView:
                 "workspace_id": workspace_id,
             }
         )
+        if debug_hold_until is not UNSET:
+            field_dict["debug_hold_until"] = debug_hold_until
         if metrics_application is not UNSET:
             field_dict["metrics_application"] = metrics_application
         if metrics_data_source_id is not UNSET:
             field_dict["metrics_data_source_id"] = metrics_data_source_id
         if metrics_labels is not UNSET:
             field_dict["metrics_labels"] = metrics_labels
+        if preparation_deadline is not UNSET:
+            field_dict["preparation_deadline"] = preparation_deadline
+        if preparation_failed_at is not UNSET:
+            field_dict["preparation_failed_at"] = preparation_failed_at
+        if reclamation is not UNSET:
+            field_dict["reclamation"] = reclamation
+        if retirement_state is not UNSET:
+            field_dict["retirement_state"] = retirement_state
 
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.environment_failure import EnvironmentFailure
+        from ..models.environment_state import EnvironmentState
         from ..models.environment_view_metrics_labels import EnvironmentViewMetricsLabels
         from ..models.metrics_application import MetricsApplication
+        from ..models.reclamation import Reclamation
 
         d = dict(src_dict)
         created_at = datetime.datetime.fromisoformat(d.pop("created_at"))
@@ -289,6 +355,23 @@ class EnvironmentView:
 
         workspace_id = d.pop("workspace_id")
 
+        def _parse_debug_hold_until(data: object) -> datetime.datetime | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, str):
+                    raise TypeError()
+                debug_hold_until_type_0 = datetime.datetime.fromisoformat(data)
+
+                return debug_hold_until_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(datetime.datetime | Unset | None, data)
+
+        debug_hold_until = _parse_debug_hold_until(d.pop("debug_hold_until", UNSET))
+
         def _parse_metrics_application(data: object) -> MetricsApplication | Unset | None:
             if data is None:
                 return data
@@ -322,6 +405,74 @@ class EnvironmentView:
         else:
             metrics_labels = EnvironmentViewMetricsLabels.from_dict(_metrics_labels)
 
+        def _parse_preparation_deadline(data: object) -> datetime.datetime | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, str):
+                    raise TypeError()
+                preparation_deadline_type_0 = datetime.datetime.fromisoformat(data)
+
+                return preparation_deadline_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(datetime.datetime | Unset | None, data)
+
+        preparation_deadline = _parse_preparation_deadline(d.pop("preparation_deadline", UNSET))
+
+        def _parse_preparation_failed_at(data: object) -> datetime.datetime | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, str):
+                    raise TypeError()
+                preparation_failed_at_type_0 = datetime.datetime.fromisoformat(data)
+
+                return preparation_failed_at_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(datetime.datetime | Unset | None, data)
+
+        preparation_failed_at = _parse_preparation_failed_at(d.pop("preparation_failed_at", UNSET))
+
+        def _parse_reclamation(data: object) -> Reclamation | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                reclamation_type_0 = Reclamation.from_dict(data)
+
+                return reclamation_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(Reclamation | Unset | None, data)
+
+        reclamation = _parse_reclamation(d.pop("reclamation", UNSET))
+
+        def _parse_retirement_state(data: object) -> EnvironmentState | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                retirement_state_type_0 = EnvironmentState.from_dict(data)
+
+                return retirement_state_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(EnvironmentState | Unset | None, data)
+
+        retirement_state = _parse_retirement_state(d.pop("retirement_state", UNSET))
+
         environment_view = cls(
             created_at=created_at,
             created_by_id=created_by_id,
@@ -341,9 +492,14 @@ class EnvironmentView:
             updated_at=updated_at,
             version=version,
             workspace_id=workspace_id,
+            debug_hold_until=debug_hold_until,
             metrics_application=metrics_application,
             metrics_data_source_id=metrics_data_source_id,
             metrics_labels=metrics_labels,
+            preparation_deadline=preparation_deadline,
+            preparation_failed_at=preparation_failed_at,
+            reclamation=reclamation,
+            retirement_state=retirement_state,
         )
 
         environment_view.additional_properties = d
