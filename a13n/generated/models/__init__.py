@@ -267,6 +267,7 @@ from .external_target_create_metrics_labels import ExternalTargetCreateMetricsLa
 from .failed import Failed
 from .failure import Failure
 from .failure_summary import FailureSummary
+from .file_memory_guidance import FileMemoryGuidance
 from .file_source import FileSource
 from .filesystem_inventory import FilesystemInventory
 from .filesystem_inventory_filesystems import FilesystemInventoryFilesystems
@@ -281,7 +282,6 @@ from .fragment_state import FragmentState
 from .fragment_state_pending import FragmentStatePending
 from .fresh_run_environment_input import FreshRunEnvironmentInput
 from .fresh_run_environment_output import FreshRunEnvironmentOutput
-from .frozen_memory_mount import FrozenMemoryMount
 from .gap import Gap
 from .get_inbox_entry_section_type_0 import GetInboxEntrySectionType0
 from .get_model_catalog_section_type_0 import GetModelCatalogSectionType0
@@ -379,6 +379,8 @@ from .memory_file_move import MemoryFileMove
 from .memory_file_page import MemoryFilePage
 from .memory_file_replace import MemoryFileReplace
 from .memory_file_state import MemoryFileState
+from .memory_guidance_preset import MemoryGuidancePreset
+from .memory_guidance_presets import MemoryGuidancePresets
 from .memory_kind import MemoryKind
 from .memory_labels import MemoryLabels
 from .memory_mount import MemoryMount
@@ -601,6 +603,7 @@ from .run_items import RunItems
 from .run_labels import RunLabels
 from .run_labels_labels import RunLabelsLabels
 from .run_list_item import RunListItem
+from .run_memory_mount import RunMemoryMount
 from .run_metrics import RunMetrics
 from .run_options_input import RunOptionsInput
 from .run_options_input_labels import RunOptionsInputLabels
@@ -725,6 +728,7 @@ from .subscription_page import SubscriptionPage
 from .subscription_update import SubscriptionUpdate
 from .system_info import SystemInfo
 from .system_metrics import SystemMetrics
+from .system_preset import SystemPreset
 from .takeover import Takeover
 from .template import Template
 from .template_config import TemplateConfig
@@ -1097,6 +1101,7 @@ __all__ = (
     "Failed",
     "Failure",
     "FailureSummary",
+    "FileMemoryGuidance",
     "FileSource",
     "FilesystemInventory",
     "FilesystemInventoryFilesystems",
@@ -1111,7 +1116,6 @@ __all__ = (
     "FragmentStatePending",
     "FreshRunEnvironmentInput",
     "FreshRunEnvironmentOutput",
-    "FrozenMemoryMount",
     "Gap",
     "GetInboxEntrySectionType0",
     "GetModelCatalogSectionType0",
@@ -1209,6 +1213,8 @@ __all__ = (
     "MemoryFilePage",
     "MemoryFileReplace",
     "MemoryFileState",
+    "MemoryGuidancePreset",
+    "MemoryGuidancePresets",
     "MemoryKind",
     "MemoryLabels",
     "MemoryMount",
@@ -1429,6 +1435,7 @@ __all__ = (
     "RunLabels",
     "RunLabelsLabels",
     "RunListItem",
+    "RunMemoryMount",
     "RunMetrics",
     "RunOptionsInput",
     "RunOptionsInputLabels",
@@ -1553,6 +1560,7 @@ __all__ = (
     "SubscriptionUpdate",
     "SystemInfo",
     "SystemMetrics",
+    "SystemPreset",
     "Takeover",
     "Template",
     "TemplateConfig",

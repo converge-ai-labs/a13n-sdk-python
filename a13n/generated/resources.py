@@ -158,6 +158,7 @@ from .api.memories import (
     get_memory_revision,
     list_files,
     list_memories,
+    list_memory_guidance_presets,
     list_memory_mounts,
     list_memory_revisions,
     list_records,
@@ -3157,8 +3158,22 @@ class Memories(Resource):
             lambda client: create_memory.asyncio_detailed(client=client, body=body, x_workspace_id=x_workspace_id)
         )
 
+    @property
+    def guidance_presets(self) -> MemoriesGuidancePresets:
+        return MemoriesGuidancePresets(self._client, self._bindings)
+
     def __call__(self, memory_id: str) -> MemoriesMemoryId:
         return MemoriesMemoryId(self._client, self._bind("memory_id", memory_id))
+
+
+class MemoriesGuidancePresets(Resource):
+    """Bound Native resource: /memories / guidance-presets."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.MemoryGuidancePresets]:
+        """List Memory Guidance Presets. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: list_memory_guidance_presets.asyncio_detailed(client=client, x_workspace_id=x_workspace_id)
+        )
 
 
 class MemoriesMemoryId(Resource):

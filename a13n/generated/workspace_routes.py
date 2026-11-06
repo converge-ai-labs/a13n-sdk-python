@@ -91,6 +91,7 @@ WORKSPACE_PATHS = (
     re.compile("/api/v1/findings/[^/]+\\Z"),
     re.compile("/api/v1/media\\-understanding\\-defaults\\Z"),
     re.compile("/api/v1/memories\\Z"),
+    re.compile("/api/v1/memories/guidance\\-presets\\Z"),
     re.compile("/api/v1/memories/[^/]+\\Z"),
     re.compile("/api/v1/memories/[^/]+/files\\Z"),
     re.compile("/api/v1/memories/[^/]+/files/move\\Z"),

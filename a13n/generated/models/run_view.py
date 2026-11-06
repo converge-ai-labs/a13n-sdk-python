@@ -18,11 +18,11 @@ if TYPE_CHECKING:
     from ..models.browser_binding import BrowserBinding
     from ..models.environment_mount import EnvironmentMount
     from ..models.failure import Failure
-    from ..models.frozen_memory_mount import FrozenMemoryMount
     from ..models.historical_desktop_pending import HistoricalDesktopPending
     from ..models.memory_mount import MemoryMount
     from ..models.pending import Pending
     from ..models.resume import Resume
+    from ..models.run_memory_mount import RunMemoryMount
     from ..models.run_options_output import RunOptionsOutput
     from ..models.run_view_input_type_0 import RunViewInputType0
     from ..models.run_view_labels import RunViewLabels
@@ -49,7 +49,7 @@ class RunView:
         labels (RunViewLabels):
         lineage (Lineage):
         max_attempts (int):
-        memory_mounts (list[FrozenMemoryMount | MemoryMount]):
+        memory_mounts (list[MemoryMount | RunMemoryMount]):
         options (RunOptionsOutput): What a message may choose for the run it starts. A steer joins a run with the
             defaults or equal options.
         output (Any | None):
@@ -88,7 +88,7 @@ class RunView:
     labels: RunViewLabels
     lineage: Lineage
     max_attempts: int
-    memory_mounts: list[FrozenMemoryMount | MemoryMount]
+    memory_mounts: list[MemoryMount | RunMemoryMount]
     options: RunOptionsOutput
     output: Any | None
     parent_run_id: str | None
@@ -319,11 +319,11 @@ class RunView:
         from ..models.browser_binding import BrowserBinding
         from ..models.environment_mount import EnvironmentMount
         from ..models.failure import Failure
-        from ..models.frozen_memory_mount import FrozenMemoryMount
         from ..models.historical_desktop_pending import HistoricalDesktopPending
         from ..models.memory_mount import MemoryMount
         from ..models.pending import Pending
         from ..models.resume import Resume
+        from ..models.run_memory_mount import RunMemoryMount
         from ..models.run_options_output import RunOptionsOutput
         from ..models.run_view_input_type_0 import RunViewInputType0
         from ..models.run_view_labels import RunViewLabels
@@ -400,7 +400,7 @@ class RunView:
         _memory_mounts = d.pop("memory_mounts")
         for memory_mounts_item_data in _memory_mounts:
 
-            def _parse_memory_mounts_item(data: object) -> FrozenMemoryMount | MemoryMount:
+            def _parse_memory_mounts_item(data: object) -> MemoryMount | RunMemoryMount:
                 try:
                     if not isinstance(data, dict):
                         raise TypeError()
@@ -413,7 +413,7 @@ class RunView:
                     pass
                 if not isinstance(data, dict):
                     raise TypeError()
-                memory_mounts_item_type_1 = FrozenMemoryMount.from_dict(data)
+                memory_mounts_item_type_1 = RunMemoryMount.from_dict(data)
 
                 return memory_mounts_item_type_1
 
