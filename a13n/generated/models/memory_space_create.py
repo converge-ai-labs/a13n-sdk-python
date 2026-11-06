@@ -8,6 +8,7 @@ from attrs import define as _attrs_define
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
+    from ..models.file_memory_guidance import FileMemoryGuidance
     from ..models.memory_space_create_labels import MemorySpaceCreateLabels
     from ..models.organization_policy import OrganizationPolicy
 
@@ -23,7 +24,7 @@ class MemorySpaceCreate:
         always_load (list[str] | Unset):
         description (None | str | Unset):
         enabled (bool | Unset):
-        guide (None | str | Unset):
+        guidance (FileMemoryGuidance | Unset):
         labels (MemorySpaceCreateLabels | Unset):
         organization (OrganizationPolicy | Unset):
     """
@@ -32,7 +33,7 @@ class MemorySpaceCreate:
     always_load: list[str] | Unset = UNSET
     description: str | Unset | None = UNSET
     enabled: bool | Unset = UNSET
-    guide: str | Unset | None = UNSET
+    guidance: FileMemoryGuidance | Unset = UNSET
     labels: MemorySpaceCreateLabels | Unset = UNSET
     organization: OrganizationPolicy | Unset = UNSET
 
@@ -51,11 +52,9 @@ class MemorySpaceCreate:
 
         enabled = self.enabled
 
-        guide: str | Unset | None
-        if isinstance(self.guide, Unset):
-            guide = UNSET
-        else:
-            guide = self.guide
+        guidance: dict[str, Any] | Unset = UNSET
+        if not isinstance(self.guidance, Unset):
+            guidance = self.guidance.to_dict()
 
         labels: dict[str, Any] | Unset = UNSET
         if not isinstance(self.labels, Unset):
@@ -78,8 +77,8 @@ class MemorySpaceCreate:
             field_dict["description"] = description
         if enabled is not UNSET:
             field_dict["enabled"] = enabled
-        if guide is not UNSET:
-            field_dict["guide"] = guide
+        if guidance is not UNSET:
+            field_dict["guidance"] = guidance
         if labels is not UNSET:
             field_dict["labels"] = labels
         if organization is not UNSET:
@@ -89,6 +88,7 @@ class MemorySpaceCreate:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.file_memory_guidance import FileMemoryGuidance
         from ..models.memory_space_create_labels import MemorySpaceCreateLabels
         from ..models.organization_policy import OrganizationPolicy
 
@@ -108,14 +108,12 @@ class MemorySpaceCreate:
 
         enabled = d.pop("enabled", UNSET)
 
-        def _parse_guide(data: object) -> str | Unset | None:
-            if data is None:
-                return data
-            if isinstance(data, Unset):
-                return data
-            return cast(str | Unset | None, data)
-
-        guide = _parse_guide(d.pop("guide", UNSET))
+        _guidance = d.pop("guidance", UNSET)
+        guidance: FileMemoryGuidance | Unset
+        if isinstance(_guidance, Unset):
+            guidance = UNSET
+        else:
+            guidance = FileMemoryGuidance.from_dict(_guidance)
 
         _labels = d.pop("labels", UNSET)
         labels: MemorySpaceCreateLabels | Unset
@@ -136,7 +134,7 @@ class MemorySpaceCreate:
             always_load=always_load,
             description=description,
             enabled=enabled,
-            guide=guide,
+            guidance=guidance,
             labels=labels,
             organization=organization,
         )

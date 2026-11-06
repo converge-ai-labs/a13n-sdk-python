@@ -5,12 +5,10 @@ from typing import TYPE_CHECKING, Any, Literal, TypeVar, cast
 
 from attrs import define as _attrs_define
 
-from ..models.agent_config_output_subagent_mode import AgentConfigOutputSubagentMode
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.agent_config_output_model_settings import AgentConfigOutputModelSettings
-    from ..models.agent_config_output_subagents import AgentConfigOutputSubagents
     from ..models.agent_config_output_toolsets import AgentConfigOutputToolsets
     from ..models.agent_model_characteristics import AgentModelCharacteristics
     from ..models.agent_reviewer import AgentReviewer
@@ -27,6 +25,7 @@ if TYPE_CHECKING:
     from ..models.session_memory_settings import SessionMemorySettings
     from ..models.shared_skill_sync import SharedSkillSync
     from ..models.skill_selection import SkillSelection
+    from ..models.subagents_output import SubagentsOutput
     from ..models.tool_search import ToolSearch
 
 
@@ -43,6 +42,7 @@ class AgentConfigOutput:
         builtin_skills (list[Literal['platform-operations']] | Unset):
         client_tools (list[ClientToolDefinition] | Unset):
         connection_tools (list[ConnectionSelection] | Unset):
+        default_environment_id (None | str | Unset):
         default_environment_template_id (None | str | Unset):
         execution (ExecutionOverride | None | Unset):
         instructions (str | Unset):
@@ -61,8 +61,7 @@ class AgentConfigOutput:
         reviewer (AgentReviewer | None | Unset):
         skill_sync (IsolatedSkillSync | SharedSkillSync | Unset):
         skills (list[SkillSelection] | Unset):
-        subagent_mode (AgentConfigOutputSubagentMode | Unset):
-        subagents (AgentConfigOutputSubagents | Unset):
+        subagents (SubagentsOutput | Unset):
         summarize (bool | Unset):
         tool_search (None | ToolSearch | Unset):
         toolsets (AgentConfigOutputToolsets | Unset):
@@ -74,6 +73,7 @@ class AgentConfigOutput:
     builtin_skills: list[Literal["platform-operations"]] | Unset = UNSET
     client_tools: list[ClientToolDefinition] | Unset = UNSET
     connection_tools: list[ConnectionSelection] | Unset = UNSET
+    default_environment_id: str | Unset | None = UNSET
     default_environment_template_id: str | Unset | None = UNSET
     execution: ExecutionOverride | Unset | None = UNSET
     instructions: str | Unset = UNSET
@@ -89,8 +89,7 @@ class AgentConfigOutput:
     reviewer: AgentReviewer | Unset | None = UNSET
     skill_sync: IsolatedSkillSync | SharedSkillSync | Unset = UNSET
     skills: list[SkillSelection] | Unset = UNSET
-    subagent_mode: AgentConfigOutputSubagentMode | Unset = UNSET
-    subagents: AgentConfigOutputSubagents | Unset = UNSET
+    subagents: SubagentsOutput | Unset = UNSET
     summarize: bool | Unset = UNSET
     tool_search: ToolSearch | Unset | None = UNSET
     toolsets: AgentConfigOutputToolsets | Unset = UNSET
@@ -127,6 +126,12 @@ class AgentConfigOutput:
             for connection_tools_item_data in self.connection_tools:
                 connection_tools_item = connection_tools_item_data.to_dict()
                 connection_tools.append(connection_tools_item)
+
+        default_environment_id: str | Unset | None
+        if isinstance(self.default_environment_id, Unset):
+            default_environment_id = UNSET
+        else:
+            default_environment_id = self.default_environment_id
 
         default_environment_template_id: str | Unset | None
         if isinstance(self.default_environment_template_id, Unset):
@@ -215,10 +220,6 @@ class AgentConfigOutput:
                 skills_item = skills_item_data.to_dict()
                 skills.append(skills_item)
 
-        subagent_mode: str | Unset = UNSET
-        if not isinstance(self.subagent_mode, Unset):
-            subagent_mode = self.subagent_mode.value
-
         subagents: dict[str, Any] | Unset = UNSET
         if not isinstance(self.subagents, Unset):
             subagents = self.subagents.to_dict()
@@ -254,6 +255,8 @@ class AgentConfigOutput:
             field_dict["client_tools"] = client_tools
         if connection_tools is not UNSET:
             field_dict["connection_tools"] = connection_tools
+        if default_environment_id is not UNSET:
+            field_dict["default_environment_id"] = default_environment_id
         if default_environment_template_id is not UNSET:
             field_dict["default_environment_template_id"] = default_environment_template_id
         if execution is not UNSET:
@@ -284,8 +287,6 @@ class AgentConfigOutput:
             field_dict["skill_sync"] = skill_sync
         if skills is not UNSET:
             field_dict["skills"] = skills
-        if subagent_mode is not UNSET:
-            field_dict["subagent_mode"] = subagent_mode
         if subagents is not UNSET:
             field_dict["subagents"] = subagents
         if summarize is not UNSET:
@@ -302,7 +303,6 @@ class AgentConfigOutput:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.agent_config_output_model_settings import AgentConfigOutputModelSettings
-        from ..models.agent_config_output_subagents import AgentConfigOutputSubagents
         from ..models.agent_config_output_toolsets import AgentConfigOutputToolsets
         from ..models.agent_model_characteristics import AgentModelCharacteristics
         from ..models.agent_reviewer import AgentReviewer
@@ -319,6 +319,7 @@ class AgentConfigOutput:
         from ..models.session_memory_settings import SessionMemorySettings
         from ..models.shared_skill_sync import SharedSkillSync
         from ..models.skill_selection import SkillSelection
+        from ..models.subagents_output import SubagentsOutput
         from ..models.tool_search import ToolSearch
 
         d = dict(src_dict)
@@ -360,6 +361,15 @@ class AgentConfigOutput:
                 connection_tools_item = ConnectionSelection.from_dict(connection_tools_item_data)
 
                 connection_tools.append(connection_tools_item)
+
+        def _parse_default_environment_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        default_environment_id = _parse_default_environment_id(d.pop("default_environment_id", UNSET))
 
         def _parse_default_environment_template_id(data: object) -> str | Unset | None:
             if data is None:
@@ -518,19 +528,12 @@ class AgentConfigOutput:
 
                 skills.append(skills_item)
 
-        _subagent_mode = d.pop("subagent_mode", UNSET)
-        subagent_mode: AgentConfigOutputSubagentMode | Unset
-        if isinstance(_subagent_mode, Unset):
-            subagent_mode = UNSET
-        else:
-            subagent_mode = AgentConfigOutputSubagentMode(_subagent_mode)
-
         _subagents = d.pop("subagents", UNSET)
-        subagents: AgentConfigOutputSubagents | Unset
+        subagents: SubagentsOutput | Unset
         if isinstance(_subagents, Unset):
             subagents = UNSET
         else:
-            subagents = AgentConfigOutputSubagents.from_dict(_subagents)
+            subagents = SubagentsOutput.from_dict(_subagents)
 
         summarize = d.pop("summarize", UNSET)
 
@@ -566,6 +569,7 @@ class AgentConfigOutput:
             builtin_skills=builtin_skills,
             client_tools=client_tools,
             connection_tools=connection_tools,
+            default_environment_id=default_environment_id,
             default_environment_template_id=default_environment_template_id,
             execution=execution,
             instructions=instructions,
@@ -581,7 +585,6 @@ class AgentConfigOutput:
             reviewer=reviewer,
             skill_sync=skill_sync,
             skills=skills,
-            subagent_mode=subagent_mode,
             subagents=subagents,
             summarize=summarize,
             tool_search=tool_search,

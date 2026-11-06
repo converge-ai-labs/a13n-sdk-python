@@ -25,7 +25,7 @@ class RunListItem:
 
     Attributes:
         agent_id (str):
-        agent_revision_id (str):
+        agent_revision_id (None | str):
         attempts (int):
         created_at (datetime.datetime):
         current_attempt_id (None | str):
@@ -49,7 +49,7 @@ class RunListItem:
     """
 
     agent_id: str
-    agent_revision_id: str
+    agent_revision_id: str | None
     attempts: int
     created_at: datetime.datetime
     current_attempt_id: str | None
@@ -75,6 +75,7 @@ class RunListItem:
     def to_dict(self) -> dict[str, Any]:
         agent_id = self.agent_id
 
+        agent_revision_id: str | None
         agent_revision_id = self.agent_revision_id
 
         attempts = self.attempts
@@ -170,7 +171,12 @@ class RunListItem:
         d = dict(src_dict)
         agent_id = d.pop("agent_id")
 
-        agent_revision_id = d.pop("agent_revision_id")
+        def _parse_agent_revision_id(data: object) -> str | None:
+            if data is None:
+                return data
+            return cast(str | None, data)
+
+        agent_revision_id = _parse_agent_revision_id(d.pop("agent_revision_id"))
 
         attempts = d.pop("attempts")
 

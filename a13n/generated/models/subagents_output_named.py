@@ -6,11 +6,11 @@ from typing import Any, TypeVar
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
-T = TypeVar("T", bound="AgentConfigOutputSubagents")
+T = TypeVar("T", bound="SubagentsOutputNamed")
 
 
 @_attrs_define(repr=False)
-class AgentConfigOutputSubagents:
+class SubagentsOutputNamed:
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -23,10 +23,10 @@ class AgentConfigOutputSubagents:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        agent_config_output_subagents = cls()
+        subagents_output_named = cls()
 
-        agent_config_output_subagents.additional_properties = d
-        return agent_config_output_subagents
+        subagents_output_named.additional_properties = d
+        return subagents_output_named
 
     @property
     def additional_keys(self) -> list[str]:

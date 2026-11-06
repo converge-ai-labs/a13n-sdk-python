@@ -1,7 +1,7 @@
 from enum import StrEnum
 
 
-class AgentConfigOutputSubagentMode(StrEnum):
+class SubagentsOutputMode(StrEnum):
     ASYNC = "async"
     INLINE = "inline"
 

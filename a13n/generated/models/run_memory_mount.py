@@ -4,15 +4,16 @@ from collections.abc import Mapping
 from typing import Any, TypeVar, cast
 
 from attrs import define as _attrs_define
+from attrs import field as _attrs_field
 
 from ..models.memory_access import MemoryAccess
 from ..types import UNSET, Unset
 
-T = TypeVar("T", bound="FrozenMemoryMount")
+T = TypeVar("T", bound="RunMemoryMount")
 
 
 @_attrs_define(repr=False)
-class FrozenMemoryMount:
+class RunMemoryMount:
     """Host-resolved Space identity and roots, never accepted from a mount request.
 
     Attributes:
@@ -30,6 +31,7 @@ class FrozenMemoryMount:
     recall: bool | Unset = UNSET
     roots: list[str] | Unset = UNSET
     space_id: str | Unset | None = UNSET
+    additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         access = self.access.value
@@ -51,7 +53,7 @@ class FrozenMemoryMount:
             space_id = self.space_id
 
         field_dict: dict[str, Any] = {}
-
+        field_dict.update(self.additional_properties)
         field_dict.update(
             {
                 "access": access,
@@ -90,7 +92,7 @@ class FrozenMemoryMount:
 
         space_id = _parse_space_id(d.pop("space_id", UNSET))
 
-        frozen_memory_mount = cls(
+        run_memory_mount = cls(
             access=access,
             memory_id=memory_id,
             name=name,
@@ -99,4 +101,21 @@ class FrozenMemoryMount:
             space_id=space_id,
         )
 
-        return frozen_memory_mount
+        run_memory_mount.additional_properties = d
+        return run_memory_mount
+
+    @property
+    def additional_keys(self) -> list[str]:
+        return list(self.additional_properties.keys())
+
+    def __getitem__(self, key: str) -> Any:
+        return self.additional_properties[key]
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        self.additional_properties[key] = value
+
+    def __delitem__(self, key: str) -> None:
+        del self.additional_properties[key]
+
+    def __contains__(self, key: str) -> bool:
+        return key in self.additional_properties
