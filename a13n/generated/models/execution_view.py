@@ -28,6 +28,7 @@ class ExecutionView:
         tool_call_id (str):
         tool_name (str):
         worker_id (str):
+        cancel_requested (bool | Unset):
         completed_at (datetime.datetime | None | Unset):
         created_at (datetime.datetime | Unset):
         delivery_acknowledged (bool | Unset):
@@ -47,6 +48,7 @@ class ExecutionView:
     tool_call_id: str
     tool_name: str
     worker_id: str
+    cancel_requested: bool | Unset = UNSET
     completed_at: datetime.datetime | Unset | None = UNSET
     created_at: datetime.datetime | Unset = UNSET
     delivery_acknowledged: bool | Unset = UNSET
@@ -88,6 +90,8 @@ class ExecutionView:
         tool_name = self.tool_name
 
         worker_id = self.worker_id
+
+        cancel_requested = self.cancel_requested
 
         completed_at: str | Unset | None
         if isinstance(self.completed_at, Unset):
@@ -133,6 +137,8 @@ class ExecutionView:
                 "worker_id": worker_id,
             }
         )
+        if cancel_requested is not UNSET:
+            field_dict["cancel_requested"] = cancel_requested
         if completed_at is not UNSET:
             field_dict["completed_at"] = completed_at
         if created_at is not UNSET:
@@ -212,6 +218,8 @@ class ExecutionView:
 
         worker_id = d.pop("worker_id")
 
+        cancel_requested = d.pop("cancel_requested", UNSET)
+
         def _parse_completed_at(data: object) -> datetime.datetime | Unset | None:
             if data is None:
                 return data
@@ -269,6 +277,7 @@ class ExecutionView:
             tool_call_id=tool_call_id,
             tool_name=tool_name,
             worker_id=worker_id,
+            cancel_requested=cancel_requested,
             completed_at=completed_at,
             created_at=created_at,
             delivery_acknowledged=delivery_acknowledged,
