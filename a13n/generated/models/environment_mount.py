@@ -9,6 +9,7 @@ from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.environment_permission_set_output import EnvironmentPermissionSetOutput
+    from ..models.session_configuration import SessionConfiguration
 
 
 T = TypeVar("T", bound="EnvironmentMount")
@@ -21,12 +22,19 @@ class EnvironmentMount:
         environment_id (str):
         name (str):
         permission_ceiling (EnvironmentPermissionSetOutput | Unset):
+        session_binding (str | Unset):
+        session_configuration (SessionConfiguration | Unset): Tenant-authored Session policy; Service credentials are
+            not process-environment references.
+        session_version (int | Unset):
         working_directory (None | str | Unset):
     """
 
     environment_id: str
     name: str
     permission_ceiling: EnvironmentPermissionSetOutput | Unset = UNSET
+    session_binding: str | Unset = UNSET
+    session_configuration: SessionConfiguration | Unset = UNSET
+    session_version: int | Unset = UNSET
     working_directory: str | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
@@ -37,6 +45,14 @@ class EnvironmentMount:
         permission_ceiling: dict[str, Any] | Unset = UNSET
         if not isinstance(self.permission_ceiling, Unset):
             permission_ceiling = self.permission_ceiling.to_dict()
+
+        session_binding = self.session_binding
+
+        session_configuration: dict[str, Any] | Unset = UNSET
+        if not isinstance(self.session_configuration, Unset):
+            session_configuration = self.session_configuration.to_dict()
+
+        session_version = self.session_version
 
         working_directory: str | Unset | None
         if isinstance(self.working_directory, Unset):
@@ -54,6 +70,12 @@ class EnvironmentMount:
         )
         if permission_ceiling is not UNSET:
             field_dict["permission_ceiling"] = permission_ceiling
+        if session_binding is not UNSET:
+            field_dict["session_binding"] = session_binding
+        if session_configuration is not UNSET:
+            field_dict["session_configuration"] = session_configuration
+        if session_version is not UNSET:
+            field_dict["session_version"] = session_version
         if working_directory is not UNSET:
             field_dict["working_directory"] = working_directory
 
@@ -62,6 +84,7 @@ class EnvironmentMount:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.environment_permission_set_output import EnvironmentPermissionSetOutput
+        from ..models.session_configuration import SessionConfiguration
 
         d = dict(src_dict)
         environment_id = d.pop("environment_id")
@@ -74,6 +97,17 @@ class EnvironmentMount:
             permission_ceiling = UNSET
         else:
             permission_ceiling = EnvironmentPermissionSetOutput.from_dict(_permission_ceiling)
+
+        session_binding = d.pop("session_binding", UNSET)
+
+        _session_configuration = d.pop("session_configuration", UNSET)
+        session_configuration: SessionConfiguration | Unset
+        if isinstance(_session_configuration, Unset):
+            session_configuration = UNSET
+        else:
+            session_configuration = SessionConfiguration.from_dict(_session_configuration)
+
+        session_version = d.pop("session_version", UNSET)
 
         def _parse_working_directory(data: object) -> str | Unset | None:
             if data is None:
@@ -88,6 +122,9 @@ class EnvironmentMount:
             environment_id=environment_id,
             name=name,
             permission_ceiling=permission_ceiling,
+            session_binding=session_binding,
+            session_configuration=session_configuration,
+            session_version=session_version,
             working_directory=working_directory,
         )
 

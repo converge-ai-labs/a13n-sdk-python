@@ -86,7 +86,11 @@ class RunConfiguration(_Value):
 
 @dataclass(frozen=True, kw_only=True)
 class AgentOverride(_Value):
-    """All selectable overrides; nested schema objects use native JSON mappings."""
+    """All selectable overrides; nested schema objects use native JSON mappings.
+
+    ``subagents`` replaces the complete configuration and uses the Service's
+    ``mode``, ``named`` and ``dynamic`` fields, not a name-keyed override map.
+    """
 
     builtin_skills: list[Literal["platform-operations"]] | Unset | None = UNSET
     client_tools: list[dict[str, JsonValue]] | Unset | None = UNSET
@@ -132,6 +136,7 @@ class ExecutionOverride(_Value):
 class RunOptions(_Value):
     context: Mapping[str, JsonValue] | Unset | None = UNSET
     execution: ExecutionOverride | Mapping[str, JsonValue] | Unset | None = UNSET
+    environment: Mapping[str, JsonValue] | Unset | None = UNSET
     configuration: RunConfiguration | Unset | None = UNSET
     overrides: AgentOverride | Unset | None = UNSET
     labels: Mapping[str, str] | Unset = UNSET
@@ -147,6 +152,8 @@ class MountCreate(_Value):
     environment_id: str
     working_directory: str | Unset | None = UNSET
     permission_ceiling: Mapping[str, JsonValue] | Unset = UNSET
+    session_binding: str | Unset = UNSET
+    session_configuration: Mapping[str, JsonValue] | Unset | None = UNSET
 
 
 @dataclass(frozen=True)

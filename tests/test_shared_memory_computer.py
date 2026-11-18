@@ -20,7 +20,7 @@ SPACE = {
     "enabled": False,
     "organization": {"enabled": False},
     "memory_id": "mem_1",
-    "guide": None,
+    "guidance": {},
     "always_load": [],
     "file_count": 0,
     "content_bytes": 0,
@@ -60,6 +60,7 @@ MOUNT = {
     "desktop_enabled": False,
     "name": "work",
     "environment_id": "env_1",
+    "session_binding": "work",
     "working_directory": None,
     "permission_ceiling": {"operations": []},
 }
@@ -79,7 +80,7 @@ async def added_calls(api):
         lambda: api.memory_spaces.create(body=wire.MemorySpaceCreate(name="Notes", enabled=False)),
         lambda: space.delete(if_match='"space:1"'),
         lambda: space.get(),
-        lambda: space.update(body=wire.MemorySpaceUpdate(guide=None, enabled=False), if_match='"space:1"'),
+        lambda: space.update(body=wire.MemorySpaceUpdate(guidance=None, enabled=False), if_match='"space:1"'),
         lambda: space.organization.get(),
         lambda: space.organizations.list(limit=1),
         lambda: space.organizations.create(),
@@ -125,7 +126,12 @@ def response_for(request):
     elif "/memory-spaces" in path:
         value = SPACE
     elif path.endswith("/agent"):
-        value = {"revision": REVISION, "config": {"model": "live-model", "instructions": "Run override"}}
+        value = {
+            "revision": REVISION,
+            "definition_id": "def_1",
+            "source": "revision",
+            "config": {"model": "live-model", "instructions": "Run override"},
+        }
     elif "/attempts/" in path:
         value = ATTEMPT
     elif "/images/" in path:
@@ -185,7 +191,7 @@ def test_eighteen_added_operations_auth_binding_metadata_and_client_lifetime(mod
         assert len(requests) == 18
         assert requests[3].url.params["enabled"] == "false"
         assert requests[3].url.params.get_list("label") == ["team:one"]
-        assert json.loads(requests[7].content) == {"enabled": False, "guide": None}
+        assert json.loads(requests[7].content) == {"enabled": False, "guidance": None}
         assert json.loads(requests[16].content) == {"permission_ceiling": {"operations": []}}
         for i in [0, 5, 7, 16]:
             assert "if-match" in requests[i].headers
@@ -284,7 +290,7 @@ def test_run_memory_union_keeps_typed_host_resolved_roots(frozen):
     parsed = wire.RunView.from_dict(value)
     assert isinstance(parsed.memory_mounts[0], wire.MemoryMount)
     resolved = parsed.memory_mounts[1]
-    assert isinstance(resolved, wire.FrozenMemoryMount)
+    assert isinstance(resolved, wire.RunMemoryMount)
     assert resolved.roots == frozen["roots"] and resolved.space_id == frozen["space_id"]
     assert parsed.to_dict()["memory_mounts"] == value["memory_mounts"]
     assert "roots" not in wire.MemoryMount.__annotations__
@@ -442,6 +448,7 @@ def test_current_shared_memory_and_execution_guide_functions():
                     201,
                     json={
                         "id": "ses_1",
+                        "auto_recreate_lost_environment": False,
                         "workspace_id": "ws_1",
                         "labels": {},
                         "created_by_id": "usr_1",

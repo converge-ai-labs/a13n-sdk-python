@@ -8,6 +8,7 @@ from attrs import define as _attrs_define
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
+    from ..models.file_memory_guidance import FileMemoryGuidance
     from ..models.memory_space_update_labels_type_0 import MemorySpaceUpdateLabelsType0
     from ..models.organization_policy import OrganizationPolicy
 
@@ -22,7 +23,7 @@ class MemorySpaceUpdate:
         always_load (list[str] | None | Unset):
         description (None | str | Unset):
         enabled (bool | None | Unset):
-        guide (None | str | Unset):
+        guidance (FileMemoryGuidance | None | Unset):
         labels (MemorySpaceUpdateLabelsType0 | None | Unset):
         name (None | str | Unset):
         organization (None | OrganizationPolicy | Unset):
@@ -31,12 +32,13 @@ class MemorySpaceUpdate:
     always_load: list[str] | Unset | None = UNSET
     description: str | Unset | None = UNSET
     enabled: bool | Unset | None = UNSET
-    guide: str | Unset | None = UNSET
+    guidance: FileMemoryGuidance | Unset | None = UNSET
     labels: MemorySpaceUpdateLabelsType0 | Unset | None = UNSET
     name: str | Unset | None = UNSET
     organization: OrganizationPolicy | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.file_memory_guidance import FileMemoryGuidance
         from ..models.memory_space_update_labels_type_0 import MemorySpaceUpdateLabelsType0
         from ..models.organization_policy import OrganizationPolicy
 
@@ -61,11 +63,13 @@ class MemorySpaceUpdate:
         else:
             enabled = self.enabled
 
-        guide: str | Unset | None
-        if isinstance(self.guide, Unset):
-            guide = UNSET
+        guidance: dict[str, Any] | Unset | None
+        if isinstance(self.guidance, Unset):
+            guidance = UNSET
+        elif isinstance(self.guidance, FileMemoryGuidance):
+            guidance = self.guidance.to_dict()
         else:
-            guide = self.guide
+            guidance = self.guidance
 
         labels: dict[str, Any] | Unset | None
         if isinstance(self.labels, Unset):
@@ -98,8 +102,8 @@ class MemorySpaceUpdate:
             field_dict["description"] = description
         if enabled is not UNSET:
             field_dict["enabled"] = enabled
-        if guide is not UNSET:
-            field_dict["guide"] = guide
+        if guidance is not UNSET:
+            field_dict["guidance"] = guidance
         if labels is not UNSET:
             field_dict["labels"] = labels
         if name is not UNSET:
@@ -111,6 +115,7 @@ class MemorySpaceUpdate:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.file_memory_guidance import FileMemoryGuidance
         from ..models.memory_space_update_labels_type_0 import MemorySpaceUpdateLabelsType0
         from ..models.organization_policy import OrganizationPolicy
 
@@ -151,14 +156,22 @@ class MemorySpaceUpdate:
 
         enabled = _parse_enabled(d.pop("enabled", UNSET))
 
-        def _parse_guide(data: object) -> str | Unset | None:
+        def _parse_guidance(data: object) -> FileMemoryGuidance | Unset | None:
             if data is None:
                 return data
             if isinstance(data, Unset):
                 return data
-            return cast(str | Unset | None, data)
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                guidance_type_0 = FileMemoryGuidance.from_dict(data)
 
-        guide = _parse_guide(d.pop("guide", UNSET))
+                return guidance_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(FileMemoryGuidance | Unset | None, data)
+
+        guidance = _parse_guidance(d.pop("guidance", UNSET))
 
         def _parse_labels(data: object) -> MemorySpaceUpdateLabelsType0 | Unset | None:
             if data is None:
@@ -207,7 +220,7 @@ class MemorySpaceUpdate:
             always_load=always_load,
             description=description,
             enabled=enabled,
-            guide=guide,
+            guidance=guidance,
             labels=labels,
             name=name,
             organization=organization,

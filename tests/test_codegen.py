@@ -80,6 +80,16 @@ def test_every_pinned_named_model_and_inline_schema_has_generated_coverage() -> 
         "BuiltinSkillName",
         "CallResult",
         "ConnectionConfig",
+        "CredentialValue",
+        "Description",
+        "EgressDestinations",
+        "Hosts",
+        "Name",
+        "OrganizationTarget",
+        "RunEnvironment-Input",
+        "RunEnvironment-Output",
+        "SandboxPolicy",
+        "SessionIsolation",
         "EnteredCredential",
         "InitialMounts",
         "JsonValue",
@@ -101,7 +111,7 @@ def test_every_pinned_named_model_and_inline_schema_has_generated_coverage() -> 
             assert exported in wire.__all__, name
             named.add(name)
     assert named | inline == schemas.keys()
-    assert len(schemas) == 539
+    assert len(schemas) == 631
     for name in inline:
         reference = f"#/components/schemas/{name}"
         assert reference in json.dumps(document), name
@@ -115,7 +125,7 @@ def test_session_only_models_share_native_types_without_changing_native_inventor
     augmented = with_session_models(document, session)
     native = document["components"]["schemas"]
     combined = augmented["components"]["schemas"]
-    assert len(native) == 539 and len(session["$defs"]) == 111
+    assert len(native) == 631 and len(session["$defs"]) == 136
     assert combined.keys() - native.keys() == {
         "AppReady",
         "ScheduleConfiguration",
@@ -154,7 +164,13 @@ def test_session_only_models_share_native_types_without_changing_native_inventor
 
 def test_full_pinned_generation_matches_committed_owner(tmp_path: Path) -> None:
     document = json.loads((ROOT / "contract/openapi.json").read_text())
-    output = generate(document, tmp_path, (ROOT / "contract/session-stream.schema.json").read_bytes())
+    import warnings
+
+    # Generated intermediate code must parse without deprecated lexical forms,
+    # before our formatter has an opportunity to normalize it.
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", SyntaxWarning)
+        output = generate(document, tmp_path, (ROOT / "contract/session-stream.schema.json").read_bytes())
 
     def files(root: Path) -> dict[str, bytes]:
         return {

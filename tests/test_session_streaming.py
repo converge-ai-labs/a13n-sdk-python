@@ -375,7 +375,7 @@ def test_app_ready_preserves_repeated_committed_references_and_rejects_invalid_e
             {
                 "app_id": "app_1",
                 "connection_id": "conn_1",
-                "agent_revision_id": "rev_1",
+                "agent_definition_id": "rev_1",
                 "source_run_id": "run_1",
                 "tool_call_id": "call_1",
                 "tool_name": "chart",

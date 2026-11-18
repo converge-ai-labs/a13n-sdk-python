@@ -20,6 +20,7 @@ class AnalysisCreate:
         instructions (str | Unset):
         max_traces (int | Unset):
         presets (list[Preset] | Unset):
+        session_ids (list[str] | Unset):
         started_after (datetime.datetime | None | Unset):
         started_before (datetime.datetime | None | Unset):
         trace_id (None | str | Unset):
@@ -29,6 +30,7 @@ class AnalysisCreate:
     instructions: str | Unset = UNSET
     max_traces: int | Unset = UNSET
     presets: list[Preset] | Unset = UNSET
+    session_ids: list[str] | Unset = UNSET
     started_after: datetime.datetime | Unset | None = UNSET
     started_before: datetime.datetime | Unset | None = UNSET
     trace_id: str | Unset | None = UNSET
@@ -50,6 +52,10 @@ class AnalysisCreate:
             for presets_item_data in self.presets:
                 presets_item = presets_item_data.value
                 presets.append(presets_item)
+
+        session_ids: list[str] | Unset = UNSET
+        if not isinstance(self.session_ids, Unset):
+            session_ids = self.session_ids
 
         started_after: str | Unset | None
         if isinstance(self.started_after, Unset):
@@ -84,6 +90,8 @@ class AnalysisCreate:
             field_dict["max_traces"] = max_traces
         if presets is not UNSET:
             field_dict["presets"] = presets
+        if session_ids is not UNSET:
+            field_dict["session_ids"] = session_ids
         if started_after is not UNSET:
             field_dict["started_after"] = started_after
         if started_before is not UNSET:
@@ -118,6 +126,8 @@ class AnalysisCreate:
                 presets_item = Preset(presets_item_data)
 
                 presets.append(presets_item)
+
+        session_ids = cast(list[str], d.pop("session_ids", UNSET))
 
         def _parse_started_after(data: object) -> datetime.datetime | Unset | None:
             if data is None:
@@ -167,6 +177,7 @@ class AnalysisCreate:
             instructions=instructions,
             max_traces=max_traces,
             presets=presets,
+            session_ids=session_ids,
             started_after=started_after,
             started_before=started_before,
             trace_id=trace_id,

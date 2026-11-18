@@ -7,6 +7,7 @@ class BuiltinToolsetKey(StrEnum):
     COMPUTER = "computer"
     FILES = "files"
     MEMORY = "memory"
+    OBJECT_STORE = "object_store"
     SHELL = "shell"
     WEB = "web"
 

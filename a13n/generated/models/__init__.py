@@ -4,13 +4,9 @@ from .account_disable import AccountDisable
 from .agent import Agent
 from .agent_config_input import AgentConfigInput
 from .agent_config_input_model_settings import AgentConfigInputModelSettings
-from .agent_config_input_subagent_mode import AgentConfigInputSubagentMode
-from .agent_config_input_subagents import AgentConfigInputSubagents
 from .agent_config_input_toolsets import AgentConfigInputToolsets
 from .agent_config_output import AgentConfigOutput
 from .agent_config_output_model_settings import AgentConfigOutputModelSettings
-from .agent_config_output_subagent_mode import AgentConfigOutputSubagentMode
-from .agent_config_output_subagents import AgentConfigOutputSubagents
 from .agent_config_output_toolsets import AgentConfigOutputToolsets
 from .agent_create import AgentCreate
 from .agent_create_labels import AgentCreateLabels
@@ -20,11 +16,9 @@ from .agent_labels import AgentLabels
 from .agent_model_characteristics import AgentModelCharacteristics
 from .agent_override_input import AgentOverrideInput
 from .agent_override_input_model_settings_type_0 import AgentOverrideInputModelSettingsType0
-from .agent_override_input_subagents_type_0 import AgentOverrideInputSubagentsType0
 from .agent_override_input_toolsets_type_0 import AgentOverrideInputToolsetsType0
 from .agent_override_output import AgentOverrideOutput
 from .agent_override_output_model_settings_type_0 import AgentOverrideOutputModelSettingsType0
-from .agent_override_output_subagents_type_0 import AgentOverrideOutputSubagentsType0
 from .agent_override_output_toolsets_type_0 import AgentOverrideOutputToolsetsType0
 from .agent_page import AgentPage
 from .agent_reviewer import AgentReviewer
@@ -41,12 +35,14 @@ from .agent_update_labels_type_0 import AgentUpdateLabelsType0
 from .agent_usage import AgentUsage
 from .agent_usage_page import AgentUsagePage
 from .agent_validate import AgentValidate
+from .allowlist_destinations import AllowlistDestinations
 from .analysis import Analysis
 from .analysis_create import AnalysisCreate
 from .analysis_page import AnalysisPage
 from .any_change_trigger import AnyChangeTrigger
 from .api_key import ApiKey
 from .api_key_page import ApiKeyPage
+from .app_plugins import AppPlugins
 from .app_ready import AppReady
 from .app_reference import AppReference
 from .app_resource import AppResource
@@ -56,6 +52,9 @@ from .app_tool_call import AppToolCall
 from .app_tool_call_arguments import AppToolCallArguments
 from .app_tool_result import AppToolResult
 from .app_tool_result_result import AppToolResultResult
+from .app_update import AppUpdate
+from .app_view import AppView
+from .application_status import ApplicationStatus
 from .approve import Approve
 from .arguments import Arguments
 from .arguments_event_type_0 import ArgumentsEventType0
@@ -83,6 +82,7 @@ from .authorization_result import AuthorizationResult
 from .authorization_start import AuthorizationStart
 from .authorization_status import AuthorizationStatus
 from .authorization_status_state import AuthorizationStatusState
+from .automatic_organization_history import AutomaticOrganizationHistory
 from .automatic_tool_search import AutomaticToolSearch
 from .background_compaction_policy import BackgroundCompactionPolicy
 from .bearer_credential import BearerCredential
@@ -105,6 +105,14 @@ from .builtin_toolset_key import BuiltinToolsetKey
 from .busy_occurrence import BusyOccurrence
 from .busy_occurrence_page import BusyOccurrencePage
 from .callback_outcome import CallbackOutcome
+from .candidate_application import CandidateApplication
+from .candidate_apply import CandidateApply
+from .candidate_apply_mode import CandidateApplyMode
+from .candidate_change import CandidateChange
+from .candidate_change_operation import CandidateChangeOperation
+from .candidate_diff import CandidateDiff
+from .candidate_file import CandidateFile
+from .candidate_replacement import CandidateReplacement
 from .capabilities import Capabilities
 from .catalog_index import CatalogIndex
 from .catalog_index_item import CatalogIndexItem
@@ -116,7 +124,13 @@ from .cgroup_metrics import CgroupMetrics
 from .change_count_trigger import ChangeCountTrigger
 from .child_environment_policy import ChildEnvironmentPolicy
 from .child_environment_policy_mode import ChildEnvironmentPolicyMode
+from .claim_result import ClaimResult
+from .claim_result_state import ClaimResultState
 from .client_authentication import ClientAuthentication
+from .client_connection_observation import ClientConnectionObservation
+from .client_connection_observation_state import ClientConnectionObservationState
+from .client_environment import ClientEnvironment
+from .client_environment_configuration import ClientEnvironmentConfiguration
 from .client_tool_definition import ClientToolDefinition
 from .client_tool_definition_metadata import ClientToolDefinitionMetadata
 from .client_tool_definition_parameters_json_schema import ClientToolDefinitionParametersJsonSchema
@@ -141,6 +155,7 @@ from .connection_failure_reason import ConnectionFailureReason
 from .connection_metrics import ConnectionMetrics
 from .connection_metrics_tcp_states import ConnectionMetricsTcpStates
 from .connection_page import ConnectionPage
+from .connection_request import ConnectionRequest
 from .connection_selection import ConnectionSelection
 from .connection_selection_permissions import ConnectionSelectionPermissions
 from .connection_status import ConnectionStatus
@@ -165,8 +180,15 @@ from .control_status import ControlStatus
 from .cpu_time_seconds import CpuTimeSeconds
 from .created_subscription import CreatedSubscription
 from .creation_progress import CreationProgress
+from .creation_progress_profile import CreationProgressProfile
 from .creation_progress_stage import CreationProgressStage
+from .credential import Credential
+from .credential_create import CredentialCreate
 from .credential_mode import CredentialMode
+from .credential_page import CredentialPage
+from .credential_rotation import CredentialRotation
+from .credential_state import CredentialState
+from .credential_update import CredentialUpdate
 from .credentials import Credentials
 from .credentials_headers import CredentialsHeaders
 from .cron_schedule import CronSchedule
@@ -182,6 +204,7 @@ from .data_source import DataSource
 from .data_source_create import DataSourceCreate
 from .data_source_page import DataSourcePage
 from .data_source_update import DataSourceUpdate
+from .debug_hold import DebugHold
 from .definition import Definition
 from .definition_definition import DefinitionDefinition
 from .definition_reference import DefinitionReference
@@ -199,10 +222,15 @@ from .desktop_takeover import DesktopTakeover
 from .desktop_viewer import DesktopViewer
 from .desktop_viewer_mode import DesktopViewerMode
 from .device import Device
+from .device_claim import DeviceClaim
 from .device_create import DeviceCreate
 from .device_credential import DeviceCredential
 from .device_page import DevicePage
 from .device_update import DeviceUpdate
+from .diagnostics import Diagnostics
+from .diagnostics_envd import DiagnosticsEnvd
+from .diagnostics_rendered_item import DiagnosticsRenderedItem
+from .disabled_sandbox import DisabledSandbox
 from .discovery_source import DiscoverySource
 from .discovery_source_kind import DiscoverySourceKind
 from .disk_io_metrics import DiskIoMetrics
@@ -211,6 +239,10 @@ from .disk_metrics_devices import DiskMetricsDevices
 from .display_continuation import DisplayContinuation
 from .display_continuation_memory_sources import DisplayContinuationMemorySources
 from .display_continuation_response_groups import DisplayContinuationResponseGroups
+from .dynamic_subagents_input import DynamicSubagentsInput
+from .dynamic_subagents_output import DynamicSubagentsOutput
+from .egress_configuration import EgressConfiguration
+from .egress_mode import EgressMode
 from .email_change_confirm import EmailChangeConfirm
 from .entry_page import EntryPage
 from .entry_status import EntryStatus
@@ -233,14 +265,18 @@ from .environment_query import EnvironmentQuery
 from .environment_query_history import EnvironmentQueryHistory
 from .environment_query_metric_type_0 import EnvironmentQueryMetricType0
 from .environment_query_metric_type_1 import EnvironmentQueryMetricType1
+from .environment_state import EnvironmentState
 from .environment_update import EnvironmentUpdate
 from .environment_variables import EnvironmentVariables
 from .environment_view import EnvironmentView
+from .environment_view_desktop_preview import EnvironmentViewDesktopPreview
+from .environment_view_kind import EnvironmentViewKind
 from .environment_view_metrics_labels import EnvironmentViewMetricsLabels
 from .error_body import ErrorBody
 from .error_body_details import ErrorBodyDetails
 from .error_code import ErrorCode
 from .error_envelope import ErrorEnvelope
+from .event import Event
 from .evidence import Evidence
 from .execution_observation import ExecutionObservation
 from .execution_observation_source import ExecutionObservationSource
@@ -248,6 +284,8 @@ from .execution_override import ExecutionOverride
 from .execution_page import ExecutionPage
 from .execution_view import ExecutionView
 from .execution_view_status import ExecutionViewStatus
+from .existing_run_environment_input import ExistingRunEnvironmentInput
+from .existing_run_environment_output import ExistingRunEnvironmentOutput
 from .export import Export
 from .export_health import ExportHealth
 from .export_protocol import ExportProtocol
@@ -256,6 +294,8 @@ from .external_target_create_metrics_labels import ExternalTargetCreateMetricsLa
 from .failed import Failed
 from .failure import Failure
 from .failure_summary import FailureSummary
+from .file_memory_guidance import FileMemoryGuidance
+from .file_memory_target import FileMemoryTarget
 from .file_source import FileSource
 from .filesystem_inventory import FilesystemInventory
 from .filesystem_inventory_filesystems import FilesystemInventoryFilesystems
@@ -268,7 +308,9 @@ from .finding_update import FindingUpdate
 from .fork import Fork
 from .fragment_state import FragmentState
 from .fragment_state_pending import FragmentStatePending
-from .frozen_memory_mount import FrozenMemoryMount
+from .fresh_run_environment_input import FreshRunEnvironmentInput
+from .fresh_run_environment_output import FreshRunEnvironmentOutput
+from .frontend_view import FrontendView
 from .gap import Gap
 from .get_inbox_entry_section_type_0 import GetInboxEntrySectionType0
 from .get_model_catalog_section_type_0 import GetModelCatalogSectionType0
@@ -277,10 +319,12 @@ from .get_run_agent_section_type_0 import GetRunAgentSectionType0
 from .get_run_section_type_0 import GetRunSectionType0
 from .get_trace_section_type_0 import GetTraceSectionType0
 from .git_hub_source import GitHubSource
+from .grant_access import GrantAccess
 from .grant_create import GrantCreate
 from .grant_page import GrantPage
 from .grant_update import GrantUpdate
 from .grant_view import GrantView
+from .guide_module import GuideModule
 from .harness_model_characteristics_input import HarnessModelCharacteristicsInput
 from .harness_model_characteristics_output import HarnessModelCharacteristicsOutput
 from .headers_credential import HeadersCredential
@@ -292,6 +336,7 @@ from .history_purge import HistoryPurge
 from .image_input_policy import ImageInputPolicy
 from .inbox_order import InboxOrder
 from .initial_run import InitialRun
+from .instance_diagnostics import InstanceDiagnostics
 from .instant_query import InstantQuery
 from .instrumentation_scope import InstrumentationScope
 from .invitation import Invitation
@@ -338,10 +383,12 @@ from .login_input import LoginInput
 from .login_output import LoginOutput
 from .login_session import LoginSession
 from .login_session_page import LoginSessionPage
+from .logs import Logs
 from .managed_environment_create import ManagedEnvironmentCreate
 from .managed_environment_create_metrics_labels import ManagedEnvironmentCreateMetricsLabels
 from .mcp_auth import McpAuth
 from .mcp_config import McpConfig
+from .mcp_config_object_ref_tools import McpConfigObjectRefTools
 from .mcp_headers import McpHeaders
 from .mcp_server import McpServer
 from .mcp_server_page import McpServerPage
@@ -354,6 +401,7 @@ from .member_usage_page import MemberUsagePage
 from .member_usage_status import MemberUsageStatus
 from .memory import Memory
 from .memory_access import MemoryAccess
+from .memory_automation import MemoryAutomation
 from .memory_create import MemoryCreate
 from .memory_create_labels import MemoryCreateLabels
 from .memory_events import MemoryEvents
@@ -364,11 +412,16 @@ from .memory_file_move import MemoryFileMove
 from .memory_file_page import MemoryFilePage
 from .memory_file_replace import MemoryFileReplace
 from .memory_file_state import MemoryFileState
+from .memory_guidance_module import MemoryGuidanceModule
+from .memory_guidance_preset import MemoryGuidancePreset
+from .memory_guidance_presets import MemoryGuidancePresets
 from .memory_kind import MemoryKind
 from .memory_labels import MemoryLabels
 from .memory_mount import MemoryMount
 from .memory_mount_page import MemoryMountPage
 from .memory_mount_update import MemoryMountUpdate
+from .memory_organization import MemoryOrganization
+from .memory_organization_page import MemoryOrganizationPage
 from .memory_page import MemoryPage
 from .memory_record_page import MemoryRecordPage
 from .memory_record_provenance import MemoryRecordProvenance
@@ -433,6 +486,8 @@ from .mount_create import MountCreate
 from .mount_page import MountPage
 from .mount_update import MountUpdate
 from .mount_view import MountView
+from .native_isolation import NativeIsolation
+from .native_tool_search import NativeToolSearch
 from .network_interface_metrics import NetworkInterfaceMetrics
 from .network_metrics import NetworkMetrics
 from .network_metrics_interfaces import NetworkMetricsInterfaces
@@ -465,8 +520,14 @@ from .opened_app_tool import OpenedAppTool
 from .operating_system import OperatingSystem
 from .operation_kind import OperationKind
 from .organization import Organization
+from .organization_candidate import OrganizationCandidate
+from .organization_candidate_status import OrganizationCandidateStatus
+from .organization_history import OrganizationHistory
 from .organization_page import OrganizationPage
 from .organization_policy import OrganizationPolicy
+from .organization_request import OrganizationRequest
+from .organization_request_output import OrganizationRequestOutput
+from .organization_source import OrganizationSource
 from .organization_update import OrganizationUpdate
 from .output_preview import OutputPreview
 from .output_spec import OutputSpec
@@ -475,6 +536,11 @@ from .output_spec_schema_type_0 import OutputSpecSchemaType0
 from .output_variant import OutputVariant
 from .output_variant_resources import OutputVariantResources
 from .output_variant_schema import OutputVariantSchema
+from .pairing import Pairing
+from .pairing_approval import PairingApproval
+from .pairing_created import PairingCreated
+from .pairing_created_state import PairingCreatedState
+from .pairing_state import PairingState
 from .panel import Panel
 from .panel_unit import PanelUnit
 from .panel_visualization import PanelVisualization
@@ -539,6 +605,7 @@ from .provider_update import ProviderUpdate
 from .provider_update_config_type_0 import ProviderUpdateConfigType0
 from .provider_update_credential_type_0 import ProviderUpdateCredentialType0
 from .provider_update_extra_headers import ProviderUpdateExtraHeaders
+from .public_destinations import PublicDestinations
 from .query import Query
 from .query_data import QueryData
 from .query_data_resulttype import QueryDataResulttype
@@ -548,11 +615,22 @@ from .range_query import RangeQuery
 from .read_run_item_content_field import ReadRunItemContentField
 from .read_span_content_section import ReadSpanContentSection
 from .read_view import ReadView
+from .reclamation import Reclamation
+from .recognition import Recognition
 from .record_source import RecordSource
+from .registered import Registered
+from .registration import Registration
 from .renew import Renew
 from .renew_control import RenewControl
 from .request_context import RequestContext
 from .request_context_headers import RequestContextHeaders
+from .resource import Resource
+from .resource_disposition import ResourceDisposition
+from .resource_kind import ResourceKind
+from .resource_observation import ResourceObservation
+from .resource_observation_observation import ResourceObservationObservation
+from .resource_observation_status import ResourceObservationStatus
+from .restricted_sandbox import RestrictedSandbox
 from .resume import Resume
 from .resume_approvals import ResumeApprovals
 from .resume_calls import ResumeCalls
@@ -564,6 +642,7 @@ from .revision_summary_page import RevisionSummaryPage
 from .revoked_connection import RevokedConnection
 from .revoked_connection_remote_revocation import RevokedConnectionRemoteRevocation
 from .run_agent import RunAgent
+from .run_agent_source import RunAgentSource
 from .run_agent_summary import RunAgentSummary
 from .run_configuration_input import RunConfigurationInput
 from .run_configuration_input_extensions import RunConfigurationInputExtensions
@@ -576,6 +655,7 @@ from .run_items import RunItems
 from .run_labels import RunLabels
 from .run_labels_labels import RunLabelsLabels
 from .run_list_item import RunListItem
+from .run_memory_mount import RunMemoryMount
 from .run_metrics import RunMetrics
 from .run_options_input import RunOptionsInput
 from .run_options_input_labels import RunOptionsInputLabels
@@ -594,6 +674,7 @@ from .run_view_input_type_0 import RunViewInputType0
 from .run_view_labels import RunViewLabels
 from .run_view_revision_selection import RunViewRevisionSelection
 from .run_view_usage_at_seal_type_0 import RunViewUsageAtSealType0
+from .sandbox_grant import SandboxGrant
 from .schedule import Schedule
 from .schedule_command import ScheduleCommand
 from .schedule_configuration import ScheduleConfiguration
@@ -619,6 +700,7 @@ from .schedule_update import ScheduleUpdate
 from .schedule_update_labels_type_0 import ScheduleUpdateLabelsType0
 from .search_traces_direction import SearchTracesDirection
 from .search_traces_order_by import SearchTracesOrderBy
+from .secret_reference import SecretReference
 from .selected_trace import SelectedTrace
 from .selection import Selection
 from .selection_metrics_labels import SelectionMetricsLabels
@@ -630,8 +712,16 @@ from .service_account_page import ServiceAccountPage
 from .service_account_status import ServiceAccountStatus
 from .service_account_update import ServiceAccountUpdate
 from .service_account_update_status_type_0 import ServiceAccountUpdateStatusType0
+from .session_application_summary import SessionApplicationSummary
+from .session_binding_update import SessionBindingUpdate
+from .session_binding_view import SessionBindingView
+from .session_configuration import SessionConfiguration
 from .session_create import SessionCreate
 from .session_create_labels import SessionCreateLabels
+from .session_credential import SessionCredential
+from .session_credential_credential_state import SessionCredentialCredentialState
+from .session_credential_page import SessionCredentialPage
+from .session_lifecycle_policy import SessionLifecyclePolicy
 from .session_memory_settings import SessionMemorySettings
 from .session_origin import SessionOrigin
 from .session_page import SessionPage
@@ -662,6 +752,7 @@ from .skill_update_labels_type_0 import SkillUpdateLabelsType0
 from .skill_validate import SkillValidate
 from .space_binding import SpaceBinding
 from .space_organization_status import SpaceOrganizationStatus
+from .space_target import SpaceTarget
 from .span import Span
 from .span_attributes import SpanAttributes
 from .span_content_page import SpanContentPage
@@ -678,14 +769,21 @@ from .span_status import SpanStatus
 from .span_summary import SpanSummary
 from .span_summary_status import SpanSummaryStatus
 from .span_usage import SpanUsage
+from .startup_error_policy import StartupErrorPolicy
 from .state import State
 from .status import Status
+from .status_change import StatusChange
+from .status_change_status import StatusChangeStatus
 from .steering import Steering
 from .stream_position import StreamPosition
-from .subagent_override_input import SubagentOverrideInput
-from .subagent_override_output import SubagentOverrideOutput
 from .subagent_selection_input import SubagentSelectionInput
 from .subagent_selection_output import SubagentSelectionOutput
+from .subagents_input import SubagentsInput
+from .subagents_input_mode import SubagentsInputMode
+from .subagents_input_named import SubagentsInputNamed
+from .subagents_output import SubagentsOutput
+from .subagents_output_mode import SubagentsOutputMode
+from .subagents_output_named import SubagentsOutputNamed
 from .submitted import Submitted
 from .subscription import Subscription
 from .subscription_create import SubscriptionCreate
@@ -694,6 +792,7 @@ from .subscription_page import SubscriptionPage
 from .subscription_update import SubscriptionUpdate
 from .system_info import SystemInfo
 from .system_metrics import SystemMetrics
+from .system_preset import SystemPreset
 from .takeover import Takeover
 from .template import Template
 from .template_config import TemplateConfig
@@ -787,6 +886,9 @@ from .video_input_policy import VideoInputPolicy
 from .video_url_type import VideoUrlType
 from .viewer import Viewer
 from .viewer_protocol import ViewerProtocol
+from .vm_backend import VmBackend
+from .vm_isolation import VmIsolation
+from .vm_mount import VmMount
 from .wait_reason import WaitReason
 from .web_operation import WebOperation
 from .webhook_delivery import WebhookDelivery
@@ -803,13 +905,9 @@ __all__ = (
     "Agent",
     "AgentConfigInput",
     "AgentConfigInputModelSettings",
-    "AgentConfigInputSubagentMode",
-    "AgentConfigInputSubagents",
     "AgentConfigInputToolsets",
     "AgentConfigOutput",
     "AgentConfigOutputModelSettings",
-    "AgentConfigOutputSubagentMode",
-    "AgentConfigOutputSubagents",
     "AgentConfigOutputToolsets",
     "AgentCreate",
     "AgentCreateLabels",
@@ -819,11 +917,9 @@ __all__ = (
     "AgentModelCharacteristics",
     "AgentOverrideInput",
     "AgentOverrideInputModelSettingsType0",
-    "AgentOverrideInputSubagentsType0",
     "AgentOverrideInputToolsetsType0",
     "AgentOverrideOutput",
     "AgentOverrideOutputModelSettingsType0",
-    "AgentOverrideOutputSubagentsType0",
     "AgentOverrideOutputToolsetsType0",
     "AgentPage",
     "AgentReviewer",
@@ -840,12 +936,14 @@ __all__ = (
     "AgentUsage",
     "AgentUsagePage",
     "AgentValidate",
+    "AllowlistDestinations",
     "Analysis",
     "AnalysisCreate",
     "AnalysisPage",
     "AnyChangeTrigger",
     "ApiKey",
     "ApiKeyPage",
+    "AppPlugins",
     "AppReady",
     "AppReference",
     "AppResource",
@@ -855,6 +953,9 @@ __all__ = (
     "AppToolCallArguments",
     "AppToolResult",
     "AppToolResultResult",
+    "AppUpdate",
+    "AppView",
+    "ApplicationStatus",
     "Approve",
     "Arguments",
     "ArgumentsEventType0",
@@ -882,6 +983,7 @@ __all__ = (
     "AuthorizationStart",
     "AuthorizationStatus",
     "AuthorizationStatusState",
+    "AutomaticOrganizationHistory",
     "AutomaticToolSearch",
     "BackgroundCompactionPolicy",
     "BearerCredential",
@@ -904,6 +1006,14 @@ __all__ = (
     "BusyOccurrence",
     "BusyOccurrencePage",
     "CallbackOutcome",
+    "CandidateApplication",
+    "CandidateApply",
+    "CandidateApplyMode",
+    "CandidateChange",
+    "CandidateChangeOperation",
+    "CandidateDiff",
+    "CandidateFile",
+    "CandidateReplacement",
     "Capabilities",
     "CatalogIndex",
     "CatalogIndexItem",
@@ -915,7 +1025,13 @@ __all__ = (
     "ChangeCountTrigger",
     "ChildEnvironmentPolicy",
     "ChildEnvironmentPolicyMode",
+    "ClaimResult",
+    "ClaimResultState",
     "ClientAuthentication",
+    "ClientConnectionObservation",
+    "ClientConnectionObservationState",
+    "ClientEnvironment",
+    "ClientEnvironmentConfiguration",
     "ClientToolDefinition",
     "ClientToolDefinitionMetadata",
     "ClientToolDefinitionParametersJsonSchema",
@@ -940,6 +1056,7 @@ __all__ = (
     "ConnectionMetrics",
     "ConnectionMetricsTcpStates",
     "ConnectionPage",
+    "ConnectionRequest",
     "ConnectionSelection",
     "ConnectionSelectionPermissions",
     "ConnectionStatus",
@@ -964,8 +1081,15 @@ __all__ = (
     "CpuTimeSeconds",
     "CreatedSubscription",
     "CreationProgress",
+    "CreationProgressProfile",
     "CreationProgressStage",
+    "Credential",
+    "CredentialCreate",
     "CredentialMode",
+    "CredentialPage",
+    "CredentialRotation",
+    "CredentialState",
+    "CredentialUpdate",
     "Credentials",
     "CredentialsHeaders",
     "CronSchedule",
@@ -981,6 +1105,7 @@ __all__ = (
     "DataSourceCreate",
     "DataSourcePage",
     "DataSourceUpdate",
+    "DebugHold",
     "Definition",
     "DefinitionDefinition",
     "DefinitionReference",
@@ -998,10 +1123,15 @@ __all__ = (
     "DesktopViewer",
     "DesktopViewerMode",
     "Device",
+    "DeviceClaim",
     "DeviceCreate",
     "DeviceCredential",
     "DevicePage",
     "DeviceUpdate",
+    "Diagnostics",
+    "DiagnosticsEnvd",
+    "DiagnosticsRenderedItem",
+    "DisabledSandbox",
     "DiscoverySource",
     "DiscoverySourceKind",
     "DiskIoMetrics",
@@ -1010,6 +1140,10 @@ __all__ = (
     "DisplayContinuation",
     "DisplayContinuationMemorySources",
     "DisplayContinuationResponseGroups",
+    "DynamicSubagentsInput",
+    "DynamicSubagentsOutput",
+    "EgressConfiguration",
+    "EgressMode",
     "EmailChangeConfirm",
     "EntryPage",
     "EntryStatus",
@@ -1032,14 +1166,18 @@ __all__ = (
     "EnvironmentQueryHistory",
     "EnvironmentQueryMetricType0",
     "EnvironmentQueryMetricType1",
+    "EnvironmentState",
     "EnvironmentUpdate",
     "EnvironmentVariables",
     "EnvironmentView",
+    "EnvironmentViewDesktopPreview",
+    "EnvironmentViewKind",
     "EnvironmentViewMetricsLabels",
     "ErrorBody",
     "ErrorBodyDetails",
     "ErrorCode",
     "ErrorEnvelope",
+    "Event",
     "Evidence",
     "ExecutionObservation",
     "ExecutionObservationSource",
@@ -1047,6 +1185,8 @@ __all__ = (
     "ExecutionPage",
     "ExecutionView",
     "ExecutionViewStatus",
+    "ExistingRunEnvironmentInput",
+    "ExistingRunEnvironmentOutput",
     "Export",
     "ExportHealth",
     "ExportProtocol",
@@ -1055,6 +1195,8 @@ __all__ = (
     "Failed",
     "Failure",
     "FailureSummary",
+    "FileMemoryGuidance",
+    "FileMemoryTarget",
     "FileSource",
     "FilesystemInventory",
     "FilesystemInventoryFilesystems",
@@ -1067,7 +1209,9 @@ __all__ = (
     "Fork",
     "FragmentState",
     "FragmentStatePending",
-    "FrozenMemoryMount",
+    "FreshRunEnvironmentInput",
+    "FreshRunEnvironmentOutput",
+    "FrontendView",
     "Gap",
     "GetInboxEntrySectionType0",
     "GetModelCatalogSectionType0",
@@ -1076,10 +1220,12 @@ __all__ = (
     "GetRunSectionType0",
     "GetTraceSectionType0",
     "GitHubSource",
+    "GrantAccess",
     "GrantCreate",
     "GrantPage",
     "GrantUpdate",
     "GrantView",
+    "GuideModule",
     "HarnessModelCharacteristicsInput",
     "HarnessModelCharacteristicsOutput",
     "HeadersCredential",
@@ -1091,6 +1237,7 @@ __all__ = (
     "ImageInputPolicy",
     "InboxOrder",
     "InitialRun",
+    "InstanceDiagnostics",
     "InstantQuery",
     "InstrumentationScope",
     "Invitation",
@@ -1137,10 +1284,12 @@ __all__ = (
     "LoginOutput",
     "LoginSession",
     "LoginSessionPage",
+    "Logs",
     "ManagedEnvironmentCreate",
     "ManagedEnvironmentCreateMetricsLabels",
     "McpAuth",
     "McpConfig",
+    "McpConfigObjectRefTools",
     "McpHeaders",
     "McpServer",
     "McpServerPage",
@@ -1153,6 +1302,7 @@ __all__ = (
     "MemberUsageStatus",
     "Memory",
     "MemoryAccess",
+    "MemoryAutomation",
     "MemoryCreate",
     "MemoryCreateLabels",
     "MemoryEvents",
@@ -1163,11 +1313,16 @@ __all__ = (
     "MemoryFilePage",
     "MemoryFileReplace",
     "MemoryFileState",
+    "MemoryGuidanceModule",
+    "MemoryGuidancePreset",
+    "MemoryGuidancePresets",
     "MemoryKind",
     "MemoryLabels",
     "MemoryMount",
     "MemoryMountPage",
     "MemoryMountUpdate",
+    "MemoryOrganization",
+    "MemoryOrganizationPage",
     "MemoryPage",
     "MemoryRecordPage",
     "MemoryRecordProvenance",
@@ -1232,6 +1387,8 @@ __all__ = (
     "MountPage",
     "MountUpdate",
     "MountView",
+    "NativeIsolation",
+    "NativeToolSearch",
     "NetworkInterfaceMetrics",
     "NetworkMetrics",
     "NetworkMetricsInterfaces",
@@ -1264,8 +1421,14 @@ __all__ = (
     "OperatingSystem",
     "OperationKind",
     "Organization",
+    "OrganizationCandidate",
+    "OrganizationCandidateStatus",
+    "OrganizationHistory",
     "OrganizationPage",
     "OrganizationPolicy",
+    "OrganizationRequest",
+    "OrganizationRequestOutput",
+    "OrganizationSource",
     "OrganizationUpdate",
     "OutputPreview",
     "OutputSpec",
@@ -1274,6 +1437,11 @@ __all__ = (
     "OutputVariant",
     "OutputVariantResources",
     "OutputVariantSchema",
+    "Pairing",
+    "PairingApproval",
+    "PairingCreated",
+    "PairingCreatedState",
+    "PairingState",
     "Panel",
     "PanelUnit",
     "PanelVisualization",
@@ -1336,6 +1504,7 @@ __all__ = (
     "ProviderUpdateConfigType0",
     "ProviderUpdateCredentialType0",
     "ProviderUpdateExtraHeaders",
+    "PublicDestinations",
     "Query",
     "QueryData",
     "QueryDataResulttype",
@@ -1345,11 +1514,22 @@ __all__ = (
     "ReadRunItemContentField",
     "ReadSpanContentSection",
     "ReadView",
+    "Reclamation",
+    "Recognition",
     "RecordSource",
+    "Registered",
+    "Registration",
     "Renew",
     "RenewControl",
     "RequestContext",
     "RequestContextHeaders",
+    "Resource",
+    "ResourceDisposition",
+    "ResourceKind",
+    "ResourceObservation",
+    "ResourceObservationObservation",
+    "ResourceObservationStatus",
+    "RestrictedSandbox",
     "Resume",
     "ResumeApprovals",
     "ResumeCalls",
@@ -1361,6 +1541,7 @@ __all__ = (
     "RevokedConnection",
     "RevokedConnectionRemoteRevocation",
     "RunAgent",
+    "RunAgentSource",
     "RunAgentSummary",
     "RunConfigurationInput",
     "RunConfigurationInputExtensions",
@@ -1373,6 +1554,7 @@ __all__ = (
     "RunLabels",
     "RunLabelsLabels",
     "RunListItem",
+    "RunMemoryMount",
     "RunMetrics",
     "RunOptionsInput",
     "RunOptionsInputLabels",
@@ -1391,6 +1573,7 @@ __all__ = (
     "RunViewLabels",
     "RunViewRevisionSelection",
     "RunViewUsageAtSealType0",
+    "SandboxGrant",
     "Schedule",
     "ScheduleCommand",
     "ScheduleConfiguration",
@@ -1416,6 +1599,7 @@ __all__ = (
     "ScheduleUpdateLabelsType0",
     "SearchTracesDirection",
     "SearchTracesOrderBy",
+    "SecretReference",
     "SelectedTrace",
     "Selection",
     "SelectionMetricsLabels",
@@ -1427,8 +1611,16 @@ __all__ = (
     "ServiceAccountStatus",
     "ServiceAccountUpdate",
     "ServiceAccountUpdateStatusType0",
+    "SessionApplicationSummary",
+    "SessionBindingUpdate",
+    "SessionBindingView",
+    "SessionConfiguration",
     "SessionCreate",
     "SessionCreateLabels",
+    "SessionCredential",
+    "SessionCredentialCredentialState",
+    "SessionCredentialPage",
+    "SessionLifecyclePolicy",
     "SessionMemorySettings",
     "SessionOrigin",
     "SessionPage",
@@ -1459,6 +1651,7 @@ __all__ = (
     "SkillValidate",
     "SpaceBinding",
     "SpaceOrganizationStatus",
+    "SpaceTarget",
     "Span",
     "SpanAttributes",
     "SpanContentPage",
@@ -1475,14 +1668,21 @@ __all__ = (
     "SpanSummary",
     "SpanSummaryStatus",
     "SpanUsage",
+    "StartupErrorPolicy",
     "State",
     "Status",
+    "StatusChange",
+    "StatusChangeStatus",
     "Steering",
     "StreamPosition",
-    "SubagentOverrideInput",
-    "SubagentOverrideOutput",
     "SubagentSelectionInput",
     "SubagentSelectionOutput",
+    "SubagentsInput",
+    "SubagentsInputMode",
+    "SubagentsInputNamed",
+    "SubagentsOutput",
+    "SubagentsOutputMode",
+    "SubagentsOutputNamed",
     "Submitted",
     "Subscription",
     "SubscriptionCreate",
@@ -1491,6 +1691,7 @@ __all__ = (
     "SubscriptionUpdate",
     "SystemInfo",
     "SystemMetrics",
+    "SystemPreset",
     "Takeover",
     "Template",
     "TemplateConfig",
@@ -1584,6 +1785,9 @@ __all__ = (
     "VideoUrlType",
     "Viewer",
     "ViewerProtocol",
+    "VmBackend",
+    "VmIsolation",
+    "VmMount",
     "WaitReason",
     "WebOperation",
     "WebhookDelivery",

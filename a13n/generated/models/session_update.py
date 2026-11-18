@@ -20,12 +20,14 @@ T = TypeVar("T", bound="SessionUpdate")
 class SessionUpdate:
     """
     Attributes:
+        auto_recreate_lost_environment (bool | Unset):
         labels (None | SessionUpdateLabelsType0 | Unset):
         memory (None | SessionMemorySettings | Unset):
         origin (None | SessionOrigin | Unset):
         title (None | str | Unset):
     """
 
+    auto_recreate_lost_environment: bool | Unset = UNSET
     labels: SessionUpdateLabelsType0 | Unset | None = UNSET
     memory: SessionMemorySettings | Unset | None = UNSET
     origin: SessionOrigin | Unset | None = UNSET
@@ -35,6 +37,8 @@ class SessionUpdate:
         from ..models.session_memory_settings import SessionMemorySettings
         from ..models.session_origin import SessionOrigin
         from ..models.session_update_labels_type_0 import SessionUpdateLabelsType0
+
+        auto_recreate_lost_environment = self.auto_recreate_lost_environment
 
         labels: dict[str, Any] | Unset | None
         if isinstance(self.labels, Unset):
@@ -69,6 +73,8 @@ class SessionUpdate:
         field_dict: dict[str, Any] = {}
 
         field_dict.update({})
+        if auto_recreate_lost_environment is not UNSET:
+            field_dict["auto_recreate_lost_environment"] = auto_recreate_lost_environment
         if labels is not UNSET:
             field_dict["labels"] = labels
         if memory is not UNSET:
@@ -87,6 +93,7 @@ class SessionUpdate:
         from ..models.session_update_labels_type_0 import SessionUpdateLabelsType0
 
         d = dict(src_dict)
+        auto_recreate_lost_environment = d.pop("auto_recreate_lost_environment", UNSET)
 
         def _parse_labels(data: object) -> SessionUpdateLabelsType0 | Unset | None:
             if data is None:
@@ -149,6 +156,7 @@ class SessionUpdate:
         title = _parse_title(d.pop("title", UNSET))
 
         session_update = cls(
+            auto_recreate_lost_environment=auto_recreate_lost_environment,
             labels=labels,
             memory=memory,
             origin=origin,

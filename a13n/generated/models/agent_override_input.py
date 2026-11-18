@@ -10,18 +10,19 @@ from ..types import UNSET, Unset
 if TYPE_CHECKING:
     from ..models.agent_model_characteristics import AgentModelCharacteristics
     from ..models.agent_override_input_model_settings_type_0 import AgentOverrideInputModelSettingsType0
-    from ..models.agent_override_input_subagents_type_0 import AgentOverrideInputSubagentsType0
     from ..models.agent_override_input_toolsets_type_0 import AgentOverrideInputToolsetsType0
     from ..models.agent_reviewer import AgentReviewer
     from ..models.client_tool_definition import ClientToolDefinition
     from ..models.connection_selection import ConnectionSelection
     from ..models.isolated_skill_sync import IsolatedSkillSync
     from ..models.media_understanding_selection import MediaUnderstandingSelection
+    from ..models.native_tool_search import NativeToolSearch
     from ..models.output_spec import OutputSpec
     from ..models.plugin_selection import PluginSelection
     from ..models.retry_override import RetryOverride
     from ..models.shared_skill_sync import SharedSkillSync
     from ..models.skill_selection import SkillSelection
+    from ..models.subagents_input import SubagentsInput
     from ..models.tool_search import ToolSearch
 
 
@@ -32,8 +33,8 @@ T = TypeVar("T", bound="AgentOverrideInput")
 class AgentOverrideInput:
     """What one run changes of its revision's configuration; an omitted or null field keeps the revision's.
 
-    `toolsets` replaces whole toolsets; `retries` and each subagent edge replace the fields they set, and a null
-    edge removes it; every other field replaces the revision's value.
+    `toolsets` replaces whole toolsets; `retries` replaces supplied members.
+    Every other field, including `subagents`, replaces the whole value.
 
         Attributes:
             builtin_skills (list[Literal['platform-operations']] | None | Unset):
@@ -51,8 +52,8 @@ class AgentOverrideInput:
             reviewer (AgentReviewer | None | Unset):
             skill_sync (IsolatedSkillSync | None | SharedSkillSync | Unset):
             skills (list[SkillSelection] | None | Unset):
-            subagents (AgentOverrideInputSubagentsType0 | None | Unset):
-            tool_search (None | ToolSearch | Unset):
+            subagents (None | SubagentsInput | Unset):
+            tool_search (NativeToolSearch | None | ToolSearch | Unset):
             toolsets (AgentOverrideInputToolsetsType0 | None | Unset):
     """
 
@@ -71,8 +72,8 @@ class AgentOverrideInput:
     reviewer: AgentReviewer | Unset | None = UNSET
     skill_sync: IsolatedSkillSync | SharedSkillSync | Unset | None = UNSET
     skills: list[SkillSelection] | Unset | None = UNSET
-    subagents: AgentOverrideInputSubagentsType0 | Unset | None = UNSET
-    tool_search: ToolSearch | Unset | None = UNSET
+    subagents: SubagentsInput | Unset | None = UNSET
+    tool_search: NativeToolSearch | ToolSearch | Unset | None = UNSET
     toolsets: AgentOverrideInputToolsetsType0 | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
@@ -80,14 +81,15 @@ class AgentOverrideInput:
         from ..models.agent_override_input_model_settings_type_0 import (
             AgentOverrideInputModelSettingsType0,
         )
-        from ..models.agent_override_input_subagents_type_0 import AgentOverrideInputSubagentsType0
         from ..models.agent_override_input_toolsets_type_0 import AgentOverrideInputToolsetsType0
         from ..models.agent_reviewer import AgentReviewer
         from ..models.isolated_skill_sync import IsolatedSkillSync
         from ..models.media_understanding_selection import MediaUnderstandingSelection
+        from ..models.native_tool_search import NativeToolSearch
         from ..models.output_spec import OutputSpec
         from ..models.retry_override import RetryOverride
         from ..models.shared_skill_sync import SharedSkillSync
+        from ..models.subagents_input import SubagentsInput
         from ..models.tool_search import ToolSearch
 
         builtin_skills: list[Literal["platform-operations"]] | Unset | None
@@ -226,7 +228,7 @@ class AgentOverrideInput:
         subagents: dict[str, Any] | Unset | None
         if isinstance(self.subagents, Unset):
             subagents = UNSET
-        elif isinstance(self.subagents, AgentOverrideInputSubagentsType0):
+        elif isinstance(self.subagents, SubagentsInput):
             subagents = self.subagents.to_dict()
         else:
             subagents = self.subagents
@@ -235,6 +237,8 @@ class AgentOverrideInput:
         if isinstance(self.tool_search, Unset):
             tool_search = UNSET
         elif isinstance(self.tool_search, ToolSearch):
+            tool_search = self.tool_search.to_dict()
+        elif isinstance(self.tool_search, NativeToolSearch):
             tool_search = self.tool_search.to_dict()
         else:
             tool_search = self.tool_search
@@ -295,18 +299,19 @@ class AgentOverrideInput:
         from ..models.agent_override_input_model_settings_type_0 import (
             AgentOverrideInputModelSettingsType0,
         )
-        from ..models.agent_override_input_subagents_type_0 import AgentOverrideInputSubagentsType0
         from ..models.agent_override_input_toolsets_type_0 import AgentOverrideInputToolsetsType0
         from ..models.agent_reviewer import AgentReviewer
         from ..models.client_tool_definition import ClientToolDefinition
         from ..models.connection_selection import ConnectionSelection
         from ..models.isolated_skill_sync import IsolatedSkillSync
         from ..models.media_understanding_selection import MediaUnderstandingSelection
+        from ..models.native_tool_search import NativeToolSearch
         from ..models.output_spec import OutputSpec
         from ..models.plugin_selection import PluginSelection
         from ..models.retry_override import RetryOverride
         from ..models.shared_skill_sync import SharedSkillSync
         from ..models.skill_selection import SkillSelection
+        from ..models.subagents_input import SubagentsInput
         from ..models.tool_search import ToolSearch
 
         d = dict(src_dict)
@@ -578,7 +583,7 @@ class AgentOverrideInput:
 
         skills = _parse_skills(d.pop("skills", UNSET))
 
-        def _parse_subagents(data: object) -> AgentOverrideInputSubagentsType0 | Unset | None:
+        def _parse_subagents(data: object) -> SubagentsInput | Unset | None:
             if data is None:
                 return data
             if isinstance(data, Unset):
@@ -586,16 +591,16 @@ class AgentOverrideInput:
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
-                subagents_type_0 = AgentOverrideInputSubagentsType0.from_dict(data)
+                subagents_type_0 = SubagentsInput.from_dict(data)
 
                 return subagents_type_0
             except (TypeError, ValueError, AttributeError, KeyError):
                 pass
-            return cast(AgentOverrideInputSubagentsType0 | Unset | None, data)
+            return cast(SubagentsInput | Unset | None, data)
 
         subagents = _parse_subagents(d.pop("subagents", UNSET))
 
-        def _parse_tool_search(data: object) -> ToolSearch | Unset | None:
+        def _parse_tool_search(data: object) -> NativeToolSearch | ToolSearch | Unset | None:
             if data is None:
                 return data
             if isinstance(data, Unset):
@@ -606,6 +611,14 @@ class AgentOverrideInput:
                 tool_search_type_0 = ToolSearch.from_dict(data)
 
                 return tool_search_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                tool_search_type_1 = NativeToolSearch.from_dict(data)
+
+                return tool_search_type_1
             except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             raise ValueError("Invalid nullable model value")

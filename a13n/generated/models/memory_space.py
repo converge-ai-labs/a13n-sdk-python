@@ -8,6 +8,7 @@ from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
 if TYPE_CHECKING:
+    from ..models.file_memory_guidance import FileMemoryGuidance
     from ..models.memory_space_labels import MemorySpaceLabels
     from ..models.organization_policy import OrganizationPolicy
 
@@ -26,7 +27,7 @@ class MemorySpace:
         description (None | str):
         enabled (bool):
         file_count (int):
-        guide (None | str):
+        guidance (FileMemoryGuidance):
         history_bytes (int):
         id (str):
         labels (MemorySpaceLabels):
@@ -47,7 +48,7 @@ class MemorySpace:
     description: str | None
     enabled: bool
     file_count: int
-    guide: str | None
+    guidance: FileMemoryGuidance
     history_bytes: int
     id: str
     labels: MemorySpaceLabels
@@ -77,8 +78,7 @@ class MemorySpace:
 
         file_count = self.file_count
 
-        guide: str | None
-        guide = self.guide
+        guidance = self.guidance.to_dict()
 
         history_bytes = self.history_bytes
 
@@ -113,7 +113,7 @@ class MemorySpace:
                 "description": description,
                 "enabled": enabled,
                 "file_count": file_count,
-                "guide": guide,
+                "guidance": guidance,
                 "history_bytes": history_bytes,
                 "id": id,
                 "labels": labels,
@@ -132,6 +132,7 @@ class MemorySpace:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.file_memory_guidance import FileMemoryGuidance
         from ..models.memory_space_labels import MemorySpaceLabels
         from ..models.organization_policy import OrganizationPolicy
 
@@ -155,12 +156,7 @@ class MemorySpace:
 
         file_count = d.pop("file_count")
 
-        def _parse_guide(data: object) -> str | None:
-            if data is None:
-                return data
-            return cast(str | None, data)
-
-        guide = _parse_guide(d.pop("guide"))
+        guidance = FileMemoryGuidance.from_dict(d.pop("guidance"))
 
         history_bytes = d.pop("history_bytes")
 
@@ -192,7 +188,7 @@ class MemorySpace:
             description=description,
             enabled=enabled,
             file_count=file_count,
-            guide=guide,
+            guidance=guidance,
             history_bytes=history_bytes,
             id=id,
             labels=labels,

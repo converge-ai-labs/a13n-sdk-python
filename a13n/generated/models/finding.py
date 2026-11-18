@@ -23,7 +23,7 @@ class Finding:
     """
     Attributes:
         agent_id (str):
-        agent_revision_id (str):
+        agent_revision_id (None | str):
         analysis_id (None | str):
         assessment (Assessment):
         assessment_note (str):
@@ -46,7 +46,7 @@ class Finding:
     """
 
     agent_id: str
-    agent_revision_id: str
+    agent_revision_id: str | None
     analysis_id: str | None
     assessment: Assessment
     assessment_note: str
@@ -70,6 +70,7 @@ class Finding:
     def to_dict(self) -> dict[str, Any]:
         agent_id = self.agent_id
 
+        agent_revision_id: str | None
         agent_revision_id = self.agent_revision_id
 
         analysis_id: str | None
@@ -156,7 +157,12 @@ class Finding:
         d = dict(src_dict)
         agent_id = d.pop("agent_id")
 
-        agent_revision_id = d.pop("agent_revision_id")
+        def _parse_agent_revision_id(data: object) -> str | None:
+            if data is None:
+                return data
+            return cast(str | None, data)
+
+        agent_revision_id = _parse_agent_revision_id(d.pop("agent_revision_id"))
 
         def _parse_analysis_id(data: object) -> str | None:
             if data is None:
