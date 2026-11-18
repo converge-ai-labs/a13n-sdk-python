@@ -59,7 +59,8 @@
           "browser",
           "web",
           "memory",
-          "assets"
+          "assets",
+          "object_store"
         ],
         "type": "string"
       },
@@ -143,7 +144,7 @@
       },
       "AutomaticToolSearch": {
         "additionalProperties": false,
-        "description": "Group Service-owned sources individually, following the agent's selections.",
+        "description": "Select Service-owned sources for on-demand discovery.",
         "properties": {
           "capabilities": {
             "default": [

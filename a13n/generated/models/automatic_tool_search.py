@@ -13,7 +13,7 @@ T = TypeVar("T", bound="AutomaticToolSearch")
 
 @_attrs_define(repr=False)
 class AutomaticToolSearch:
-    """Group Service-owned sources individually, following the agent's selections.
+    """Select Service-owned sources for on-demand discovery.
 
     Attributes:
         capabilities (list[BuiltinToolsetKey] | Unset):

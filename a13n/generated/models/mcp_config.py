@@ -5,9 +5,11 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 
+from ..models.startup_error_policy import StartupErrorPolicy
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
+    from ..models.mcp_config_object_ref_tools import McpConfigObjectRefTools
     from ..models.o_auth_settings import OAuthSettings
 
 
@@ -22,6 +24,10 @@ class McpConfig:
         forward_context_headers (bool | Unset):
         headers (list[str] | Unset):
         oauth (None | OAuthSettings | Unset):
+        object_ref_tools (McpConfigObjectRefTools | Unset): Object Reference Transport rules by original tool name; '*'
+            matches any characters. Exact names win, then more literal characters, with false winning equally specific
+            patterns. Use {'*': true} to enable all tools; unmatched tools retain native metadata, defaulting to false.
+        on_error (StartupErrorPolicy | Unset):
         tools (list[str] | None | Unset):
     """
 
@@ -29,6 +35,8 @@ class McpConfig:
     forward_context_headers: bool | Unset = UNSET
     headers: list[str] | Unset = UNSET
     oauth: OAuthSettings | Unset | None = UNSET
+    object_ref_tools: McpConfigObjectRefTools | Unset = UNSET
+    on_error: StartupErrorPolicy | Unset = UNSET
     tools: list[str] | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
@@ -49,6 +57,14 @@ class McpConfig:
             oauth = self.oauth.to_dict()
         else:
             oauth = self.oauth
+
+        object_ref_tools: dict[str, Any] | Unset = UNSET
+        if not isinstance(self.object_ref_tools, Unset):
+            object_ref_tools = self.object_ref_tools.to_dict()
+
+        on_error: str | Unset = UNSET
+        if not isinstance(self.on_error, Unset):
+            on_error = self.on_error.value
 
         tools: list[str] | Unset | None
         if isinstance(self.tools, Unset):
@@ -72,6 +88,10 @@ class McpConfig:
             field_dict["headers"] = headers
         if oauth is not UNSET:
             field_dict["oauth"] = oauth
+        if object_ref_tools is not UNSET:
+            field_dict["object_ref_tools"] = object_ref_tools
+        if on_error is not UNSET:
+            field_dict["on_error"] = on_error
         if tools is not UNSET:
             field_dict["tools"] = tools
 
@@ -79,6 +99,7 @@ class McpConfig:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.mcp_config_object_ref_tools import McpConfigObjectRefTools
         from ..models.o_auth_settings import OAuthSettings
 
         d = dict(src_dict)
@@ -105,6 +126,20 @@ class McpConfig:
 
         oauth = _parse_oauth(d.pop("oauth", UNSET))
 
+        _object_ref_tools = d.pop("object_ref_tools", UNSET)
+        object_ref_tools: McpConfigObjectRefTools | Unset
+        if isinstance(_object_ref_tools, Unset):
+            object_ref_tools = UNSET
+        else:
+            object_ref_tools = McpConfigObjectRefTools.from_dict(_object_ref_tools)
+
+        _on_error = d.pop("on_error", UNSET)
+        on_error: StartupErrorPolicy | Unset
+        if isinstance(_on_error, Unset):
+            on_error = UNSET
+        else:
+            on_error = StartupErrorPolicy(_on_error)
+
         def _parse_tools(data: object) -> list[str] | Unset | None:
             if data is None:
                 return data
@@ -127,6 +162,8 @@ class McpConfig:
             forward_context_headers=forward_context_headers,
             headers=headers,
             oauth=oauth,
+            object_ref_tools=object_ref_tools,
+            on_error=on_error,
             tools=tools,
         )
 

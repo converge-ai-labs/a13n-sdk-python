@@ -277,10 +277,14 @@
               "$ref": "#/$defs/ToolSearch"
             },
             {
+              "$ref": "#/$defs/NativeToolSearch"
+            },
+            {
               "type": "null"
             }
           ],
-          "default": null
+          "default": null,
+          "title": "Tool Search"
         },
         "toolsets": {
           "anyOf": [
@@ -397,6 +401,30 @@
         "model"
       ],
       "title": "AgentReviewer",
+      "type": "object"
+    },
+    "AllowlistDestinations": {
+      "additionalProperties": false,
+      "properties": {
+        "hosts": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Hosts",
+          "type": "array"
+        },
+        "mode": {
+          "const": "allowlist",
+          "title": "Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "mode"
+      ],
+      "title": "AllowlistDestinations",
       "type": "object"
     },
     "AppReady": {
@@ -530,7 +558,7 @@
     },
     "AutomaticToolSearch": {
       "additionalProperties": false,
-      "description": "Group Service-owned sources individually, following the agent's selections.",
+      "description": "Select Service-owned sources for on-demand discovery.",
       "properties": {
         "capabilities": {
           "default": [
@@ -614,7 +642,8 @@
         "browser",
         "web",
         "memory",
-        "assets"
+        "assets",
+        "object_store"
       ],
       "type": "string"
     },
@@ -1021,6 +1050,21 @@
       "title": "Deny",
       "type": "object"
     },
+    "DisabledSandbox": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "const": "disabled",
+          "title": "Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "mode"
+      ],
+      "title": "DisabledSandbox",
+      "type": "object"
+    },
     "DisplayContinuation": {
       "additionalProperties": false,
       "description": "Parsing state at a semantic cut; Host paging may retire only immutable items.",
@@ -1132,6 +1176,54 @@
       },
       "title": "DynamicSubagents",
       "type": "object"
+    },
+    "EgressConfiguration": {
+      "additionalProperties": false,
+      "properties": {
+        "destinations": {
+          "$ref": "#/$defs/EgressDestinations"
+        },
+        "secrets": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/SecretReference"
+          },
+          "maxItems": 64,
+          "title": "Secrets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "destinations"
+      ],
+      "title": "EgressConfiguration",
+      "type": "object"
+    },
+    "EgressDestinations": {
+      "discriminator": {
+        "mapping": {
+          "allowlist": "#/$defs/AllowlistDestinations",
+          "public": "#/$defs/PublicDestinations"
+        },
+        "propertyName": "mode"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/PublicDestinations"
+        },
+        {
+          "$ref": "#/$defs/AllowlistDestinations"
+        }
+      ]
+    },
+    "EgressMode": {
+      "enum": [
+        "inherit",
+        "deny",
+        "controlled"
+      ],
+      "title": "EgressMode",
+      "type": "string"
     },
     "EntryStatus": {
       "enum": [
@@ -1349,7 +1441,95 @@
         "environment.computer.type_text",
         "environment.computer.press_keys",
         "environment.computer.read_clipboard",
-        "environment.computer.write_clipboard"
+        "environment.computer.write_clipboard",
+        "environment.computer.a11y_describe",
+        "environment.computer.a11y_roots",
+        "environment.computer.a11y_inspect",
+        "environment.computer.a11y_find",
+        "environment.computer.a11y_read",
+        "environment.computer.a11y_range",
+        "environment.computer.a11y_range_read",
+        "environment.computer.ax_disclosing_set",
+        "environment.computer.ax_expanded_set",
+        "environment.computer.ax_focus",
+        "environment.computer.ax_focused_window_set",
+        "environment.computer.ax_main_set",
+        "environment.computer.ax_minimized_set",
+        "environment.computer.ax_perform_action",
+        "environment.computer.ax_position_set",
+        "environment.computer.ax_selected_children_set",
+        "environment.computer.ax_selected_columns_set",
+        "environment.computer.ax_selected_rows_set",
+        "environment.computer.ax_selected_set",
+        "environment.computer.ax_selected_text_set",
+        "environment.computer.ax_size_set",
+        "environment.computer.ax_text_range_select",
+        "environment.computer.ax_text_ranges_select",
+        "environment.computer.ax_value_number_set",
+        "environment.computer.ax_value_string_set",
+        "environment.computer.ax_visible_text_range_set",
+        "environment.computer.uia_collapse",
+        "environment.computer.uia_dock_set",
+        "environment.computer.uia_expand",
+        "environment.computer.uia_focus",
+        "environment.computer.uia_invoke",
+        "environment.computer.uia_legacy_default_action",
+        "environment.computer.uia_legacy_select",
+        "environment.computer.uia_legacy_value_set",
+        "environment.computer.uia_range_add_selection",
+        "environment.computer.uia_range_remove_selection",
+        "environment.computer.uia_range_scroll_into_view",
+        "environment.computer.uia_range_select",
+        "environment.computer.uia_range_show_context_menu",
+        "environment.computer.uia_range_value_set",
+        "environment.computer.uia_realize",
+        "environment.computer.uia_scroll_amount",
+        "environment.computer.uia_scroll_into_view",
+        "environment.computer.uia_scroll_percent",
+        "environment.computer.uia_selection_add",
+        "environment.computer.uia_selection_remove",
+        "environment.computer.uia_selection_select",
+        "environment.computer.uia_show_context_menu",
+        "environment.computer.uia_toggle",
+        "environment.computer.uia_transform_move",
+        "environment.computer.uia_transform_resize",
+        "environment.computer.uia_transform_rotate",
+        "environment.computer.uia_transform_zoom",
+        "environment.computer.uia_transform_zoom_unit",
+        "environment.computer.uia_value_set",
+        "environment.computer.uia_view_set",
+        "environment.computer.uia_window_close",
+        "environment.computer.uia_window_state_set",
+        "environment.computer.atspi_caret_set",
+        "environment.computer.atspi_component_extents_set",
+        "environment.computer.atspi_component_position_set",
+        "environment.computer.atspi_component_size_set",
+        "environment.computer.atspi_do_action",
+        "environment.computer.atspi_document_selections_set",
+        "environment.computer.atspi_focus",
+        "environment.computer.atspi_range_scroll_to",
+        "environment.computer.atspi_range_scroll_to_point",
+        "environment.computer.atspi_scroll_to",
+        "environment.computer.atspi_scroll_to_point",
+        "environment.computer.atspi_selection_add_child",
+        "environment.computer.atspi_selection_all",
+        "environment.computer.atspi_selection_clear",
+        "environment.computer.atspi_selection_remove_child",
+        "environment.computer.atspi_selection_remove_selected",
+        "environment.computer.atspi_table_column_select",
+        "environment.computer.atspi_table_column_unselect",
+        "environment.computer.atspi_table_row_select",
+        "environment.computer.atspi_table_row_unselect",
+        "environment.computer.atspi_text_contents_set",
+        "environment.computer.atspi_text_copy",
+        "environment.computer.atspi_text_cut",
+        "environment.computer.atspi_text_delete",
+        "environment.computer.atspi_text_insert",
+        "environment.computer.atspi_text_paste",
+        "environment.computer.atspi_text_selection_add",
+        "environment.computer.atspi_text_selection_remove",
+        "environment.computer.atspi_text_selection_set",
+        "environment.computer.atspi_value_set"
       ],
       "title": "EnvironmentAction",
       "type": "string"
@@ -1402,6 +1582,19 @@
               "environment.state.restore"
             ]
           }
+        },
+        "session_binding": {
+          "default": "default",
+          "title": "Session Binding",
+          "type": "string"
+        },
+        "session_configuration": {
+          "$ref": "#/$defs/SessionConfiguration"
+        },
+        "session_version": {
+          "default": 0,
+          "title": "Session Version",
+          "type": "integer"
         },
         "working_directory": {
           "anyOf": [
@@ -1536,6 +1729,23 @@
               "environment.state.restore"
             ]
           }
+        },
+        "session_binding": {
+          "default": "default",
+          "pattern": "^[a-z][a-z0-9-]{0,62}$",
+          "title": "Session Binding",
+          "type": "string"
+        },
+        "session_configuration": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SessionConfiguration"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "working_directory": {
           "anyOf": [
@@ -1712,6 +1922,23 @@
             ]
           }
         },
+        "session_binding": {
+          "default": "default",
+          "pattern": "^[a-z][a-z0-9-]{0,62}$",
+          "title": "Session Binding",
+          "type": "string"
+        },
+        "session_configuration": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SessionConfiguration"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "template_id": {
           "maxLength": 41,
           "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
@@ -1757,6 +1984,14 @@
       "title": "Gap",
       "type": "object"
     },
+    "GrantAccess": {
+      "enum": [
+        "read_only",
+        "read_write"
+      ],
+      "title": "GrantAccess",
+      "type": "string"
+    },
     "HistoricalDesktopPending": {
       "additionalProperties": false,
       "description": "Read-only projection of sealed desktop suspensions predating Computer-scoped control.",
@@ -1787,6 +2022,14 @@
       ],
       "title": "HistoricalDesktopPending",
       "type": "object"
+    },
+    "Hosts": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 256,
+      "minItems": 1,
+      "type": "array"
     },
     "InitialRun": {
       "additionalProperties": false,
@@ -2208,6 +2451,40 @@
         "content"
       ],
       "title": "MessagePayload",
+      "type": "object"
+    },
+    "NativeIsolation": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "const": "native",
+          "title": "Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "mode"
+      ],
+      "title": "NativeIsolation",
+      "type": "object"
+    },
+    "NativeToolSearch": {
+      "additionalProperties": false,
+      "description": "Ungrouped native discovery of selected Service tools; plugins keep their own settings.",
+      "properties": {
+        "mode": {
+          "const": "native",
+          "title": "Mode",
+          "type": "string"
+        },
+        "sources": {
+          "$ref": "#/$defs/AutomaticToolSearch"
+        }
+      },
+      "required": [
+        "mode"
+      ],
+      "title": "NativeToolSearch",
       "type": "object"
     },
     "ObserverContinuation": {
@@ -2867,6 +3144,21 @@
       "title": "Progress",
       "type": "object"
     },
+    "PublicDestinations": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "const": "public",
+          "title": "Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "mode"
+      ],
+      "title": "PublicDestinations",
+      "type": "object"
+    },
     "RecordSource": {
       "additionalProperties": false,
       "properties": {
@@ -2899,6 +3191,34 @@
         }
       },
       "title": "RequestContext",
+      "type": "object"
+    },
+    "RestrictedSandbox": {
+      "additionalProperties": false,
+      "properties": {
+        "full_disk_read": {
+          "default": false,
+          "title": "Full Disk Read",
+          "type": "boolean"
+        },
+        "grants": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/SandboxGrant"
+          },
+          "title": "Grants",
+          "type": "array"
+        },
+        "mode": {
+          "const": "restricted",
+          "title": "Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "mode"
+      ],
+      "title": "RestrictedSandbox",
       "type": "object"
     },
     "Resume": {
@@ -3320,6 +3640,18 @@
             }
           ]
         },
+        "finding_analysis_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Finding Analysis Id"
+        },
         "id": {
           "title": "Id",
           "type": "string"
@@ -3576,6 +3908,42 @@
       "title": "RunView",
       "type": "object"
     },
+    "SandboxGrant": {
+      "additionalProperties": false,
+      "properties": {
+        "access": {
+          "$ref": "#/$defs/GrantAccess"
+        },
+        "path": {
+          "format": "eip-absolute-path",
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "access"
+      ],
+      "title": "SandboxGrant",
+      "type": "object"
+    },
+    "SandboxPolicy": {
+      "discriminator": {
+        "mapping": {
+          "disabled": "#/$defs/DisabledSandbox",
+          "restricted": "#/$defs/RestrictedSandbox"
+        },
+        "propertyName": "mode"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/DisabledSandbox"
+        },
+        {
+          "$ref": "#/$defs/RestrictedSandbox"
+        }
+      ]
+    },
     "ScheduleEvent": {
       "properties": {
         "configuration": {
@@ -3645,6 +4013,168 @@
         "manual"
       ],
       "type": "string"
+    },
+    "SecretReference": {
+      "additionalProperties": false,
+      "properties": {
+        "credential_id": {
+          "maxLength": 41,
+          "pattern": "^[a-z][a-z0-9]{1,7}_[0-9a-f]{20,32}$",
+          "title": "Credential Id",
+          "type": "string"
+        },
+        "env": {
+          "maxLength": 128,
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "title": "Env",
+          "type": "string"
+        },
+        "inject_hosts": {
+          "$ref": "#/$defs/Hosts"
+        }
+      },
+      "required": [
+        "env",
+        "credential_id",
+        "inject_hosts"
+      ],
+      "title": "SecretReference",
+      "type": "object"
+    },
+    "SessionConfiguration": {
+      "additionalProperties": false,
+      "description": "Tenant-authored Session policy; Service credentials are not process-environment references.",
+      "properties": {
+        "commands": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Commands"
+        },
+        "egress": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EgressConfiguration"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "egress_mode": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EgressMode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "isolation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SessionIsolation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "lifecycle": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SessionLifecyclePolicy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "sandbox": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SandboxPolicy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "working_directory": {
+          "anyOf": [
+            {
+              "format": "eip-absolute-path",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Working Directory"
+        }
+      },
+      "title": "SessionConfiguration",
+      "type": "object"
+    },
+    "SessionIsolation": {
+      "discriminator": {
+        "mapping": {
+          "native": "#/$defs/NativeIsolation",
+          "vm": "#/$defs/VmIsolation"
+        },
+        "propertyName": "mode"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/NativeIsolation"
+        },
+        {
+          "$ref": "#/$defs/VmIsolation"
+        }
+      ]
+    },
+    "SessionLifecyclePolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "idle_timeout_ms": {
+          "maximum": 18446744073709551615,
+          "minimum": 1,
+          "title": "Idle Timeout Ms",
+          "type": "integer"
+        },
+        "max_lifetime_ms": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Lifetime Ms"
+        }
+      },
+      "required": [
+        "idle_timeout_ms"
+      ],
+      "title": "SessionLifecyclePolicy",
+      "type": "object"
     },
     "SharedSkillSync": {
       "additionalProperties": false,
@@ -4545,6 +5075,87 @@
         }
       },
       "title": "UsageLimits",
+      "type": "object"
+    },
+    "VmBackend": {
+      "enum": [
+        "boxlite",
+        "microsandbox"
+      ],
+      "title": "VmBackend",
+      "type": "string"
+    },
+    "VmIsolation": {
+      "additionalProperties": false,
+      "properties": {
+        "backend": {
+          "$ref": "#/$defs/VmBackend"
+        },
+        "cpus": {
+          "maximum": 255,
+          "minimum": 1,
+          "title": "Cpus",
+          "type": "integer"
+        },
+        "image": {
+          "maxLength": 4096,
+          "minLength": 1,
+          "title": "Image",
+          "type": "string"
+        },
+        "memory_mib": {
+          "maximum": 4294967295,
+          "minimum": 128,
+          "title": "Memory Mib",
+          "type": "integer"
+        },
+        "mode": {
+          "const": "vm",
+          "title": "Mode",
+          "type": "string"
+        },
+        "mounts": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/VmMount"
+          },
+          "title": "Mounts",
+          "type": "array"
+        }
+      },
+      "required": [
+        "mode",
+        "backend",
+        "image",
+        "cpus",
+        "memory_mib"
+      ],
+      "title": "VmIsolation",
+      "type": "object"
+    },
+    "VmMount": {
+      "additionalProperties": false,
+      "properties": {
+        "access": {
+          "$ref": "#/$defs/GrantAccess"
+        },
+        "source": {
+          "format": "eip-absolute-path",
+          "title": "Source",
+          "type": "string"
+        },
+        "target": {
+          "format": "eip-absolute-path",
+          "title": "Target",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "target",
+        "access"
+      ],
+      "title": "VmMount",
       "type": "object"
     },
     "WaitReason": {

@@ -7,6 +7,7 @@ from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
 if TYPE_CHECKING:
+    from ..models.memory_guidance_module import MemoryGuidanceModule
     from ..models.memory_guidance_preset import MemoryGuidancePreset
 
 
@@ -18,9 +19,11 @@ class MemoryGuidancePresets:
     """
     Attributes:
         items (list[MemoryGuidancePreset]):
+        modules (list[MemoryGuidanceModule]):
     """
 
     items: list[MemoryGuidancePreset]
+    modules: list[MemoryGuidanceModule]
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -29,11 +32,17 @@ class MemoryGuidancePresets:
             items_item = items_item_data.to_dict()
             items.append(items_item)
 
+        modules = []
+        for modules_item_data in self.modules:
+            modules_item = modules_item_data.to_dict()
+            modules.append(modules_item)
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
                 "items": items,
+                "modules": modules,
             }
         )
 
@@ -41,6 +50,7 @@ class MemoryGuidancePresets:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.memory_guidance_module import MemoryGuidanceModule
         from ..models.memory_guidance_preset import MemoryGuidancePreset
 
         d = dict(src_dict)
@@ -51,8 +61,16 @@ class MemoryGuidancePresets:
 
             items.append(items_item)
 
+        modules = []
+        _modules = d.pop("modules")
+        for modules_item_data in _modules:
+            modules_item = MemoryGuidanceModule.from_dict(modules_item_data)
+
+            modules.append(modules_item)
+
         memory_guidance_presets = cls(
             items=items,
+            modules=modules,
         )
 
         memory_guidance_presets.additional_properties = d

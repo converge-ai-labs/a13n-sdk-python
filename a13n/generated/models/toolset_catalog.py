@@ -18,8 +18,7 @@ T = TypeVar("T", bound="ToolsetCatalog")
 class ToolsetCatalog:
     """
     Attributes:
-        discovery_defaults (AutomaticToolSearch): Group Service-owned sources individually, following the agent's
-            selections.
+        discovery_defaults (AutomaticToolSearch): Select Service-owned sources for on-demand discovery.
         discovery_sources (list[DiscoverySource]):
         items (list[ToolsetDefinition]):
     """

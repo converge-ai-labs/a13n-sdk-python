@@ -74,8 +74,7 @@ def sync_detailed(
 
      Record an unconfirmed finding with evidence and a suggestion; a stable source_key makes a retry
     safe.
-    A Run's own submission names that Run as its source; an analysis cites only selected traces it has
-    read.
+    A Run's own submission names that Run as its source; an analysis cites traces it has read.
 
     Args:
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
@@ -113,8 +112,7 @@ def sync(
 
      Record an unconfirmed finding with evidence and a suggestion; a stable source_key makes a retry
     safe.
-    A Run's own submission names that Run as its source; an analysis cites only selected traces it has
-    read.
+    A Run's own submission names that Run as its source; an analysis cites traces it has read.
 
     Args:
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
@@ -147,8 +145,7 @@ async def asyncio_detailed(
 
      Record an unconfirmed finding with evidence and a suggestion; a stable source_key makes a retry
     safe.
-    A Run's own submission names that Run as its source; an analysis cites only selected traces it has
-    read.
+    A Run's own submission names that Run as its source; an analysis cites traces it has read.
 
     Args:
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
@@ -184,8 +181,7 @@ async def asyncio(
 
      Record an unconfirmed finding with evidence and a suggestion; a stable source_key makes a retry
     safe.
-    A Run's own submission names that Run as its source; an analysis cites only selected traces it has
-    read.
+    A Run's own submission names that Run as its source; an analysis cites traces it has read.
 
     Args:
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required

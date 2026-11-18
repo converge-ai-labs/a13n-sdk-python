@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from ..models.connection_selection import ConnectionSelection
     from ..models.isolated_skill_sync import IsolatedSkillSync
     from ..models.media_understanding_selection import MediaUnderstandingSelection
+    from ..models.native_tool_search import NativeToolSearch
     from ..models.output_spec import OutputSpec
     from ..models.plugin_selection import PluginSelection
     from ..models.retry_override import RetryOverride
@@ -52,7 +53,7 @@ class AgentOverrideInput:
             skill_sync (IsolatedSkillSync | None | SharedSkillSync | Unset):
             skills (list[SkillSelection] | None | Unset):
             subagents (None | SubagentsInput | Unset):
-            tool_search (None | ToolSearch | Unset):
+            tool_search (NativeToolSearch | None | ToolSearch | Unset):
             toolsets (AgentOverrideInputToolsetsType0 | None | Unset):
     """
 
@@ -72,7 +73,7 @@ class AgentOverrideInput:
     skill_sync: IsolatedSkillSync | SharedSkillSync | Unset | None = UNSET
     skills: list[SkillSelection] | Unset | None = UNSET
     subagents: SubagentsInput | Unset | None = UNSET
-    tool_search: ToolSearch | Unset | None = UNSET
+    tool_search: NativeToolSearch | ToolSearch | Unset | None = UNSET
     toolsets: AgentOverrideInputToolsetsType0 | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
@@ -84,6 +85,7 @@ class AgentOverrideInput:
         from ..models.agent_reviewer import AgentReviewer
         from ..models.isolated_skill_sync import IsolatedSkillSync
         from ..models.media_understanding_selection import MediaUnderstandingSelection
+        from ..models.native_tool_search import NativeToolSearch
         from ..models.output_spec import OutputSpec
         from ..models.retry_override import RetryOverride
         from ..models.shared_skill_sync import SharedSkillSync
@@ -236,6 +238,8 @@ class AgentOverrideInput:
             tool_search = UNSET
         elif isinstance(self.tool_search, ToolSearch):
             tool_search = self.tool_search.to_dict()
+        elif isinstance(self.tool_search, NativeToolSearch):
+            tool_search = self.tool_search.to_dict()
         else:
             tool_search = self.tool_search
 
@@ -301,6 +305,7 @@ class AgentOverrideInput:
         from ..models.connection_selection import ConnectionSelection
         from ..models.isolated_skill_sync import IsolatedSkillSync
         from ..models.media_understanding_selection import MediaUnderstandingSelection
+        from ..models.native_tool_search import NativeToolSearch
         from ..models.output_spec import OutputSpec
         from ..models.plugin_selection import PluginSelection
         from ..models.retry_override import RetryOverride
@@ -595,7 +600,7 @@ class AgentOverrideInput:
 
         subagents = _parse_subagents(d.pop("subagents", UNSET))
 
-        def _parse_tool_search(data: object) -> ToolSearch | Unset | None:
+        def _parse_tool_search(data: object) -> NativeToolSearch | ToolSearch | Unset | None:
             if data is None:
                 return data
             if isinstance(data, Unset):
@@ -606,6 +611,14 @@ class AgentOverrideInput:
                 tool_search_type_0 = ToolSearch.from_dict(data)
 
                 return tool_search_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                tool_search_type_1 = NativeToolSearch.from_dict(data)
+
+                return tool_search_type_1
             except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             raise ValueError("Invalid nullable model value")

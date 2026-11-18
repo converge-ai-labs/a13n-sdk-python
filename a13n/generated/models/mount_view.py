@@ -23,6 +23,7 @@ class MountView:
             health check.
         environment_id (str):
         name (str):
+        session_binding (str):
         working_directory (None | str):
         permission_ceiling (EnvironmentPermissionSetOutput | Unset):
     """
@@ -30,6 +31,7 @@ class MountView:
     desktop_enabled: bool
     environment_id: str
     name: str
+    session_binding: str
     working_directory: str | None
     permission_ceiling: EnvironmentPermissionSetOutput | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
@@ -40,6 +42,8 @@ class MountView:
         environment_id = self.environment_id
 
         name = self.name
+
+        session_binding = self.session_binding
 
         working_directory: str | None
         working_directory = self.working_directory
@@ -55,6 +59,7 @@ class MountView:
                 "desktop_enabled": desktop_enabled,
                 "environment_id": environment_id,
                 "name": name,
+                "session_binding": session_binding,
                 "working_directory": working_directory,
             }
         )
@@ -74,6 +79,8 @@ class MountView:
 
         name = d.pop("name")
 
+        session_binding = d.pop("session_binding")
+
         def _parse_working_directory(data: object) -> str | None:
             if data is None:
                 return data
@@ -92,6 +99,7 @@ class MountView:
             desktop_enabled=desktop_enabled,
             environment_id=environment_id,
             name=name,
+            session_binding=session_binding,
             working_directory=working_directory,
             permission_ceiling=permission_ceiling,
         )

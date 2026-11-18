@@ -72,6 +72,7 @@ class RunView:
         wait_reason (None | WaitReason):
         workspace_id (str):
         browser_binding (BrowserBinding | None | Unset):
+        finding_analysis_id (None | str | Unset):
         input_ (None | RunViewInputType0 | Unset):
         schedule_origin (None | ScheduleOrigin | Unset):
     """
@@ -110,6 +111,7 @@ class RunView:
     wait_reason: WaitReason | None
     workspace_id: str
     browser_binding: BrowserBinding | Unset | None = UNSET
+    finding_analysis_id: str | Unset | None = UNSET
     input_: RunViewInputType0 | Unset | None = UNSET
     schedule_origin: ScheduleOrigin | Unset | None = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
@@ -250,6 +252,12 @@ class RunView:
         else:
             browser_binding = self.browser_binding
 
+        finding_analysis_id: str | Unset | None
+        if isinstance(self.finding_analysis_id, Unset):
+            finding_analysis_id = UNSET
+        else:
+            finding_analysis_id = self.finding_analysis_id
+
         input_: dict[str, Any] | Unset | None
         if isinstance(self.input_, Unset):
             input_ = UNSET
@@ -307,6 +315,8 @@ class RunView:
         )
         if browser_binding is not UNSET:
             field_dict["browser_binding"] = browser_binding
+        if finding_analysis_id is not UNSET:
+            field_dict["finding_analysis_id"] = finding_analysis_id
         if input_ is not UNSET:
             field_dict["input"] = input_
         if schedule_origin is not UNSET:
@@ -584,6 +594,15 @@ class RunView:
 
         browser_binding = _parse_browser_binding(d.pop("browser_binding", UNSET))
 
+        def _parse_finding_analysis_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        finding_analysis_id = _parse_finding_analysis_id(d.pop("finding_analysis_id", UNSET))
+
         def _parse_input_(data: object) -> RunViewInputType0 | Unset | None:
             if data is None:
                 return data
@@ -653,6 +672,7 @@ class RunView:
             wait_reason=wait_reason,
             workspace_id=workspace_id,
             browser_binding=browser_binding,
+            finding_analysis_id=finding_analysis_id,
             input_=input_,
             schedule_origin=schedule_origin,
         )

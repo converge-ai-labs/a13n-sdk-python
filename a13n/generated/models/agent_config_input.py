@@ -19,9 +19,11 @@ if TYPE_CHECKING:
     from ..models.isolated_skill_sync import IsolatedSkillSync
     from ..models.media_understanding_selection import MediaUnderstandingSelection
     from ..models.memory_mount import MemoryMount
+    from ..models.native_tool_search import NativeToolSearch
     from ..models.output_spec import OutputSpec
     from ..models.plugin_selection import PluginSelection
     from ..models.retry_config import RetryConfig
+    from ..models.session_configuration import SessionConfiguration
     from ..models.session_memory_settings import SessionMemorySettings
     from ..models.shared_skill_sync import SharedSkillSync
     from ..models.skill_selection import SkillSelection
@@ -44,6 +46,7 @@ class AgentConfigInput:
         connection_tools (list[ConnectionSelection] | Unset):
         default_environment_id (None | str | Unset):
         default_environment_template_id (None | str | Unset):
+        default_session_configuration (None | SessionConfiguration | Unset):
         execution (ExecutionOverride | None | Unset):
         instructions (str | Unset):
         lazy_environment (bool | Unset):
@@ -63,7 +66,7 @@ class AgentConfigInput:
         skills (list[SkillSelection] | Unset):
         subagents (SubagentsInput | Unset):
         summarize (bool | Unset):
-        tool_search (None | ToolSearch | Unset):
+        tool_search (NativeToolSearch | None | ToolSearch | Unset):
         toolsets (AgentConfigInputToolsets | Unset):
         user_questions (bool | Unset):
     """
@@ -75,6 +78,7 @@ class AgentConfigInput:
     connection_tools: list[ConnectionSelection] | Unset = UNSET
     default_environment_id: str | Unset | None = UNSET
     default_environment_template_id: str | Unset | None = UNSET
+    default_session_configuration: SessionConfiguration | Unset | None = UNSET
     execution: ExecutionOverride | Unset | None = UNSET
     instructions: str | Unset = UNSET
     lazy_environment: bool | Unset = UNSET
@@ -91,15 +95,17 @@ class AgentConfigInput:
     skills: list[SkillSelection] | Unset = UNSET
     subagents: SubagentsInput | Unset = UNSET
     summarize: bool | Unset = UNSET
-    tool_search: ToolSearch | Unset | None = UNSET
+    tool_search: NativeToolSearch | ToolSearch | Unset | None = UNSET
     toolsets: AgentConfigInputToolsets | Unset = UNSET
     user_questions: bool | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
         from ..models.agent_reviewer import AgentReviewer
         from ..models.execution_override import ExecutionOverride
+        from ..models.native_tool_search import NativeToolSearch
         from ..models.output_spec import OutputSpec
         from ..models.retry_config import RetryConfig
+        from ..models.session_configuration import SessionConfiguration
         from ..models.shared_skill_sync import SharedSkillSync
         from ..models.tool_search import ToolSearch
 
@@ -138,6 +144,14 @@ class AgentConfigInput:
             default_environment_template_id = UNSET
         else:
             default_environment_template_id = self.default_environment_template_id
+
+        default_session_configuration: dict[str, Any] | Unset | None
+        if isinstance(self.default_session_configuration, Unset):
+            default_session_configuration = UNSET
+        elif isinstance(self.default_session_configuration, SessionConfiguration):
+            default_session_configuration = self.default_session_configuration.to_dict()
+        else:
+            default_session_configuration = self.default_session_configuration
 
         execution: dict[str, Any] | Unset | None
         if isinstance(self.execution, Unset):
@@ -231,6 +245,8 @@ class AgentConfigInput:
             tool_search = UNSET
         elif isinstance(self.tool_search, ToolSearch):
             tool_search = self.tool_search.to_dict()
+        elif isinstance(self.tool_search, NativeToolSearch):
+            tool_search = self.tool_search.to_dict()
         else:
             tool_search = self.tool_search
 
@@ -259,6 +275,8 @@ class AgentConfigInput:
             field_dict["default_environment_id"] = default_environment_id
         if default_environment_template_id is not UNSET:
             field_dict["default_environment_template_id"] = default_environment_template_id
+        if default_session_configuration is not UNSET:
+            field_dict["default_session_configuration"] = default_session_configuration
         if execution is not UNSET:
             field_dict["execution"] = execution
         if instructions is not UNSET:
@@ -313,9 +331,11 @@ class AgentConfigInput:
         from ..models.isolated_skill_sync import IsolatedSkillSync
         from ..models.media_understanding_selection import MediaUnderstandingSelection
         from ..models.memory_mount import MemoryMount
+        from ..models.native_tool_search import NativeToolSearch
         from ..models.output_spec import OutputSpec
         from ..models.plugin_selection import PluginSelection
         from ..models.retry_config import RetryConfig
+        from ..models.session_configuration import SessionConfiguration
         from ..models.session_memory_settings import SessionMemorySettings
         from ..models.shared_skill_sync import SharedSkillSync
         from ..models.skill_selection import SkillSelection
@@ -380,6 +400,25 @@ class AgentConfigInput:
 
         default_environment_template_id = _parse_default_environment_template_id(
             d.pop("default_environment_template_id", UNSET)
+        )
+
+        def _parse_default_session_configuration(data: object) -> SessionConfiguration | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                default_session_configuration_type_0 = SessionConfiguration.from_dict(data)
+
+                return default_session_configuration_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(SessionConfiguration | Unset | None, data)
+
+        default_session_configuration = _parse_default_session_configuration(
+            d.pop("default_session_configuration", UNSET)
         )
 
         def _parse_execution(data: object) -> ExecutionOverride | Unset | None:
@@ -537,7 +576,7 @@ class AgentConfigInput:
 
         summarize = d.pop("summarize", UNSET)
 
-        def _parse_tool_search(data: object) -> ToolSearch | Unset | None:
+        def _parse_tool_search(data: object) -> NativeToolSearch | ToolSearch | Unset | None:
             if data is None:
                 return data
             if isinstance(data, Unset):
@@ -548,6 +587,14 @@ class AgentConfigInput:
                 tool_search_type_0 = ToolSearch.from_dict(data)
 
                 return tool_search_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                tool_search_type_1 = NativeToolSearch.from_dict(data)
+
+                return tool_search_type_1
             except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             raise ValueError("Invalid nullable model value")
@@ -571,6 +618,7 @@ class AgentConfigInput:
             connection_tools=connection_tools,
             default_environment_id=default_environment_id,
             default_environment_template_id=default_environment_template_id,
+            default_session_configuration=default_session_configuration,
             execution=execution,
             instructions=instructions,
             lazy_environment=lazy_environment,
