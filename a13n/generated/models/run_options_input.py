@@ -10,6 +10,8 @@ from ..types import UNSET, Unset
 if TYPE_CHECKING:
     from ..models.agent_override_input import AgentOverrideInput
     from ..models.execution_override import ExecutionOverride
+    from ..models.existing_run_environment_input import ExistingRunEnvironmentInput
+    from ..models.fresh_run_environment_input import FreshRunEnvironmentInput
     from ..models.request_context import RequestContext
     from ..models.run_configuration_input import RunConfigurationInput
     from ..models.run_options_input_labels import RunOptionsInputLabels
@@ -26,6 +28,7 @@ class RunOptionsInput:
     Attributes:
         configuration (None | RunConfigurationInput | Unset):
         context (None | RequestContext | Unset):
+        environment (ExistingRunEnvironmentInput | FreshRunEnvironmentInput | None | Unset):
         execution (ExecutionOverride | None | Unset):
         labels (RunOptionsInputLabels | Unset):
         max_usage (None | Unset | UsageLimit):
@@ -34,6 +37,7 @@ class RunOptionsInput:
 
     configuration: RunConfigurationInput | Unset | None = UNSET
     context: RequestContext | Unset | None = UNSET
+    environment: ExistingRunEnvironmentInput | FreshRunEnvironmentInput | Unset | None = UNSET
     execution: ExecutionOverride | Unset | None = UNSET
     labels: RunOptionsInputLabels | Unset = UNSET
     max_usage: Unset | UsageLimit | None = UNSET
@@ -42,6 +46,8 @@ class RunOptionsInput:
     def to_dict(self) -> dict[str, Any]:
         from ..models.agent_override_input import AgentOverrideInput
         from ..models.execution_override import ExecutionOverride
+        from ..models.existing_run_environment_input import ExistingRunEnvironmentInput
+        from ..models.fresh_run_environment_input import FreshRunEnvironmentInput
         from ..models.request_context import RequestContext
         from ..models.run_configuration_input import RunConfigurationInput
         from ..models.usage_limit import UsageLimit
@@ -61,6 +67,16 @@ class RunOptionsInput:
             context = self.context.to_dict()
         else:
             context = self.context
+
+        environment: dict[str, Any] | Unset | None
+        if isinstance(self.environment, Unset):
+            environment = UNSET
+        elif isinstance(self.environment, FreshRunEnvironmentInput):
+            environment = self.environment.to_dict()
+        elif isinstance(self.environment, ExistingRunEnvironmentInput):
+            environment = self.environment.to_dict()
+        else:
+            environment = self.environment
 
         execution: dict[str, Any] | Unset | None
         if isinstance(self.execution, Unset):
@@ -97,6 +113,8 @@ class RunOptionsInput:
             field_dict["configuration"] = configuration
         if context is not UNSET:
             field_dict["context"] = context
+        if environment is not UNSET:
+            field_dict["environment"] = environment
         if execution is not UNSET:
             field_dict["execution"] = execution
         if labels is not UNSET:
@@ -112,6 +130,8 @@ class RunOptionsInput:
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.agent_override_input import AgentOverrideInput
         from ..models.execution_override import ExecutionOverride
+        from ..models.existing_run_environment_input import ExistingRunEnvironmentInput
+        from ..models.fresh_run_environment_input import FreshRunEnvironmentInput
         from ..models.request_context import RequestContext
         from ..models.run_configuration_input import RunConfigurationInput
         from ..models.run_options_input_labels import RunOptionsInputLabels
@@ -152,6 +172,31 @@ class RunOptionsInput:
             return cast(RequestContext | Unset | None, data)
 
         context = _parse_context(d.pop("context", UNSET))
+
+        def _parse_environment(data: object) -> ExistingRunEnvironmentInput | FreshRunEnvironmentInput | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                componentsschemas_run_environment_input_type_0 = FreshRunEnvironmentInput.from_dict(data)
+
+                return componentsschemas_run_environment_input_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                componentsschemas_run_environment_input_type_1 = ExistingRunEnvironmentInput.from_dict(data)
+
+                return componentsschemas_run_environment_input_type_1
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(ExistingRunEnvironmentInput | FreshRunEnvironmentInput | Unset | None, data)
+
+        environment = _parse_environment(d.pop("environment", UNSET))
 
         def _parse_execution(data: object) -> ExecutionOverride | Unset | None:
             if data is None:
@@ -214,6 +259,7 @@ class RunOptionsInput:
         run_options_input = cls(
             configuration=configuration,
             context=context,
+            environment=environment,
             execution=execution,
             labels=labels,
             max_usage=max_usage,

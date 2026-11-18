@@ -24,6 +24,7 @@ T = TypeVar("T", bound="SessionView")
 class SessionView:
     """
     Attributes:
+        auto_recreate_lost_environment (bool):
         cost (None | str):
         created_at (datetime.datetime):
         created_by_id (str):
@@ -44,6 +45,7 @@ class SessionView:
         title (None | str | Unset):
     """
 
+    auto_recreate_lost_environment: bool
     cost: str | None
     created_at: datetime.datetime
     created_by_id: str
@@ -66,6 +68,8 @@ class SessionView:
     def to_dict(self) -> dict[str, Any]:
         from ..models.session_origin import SessionOrigin
         from ..models.session_preview import SessionPreview
+
+        auto_recreate_lost_environment = self.auto_recreate_lost_environment
 
         cost: str | None
         cost = self.cost
@@ -131,6 +135,7 @@ class SessionView:
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
+                "auto_recreate_lost_environment": auto_recreate_lost_environment,
                 "cost": cost,
                 "created_at": created_at,
                 "created_by_id": created_by_id,
@@ -167,6 +172,7 @@ class SessionView:
         from ..models.session_view_labels import SessionViewLabels
 
         d = dict(src_dict)
+        auto_recreate_lost_environment = d.pop("auto_recreate_lost_environment")
 
         def _parse_cost(data: object) -> str | None:
             if data is None:
@@ -267,6 +273,7 @@ class SessionView:
         title = _parse_title(d.pop("title", UNSET))
 
         session_view = cls(
+            auto_recreate_lost_environment=auto_recreate_lost_environment,
             cost=cost,
             created_at=created_at,
             created_by_id=created_by_id,

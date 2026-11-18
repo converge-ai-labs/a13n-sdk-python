@@ -18,11 +18,11 @@ if TYPE_CHECKING:
     from ..models.browser_binding import BrowserBinding
     from ..models.environment_mount import EnvironmentMount
     from ..models.failure import Failure
-    from ..models.frozen_memory_mount import FrozenMemoryMount
     from ..models.historical_desktop_pending import HistoricalDesktopPending
     from ..models.memory_mount import MemoryMount
     from ..models.pending import Pending
     from ..models.resume import Resume
+    from ..models.run_memory_mount import RunMemoryMount
     from ..models.run_options_output import RunOptionsOutput
     from ..models.run_view_input_type_0 import RunViewInputType0
     from ..models.run_view_labels import RunViewLabels
@@ -38,7 +38,7 @@ class RunView:
     """
     Attributes:
         agent_id (str):
-        agent_revision_id (str):
+        agent_revision_id (None | str):
         attempts (int):
         cancel_requested_at (datetime.datetime | None):
         created_at (datetime.datetime):
@@ -49,7 +49,7 @@ class RunView:
         labels (RunViewLabels):
         lineage (Lineage):
         max_attempts (int):
-        memory_mounts (list[FrozenMemoryMount | MemoryMount]):
+        memory_mounts (list[MemoryMount | RunMemoryMount]):
         options (RunOptionsOutput): What a message may choose for the run it starts. A steer joins a run with the
             defaults or equal options.
         output (Any | None):
@@ -72,12 +72,13 @@ class RunView:
         wait_reason (None | WaitReason):
         workspace_id (str):
         browser_binding (BrowserBinding | None | Unset):
+        finding_analysis_id (None | str | Unset):
         input_ (None | RunViewInputType0 | Unset):
         schedule_origin (None | ScheduleOrigin | Unset):
     """
 
     agent_id: str
-    agent_revision_id: str
+    agent_revision_id: str | None
     attempts: int
     cancel_requested_at: datetime.datetime | None
     created_at: datetime.datetime
@@ -88,7 +89,7 @@ class RunView:
     labels: RunViewLabels
     lineage: Lineage
     max_attempts: int
-    memory_mounts: list[FrozenMemoryMount | MemoryMount]
+    memory_mounts: list[MemoryMount | RunMemoryMount]
     options: RunOptionsOutput
     output: Any | None
     parent_run_id: str | None
@@ -110,6 +111,7 @@ class RunView:
     wait_reason: WaitReason | None
     workspace_id: str
     browser_binding: BrowserBinding | Unset | None = UNSET
+    finding_analysis_id: str | Unset | None = UNSET
     input_: RunViewInputType0 | Unset | None = UNSET
     schedule_origin: ScheduleOrigin | Unset | None = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
@@ -127,6 +129,7 @@ class RunView:
 
         agent_id = self.agent_id
 
+        agent_revision_id: str | None
         agent_revision_id = self.agent_revision_id
 
         attempts = self.attempts
@@ -249,6 +252,12 @@ class RunView:
         else:
             browser_binding = self.browser_binding
 
+        finding_analysis_id: str | Unset | None
+        if isinstance(self.finding_analysis_id, Unset):
+            finding_analysis_id = UNSET
+        else:
+            finding_analysis_id = self.finding_analysis_id
+
         input_: dict[str, Any] | Unset | None
         if isinstance(self.input_, Unset):
             input_ = UNSET
@@ -306,6 +315,8 @@ class RunView:
         )
         if browser_binding is not UNSET:
             field_dict["browser_binding"] = browser_binding
+        if finding_analysis_id is not UNSET:
+            field_dict["finding_analysis_id"] = finding_analysis_id
         if input_ is not UNSET:
             field_dict["input"] = input_
         if schedule_origin is not UNSET:
@@ -318,11 +329,11 @@ class RunView:
         from ..models.browser_binding import BrowserBinding
         from ..models.environment_mount import EnvironmentMount
         from ..models.failure import Failure
-        from ..models.frozen_memory_mount import FrozenMemoryMount
         from ..models.historical_desktop_pending import HistoricalDesktopPending
         from ..models.memory_mount import MemoryMount
         from ..models.pending import Pending
         from ..models.resume import Resume
+        from ..models.run_memory_mount import RunMemoryMount
         from ..models.run_options_output import RunOptionsOutput
         from ..models.run_view_input_type_0 import RunViewInputType0
         from ..models.run_view_labels import RunViewLabels
@@ -332,7 +343,12 @@ class RunView:
         d = dict(src_dict)
         agent_id = d.pop("agent_id")
 
-        agent_revision_id = d.pop("agent_revision_id")
+        def _parse_agent_revision_id(data: object) -> str | None:
+            if data is None:
+                return data
+            return cast(str | None, data)
+
+        agent_revision_id = _parse_agent_revision_id(d.pop("agent_revision_id"))
 
         attempts = d.pop("attempts")
 
@@ -394,7 +410,7 @@ class RunView:
         _memory_mounts = d.pop("memory_mounts")
         for memory_mounts_item_data in _memory_mounts:
 
-            def _parse_memory_mounts_item(data: object) -> FrozenMemoryMount | MemoryMount:
+            def _parse_memory_mounts_item(data: object) -> MemoryMount | RunMemoryMount:
                 try:
                     if not isinstance(data, dict):
                         raise TypeError()
@@ -407,7 +423,7 @@ class RunView:
                     pass
                 if not isinstance(data, dict):
                     raise TypeError()
-                memory_mounts_item_type_1 = FrozenMemoryMount.from_dict(data)
+                memory_mounts_item_type_1 = RunMemoryMount.from_dict(data)
 
                 return memory_mounts_item_type_1
 
@@ -578,6 +594,15 @@ class RunView:
 
         browser_binding = _parse_browser_binding(d.pop("browser_binding", UNSET))
 
+        def _parse_finding_analysis_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        finding_analysis_id = _parse_finding_analysis_id(d.pop("finding_analysis_id", UNSET))
+
         def _parse_input_(data: object) -> RunViewInputType0 | Unset | None:
             if data is None:
                 return data
@@ -647,6 +672,7 @@ class RunView:
             wait_reason=wait_reason,
             workspace_id=workspace_id,
             browser_binding=browser_binding,
+            finding_analysis_id=finding_analysis_id,
             input_=input_,
             schedule_origin=schedule_origin,
         )

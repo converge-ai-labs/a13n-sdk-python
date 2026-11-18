@@ -40,7 +40,7 @@ Connections expose nonsecret configuration and readiness. Confidential setup use
 
 Results contain business identities, state, resource versions, pagination and request identity without an HTTP status/header/body envelope. Accepted dispatch remains distinct from execution completion. Errors retain their Service code and safe details. Missing or stale versions fail; approval binds the actual target, delta and original version. Neither approval nor retries may refresh that version. Unknown write outcomes require reconciliation, never automatic replay.
 
-Large execution reads return bounded summaries and authenticated content references. References bind the Run, workspace and source representation, convey no authority, and repeat the source's current authorization and analysis restrictions on every read or search. Item-list discovery references defer payload loading and version selection until the first content read or search. That response returns a version-bound reference and continuation; subsequent reads through either reject changed content. Reusing the original item discovery reference starts a new snapshot. Other source references bind their version at the parent read. Continuations remain snapshot-consistent and preserve original redaction and truncation evidence.
+Large execution reads return bounded summaries and authenticated content references. References bind the Run, workspace and source representation, convey no authority, and repeat the source's current workspace authorization on every read or search. Analysis selections do not restrict these reads; successful trace reads are recorded independently of the initial selection. Item-list discovery references defer payload loading and version selection until the first content read or search. That response returns a version-bound reference and continuation; subsequent reads through either reject changed content. Reusing the original item discovery reference starts a new snapshot. Other source references bind their version at the parent read. Continuations remain snapshot-consistent and preserve original redaction and truncation evidence.
 
 The selected model's actual adapter prepares tool schemas before use. Known incompatibility fails explicitly with the tool name and schema context; tools, constraints and models are never silently changed. Contract tests separately cover JSON Schema validity and real provider-adapter serialization.
 
@@ -177,7 +177,7 @@ Paths are relative to `/api/v1` unless they start at the root. `{org}` is an org
 | GET    | `/findings/{finding}` | Read one finding and its ETag; `read`                                                                |
 | PATCH  | `/findings/{finding}` | Review, close or reopen; `write`, `If-Match`                                                         |
 
-[Findings and analysis](07-facts-and-delivery.md#findings-and-analysis) owns selection, submission retry and coverage semantics. Both lists use bounded keyset pages; finding cursors bind their filters. These commands do not publish an Agent revision.
+[Findings and analysis](07-facts-and-delivery.md#findings-and-analysis) owns selection, submission retry and coverage semantics. Both lists use bounded keyset pages; finding cursors bind their filters. Analysis start may publish or select the required Finding Agent platform revision while preserving user preferences. Finding submission and review do not publish Agent revisions; business Agent configuration stays unchanged.
 
 ### Health
 
@@ -214,34 +214,38 @@ Paths are relative to `/api/v1` unless they start at the root. `{org}` is an org
 
 ### Organizations, workspaces and members
 
-| Path                                                   | Methods            | Owner                                            |
-| ------------------------------------------------------ | ------------------ | ------------------------------------------------ |
-| `/organizations`                                       | GET                | [03](03-tenancy.md#organizations-and-workspaces) |
-| `/organizations/{org}`                                 | GET, PATCH         | [03](03-tenancy.md#organizations-and-workspaces) |
-| `/organizations/{org}/icon`                            | GET, PUT, DELETE   | [03](03-tenancy.md#images)                       |
-| `/organizations/{org}/workspaces`                      | GET, POST          | [03](03-tenancy.md#organizations-and-workspaces) |
-| `/organizations/{org}/members`                         | GET                | [03](03-tenancy.md#grants)                       |
-| `/organizations/{org}/grants`                          | GET, POST          | [03](03-tenancy.md#grants)                       |
-| `/organizations/{org}/grants/{grant}`                  | PATCH, DELETE      | [03](03-tenancy.md#grants)                       |
-| `/organizations/{org}/invitations`                     | GET, POST          | [03](03-tenancy.md#invitations)                  |
-| `/organizations/{org}/invitations/{invitation}/resend` | POST               | [03](03-tenancy.md#invitations)                  |
-| `/organizations/{org}/invitations/{invitation}/revoke` | POST               | [03](03-tenancy.md#invitations)                  |
-| `/organizations/{org}/audit-events`                    | GET                | [03](03-tenancy.md#audit)                        |
-| `/workspaces`                                          | GET                | [03](03-tenancy.md#organizations-and-workspaces) |
-| `/workspaces/{ws}`                                     | GET, PATCH         | [03](03-tenancy.md#organizations-and-workspaces) |
-| `/workspaces/{ws}/archive`                             | POST               | [03](03-tenancy.md#organizations-and-workspaces) |
-| `/workspaces/{ws}/icon`                                | GET, PUT, DELETE   | [03](03-tenancy.md#images)                       |
-| `/workspaces/{ws}/grants`                              | GET, POST          | [03](03-tenancy.md#grants)                       |
-| `/workspaces/{ws}/grants/{grant}`                      | PATCH, DELETE      | [03](03-tenancy.md#grants)                       |
-| `/workspaces/{ws}/invitations`                         | GET, POST          | [03](03-tenancy.md#invitations)                  |
-| `/workspaces/{ws}/invitations/{invitation}/resend`     | POST               | [03](03-tenancy.md#invitations)                  |
-| `/workspaces/{ws}/invitations/{invitation}/revoke`     | POST               | [03](03-tenancy.md#invitations)                  |
-| `/workspaces/{ws}/service-accounts`                    | GET, POST          | [03](03-tenancy.md#service-accounts)             |
-| `/workspaces/{ws}/service-accounts/{account}`          | GET, PATCH, DELETE | [03](03-tenancy.md#service-accounts)             |
-| `/workspaces/{ws}/service-accounts/{account}/keys`     | GET, POST          | [03](03-tenancy.md#api-keys)                     |
-| `/workspaces/{ws}/keys`                                | GET                | [03](03-tenancy.md#api-keys)                     |
-| `/workspaces/{ws}/keys/{key}`                          | DELETE             | [03](03-tenancy.md#api-keys)                     |
-| `/workspaces/{ws}/audit-events`                        | GET                | [03](03-tenancy.md#audit)                        |
+| Path                                                   | Methods            | Owner                                                      |
+| ------------------------------------------------------ | ------------------ | ---------------------------------------------------------- |
+| `/organizations`                                       | GET                | [03](03-tenancy.md#organizations-and-workspaces)           |
+| `/organizations/{org}`                                 | GET, PATCH         | [03](03-tenancy.md#organizations-and-workspaces)           |
+| `/organizations/{org}/app-plugins`                     | GET                | [15](15-app-plugins.md#organization-policy-and-management) |
+| `/organizations/{org}/app-plugins/{app_id}`            | PUT                | [15](15-app-plugins.md#organization-policy-and-management) |
+| `/apps/{app_id}/...`                                   | App-declared       | [15](15-app-plugins.md#dispatch-boundary)                  |
+| `/app-plugins/{app_id}/assets/{version}/{path}`        | GET                | [15](15-app-plugins.md#packaged-browser-assets)            |
+| `/organizations/{org}/icon`                            | GET, PUT, DELETE   | [03](03-tenancy.md#images)                                 |
+| `/organizations/{org}/workspaces`                      | GET, POST          | [03](03-tenancy.md#organizations-and-workspaces)           |
+| `/organizations/{org}/members`                         | GET                | [03](03-tenancy.md#grants)                                 |
+| `/organizations/{org}/grants`                          | GET, POST          | [03](03-tenancy.md#grants)                                 |
+| `/organizations/{org}/grants/{grant}`                  | PATCH, DELETE      | [03](03-tenancy.md#grants)                                 |
+| `/organizations/{org}/invitations`                     | GET, POST          | [03](03-tenancy.md#invitations)                            |
+| `/organizations/{org}/invitations/{invitation}/resend` | POST               | [03](03-tenancy.md#invitations)                            |
+| `/organizations/{org}/invitations/{invitation}/revoke` | POST               | [03](03-tenancy.md#invitations)                            |
+| `/organizations/{org}/audit-events`                    | GET                | [03](03-tenancy.md#audit)                                  |
+| `/workspaces`                                          | GET                | [03](03-tenancy.md#organizations-and-workspaces)           |
+| `/workspaces/{ws}`                                     | GET, PATCH         | [03](03-tenancy.md#organizations-and-workspaces)           |
+| `/workspaces/{ws}/archive`                             | POST               | [03](03-tenancy.md#organizations-and-workspaces)           |
+| `/workspaces/{ws}/icon`                                | GET, PUT, DELETE   | [03](03-tenancy.md#images)                                 |
+| `/workspaces/{ws}/grants`                              | GET, POST          | [03](03-tenancy.md#grants)                                 |
+| `/workspaces/{ws}/grants/{grant}`                      | PATCH, DELETE      | [03](03-tenancy.md#grants)                                 |
+| `/workspaces/{ws}/invitations`                         | GET, POST          | [03](03-tenancy.md#invitations)                            |
+| `/workspaces/{ws}/invitations/{invitation}/resend`     | POST               | [03](03-tenancy.md#invitations)                            |
+| `/workspaces/{ws}/invitations/{invitation}/revoke`     | POST               | [03](03-tenancy.md#invitations)                            |
+| `/workspaces/{ws}/service-accounts`                    | GET, POST          | [03](03-tenancy.md#service-accounts)                       |
+| `/workspaces/{ws}/service-accounts/{account}`          | GET, PATCH, DELETE | [03](03-tenancy.md#service-accounts)                       |
+| `/workspaces/{ws}/service-accounts/{account}/keys`     | GET, POST          | [03](03-tenancy.md#api-keys)                               |
+| `/workspaces/{ws}/keys`                                | GET                | [03](03-tenancy.md#api-keys)                               |
+| `/workspaces/{ws}/keys/{key}`                          | DELETE             | [03](03-tenancy.md#api-keys)                               |
+| `/workspaces/{ws}/audit-events`                        | GET                | [03](03-tenancy.md#audit)                                  |
 
 ### Providers and models
 
@@ -385,25 +389,35 @@ Retained-execution list, detail and bounded-result queries are admitted to MCP u
 
 ### Environments
 
-| Path                                    | Methods            | Owner                                                                                                   |
-| --------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------- |
-| `/environment-templates`                | GET, POST          | [04](04-resources.md#environment-templates)                                                             |
-| `/environment-templates/{template}`     | GET, PATCH         | [04](04-resources.md#environment-templates)                                                             |
-| `/environments`                         | GET, POST          | [06](06-environments.md#mounts), [external targets](06-environments.md#external-targets)                |
-| `/environments/{environment}`           | GET, PATCH, DELETE | [06](06-environments.md#stop-start-and-delete), [external targets](06-environments.md#external-targets) |
-| `/environments/{environment}/stop`      | POST               | [06](06-environments.md#stop-start-and-delete)                                                          |
-| `/threads/{thread}/environments`        | GET, POST          | [06](06-environments.md#mounts)                                                                         |
-| `/threads/{thread}/environments/{name}` | PATCH, DELETE      | [06](06-environments.md#mounts)                                                                         |
+| Path                                                                                                           | Methods            | Owner                                                                                                   |
+| -------------------------------------------------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------- |
+| `/environment-templates`                                                                                       | GET, POST          | [04](04-resources.md#environment-templates)                                                             |
+| `/environment-templates/{template}`                                                                            | GET, PATCH         | [04](04-resources.md#environment-templates)                                                             |
+| `/client-environments`                                                                                         | POST               | [Client registration](06-environments.md#identity-and-credentials)                                      |
+| `/client-environments/{environment}`                                                                           | GET                | [Client registration](06-environments.md#identity-and-credentials)                                      |
+| `/client-environments/{environment}/status`                                                                    | PATCH              | [Client status](06-environments.md#identity-and-credentials)                                            |
+| `/client-environments/{environment}/rotate-credential`, `/client-environments/{environment}/revoke-credential` | POST               | [Dedicated credentials](06-environments.md#identity-and-credentials)                                    |
+| `/environments`                                                                                                | GET, POST          | [06](06-environments.md#mounts), [external targets](06-environments.md#external-targets)                |
+| `/environments/{environment}`                                                                                  | GET, PATCH, DELETE | [06](06-environments.md#stop-start-and-delete), [external targets](06-environments.md#external-targets) |
+| `/environments/{environment}/stop`                                                                             | POST               | [06](06-environments.md#stop-start-and-delete)                                                          |
+| `/threads/{thread}/environments`                                                                               | GET, POST          | [06](06-environments.md#mounts)                                                                         |
+| `/threads/{thread}/environments/{name}`                                                                        | PATCH, DELETE      | [06](06-environments.md#mounts)                                                                         |
 
 ### Memories
 
-| Path                                   | Methods            | Owner                                     |
-| -------------------------------------- | ------------------ | ----------------------------------------- |
-| `/memory-spaces`                       | GET, POST          | [11](11-memory.md#memory-spaces)          |
-| `/memory-spaces/{space}`               | GET, PATCH, DELETE | [11](11-memory.md#memory-spaces)          |
-| `/memory-spaces/{space}/organization`  | GET                | [11](11-memory.md#organization-lifecycle) |
-| `/memory-spaces/{space}/organizations` | GET, POST          | [11](11-memory.md#organization-lifecycle) |
-| `/memory-spaces/{space}/sessions`      | GET                | [11](11-memory.md#organization-lifecycle) |
+| Path                                                             | Methods            | Owner                                               |
+| ---------------------------------------------------------------- | ------------------ | --------------------------------------------------- |
+| `/memories/{memory}/organization`                                | GET, PUT           | [11](11-memory.md#automatic-organization-policies)  |
+| `/memory-organizations`                                          | GET, POST          | [11](11-memory.md#organization-requests)            |
+| `/memory-organizations/{organization}`                           | GET                | [11](11-memory.md#organization-requests)            |
+| `/memory-organizations/{organization}/candidate`                 | GET                | [11](11-memory.md#candidate-output-and-publication) |
+| `/memory-organizations/{organization}/candidate/diff`            | GET                | [11](11-memory.md#candidate-output-and-publication) |
+| `/memory-organizations/{organization}/candidate/{apply,discard}` | POST               | [11](11-memory.md#candidate-output-and-publication) |
+| `/memory-spaces`                                                 | GET, POST          | [11](11-memory.md#memory-spaces)                    |
+| `/memory-spaces/{space}`                                         | GET, PATCH, DELETE | [11](11-memory.md#memory-spaces)                    |
+| `/memory-spaces/{space}/organization`                            | GET                | [11](11-memory.md#organization-lifecycle)           |
+| `/memory-spaces/{space}/organizations`                           | GET, POST          | [11](11-memory.md#organization-lifecycle)           |
+| `/memory-spaces/{space}/sessions`                                | GET                | [11](11-memory.md#organization-lifecycle)           |
 
 | Path                                         | Methods            | Owner                                                |
 | -------------------------------------------- | ------------------ | ---------------------------------------------------- |

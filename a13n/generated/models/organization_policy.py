@@ -9,6 +9,7 @@ from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.any_change_trigger import AnyChangeTrigger
+    from ..models.automatic_organization_history import AutomaticOrganizationHistory
     from ..models.change_count_trigger import ChangeCountTrigger
 
 
@@ -22,6 +23,8 @@ class OrganizationPolicy:
         check_interval_seconds (int | Unset):
         cooldown_seconds (int | Unset):
         enabled (bool | Unset):
+        history (AutomaticOrganizationHistory | None | Unset):
+        instructions (None | str | Unset):
         model (None | str | Unset):
         trigger (AnyChangeTrigger | ChangeCountTrigger | Unset):
     """
@@ -29,17 +32,34 @@ class OrganizationPolicy:
     check_interval_seconds: int | Unset = UNSET
     cooldown_seconds: int | Unset = UNSET
     enabled: bool | Unset = UNSET
+    history: AutomaticOrganizationHistory | Unset | None = UNSET
+    instructions: str | Unset | None = UNSET
     model: str | Unset | None = UNSET
     trigger: AnyChangeTrigger | ChangeCountTrigger | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
         from ..models.any_change_trigger import AnyChangeTrigger
+        from ..models.automatic_organization_history import AutomaticOrganizationHistory
 
         check_interval_seconds = self.check_interval_seconds
 
         cooldown_seconds = self.cooldown_seconds
 
         enabled = self.enabled
+
+        history: dict[str, Any] | Unset | None
+        if isinstance(self.history, Unset):
+            history = UNSET
+        elif isinstance(self.history, AutomaticOrganizationHistory):
+            history = self.history.to_dict()
+        else:
+            history = self.history
+
+        instructions: str | Unset | None
+        if isinstance(self.instructions, Unset):
+            instructions = UNSET
+        else:
+            instructions = self.instructions
 
         model: str | Unset | None
         if isinstance(self.model, Unset):
@@ -64,6 +84,10 @@ class OrganizationPolicy:
             field_dict["cooldown_seconds"] = cooldown_seconds
         if enabled is not UNSET:
             field_dict["enabled"] = enabled
+        if history is not UNSET:
+            field_dict["history"] = history
+        if instructions is not UNSET:
+            field_dict["instructions"] = instructions
         if model is not UNSET:
             field_dict["model"] = model
         if trigger is not UNSET:
@@ -74,6 +98,7 @@ class OrganizationPolicy:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.any_change_trigger import AnyChangeTrigger
+        from ..models.automatic_organization_history import AutomaticOrganizationHistory
         from ..models.change_count_trigger import ChangeCountTrigger
 
         d = dict(src_dict)
@@ -82,6 +107,32 @@ class OrganizationPolicy:
         cooldown_seconds = d.pop("cooldown_seconds", UNSET)
 
         enabled = d.pop("enabled", UNSET)
+
+        def _parse_history(data: object) -> AutomaticOrganizationHistory | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                history_type_0 = AutomaticOrganizationHistory.from_dict(data)
+
+                return history_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(AutomaticOrganizationHistory | Unset | None, data)
+
+        history = _parse_history(d.pop("history", UNSET))
+
+        def _parse_instructions(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        instructions = _parse_instructions(d.pop("instructions", UNSET))
 
         def _parse_model(data: object) -> str | Unset | None:
             if data is None:
@@ -115,6 +166,8 @@ class OrganizationPolicy:
             check_interval_seconds=check_interval_seconds,
             cooldown_seconds=cooldown_seconds,
             enabled=enabled,
+            history=history,
+            instructions=instructions,
             model=model,
             trigger=trigger,
         )

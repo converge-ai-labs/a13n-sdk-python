@@ -10,6 +10,7 @@ from attrs import field as _attrs_field
 from ..models.memory_kind import MemoryKind
 
 if TYPE_CHECKING:
+    from ..models.file_memory_guidance import FileMemoryGuidance
     from ..models.memory_labels import MemoryLabels
 
 
@@ -26,10 +27,11 @@ class Memory:
         created_by_id (str):
         description (None | str):
         file_count (int | None):
+        guidance (FileMemoryGuidance | None):
         guide (None | str):
         history_bytes (int | None):
         id (str):
-        inherited_guide (str):
+        inherited_guide (None | str):
         kind (MemoryKind):
         labels (MemoryLabels):
         name (str):
@@ -49,10 +51,11 @@ class Memory:
     created_by_id: str
     description: str | None
     file_count: int | None
+    guidance: FileMemoryGuidance | None
     guide: str | None
     history_bytes: int | None
     id: str
-    inherited_guide: str
+    inherited_guide: str | None
     kind: MemoryKind
     labels: MemoryLabels
     name: str
@@ -67,6 +70,8 @@ class Memory:
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.file_memory_guidance import FileMemoryGuidance
+
         always_load = self.always_load
 
         content_bytes: int | None
@@ -82,6 +87,12 @@ class Memory:
         file_count: int | None
         file_count = self.file_count
 
+        guidance: dict[str, Any] | None
+        if isinstance(self.guidance, FileMemoryGuidance):
+            guidance = self.guidance.to_dict()
+        else:
+            guidance = self.guidance
+
         guide: str | None
         guide = self.guide
 
@@ -90,6 +101,7 @@ class Memory:
 
         id = self.id
 
+        inherited_guide: str | None
         inherited_guide = self.inherited_guide
 
         kind = self.kind.value
@@ -126,6 +138,7 @@ class Memory:
                 "created_by_id": created_by_id,
                 "description": description,
                 "file_count": file_count,
+                "guidance": guidance,
                 "guide": guide,
                 "history_bytes": history_bytes,
                 "id": id,
@@ -148,6 +161,7 @@ class Memory:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.file_memory_guidance import FileMemoryGuidance
         from ..models.memory_labels import MemoryLabels
 
         d = dict(src_dict)
@@ -178,6 +192,21 @@ class Memory:
 
         file_count = _parse_file_count(d.pop("file_count"))
 
+        def _parse_guidance(data: object) -> FileMemoryGuidance | None:
+            if data is None:
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                guidance_type_0 = FileMemoryGuidance.from_dict(data)
+
+                return guidance_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(FileMemoryGuidance | None, data)
+
+        guidance = _parse_guidance(d.pop("guidance"))
+
         def _parse_guide(data: object) -> str | None:
             if data is None:
                 return data
@@ -194,7 +223,12 @@ class Memory:
 
         id = d.pop("id")
 
-        inherited_guide = d.pop("inherited_guide")
+        def _parse_inherited_guide(data: object) -> str | None:
+            if data is None:
+                return data
+            return cast(str | None, data)
+
+        inherited_guide = _parse_inherited_guide(d.pop("inherited_guide"))
 
         kind = MemoryKind(d.pop("kind"))
 
@@ -235,6 +269,7 @@ class Memory:
             created_by_id=created_by_id,
             description=description,
             file_count=file_count,
+            guidance=guidance,
             guide=guide,
             history_bytes=history_bytes,
             id=id,

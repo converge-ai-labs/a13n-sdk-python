@@ -7,6 +7,7 @@ from typing import Any, TypeVar, cast
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
+from ..models.creation_progress_profile import CreationProgressProfile
 from ..models.creation_progress_stage import CreationProgressStage
 from ..types import UNSET, Unset
 
@@ -18,6 +19,7 @@ class CreationProgress:
     """
     Attributes:
         observed_at (datetime.datetime):
+        profile (CreationProgressProfile):
         stage (CreationProgressStage):
         started_at (datetime.datetime):
         ended_at (datetime.datetime | None | Unset):
@@ -25,6 +27,7 @@ class CreationProgress:
     """
 
     observed_at: datetime.datetime
+    profile: CreationProgressProfile
     stage: CreationProgressStage
     started_at: datetime.datetime
     ended_at: datetime.datetime | Unset | None = UNSET
@@ -33,6 +36,8 @@ class CreationProgress:
 
     def to_dict(self) -> dict[str, Any]:
         observed_at = self.observed_at.isoformat()
+
+        profile = self.profile.value
 
         stage = self.stage.value
 
@@ -53,6 +58,7 @@ class CreationProgress:
         field_dict.update(
             {
                 "observed_at": observed_at,
+                "profile": profile,
                 "stage": stage,
                 "started_at": started_at,
             }
@@ -68,6 +74,8 @@ class CreationProgress:
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
         observed_at = datetime.datetime.fromisoformat(d.pop("observed_at"))
+
+        profile = CreationProgressProfile(d.pop("profile"))
 
         stage = CreationProgressStage(d.pop("stage"))
 
@@ -94,6 +102,7 @@ class CreationProgress:
 
         creation_progress = cls(
             observed_at=observed_at,
+            profile=profile,
             stage=stage,
             started_at=started_at,
             ended_at=ended_at,

@@ -33,6 +33,20 @@ from a13n import (
 from tests.test_interaction import entry_view, run_view, submitted
 
 
+def test_run_environment_and_mount_session_choices_preserve_omission_and_null() -> None:
+    assert RunOptions().to_dict() == {}
+    assert RunOptions(environment=None).to_dict() == {"environment": None}
+    environment = {"mode": "existing", "environment_id": "env_01234567890123456789"}
+    assert RunOptions(environment=environment).to_dict() == {"environment": environment}
+    mount = MountCreate("work", "env_1", session_binding="default", session_configuration=None)
+    assert mount.to_dict() == {
+        "name": "work",
+        "environment_id": "env_1",
+        "session_binding": "default",
+        "session_configuration": None,
+    }
+
+
 def test_parts_and_all_options_cross_one_generated_transport() -> None:
     async def scenario() -> None:
         requests = []
@@ -102,7 +116,11 @@ def test_all_non_null_override_fields_remain_selectable_with_canonical_wire_valu
         "reviewer": {"model": "review-model"},
         "skill_sync": {"mode": "isolated", "cache_count": 0},
         "skills": [],
-        "subagents": {},
+        "subagents": {
+            "mode": "async",
+            "named": {"worker": {"agent_id": "agt_01234567890123456789"}},
+            "dynamic": {"enabled": True},
+        },
         "tool_search": wire.ToolSearch(config=wire.ToolSearchConfig(mode="proxy")),
         "toolsets": {},
     }
