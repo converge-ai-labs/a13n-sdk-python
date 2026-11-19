@@ -2,6 +2,7 @@ from enum import StrEnum
 
 
 class EntrySummaryKind(StrEnum):
+    CHILD_MESSAGE = "child_message"
     CHILD_RESULT = "child_result"
     MESSAGE = "message"
 
