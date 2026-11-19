@@ -63,7 +63,7 @@ def test_refreshed_resources_preserve_wire_requests_and_paging():
         app_reference = dict(
             app_id="app",
             connection_id="con",
-            agent_revision_id="rev",
+            agent_definition_id="rev",
             source_run_id="run",
             tool_call_id="call",
             tool_name="chart",

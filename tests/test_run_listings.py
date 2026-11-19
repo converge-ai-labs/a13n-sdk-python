@@ -93,6 +93,7 @@ def test_session_cost_preserves_null_zero_and_decimal_precision():
         session = wire.SessionView.from_dict(
             {
                 "id": "ses_1",
+                "auto_recreate_lost_environment": False,
                 "workspace_id": "ws_1",
                 "created_by_id": "usr_1",
                 "labels": {},

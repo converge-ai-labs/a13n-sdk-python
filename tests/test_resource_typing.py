@@ -300,7 +300,7 @@ async def use(client: Client) -> None:
     speed: float | None = metrics.output_tokens_per_second
     view = (await client.api.runs('run').get()).value
     for memory in view.memory_mounts:
-        if isinstance(memory, wire.FrozenMemoryMount):
+        if isinstance(memory, wire.RunMemoryMount):
             print(memory.roots, memory.space_id)
 """)
     report = run_pyright(source)

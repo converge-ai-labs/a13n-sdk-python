@@ -215,12 +215,11 @@ from a13n.generated import models as wire
 
 
 async def diagnostic_resources(client: Client, session_id: str, entry_ids: list[str]) -> None:
-    prepared = await client.api.finding_agent()
     analysis = await client.api.finding_analyses.create(
         body=wire.AnalysisCreate(max_traces=1, presets=[wire.Preset.EXECUTION]),
         idempotency_key="analysis-001",
     )
-    print(prepared.value.preset_kind, analysis.value.run_id)
+    print(analysis.value.run_id)
     async for page in client.api.findings.pages(closed=False, limit=10):
         for finding in page.value.items:
             print(finding.id, finding.category, finding.assessment)
@@ -229,7 +228,7 @@ async def diagnostic_resources(client: Client, session_id: str, entry_ids: list[
         print(author.entry_id, author.principal_id, author.principal)
 ```
 
-Finding Agent is a builtin preset distinct from Composer. Analysis creation accepts a normal Run; use its `run_id` to observe completion through `client.runs(id)`. Findings retain evidence, limitations and reviewer assessment; zero Findings is not proof of complete inspection or Agent health. Native `findings.create()`, `findings(id).get()` and `findings(id).update(body=..., if_match=...)` remain explicit requests with typed bodies and HTTP evidence. Preparing a preset needs a usable model and Service write permission; analysis and evidence access require their native permissions and configured trace backend.
+Finding Agent is a builtin preset distinct from Composer. Analysis creation accepts a normal Run; use its `run_id` to observe completion through `client.runs(id)`. Findings retain evidence, limitations and reviewer assessment; zero Findings is not proof of complete inspection or Agent health. Native `findings.create()`, `findings(id).get()` and `findings(id).update(body=..., if_match=...)` remain explicit requests with typed bodies and HTTP evidence. Analysis creation prepares the Finding Agent as part of the managed operation; it requires a usable model and its native permissions. Evidence access requires the configured trace backend and authorization.
 
 Message authors are resolved for 1–100 repeated Entry IDs in one Session. Missing, foreign-session and non-message entries are omitted. Principal IDs and original submission times remain stable, while `principal` is a current profile or null; this query does not grant member-directory access.
 
