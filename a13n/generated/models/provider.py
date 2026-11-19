@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
+from ..types import UNSET, Unset
+
 if TYPE_CHECKING:
     from ..models.provider_config import ProviderConfig
 
@@ -32,6 +34,7 @@ class Provider:
         updated_by_id (None | str):
         version (int):
         workspace_id (str):
+        managed_deployment (bool | Unset):
     """
 
     config: ProviderConfig
@@ -48,6 +51,7 @@ class Provider:
     updated_by_id: str | None
     version: int
     workspace_id: str
+    managed_deployment: bool | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -81,6 +85,8 @@ class Provider:
 
         workspace_id = self.workspace_id
 
+        managed_deployment = self.managed_deployment
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -101,6 +107,8 @@ class Provider:
                 "workspace_id": workspace_id,
             }
         )
+        if managed_deployment is not UNSET:
+            field_dict["managed_deployment"] = managed_deployment
 
         return field_dict
 
@@ -147,6 +155,8 @@ class Provider:
 
         workspace_id = d.pop("workspace_id")
 
+        managed_deployment = d.pop("managed_deployment", UNSET)
+
         provider = cls(
             config=config,
             created_at=created_at,
@@ -162,6 +172,7 @@ class Provider:
             updated_by_id=updated_by_id,
             version=version,
             workspace_id=workspace_id,
+            managed_deployment=managed_deployment,
         )
 
         provider.additional_properties = d

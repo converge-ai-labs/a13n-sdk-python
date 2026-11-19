@@ -217,7 +217,15 @@ from .delivery_page import DeliveryPage
 from .delta import Delta
 from .delta_event import DeltaEvent
 from .deny import Deny
+from .deployment import Deployment
+from .deployment_cleanup import DeploymentCleanup
+from .deployment_cleanup_additional_property import DeploymentCleanupAdditionalProperty
+from .deployment_create import DeploymentCreate
+from .deployment_list import DeploymentList
+from .deployment_operation import DeploymentOperation
 from .deployment_preset import DeploymentPreset
+from .deployment_retry import DeploymentRetry
+from .deployment_status import DeploymentStatus
 from .desktop_takeover import DesktopTakeover
 from .desktop_viewer import DesktopViewer
 from .desktop_viewer_mode import DesktopViewerMode
@@ -1118,7 +1126,15 @@ __all__ = (
     "Delta",
     "DeltaEvent",
     "Deny",
+    "Deployment",
+    "DeploymentCleanup",
+    "DeploymentCleanupAdditionalProperty",
+    "DeploymentCreate",
+    "DeploymentList",
+    "DeploymentOperation",
     "DeploymentPreset",
+    "DeploymentRetry",
+    "DeploymentStatus",
     "DesktopTakeover",
     "DesktopViewer",
     "DesktopViewerMode",
