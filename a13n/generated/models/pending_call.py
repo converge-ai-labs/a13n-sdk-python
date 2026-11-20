@@ -23,12 +23,14 @@ class PendingCall:
         tool_call_id (str):
         tool_name (str):
         presentation (None | PendingCallPresentationType0 | Unset):
+        terminal (bool | Unset):
     """
 
     arguments: PendingCallArguments
     tool_call_id: str
     tool_name: str
     presentation: PendingCallPresentationType0 | Unset | None = UNSET
+    terminal: bool | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
         from ..models.pending_call_presentation_type_0 import PendingCallPresentationType0
@@ -47,6 +49,8 @@ class PendingCall:
         else:
             presentation = self.presentation
 
+        terminal = self.terminal
+
         field_dict: dict[str, Any] = {}
 
         field_dict.update(
@@ -58,6 +62,8 @@ class PendingCall:
         )
         if presentation is not UNSET:
             field_dict["presentation"] = presentation
+        if terminal is not UNSET:
+            field_dict["terminal"] = terminal
 
         return field_dict
 
@@ -90,11 +96,14 @@ class PendingCall:
 
         presentation = _parse_presentation(d.pop("presentation", UNSET))
 
+        terminal = d.pop("terminal", UNSET)
+
         pending_call = cls(
             arguments=arguments,
             tool_call_id=tool_call_id,
             tool_name=tool_name,
             presentation=presentation,
+            terminal=terminal,
         )
 
         return pending_call

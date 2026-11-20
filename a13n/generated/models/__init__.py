@@ -131,6 +131,9 @@ from .client_connection_observation import ClientConnectionObservation
 from .client_connection_observation_state import ClientConnectionObservationState
 from .client_environment import ClientEnvironment
 from .client_environment_configuration import ClientEnvironmentConfiguration
+from .client_output_alternative import ClientOutputAlternative
+from .client_output_alternative_resources import ClientOutputAlternativeResources
+from .client_output_alternative_schema import ClientOutputAlternativeSchema
 from .client_tool_definition import ClientToolDefinition
 from .client_tool_definition_metadata import ClientToolDefinitionMetadata
 from .client_tool_definition_parameters_json_schema import ClientToolDefinitionParametersJsonSchema
@@ -784,6 +787,9 @@ from .status_change import StatusChange
 from .status_change_status import StatusChangeStatus
 from .steering import Steering
 from .stream_position import StreamPosition
+from .structured_output_alternative import StructuredOutputAlternative
+from .structured_output_alternative_resources import StructuredOutputAlternativeResources
+from .structured_output_alternative_schema import StructuredOutputAlternativeSchema
 from .subagent_selection_input import SubagentSelectionInput
 from .subagent_selection_output import SubagentSelectionOutput
 from .subagents_input import SubagentsInput
@@ -1040,6 +1046,9 @@ __all__ = (
     "ClientConnectionObservationState",
     "ClientEnvironment",
     "ClientEnvironmentConfiguration",
+    "ClientOutputAlternative",
+    "ClientOutputAlternativeResources",
+    "ClientOutputAlternativeSchema",
     "ClientToolDefinition",
     "ClientToolDefinitionMetadata",
     "ClientToolDefinitionParametersJsonSchema",
@@ -1691,6 +1700,9 @@ __all__ = (
     "StatusChangeStatus",
     "Steering",
     "StreamPosition",
+    "StructuredOutputAlternative",
+    "StructuredOutputAlternativeResources",
+    "StructuredOutputAlternativeSchema",
     "SubagentSelectionInput",
     "SubagentSelectionOutput",
     "SubagentsInput",
