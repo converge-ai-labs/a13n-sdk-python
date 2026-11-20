@@ -3,6 +3,7 @@ from enum import StrEnum
 
 class EntryViewKind(StrEnum):
     BROWSER_HANDBACK = "browser_handback"
+    CHILD_MESSAGE = "child_message"
     CHILD_RESULT = "child_result"
     DESKTOP_HANDBACK = "desktop_handback"
     MESSAGE = "message"

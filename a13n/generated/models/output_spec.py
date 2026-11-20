@@ -8,9 +8,11 @@ from attrs import define as _attrs_define
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
+    from ..models.client_output_alternative import ClientOutputAlternative
     from ..models.output_spec_resources import OutputSpecResources
     from ..models.output_spec_schema_type_0 import OutputSpecSchemaType0
     from ..models.output_variant import OutputVariant
+    from ..models.structured_output_alternative import StructuredOutputAlternative
 
 
 T = TypeVar("T", bound="OutputSpec")
@@ -23,6 +25,7 @@ class OutputSpec:
     `resources` are the schemas `$ref`s may name besides the schema's own definitions.
 
         Attributes:
+            alternatives (list[ClientOutputAlternative | str | StructuredOutputAlternative] | None | Unset):
             description (None | str | Unset):
             name (None | str | Unset):
             resources (OutputSpecResources | Unset):
@@ -30,6 +33,7 @@ class OutputSpec:
             variants (list[OutputVariant] | None | Unset):
     """
 
+    alternatives: list[ClientOutputAlternative | str | StructuredOutputAlternative] | Unset | None = UNSET
     description: str | Unset | None = UNSET
     name: str | Unset | None = UNSET
     resources: OutputSpecResources | Unset = UNSET
@@ -37,7 +41,27 @@ class OutputSpec:
     variants: list[OutputVariant] | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.client_output_alternative import ClientOutputAlternative
         from ..models.output_spec_schema_type_0 import OutputSpecSchemaType0
+        from ..models.structured_output_alternative import StructuredOutputAlternative
+
+        alternatives: list[dict[str, Any] | str] | Unset | None
+        if isinstance(self.alternatives, Unset):
+            alternatives = UNSET
+        elif isinstance(self.alternatives, list):
+            alternatives = []
+            for alternatives_type_0_item_data in self.alternatives:
+                alternatives_type_0_item: dict[str, Any] | str
+                if isinstance(alternatives_type_0_item_data, StructuredOutputAlternative):
+                    alternatives_type_0_item = alternatives_type_0_item_data.to_dict()
+                elif isinstance(alternatives_type_0_item_data, ClientOutputAlternative):
+                    alternatives_type_0_item = alternatives_type_0_item_data.to_dict()
+                else:
+                    alternatives_type_0_item = alternatives_type_0_item_data
+                alternatives.append(alternatives_type_0_item)
+
+        else:
+            alternatives = self.alternatives
 
         description: str | Unset | None
         if isinstance(self.description, Unset):
@@ -78,6 +102,8 @@ class OutputSpec:
         field_dict: dict[str, Any] = {}
 
         field_dict.update({})
+        if alternatives is not UNSET:
+            field_dict["alternatives"] = alternatives
         if description is not UNSET:
             field_dict["description"] = description
         if name is not UNSET:
@@ -93,11 +119,59 @@ class OutputSpec:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.client_output_alternative import ClientOutputAlternative
         from ..models.output_spec_resources import OutputSpecResources
         from ..models.output_spec_schema_type_0 import OutputSpecSchemaType0
         from ..models.output_variant import OutputVariant
+        from ..models.structured_output_alternative import StructuredOutputAlternative
 
         d = dict(src_dict)
+
+        def _parse_alternatives(
+            data: object,
+        ) -> list[ClientOutputAlternative | str | StructuredOutputAlternative] | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, list):
+                    raise TypeError()
+                alternatives_type_0 = []
+                _alternatives_type_0 = data
+                for alternatives_type_0_item_data in _alternatives_type_0:
+
+                    def _parse_alternatives_type_0_item(
+                        data: object,
+                    ) -> ClientOutputAlternative | str | StructuredOutputAlternative:
+                        try:
+                            if not isinstance(data, dict):
+                                raise TypeError()
+                            componentsschemas_output_definition_type_0 = StructuredOutputAlternative.from_dict(data)
+
+                            return componentsschemas_output_definition_type_0
+                        except (TypeError, ValueError, AttributeError, KeyError):
+                            pass
+                        try:
+                            if not isinstance(data, dict):
+                                raise TypeError()
+                            componentsschemas_output_definition_type_1 = ClientOutputAlternative.from_dict(data)
+
+                            return componentsschemas_output_definition_type_1
+                        except (TypeError, ValueError, AttributeError, KeyError):
+                            pass
+                        return cast(ClientOutputAlternative | str | StructuredOutputAlternative, data)
+
+                    alternatives_type_0_item = _parse_alternatives_type_0_item(alternatives_type_0_item_data)
+
+                    alternatives_type_0.append(alternatives_type_0_item)
+
+                return alternatives_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(list[ClientOutputAlternative | str | StructuredOutputAlternative] | Unset | None, data)
+
+        alternatives = _parse_alternatives(d.pop("alternatives", UNSET))
 
         def _parse_description(data: object) -> str | Unset | None:
             if data is None:
@@ -164,6 +238,7 @@ class OutputSpec:
         variants = _parse_variants(d.pop("variants", UNSET))
 
         output_spec = cls(
+            alternatives=alternatives,
             description=description,
             name=name,
             resources=resources,

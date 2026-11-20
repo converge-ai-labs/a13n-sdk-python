@@ -20,6 +20,7 @@ FAMILIES = {
     "auth",
     "connections",
     "client_environments",
+    "cloudflare_deployments",
     "connector_providers",
     "browsers",
     "browser_providers",

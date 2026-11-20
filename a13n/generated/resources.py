@@ -92,6 +92,13 @@ from .api.client_environments import (
     revoke_client_environment_credential,
     rotate_client_environment_credential,
 )
+from .api.cloudflare_deployments import (
+    create_cloudflare_deployment,
+    get_cloudflare_deployment,
+    list_cloudflare_deployments,
+    retire_cloudflare_deployment,
+    retry_cloudflare_deployment,
+)
 from .api.connections import (
     authorize_connection,
     complete_authorization,
@@ -483,6 +490,10 @@ class ServiceResources(Resource):
     @property
     def client_environments(self) -> ClientEnvironments:
         return ClientEnvironments(self._client, self._bindings)
+
+    @property
+    def cloudflare_deployments(self) -> CloudflareDeployments:
+        return CloudflareDeployments(self._client, self._bindings)
 
     @property
     def connections(self) -> Connections:
@@ -1671,6 +1682,72 @@ class ClientEnvironmentsEnvironmentIdStatus(Resource):
             lambda client: change_client_environment_status.asyncio_detailed(
                 client=client,
                 environment_id=self._bindings["environment_id"],
+                body=body,
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+
+class CloudflareDeployments(Resource):
+    """Bound Native resource: /cloudflare-deployments."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.DeploymentList]:
+        """List Cloudflare Deployments. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: list_cloudflare_deployments.asyncio_detailed(client=client, x_workspace_id=x_workspace_id)
+        )
+
+    async def create(
+        self, *, body: wire.DeploymentCreate, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.Deployment]:
+        """Create Cloudflare Deployment. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: create_cloudflare_deployment.asyncio_detailed(
+                client=client, body=body, x_workspace_id=x_workspace_id
+            )
+        )
+
+    def __call__(self, deployment_id: str) -> CloudflareDeploymentsDeploymentId:
+        return CloudflareDeploymentsDeploymentId(self._client, self._bind("deployment_id", deployment_id))
+
+
+class CloudflareDeploymentsDeploymentId(Resource):
+    """Bound Native resource: /cloudflare-deployments / {deployment_id}."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Deployment]:
+        """Get Cloudflare Deployment. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_cloudflare_deployment.asyncio_detailed(
+                client=client, deployment_id=self._bindings["deployment_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def retire(
+        self, *, if_match: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.Deployment]:
+        """Retire Cloudflare Deployment. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: retire_cloudflare_deployment.asyncio_detailed(
+                client=client,
+                deployment_id=self._bindings["deployment_id"],
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    async def retry(
+        self,
+        *,
+        body: wire.DeploymentRetry,
+        if_match: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.Deployment]:
+        """Retry Cloudflare Deployment. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: retry_cloudflare_deployment.asyncio_detailed(
+                client=client,
+                deployment_id=self._bindings["deployment_id"],
                 body=body,
                 if_match=if_match,
                 x_workspace_id=x_workspace_id,
