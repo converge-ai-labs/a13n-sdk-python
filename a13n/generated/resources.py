@@ -444,6 +444,7 @@ from .api.tenancy import (
 from .api.usage import (
     context_usage,
     list_run_usage,
+    list_session_usage,
     list_usage_members,
     model_request_metrics,
     summarize_usage,
@@ -8666,6 +8667,10 @@ class Usage(Resource):
     def runs(self) -> UsageRuns:
         return UsageRuns(self._client, self._bindings)
 
+    @property
+    def sessions(self) -> UsageSessions:
+        return UsageSessions(self._client, self._bindings)
+
 
 class UsageAgents(Resource):
     """Bound Native resource: /usage / agents."""
@@ -9048,6 +9053,87 @@ class UsageRuns(Resource):
                 ingested_before=ingested_before,
                 limit=limit,
                 cursor=cursor,
+                x_workspace_id=x_workspace_id,
+            )
+            for item in page.value.items
+        )
+
+
+class UsageSessions(Resource):
+    """Bound Native resource: /usage / sessions."""
+
+    async def list(
+        self,
+        *,
+        start: datetime.datetime,
+        end: datetime.datetime,
+        principal_id: str | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        agent_id: str,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.SessionUsagePage]:
+        """List Session Usage. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: list_session_usage.asyncio_detailed(
+                client=client,
+                start=start,
+                end=end,
+                principal_id=principal_id,
+                limit=limit,
+                cursor=cursor,
+                agent_id=agent_id,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    def pages(
+        self,
+        *,
+        start: datetime.datetime,
+        end: datetime.datetime,
+        principal_id: str | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        agent_id: str,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[Result[wire.SessionUsagePage]]:
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        return pages(
+            lambda next_cursor: self.list(
+                start=start,
+                end=end,
+                principal_id=principal_id,
+                limit=limit,
+                agent_id=agent_id,
+                x_workspace_id=x_workspace_id,
+                cursor=next_cursor,
+            ),
+            lambda value: value.next_cursor,
+            cursor,
+        )
+
+    def iter(
+        self,
+        *,
+        start: datetime.datetime,
+        end: datetime.datetime,
+        principal_id: str | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        agent_id: str,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[wire.SessionUsage]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(
+                start=start,
+                end=end,
+                principal_id=principal_id,
+                limit=limit,
+                cursor=cursor,
+                agent_id=agent_id,
                 x_workspace_id=x_workspace_id,
             )
             for item in page.value.items

@@ -235,6 +235,7 @@ WORKSPACE_PATHS = (
     re.compile("/api/v1/usage/overview\\Z"),
     re.compile("/api/v1/usage/records/[^/]+/metrics\\Z"),
     re.compile("/api/v1/usage/runs\\Z"),
+    re.compile("/api/v1/usage/sessions\\Z"),
     re.compile("/api/v1/web\\-providers\\Z"),
     re.compile("/api/v1/web\\-providers/[^/]+\\Z"),
     re.compile("/api/v1/web\\-providers/[^/]+/test\\Z"),
