@@ -740,6 +740,8 @@ from .session_preview import SessionPreview
 from .session_profile import SessionProfile
 from .session_update import SessionUpdate
 from .session_update_labels_type_0 import SessionUpdateLabelsType0
+from .session_usage import SessionUsage
+from .session_usage_page import SessionUsagePage
 from .session_view import SessionView
 from .session_view_labels import SessionViewLabels
 from .session_view_purpose import SessionViewPurpose
@@ -1653,6 +1655,8 @@ __all__ = (
     "SessionProfile",
     "SessionUpdate",
     "SessionUpdateLabelsType0",
+    "SessionUsage",
+    "SessionUsagePage",
     "SessionView",
     "SessionViewLabels",
     "SessionViewPurpose",

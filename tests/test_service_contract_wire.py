@@ -88,3 +88,21 @@ def test_session_thread_frames_preserve_run_finding_analysis_id_presence():
                 assert serialized["finding_analysis_id"] == value
 
     asyncio.run(scenario())
+
+
+def test_fresh_schedule_invocation_retains_initial_resources() -> None:
+    from a13n.generated import models as wire
+
+    value = {
+        "agent_id": "agt_123",
+        "agent_revision_id": None,
+        "payload": {"content": [{"type": "text", "text": "hello"}]},
+        "browser_binding": {"browser_id": "brw_123", "tab_access": "global"},
+        "environments": [{"environment_id": "env_123", "name": "work"}],
+        "memories": [{"memory_id": "mem_123", "name": "notes", "access": "read"}],
+    }
+    for model in (wire.ScheduleInvocationInput, wire.ScheduleInvocationOutput):
+        encoded = model.from_dict(value).to_dict()
+        assert encoded["browser_binding"] == value["browser_binding"]
+        assert encoded["environments"] == value["environments"]
+        assert encoded["memories"] == value["memories"]

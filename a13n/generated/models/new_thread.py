@@ -9,6 +9,7 @@ from ..models.delivery import Delivery
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
+    from ..models.browser_binding import BrowserBinding
     from ..models.execution_override import ExecutionOverride
     from ..models.mcp_headers import McpHeaders
     from ..models.memory_mount import MemoryMount
@@ -29,6 +30,7 @@ class NewThread:
         agent_id (str):
         payload (MessagePayload):
         agent_revision_id (None | str | Unset):
+        browser_binding (BrowserBinding | None | Unset):
         delivery (Delivery | Unset):
         environments (list[MountCreate] | Unset):
         execution (ExecutionOverride | None | Unset):
@@ -47,6 +49,7 @@ class NewThread:
     agent_id: str
     payload: MessagePayload
     agent_revision_id: str | Unset | None = UNSET
+    browser_binding: BrowserBinding | Unset | None = UNSET
     delivery: Delivery | Unset = UNSET
     environments: list[MountCreate] | Unset = UNSET
     execution: ExecutionOverride | Unset | None = UNSET
@@ -59,6 +62,7 @@ class NewThread:
     session_id: str | Unset | None = UNSET
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.browser_binding import BrowserBinding
         from ..models.execution_override import ExecutionOverride
         from ..models.session_create import SessionCreate
 
@@ -71,6 +75,14 @@ class NewThread:
             agent_revision_id = UNSET
         else:
             agent_revision_id = self.agent_revision_id
+
+        browser_binding: dict[str, Any] | Unset | None
+        if isinstance(self.browser_binding, Unset):
+            browser_binding = UNSET
+        elif isinstance(self.browser_binding, BrowserBinding):
+            browser_binding = self.browser_binding.to_dict()
+        else:
+            browser_binding = self.browser_binding
 
         delivery: str | Unset = UNSET
         if not isinstance(self.delivery, Unset):
@@ -139,6 +151,8 @@ class NewThread:
         )
         if agent_revision_id is not UNSET:
             field_dict["agent_revision_id"] = agent_revision_id
+        if browser_binding is not UNSET:
+            field_dict["browser_binding"] = browser_binding
         if delivery is not UNSET:
             field_dict["delivery"] = delivery
         if environments is not UNSET:
@@ -164,6 +178,7 @@ class NewThread:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.browser_binding import BrowserBinding
         from ..models.execution_override import ExecutionOverride
         from ..models.mcp_headers import McpHeaders
         from ..models.memory_mount import MemoryMount
@@ -186,6 +201,23 @@ class NewThread:
             return cast(str | Unset | None, data)
 
         agent_revision_id = _parse_agent_revision_id(d.pop("agent_revision_id", UNSET))
+
+        def _parse_browser_binding(data: object) -> BrowserBinding | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                browser_binding_type_0 = BrowserBinding.from_dict(data)
+
+                return browser_binding_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(BrowserBinding | Unset | None, data)
+
+        browser_binding = _parse_browser_binding(d.pop("browser_binding", UNSET))
 
         _delivery = d.pop("delivery", UNSET)
         delivery: Delivery | Unset
@@ -290,6 +322,7 @@ class NewThread:
             agent_id=agent_id,
             payload=payload,
             agent_revision_id=agent_revision_id,
+            browser_binding=browser_binding,
             delivery=delivery,
             environments=environments,
             execution=execution,
