@@ -987,3 +987,23 @@ def test_historical_complete_window_does_not_seal_finite_interaction() -> None:
         assert all(not path.endswith("/stream") for _, path in methods)
 
     asyncio.run(scenario())
+
+
+def test_start_browser_binding_preserves_omission_null_and_value() -> None:
+    async def scenario() -> None:
+        bodies: list[dict] = []
+
+        def handle(request: httpx2.Request) -> httpx2.Response:
+            bodies.append(json.loads(request.content))
+            return httpx2.Response(201, json=submitted())
+
+        async with Client("https://service.example", transport=httpx2.MockTransport(handle)) as client:
+            agent = client.agents("agt_1")
+            await agent.start("omitted")
+            await agent.start("null", browser_binding=None)
+            await agent.start("bound", browser_binding=wire.BrowserBinding(browser_id="brw_123"))
+        assert "browser_binding" not in bodies[0]
+        assert bodies[1]["browser_binding"] is None
+        assert bodies[2]["browser_binding"]["browser_id"] == "brw_123"
+
+    asyncio.run(scenario())

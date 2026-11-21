@@ -59,8 +59,8 @@ def test_every_pinned_operation_has_a_generated_resource_method() -> None:
         and isinstance(node.func.value, ast.Name)
     }
     assert called == expected
-    assert len(document["paths"]) == 291
-    assert len(expected) == 401
+    assert len(document["paths"]) == 292
+    assert len(expected) == 402
 
 
 def test_memory_files_revisions_and_mounts_preserve_paths_and_etags() -> None:
@@ -223,5 +223,53 @@ def test_bootstrap_and_initialization_configuration_are_available() -> None:
                 )
         assert len(seen) == 2
         assert seen[1].url.path == "/api/v1/auth/bootstrap"
+
+    asyncio.run(scenario())
+
+
+def test_session_usage_query_and_typed_page() -> None:
+    from datetime import UTC, datetime
+
+    async def scenario() -> None:
+        def respond(request: httpx2.Request) -> httpx2.Response:
+            assert request.url.path == "/api/v1/usage/sessions"
+            assert request.url.params["agent_id"] == "agt_123"
+            assert request.url.params["cursor"] == "next +/"
+            assert request.url.params["limit"] == "7"
+            return httpx2.Response(
+                200,
+                json={
+                    "items": [
+                        {
+                            "session_id": "ses_123",
+                            "title": None,
+                            "usage": {
+                                "requests": 2,
+                                "input_tokens": 12,
+                                "output_tokens": 4,
+                                "cache_read_tokens": 0,
+                                "cache_hit_rate": None,
+                                "cost": None,
+                                "unpriced_requests": 1,
+                            },
+                            "runs": {"runs": 3, "average_duration_seconds": None},
+                        }
+                    ],
+                    "next_cursor": "later",
+                },
+            )
+
+        async with Client("https://service.example", transport=httpx2.MockTransport(respond)) as client:
+            page = await client.api.usage.sessions.list(
+                start=datetime(2026, 1, 1, tzinfo=UTC),
+                end=datetime(2026, 1, 2, tzinfo=UTC),
+                agent_id="agt_123",
+                cursor="next +/",
+                limit=7,
+            )
+            assert isinstance(page.value, wire.SessionUsagePage)
+            assert page.value.items[0].session_id == "ses_123"
+            assert page.value.items[0].usage.input_tokens == 12
+            assert page.value.next_cursor == "later"
 
     asyncio.run(scenario())
