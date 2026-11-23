@@ -407,3 +407,19 @@ def test_app_ready_preserves_repeated_committed_references_and_rejects_invalid_e
             _session_frame("app_ready", [json.dumps(invalid)], None)
     with pytest.raises(ProtocolError):
         _session_frame("app_ready", [json.dumps(payload)], "1-0")
+
+
+def test_session_thread_snapshot_preserves_no_environment_and_new_platform_groups() -> None:
+    payload = session_state()
+    options = payload["current_run"]["options"]
+    options["environment"] = {"mode": "none"}
+    options["overrides"] = {"toolsets": {key: {} for key in ("usage", "subscriptions", "egress_credentials")}}
+    frame = _session_frame("thread", [json.dumps(payload)], None)
+    assert isinstance(frame, SessionThreadFrame)
+    assert isinstance(frame.data.current_run.options.environment, wire.NoPrimaryEnvironment)
+    actual = frame.data.to_dict()["current_run"]["options"]
+    assert actual["environment"] == {"mode": "none"}
+    assert set(actual["overrides"]["toolsets"]) == {"usage", "subscriptions", "egress_credentials"}
+    options["environment"] = {"mode": "unknown"}
+    with pytest.raises(ProtocolError):
+        _session_frame("thread", [json.dumps(payload)], None)

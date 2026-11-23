@@ -235,7 +235,24 @@ def with_session_models(document: dict, session: dict) -> dict:
     return document
 
 
+def project_operations(document: dict) -> dict:
+    """Omit browser navigation from callable bindings without changing the contract."""
+    document = json.loads(json.dumps(document))
+    excluded = {"start_oidc_sign_in", "finish_oidc_sign_in"}
+    methods = {"get", "put", "post", "delete", "options", "head", "patch", "trace"}
+    for path, item in list(document["paths"].items()):
+        removed = False
+        for method in methods:
+            if item.get(method, {}).get("operationId") in excluded:
+                del item[method]
+                removed = True
+        if removed and not methods.intersection(item):
+            del document["paths"][path]
+    return document
+
+
 def generate(document: dict, work: Path, session: bytes | None = None) -> Path:
+    document = project_operations(document)
     source = work / "openapi.json"
     models = with_session_models(document, json.loads(session)) if session is not None else document
     source.write_text(json.dumps(prepare(models)))

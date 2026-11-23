@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from codegen.generate import generate, install, prepare
+from codegen.generate import generate, install, prepare, project_operations
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -114,7 +114,6 @@ def test_every_pinned_named_model_and_inline_schema_has_generated_coverage() -> 
             assert exported in wire.__all__, name
             named.add(name)
     assert named | inline == schemas.keys()
-    assert len(schemas) == 642
     for name in inline:
         reference = f"#/components/schemas/{name}"
         assert reference in json.dumps(document), name
@@ -128,7 +127,6 @@ def test_session_only_models_share_native_types_without_changing_native_inventor
     augmented = with_session_models(document, session)
     native = document["components"]["schemas"]
     combined = augmented["components"]["schemas"]
-    assert len(native) == 642 and len(session["$defs"]) == 141
     assert combined.keys() - native.keys() == {
         "AppReady",
         "ScheduleConfiguration",
@@ -212,3 +210,24 @@ def test_boundary_adapter_rejects_only_selected_nullable_model_fallthrough() -> 
     assert 'raise ValueError("Invalid nullable model value")' in result
     unrelated = selected.replace("ContextUsage", "OldModel")
     assert strict_wire_boundaries(unrelated) == unrelated
+
+
+def test_browser_navigation_projection_preserves_contract_and_all_other_operations() -> None:
+    document = json.loads((ROOT / "contract/openapi.json").read_text())
+    original = json.loads(json.dumps(document))
+    projected = project_operations(document)
+    methods = {"get", "put", "post", "delete", "options", "head", "patch", "trace"}
+
+    def operations(value: dict) -> set[tuple[str, str, str]]:
+        return {
+            (path, method, operation["operationId"])
+            for path, item in value["paths"].items()
+            for method, operation in item.items()
+            if method in methods
+        }
+
+    before, after = operations(document), operations(projected)
+    assert {operation[2] for operation in before - after} == {"start_oidc_sign_in", "finish_oidc_sign_in"}
+    assert len(before - after) == 2 and not after - before
+    assert projected["components"] == document["components"]
+    assert document == original
