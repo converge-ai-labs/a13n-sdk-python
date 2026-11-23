@@ -17,7 +17,7 @@ T = TypeVar("T", bound="SubscriptionUpdate")
 
 @_attrs_define(repr=False)
 class SubscriptionUpdate:
-    """`signing_secret` replaces the secret for deliveries queued after this change.
+    """Secret replacement applies only to newly queued deliveries.
 
     Attributes:
         enabled (bool | None | Unset):

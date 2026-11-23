@@ -17,7 +17,7 @@ T = TypeVar("T", bound="SubscriptionCreate")
 
 @_attrs_define(repr=False)
 class SubscriptionCreate:
-    """Without `signing_secret` the service generates one; either way it is returned only by this request.
+    """The supplied or generated signing secret is returned only at creation.
 
     Attributes:
         kinds (list[LifecycleKind]):

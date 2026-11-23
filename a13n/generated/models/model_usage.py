@@ -22,6 +22,7 @@ class ModelUsage:
         output_tokens (int):
         output_tokens_per_second (float | None):
         requests (int):
+        unpriced_requests (int):
     """
 
     average_time_to_first_chunk_seconds: float | None
@@ -33,6 +34,7 @@ class ModelUsage:
     output_tokens: int
     output_tokens_per_second: float | None
     requests: int
+    unpriced_requests: int
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -58,6 +60,8 @@ class ModelUsage:
 
         requests = self.requests
 
+        unpriced_requests = self.unpriced_requests
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -71,6 +75,7 @@ class ModelUsage:
                 "output_tokens": output_tokens,
                 "output_tokens_per_second": output_tokens_per_second,
                 "requests": requests,
+                "unpriced_requests": unpriced_requests,
             }
         )
 
@@ -120,6 +125,8 @@ class ModelUsage:
 
         requests = d.pop("requests")
 
+        unpriced_requests = d.pop("unpriced_requests")
+
         model_usage = cls(
             average_time_to_first_chunk_seconds=average_time_to_first_chunk_seconds,
             cache_read_tokens=cache_read_tokens,
@@ -130,6 +137,7 @@ class ModelUsage:
             output_tokens=output_tokens,
             output_tokens_per_second=output_tokens_per_second,
             requests=requests,
+            unpriced_requests=unpriced_requests,
         )
 
         model_usage.additional_properties = d
