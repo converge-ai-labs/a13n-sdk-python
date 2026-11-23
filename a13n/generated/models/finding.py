@@ -31,7 +31,8 @@ class Finding:
         closed (bool):
         created_at (datetime.datetime):
         created_by_id (str):
-        evidence (list[Evidence]):
+        evidence (list[Evidence]): Pair each trace with its owning Run. In an analysis, first read every cited trace
+            with get_trace, get_trace_span or a list_trace_spans call that returns spans.
         explanation (str):
         id (str):
         source_key (str):

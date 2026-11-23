@@ -193,7 +193,7 @@ def sync_detailed(
     Incomplete queries fail without a partial rank.
 
     Args:
-        session_id (None | str | Unset):
+        session_id (None | str | Unset): Scope a comparison across Threads to this Session.
         thread_id (None | str | Unset):
         run_id (None | str | Unset):
         attribute (list[str] | Unset):
@@ -201,7 +201,8 @@ def sync_detailed(
         started_before (datetime.datetime):
         order_by (SearchTracesOrderBy | Unset):
         direction (SearchTracesDirection | Unset):
-        min_duration_seconds (float | None | str | Unset):
+        min_duration_seconds (float | None | str | Unset): Inclusive lower bound on trace duration
+            in seconds, applied before ranking.
         max_duration_seconds (float | None | str | Unset):
         min_cost_usd (float | None | str | Unset):
         max_cost_usd (float | None | str | Unset):
@@ -273,7 +274,7 @@ def sync(
     Incomplete queries fail without a partial rank.
 
     Args:
-        session_id (None | str | Unset):
+        session_id (None | str | Unset): Scope a comparison across Threads to this Session.
         thread_id (None | str | Unset):
         run_id (None | str | Unset):
         attribute (list[str] | Unset):
@@ -281,7 +282,8 @@ def sync(
         started_before (datetime.datetime):
         order_by (SearchTracesOrderBy | Unset):
         direction (SearchTracesDirection | Unset):
-        min_duration_seconds (float | None | str | Unset):
+        min_duration_seconds (float | None | str | Unset): Inclusive lower bound on trace duration
+            in seconds, applied before ranking.
         max_duration_seconds (float | None | str | Unset):
         min_cost_usd (float | None | str | Unset):
         max_cost_usd (float | None | str | Unset):
@@ -348,7 +350,7 @@ async def asyncio_detailed(
     Incomplete queries fail without a partial rank.
 
     Args:
-        session_id (None | str | Unset):
+        session_id (None | str | Unset): Scope a comparison across Threads to this Session.
         thread_id (None | str | Unset):
         run_id (None | str | Unset):
         attribute (list[str] | Unset):
@@ -356,7 +358,8 @@ async def asyncio_detailed(
         started_before (datetime.datetime):
         order_by (SearchTracesOrderBy | Unset):
         direction (SearchTracesDirection | Unset):
-        min_duration_seconds (float | None | str | Unset):
+        min_duration_seconds (float | None | str | Unset): Inclusive lower bound on trace duration
+            in seconds, applied before ranking.
         max_duration_seconds (float | None | str | Unset):
         min_cost_usd (float | None | str | Unset):
         max_cost_usd (float | None | str | Unset):
@@ -426,7 +429,7 @@ async def asyncio(
     Incomplete queries fail without a partial rank.
 
     Args:
-        session_id (None | str | Unset):
+        session_id (None | str | Unset): Scope a comparison across Threads to this Session.
         thread_id (None | str | Unset):
         run_id (None | str | Unset):
         attribute (list[str] | Unset):
@@ -434,7 +437,8 @@ async def asyncio(
         started_before (datetime.datetime):
         order_by (SearchTracesOrderBy | Unset):
         direction (SearchTracesDirection | Unset):
-        min_duration_seconds (float | None | str | Unset):
+        min_duration_seconds (float | None | str | Unset): Inclusive lower bound on trace duration
+            in seconds, applied before ranking.
         max_duration_seconds (float | None | str | Unset):
         min_cost_usd (float | None | str | Unset):
         max_cost_usd (float | None | str | Unset):

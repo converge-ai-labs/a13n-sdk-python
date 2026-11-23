@@ -23,7 +23,8 @@ class FindingCreate:
         agent_id (str):
         agent_revision_id (None | str):
         category (Category):
-        evidence (list[Evidence]):
+        evidence (list[Evidence]): Pair each trace with its owning Run. In an analysis, first read every cited trace
+            with get_trace, get_trace_span or a list_trace_spans call that returns spans.
         explanation (str):
         source_key (str):
         suggestion (str):
