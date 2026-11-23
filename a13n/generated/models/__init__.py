@@ -335,6 +335,7 @@ from .grant_create import GrantCreate
 from .grant_page import GrantPage
 from .grant_update import GrantUpdate
 from .grant_view import GrantView
+from .grant_view_source import GrantViewSource
 from .guide_module import GuideModule
 from .harness_model_characteristics_input import HarnessModelCharacteristicsInput
 from .harness_model_characteristics_output import HarnessModelCharacteristicsOutput
@@ -522,6 +523,8 @@ from .occurrence_snapshot import OccurrenceSnapshot
 from .occurrence_status import OccurrenceStatus
 from .occurrence_summary import OccurrenceSummary
 from .occurrence_summary_execution_outcome_type_0 import OccurrenceSummaryExecutionOutcomeType0
+from .oidc_brand import OIDCBrand
+from .oidc_sign_in import OIDCSignIn
 from .once_schedule import OnceSchedule
 from .open_viewer import OpenViewer
 from .open_viewer_mode import OpenViewerMode
@@ -1253,6 +1256,7 @@ __all__ = (
     "GrantPage",
     "GrantUpdate",
     "GrantView",
+    "GrantViewSource",
     "GuideModule",
     "HarnessModelCharacteristicsInput",
     "HarnessModelCharacteristicsOutput",
@@ -1425,6 +1429,8 @@ __all__ = (
     "OAuthGrant",
     "OAuthRedirect",
     "OAuthSettings",
+    "OIDCBrand",
+    "OIDCSignIn",
     "Observation",
     "ObserverContinuation",
     "ObserverState",

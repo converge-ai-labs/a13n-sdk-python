@@ -49,6 +49,7 @@ from .api.auth import (
     create_user_key,
     delete_user_avatar,
     disable_account,
+    finish_oidc_sign_in,
     get_profile,
     get_user_avatar,
     list_account_audit_events,
@@ -61,6 +62,7 @@ from .api.auth import (
     revoke_login_session,
     revoke_user_key,
     session_profile,
+    start_oidc_sign_in,
     update_profile,
 )
 from .api.browsers import (
@@ -1182,6 +1184,10 @@ class Auth(Resource):
         return await self._call(lambda client: logout.asyncio_detailed(client=client))
 
     @property
+    def oidc(self) -> AuthOidc:
+        return AuthOidc(self._client, self._bindings)
+
+    @property
     def password_reset(self) -> AuthPasswordReset:
         return AuthPasswordReset(self._client, self._bindings)
 
@@ -1204,6 +1210,47 @@ class AuthEmailChange(Resource):
     async def confirm(self, *, body: wire.EmailChangeConfirm) -> Result[None]:
         """Confirm Email Change. One HTTP request; no automatic replay."""
         return await self._call(lambda client: confirm_email_change.asyncio_detailed(client=client, body=body))
+
+
+class AuthOidc(Resource):
+    """Bound Native resource: /auth / oidc."""
+
+    def __call__(self, provider_id: str) -> AuthOidcProviderId:
+        return AuthOidcProviderId(self._client, self._bind("provider_id", provider_id))
+
+
+class AuthOidcProviderId(Resource):
+    """Bound Native resource: /auth / oidc / {provider_id}."""
+
+    @property
+    def callback(self) -> AuthOidcProviderIdCallback:
+        return AuthOidcProviderIdCallback(self._client, self._bindings)
+
+    @property
+    def start(self) -> AuthOidcProviderIdStart:
+        return AuthOidcProviderIdStart(self._client, self._bindings)
+
+
+class AuthOidcProviderIdCallback(Resource):
+    """Bound Native resource: /auth / oidc / {provider_id} / callback."""
+
+    async def get(self) -> Result[Any]:
+        """Finish Oidc Sign In. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: finish_oidc_sign_in.asyncio_detailed(
+                client=client, provider_id=self._bindings["provider_id"]
+            )
+        )
+
+
+class AuthOidcProviderIdStart(Resource):
+    """Bound Native resource: /auth / oidc / {provider_id} / start."""
+
+    async def get(self) -> Result[Any]:
+        """Start Oidc Sign In. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: start_oidc_sign_in.asyncio_detailed(client=client, provider_id=self._bindings["provider_id"])
+        )
 
 
 class AuthPasswordReset(Resource):

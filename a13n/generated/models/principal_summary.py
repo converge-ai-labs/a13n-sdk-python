@@ -6,6 +6,8 @@ from typing import Any, TypeVar, cast
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
+from ..types import UNSET, Unset
+
 T = TypeVar("T", bound="PrincipalSummary")
 
 
@@ -19,6 +21,7 @@ class PrincipalSummary:
         kind (str):
         name (str):
         status (str):
+        oidc_email (None | str | Unset):
     """
 
     email: str | None
@@ -27,6 +30,7 @@ class PrincipalSummary:
     kind: str
     name: str
     status: str
+    oidc_email: str | Unset | None = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -44,6 +48,12 @@ class PrincipalSummary:
 
         status = self.status
 
+        oidc_email: str | Unset | None
+        if isinstance(self.oidc_email, Unset):
+            oidc_email = UNSET
+        else:
+            oidc_email = self.oidc_email
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -56,6 +66,8 @@ class PrincipalSummary:
                 "status": status,
             }
         )
+        if oidc_email is not UNSET:
+            field_dict["oidc_email"] = oidc_email
 
         return field_dict
 
@@ -85,6 +97,15 @@ class PrincipalSummary:
 
         status = d.pop("status")
 
+        def _parse_oidc_email(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        oidc_email = _parse_oidc_email(d.pop("oidc_email", UNSET))
+
         principal_summary = cls(
             email=email,
             id=id,
@@ -92,6 +113,7 @@ class PrincipalSummary:
             kind=kind,
             name=name,
             status=status,
+            oidc_email=oidc_email,
         )
 
         principal_summary.additional_properties = d
