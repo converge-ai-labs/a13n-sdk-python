@@ -7,6 +7,8 @@ from typing import Any, TypeVar, cast
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
+from ..types import UNSET, Unset
+
 T = TypeVar("T", bound="Profile")
 
 
@@ -23,6 +25,7 @@ class Profile:
         status (str):
         updated_at (datetime.datetime):
         version (int):
+        oidc_email (None | str | Unset):
     """
 
     created_at: datetime.datetime
@@ -34,6 +37,7 @@ class Profile:
     status: str
     updated_at: datetime.datetime
     version: int
+    oidc_email: str | Unset | None = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -57,6 +61,12 @@ class Profile:
 
         version = self.version
 
+        oidc_email: str | Unset | None
+        if isinstance(self.oidc_email, Unset):
+            oidc_email = UNSET
+        else:
+            oidc_email = self.oidc_email
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -72,6 +82,8 @@ class Profile:
                 "version": version,
             }
         )
+        if oidc_email is not UNSET:
+            field_dict["oidc_email"] = oidc_email
 
         return field_dict
 
@@ -106,6 +118,15 @@ class Profile:
 
         version = d.pop("version")
 
+        def _parse_oidc_email(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        oidc_email = _parse_oidc_email(d.pop("oidc_email", UNSET))
+
         profile = cls(
             created_at=created_at,
             email=email,
@@ -116,6 +137,7 @@ class Profile:
             status=status,
             updated_at=updated_at,
             version=version,
+            oidc_email=oidc_email,
         )
 
         profile.additional_properties = d

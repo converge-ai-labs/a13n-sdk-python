@@ -7,6 +7,9 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
+from ..models.grant_view_source import GrantViewSource
+from ..types import UNSET, Unset
+
 if TYPE_CHECKING:
     from ..models.principal_summary import PrincipalSummary
 
@@ -25,6 +28,8 @@ class GrantView:
         principal (PrincipalSummary):
         role (str):
         workspace_id (None | str):
+        overrides_sso (bool | Unset): The manual grant overrides an SSO default at this scope.
+        source (GrantViewSource | Unset):
     """
 
     created_at: datetime.datetime
@@ -34,6 +39,8 @@ class GrantView:
     principal: PrincipalSummary
     role: str
     workspace_id: str | None
+    overrides_sso: bool | Unset = UNSET
+    source: GrantViewSource | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -52,6 +59,12 @@ class GrantView:
         workspace_id: str | None
         workspace_id = self.workspace_id
 
+        overrides_sso = self.overrides_sso
+
+        source: str | Unset = UNSET
+        if not isinstance(self.source, Unset):
+            source = self.source.value
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -65,6 +78,10 @@ class GrantView:
                 "workspace_id": workspace_id,
             }
         )
+        if overrides_sso is not UNSET:
+            field_dict["overrides_sso"] = overrides_sso
+        if source is not UNSET:
+            field_dict["source"] = source
 
         return field_dict
 
@@ -92,6 +109,15 @@ class GrantView:
 
         workspace_id = _parse_workspace_id(d.pop("workspace_id"))
 
+        overrides_sso = d.pop("overrides_sso", UNSET)
+
+        _source = d.pop("source", UNSET)
+        source: GrantViewSource | Unset
+        if isinstance(_source, Unset):
+            source = UNSET
+        else:
+            source = GrantViewSource(_source)
+
         grant_view = cls(
             created_at=created_at,
             created_by_id=created_by_id,
@@ -100,6 +126,8 @@ class GrantView:
             principal=principal,
             role=role,
             workspace_id=workspace_id,
+            overrides_sso=overrides_sso,
+            source=source,
         )
 
         grant_view.additional_properties = d

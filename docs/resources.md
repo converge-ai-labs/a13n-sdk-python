@@ -1,6 +1,6 @@
 # The resource API
 
-The Agent workflow is designed for conversations. `client.api` is the complete, generated API for management and lower-level operations: Agents, Models, Skills, files, Memory, Threads, and administration. Both use the same Client and credentials.
+The Agent workflow is designed for conversations. `client.api` is the generated API for management and lower-level operations: Agents, Models, Skills, files, Memory, Threads, and administration. Browser-navigation OIDC start and callback are not SDK calls; auth configuration and session models remain available. Both use the same Client and credentials.
 
 Use this chapter when you need to list or edit resources, inspect HTTP metadata, or work with a Service operation that is not part of `start()` / `send()`.
 
@@ -365,7 +365,7 @@ Supply **exactly one** of `thread_id`, `run_id`, or `record_id`; Service validat
 
 Generated Thread creation and inbox submission return `Result[wire.Submitted]`, not an Interaction. They perform the declared request and do not adopt the higher-level observation lifecycle. Prefer the Agent workflow unless your integration needs to own that protocol itself.
 
-The [generated resources](../a13n/generated/resources.py) expose operation signatures, and [generated models](../a13n/generated/models) describe request and response fields. The [pinned source](../contract/source.json) identifies the Service contract used to generate them. A complete generated surface does not grant a credential permission to invoke every operation.
+The [generated resources](../a13n/generated/resources.py) expose operation signatures, and [generated models](../a13n/generated/models) describe request and response fields. The [pinned source](../contract/source.json) identifies the Service contract used to generate them. A generated binding does not grant a credential permission to invoke its operation.
 
 [Back to the guide](README.md) · [Next: errors and recovery](errors-and-recovery.md)
 

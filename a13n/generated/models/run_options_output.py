@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from ..models.execution_override import ExecutionOverride
     from ..models.existing_run_environment_output import ExistingRunEnvironmentOutput
     from ..models.fresh_run_environment_output import FreshRunEnvironmentOutput
+    from ..models.no_primary_environment import NoPrimaryEnvironment
     from ..models.request_context import RequestContext
     from ..models.run_configuration_output import RunConfigurationOutput
     from ..models.run_options_output_labels import RunOptionsOutputLabels
@@ -28,7 +29,7 @@ class RunOptionsOutput:
     Attributes:
         configuration (None | RunConfigurationOutput | Unset):
         context (None | RequestContext | Unset):
-        environment (ExistingRunEnvironmentOutput | FreshRunEnvironmentOutput | None | Unset):
+        environment (ExistingRunEnvironmentOutput | FreshRunEnvironmentOutput | None | NoPrimaryEnvironment | Unset):
         execution (ExecutionOverride | None | Unset):
         labels (RunOptionsOutputLabels | Unset):
         max_usage (None | Unset | UsageLimit):
@@ -37,7 +38,7 @@ class RunOptionsOutput:
 
     configuration: RunConfigurationOutput | Unset | None = UNSET
     context: RequestContext | Unset | None = UNSET
-    environment: ExistingRunEnvironmentOutput | FreshRunEnvironmentOutput | Unset | None = UNSET
+    environment: ExistingRunEnvironmentOutput | FreshRunEnvironmentOutput | NoPrimaryEnvironment | Unset | None = UNSET
     execution: ExecutionOverride | Unset | None = UNSET
     labels: RunOptionsOutputLabels | Unset = UNSET
     max_usage: Unset | UsageLimit | None = UNSET
@@ -48,6 +49,7 @@ class RunOptionsOutput:
         from ..models.execution_override import ExecutionOverride
         from ..models.existing_run_environment_output import ExistingRunEnvironmentOutput
         from ..models.fresh_run_environment_output import FreshRunEnvironmentOutput
+        from ..models.no_primary_environment import NoPrimaryEnvironment
         from ..models.request_context import RequestContext
         from ..models.run_configuration_output import RunConfigurationOutput
         from ..models.usage_limit import UsageLimit
@@ -74,6 +76,8 @@ class RunOptionsOutput:
         elif isinstance(self.environment, FreshRunEnvironmentOutput):
             environment = self.environment.to_dict()
         elif isinstance(self.environment, ExistingRunEnvironmentOutput):
+            environment = self.environment.to_dict()
+        elif isinstance(self.environment, NoPrimaryEnvironment):
             environment = self.environment.to_dict()
         else:
             environment = self.environment
@@ -132,6 +136,7 @@ class RunOptionsOutput:
         from ..models.execution_override import ExecutionOverride
         from ..models.existing_run_environment_output import ExistingRunEnvironmentOutput
         from ..models.fresh_run_environment_output import FreshRunEnvironmentOutput
+        from ..models.no_primary_environment import NoPrimaryEnvironment
         from ..models.request_context import RequestContext
         from ..models.run_configuration_output import RunConfigurationOutput
         from ..models.run_options_output_labels import RunOptionsOutputLabels
@@ -173,7 +178,9 @@ class RunOptionsOutput:
 
         context = _parse_context(d.pop("context", UNSET))
 
-        def _parse_environment(data: object) -> ExistingRunEnvironmentOutput | FreshRunEnvironmentOutput | Unset | None:
+        def _parse_environment(
+            data: object,
+        ) -> ExistingRunEnvironmentOutput | FreshRunEnvironmentOutput | NoPrimaryEnvironment | Unset | None:
             if data is None:
                 return data
             if isinstance(data, Unset):
@@ -194,7 +201,17 @@ class RunOptionsOutput:
                 return componentsschemas_run_environment_output_type_1
             except (TypeError, ValueError, AttributeError, KeyError):
                 pass
-            return cast(ExistingRunEnvironmentOutput | FreshRunEnvironmentOutput | Unset | None, data)
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                componentsschemas_run_environment_output_type_2 = NoPrimaryEnvironment.from_dict(data)
+
+                return componentsschemas_run_environment_output_type_2
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(
+                ExistingRunEnvironmentOutput | FreshRunEnvironmentOutput | NoPrimaryEnvironment | Unset | None, data
+            )
 
         environment = _parse_environment(d.pop("environment", UNSET))
 

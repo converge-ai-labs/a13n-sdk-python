@@ -80,8 +80,8 @@ def sync_detailed(
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
-        body (SubscriptionCreate): Without `signing_secret` the service generates one; either way
-            it is returned only by this request.
+        body (SubscriptionCreate): The supplied or generated signing secret is returned only at
+            creation.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -117,8 +117,8 @@ def sync(
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
-        body (SubscriptionCreate): Without `signing_secret` the service generates one; either way
-            it is returned only by this request.
+        body (SubscriptionCreate): The supplied or generated signing secret is returned only at
+            creation.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -149,8 +149,8 @@ async def asyncio_detailed(
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
-        body (SubscriptionCreate): Without `signing_secret` the service generates one; either way
-            it is returned only by this request.
+        body (SubscriptionCreate): The supplied or generated signing secret is returned only at
+            creation.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -184,8 +184,8 @@ async def asyncio(
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
-        body (SubscriptionCreate): Without `signing_secret` the service generates one; either way
-            it is returned only by this request.
+        body (SubscriptionCreate): The supplied or generated signing secret is returned only at
+            creation.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

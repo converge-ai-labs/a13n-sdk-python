@@ -40,7 +40,7 @@ REVISION = {
 }
 
 
-def test_every_pinned_operation_has_a_generated_resource_method() -> None:
+def test_every_supported_operation_has_a_generated_resource_method() -> None:
     document = json.loads((ROOT / "contract/openapi.json").read_text())
     methods = {"get", "post", "put", "patch", "delete", "head", "options", "trace"}
     expected = {
@@ -58,9 +58,12 @@ def test_every_pinned_operation_has_a_generated_resource_method() -> None:
         and node.func.attr == "asyncio_detailed"
         and isinstance(node.func.value, ast.Name)
     }
-    assert called == expected
-    assert len(document["paths"]) == 292
-    assert len(expected) == 402
+    excluded = {"start_oidc_sign_in", "finish_oidc_sign_in"}
+    assert excluded <= expected
+    assert called == expected - excluded
+    for name in excluded:
+        assert not (ROOT / f"a13n/generated/api/auth/{name}.py").exists()
+    assert {"OIDCSignIn", "OIDCBrand", "AuthConfiguration"} <= set(document["components"]["schemas"])
 
 
 def test_memory_files_revisions_and_mounts_preserve_paths_and_etags() -> None:
@@ -200,7 +203,16 @@ def test_bootstrap_and_initialization_configuration_are_available() -> None:
         def respond(request: httpx2.Request) -> httpx2.Response:
             seen.append(request)
             if request.method == "GET":
-                return httpx2.Response(200, json={"email_delivery": False, "initialized": True})
+                return httpx2.Response(
+                    200,
+                    json={
+                        "email_delivery": False,
+                        "initialized": True,
+                        "password_enabled": True,
+                        "manual_password_reset": False,
+                        "oidc_providers": [],
+                    },
+                )
             return httpx2.Response(
                 409,
                 json={

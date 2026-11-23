@@ -357,6 +357,7 @@ def test_required_nullable_usage_metrics_and_per_run_summary():
     model = {
         "model": None,
         "requests": 0,
+        "unpriced_requests": 0,
         "input_tokens": 0,
         "output_tokens": 0,
         "cache_read_tokens": 0,
