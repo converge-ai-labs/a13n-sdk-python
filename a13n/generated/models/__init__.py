@@ -564,6 +564,7 @@ from .part_cursor_kind import PartCursorKind
 from .password_change import PasswordChange
 from .password_reset import PasswordReset
 from .password_reset_confirm import PasswordResetConfirm
+from .password_reset_receipt import PasswordResetReceipt
 from .pending import Pending
 from .pending_call import PendingCall
 from .pending_call_arguments import PendingCallArguments
@@ -1485,6 +1486,7 @@ __all__ = (
     "PasswordChange",
     "PasswordReset",
     "PasswordResetConfirm",
+    "PasswordResetReceipt",
     "Pending",
     "PendingCall",
     "PendingCallArguments",

@@ -19,12 +19,14 @@ class AuthConfiguration:
     Attributes:
         email_delivery (bool):
         initialized (bool):
+        manual_password_reset (bool):
         oidc_providers (list[OIDCSignIn]):
         password_enabled (bool):
     """
 
     email_delivery: bool
     initialized: bool
+    manual_password_reset: bool
     oidc_providers: list[OIDCSignIn]
     password_enabled: bool
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
@@ -33,6 +35,8 @@ class AuthConfiguration:
         email_delivery = self.email_delivery
 
         initialized = self.initialized
+
+        manual_password_reset = self.manual_password_reset
 
         oidc_providers = []
         for oidc_providers_item_data in self.oidc_providers:
@@ -47,6 +51,7 @@ class AuthConfiguration:
             {
                 "email_delivery": email_delivery,
                 "initialized": initialized,
+                "manual_password_reset": manual_password_reset,
                 "oidc_providers": oidc_providers,
                 "password_enabled": password_enabled,
             }
@@ -63,6 +68,8 @@ class AuthConfiguration:
 
         initialized = d.pop("initialized")
 
+        manual_password_reset = d.pop("manual_password_reset")
+
         oidc_providers = []
         _oidc_providers = d.pop("oidc_providers")
         for oidc_providers_item_data in _oidc_providers:
@@ -75,6 +82,7 @@ class AuthConfiguration:
         auth_configuration = cls(
             email_delivery=email_delivery,
             initialized=initialized,
+            manual_password_reset=manual_password_reset,
             oidc_providers=oidc_providers,
             password_enabled=password_enabled,
         )

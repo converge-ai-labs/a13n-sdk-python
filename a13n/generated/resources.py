@@ -436,6 +436,7 @@ from .api.tenancy import (
     put_workspace_icon,
     resend_organization_invitation,
     resend_workspace_invitation,
+    reset_member_password,
     revoke_organization_invitation,
     revoke_workspace_invitation,
     revoke_workspace_key,
@@ -5495,6 +5496,21 @@ class OrganizationsOrganizationIdMembers(Resource):
     ) -> AsyncIterator[wire.PrincipalSummary]:
         """Yield ordinary wire values lazily with a filter snapshot and server order."""
         return (item async for page in self.pages(kind=kind, limit=limit, cursor=cursor) for item in page.value.items)
+
+    def __call__(self, user_id: str) -> OrganizationsOrganizationIdMembersUserId:
+        return OrganizationsOrganizationIdMembersUserId(self._client, self._bind("user_id", user_id))
+
+
+class OrganizationsOrganizationIdMembersUserId(Resource):
+    """Bound Native resource: /organizations / {organization_id} / members / {user_id}."""
+
+    async def password_reset(self) -> Result[wire.PasswordResetReceipt]:
+        """Reset Member Password. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: reset_member_password.asyncio_detailed(
+                client=client, organization_id=self._bindings["organization_id"], user_id=self._bindings["user_id"]
+            )
+        )
 
 
 class OrganizationsOrganizationIdWorkspaces(Resource):
