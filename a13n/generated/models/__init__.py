@@ -401,6 +401,7 @@ from .login_input import LoginInput
 from .login_output import LoginOutput
 from .login_session import LoginSession
 from .login_session_page import LoginSessionPage
+from .logout_redirect import LogoutRedirect
 from .logs import Logs
 from .managed_environment_create import ManagedEnvironmentCreate
 from .managed_environment_create_metrics_labels import ManagedEnvironmentCreateMetricsLabels
@@ -529,6 +530,7 @@ from .occurrence_snapshot import OccurrenceSnapshot
 from .occurrence_status import OccurrenceStatus
 from .occurrence_summary import OccurrenceSummary
 from .occurrence_summary_execution_outcome_type_0 import OccurrenceSummaryExecutionOutcomeType0
+from .oidc_backchannel_logout_body import OidcBackchannelLogoutBody
 from .oidc_brand import OIDCBrand
 from .oidc_sign_in import OIDCSignIn
 from .once_schedule import OnceSchedule
@@ -1334,6 +1336,7 @@ __all__ = (
     "LoginOutput",
     "LoginSession",
     "LoginSessionPage",
+    "LogoutRedirect",
     "Logs",
     "ManagedEnvironmentCreate",
     "ManagedEnvironmentCreateMetricsLabels",
@@ -1464,6 +1467,7 @@ __all__ = (
     "OccurrenceStatus",
     "OccurrenceSummary",
     "OccurrenceSummaryExecutionOutcomeType0",
+    "OidcBackchannelLogoutBody",
     "OnceSchedule",
     "OpenViewer",
     "OpenViewerMode",

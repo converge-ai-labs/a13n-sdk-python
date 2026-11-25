@@ -63,6 +63,7 @@ from .api.auth import (
     list_login_sessions,
     list_user_keys,
     logout,
+    oidc_backchannel_logout,
     password_login,
     put_user_avatar,
     request_password_reset,
@@ -1232,9 +1233,13 @@ class Auth(Resource):
         """Password Login. One HTTP request; no automatic replay."""
         return await self._call(lambda client: password_login.asyncio_detailed(client=client, body=body))
 
-    async def logout(self) -> Result[None]:
+    async def logout(self) -> Result[Any | wire.LogoutRedirect]:
         """Logout. One HTTP request; no automatic replay."""
         return await self._call(lambda client: logout.asyncio_detailed(client=client))
+
+    @property
+    def oidc(self) -> AuthOidc:
+        return AuthOidc(self._client, self._bindings)
 
     @property
     def password_reset(self) -> AuthPasswordReset:
@@ -1259,6 +1264,25 @@ class AuthEmailChange(Resource):
     async def confirm(self, *, body: wire.EmailChangeConfirm) -> Result[None]:
         """Confirm Email Change. One HTTP request; no automatic replay."""
         return await self._call(lambda client: confirm_email_change.asyncio_detailed(client=client, body=body))
+
+
+class AuthOidc(Resource):
+    """Bound Native resource: /auth / oidc."""
+
+    def __call__(self, provider_id: str) -> AuthOidcProviderId:
+        return AuthOidcProviderId(self._client, self._bind("provider_id", provider_id))
+
+
+class AuthOidcProviderId(Resource):
+    """Bound Native resource: /auth / oidc / {provider_id}."""
+
+    async def backchannel_logout(self, *, body: wire.OidcBackchannelLogoutBody) -> Result[None]:
+        """Oidc Backchannel Logout. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: oidc_backchannel_logout.asyncio_detailed(
+                client=client, provider_id=self._bindings["provider_id"], body=body
+            )
+        )
 
 
 class AuthPasswordReset(Resource):

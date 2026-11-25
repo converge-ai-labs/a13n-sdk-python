@@ -5,6 +5,7 @@ import httpx2 as httpx
 
 from ...client import AuthenticatedClient, Client
 from ...models.error_envelope import ErrorEnvelope
+from ...models.logout_redirect import LogoutRedirect
 from ...types import Response
 
 
@@ -18,7 +19,14 @@ def build_request() -> dict[str, Any]:
     return _kwargs
 
 
-def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Any | ErrorEnvelope:
+def _parse_response(
+    *, client: AuthenticatedClient | Client, response: httpx.Response
+) -> Any | ErrorEnvelope | LogoutRedirect:
+    if response.status_code == 200:
+        response_200 = LogoutRedirect.from_dict(response.json())
+
+        return response_200
+
     if response.status_code == 204:
         response_204 = cast(Any, None)
         return response_204
@@ -28,7 +36,9 @@ def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Res
     return response_default
 
 
-def _build_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Response[Any | ErrorEnvelope]:
+def _build_response(
+    *, client: AuthenticatedClient | Client, response: httpx.Response
+) -> Response[Any | ErrorEnvelope | LogoutRedirect]:
     from ....errors import ProtocolError
 
     try:
@@ -45,15 +55,17 @@ def _build_response(*, client: AuthenticatedClient | Client, response: httpx.Res
 def sync_detailed(
     *,
     client: AuthenticatedClient,
-) -> Response[Any | ErrorEnvelope]:
+) -> Response[Any | ErrorEnvelope | LogoutRedirect]:
     """Logout
+
+     End the local session and, when available, return the provider's browser logout URL.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Any | ErrorEnvelope]
+        Response[Any | ErrorEnvelope | LogoutRedirect]
     """
 
     kwargs = build_request()
@@ -68,15 +80,17 @@ def sync_detailed(
 def sync(
     *,
     client: AuthenticatedClient,
-) -> Any | ErrorEnvelope | None:
+) -> Any | ErrorEnvelope | LogoutRedirect | None:
     """Logout
+
+     End the local session and, when available, return the provider's browser logout URL.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Any | ErrorEnvelope
+        Any | ErrorEnvelope | LogoutRedirect
     """
 
     return sync_detailed(
@@ -87,15 +101,17 @@ def sync(
 async def asyncio_detailed(
     *,
     client: AuthenticatedClient,
-) -> Response[Any | ErrorEnvelope]:
+) -> Response[Any | ErrorEnvelope | LogoutRedirect]:
     """Logout
+
+     End the local session and, when available, return the provider's browser logout URL.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Any | ErrorEnvelope]
+        Response[Any | ErrorEnvelope | LogoutRedirect]
     """
 
     kwargs = build_request()
@@ -108,15 +124,17 @@ async def asyncio_detailed(
 async def asyncio(
     *,
     client: AuthenticatedClient,
-) -> Any | ErrorEnvelope | None:
+) -> Any | ErrorEnvelope | LogoutRedirect | None:
     """Logout
+
+     End the local session and, when available, return the provider's browser logout URL.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Any | ErrorEnvelope
+        Any | ErrorEnvelope | LogoutRedirect
     """
 
     return (
