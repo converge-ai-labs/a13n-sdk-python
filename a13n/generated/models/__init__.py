@@ -87,6 +87,7 @@ from .automatic_tool_search import AutomaticToolSearch
 from .background_compaction_policy import BackgroundCompactionPolicy
 from .bearer_credential import BearerCredential
 from .bootstrap_input import BootstrapInput
+from .boxd_volume_mount import BoxdVolumeMount
 from .browser import Browser
 from .browser_attach import BrowserAttach
 from .browser_attach_headers import BrowserAttachHeaders
@@ -1033,6 +1034,7 @@ __all__ = (
     "BackgroundCompactionPolicy",
     "BearerCredential",
     "BootstrapInput",
+    "BoxdVolumeMount",
     "Browser",
     "BrowserAttach",
     "BrowserAttachHeaders",
