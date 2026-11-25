@@ -208,6 +208,7 @@ from .data_source import DataSource
 from .data_source_create import DataSourceCreate
 from .data_source_page import DataSourcePage
 from .data_source_update import DataSourceUpdate
+from .daytona_volume_mount import DaytonaVolumeMount
 from .debug_hold import DebugHold
 from .definition import Definition
 from .definition_definition import DefinitionDefinition
@@ -1152,6 +1153,7 @@ __all__ = (
     "DataSourceCreate",
     "DataSourcePage",
     "DataSourceUpdate",
+    "DaytonaVolumeMount",
     "DebugHold",
     "Definition",
     "DefinitionDefinition",
