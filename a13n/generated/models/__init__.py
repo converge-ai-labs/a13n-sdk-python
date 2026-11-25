@@ -489,6 +489,7 @@ from .model_config_output_extra_body import ModelConfigOutputExtraBody
 from .model_config_output_extra_headers import ModelConfigOutputExtraHeaders
 from .model_config_output_settings import ModelConfigOutputSettings
 from .model_create import ModelCreate
+from .model_duplicate import ModelDuplicate
 from .model_metrics import ModelMetrics
 from .model_page import ModelPage
 from .model_price_rule_input import ModelPriceRuleInput
@@ -705,6 +706,8 @@ from .schedule_configuration import ScheduleConfiguration
 from .schedule_create import ScheduleCreate
 from .schedule_create_labels import ScheduleCreateLabels
 from .schedule_create_state import ScheduleCreateState
+from .schedule_duplicate import ScheduleDuplicate
+from .schedule_duplicate_labels_type_0 import ScheduleDuplicateLabelsType0
 from .schedule_event import ScheduleEvent
 from .schedule_invocation_input import ScheduleInvocationInput
 from .schedule_invocation_output import ScheduleInvocationOutput
@@ -766,6 +769,8 @@ from .shell_preview import ShellPreview
 from .skill import Skill
 from .skill_create import SkillCreate
 from .skill_create_labels import SkillCreateLabels
+from .skill_duplicate import SkillDuplicate
+from .skill_duplicate_labels_type_0 import SkillDuplicateLabelsType0
 from .skill_file import SkillFile
 from .skill_labels import SkillLabels
 from .skill_manifest import SkillManifest
@@ -831,6 +836,8 @@ from .template_config import TemplateConfig
 from .template_config_recipe import TemplateConfigRecipe
 from .template_create import TemplateCreate
 from .template_create_labels import TemplateCreateLabels
+from .template_duplicate import TemplateDuplicate
+from .template_duplicate_labels_type_0 import TemplateDuplicateLabelsType0
 from .template_labels import TemplateLabels
 from .template_page import TemplatePage
 from .template_update import TemplateUpdate
@@ -1424,6 +1431,7 @@ __all__ = (
     "ModelConfigOutputExtraHeaders",
     "ModelConfigOutputSettings",
     "ModelCreate",
+    "ModelDuplicate",
     "ModelMetrics",
     "ModelPage",
     "ModelPriceRuleInput",
@@ -1638,6 +1646,8 @@ __all__ = (
     "ScheduleCreate",
     "ScheduleCreateLabels",
     "ScheduleCreateState",
+    "ScheduleDuplicate",
+    "ScheduleDuplicateLabelsType0",
     "ScheduleEvent",
     "ScheduleInvocationInput",
     "ScheduleInvocationOutput",
@@ -1699,6 +1709,8 @@ __all__ = (
     "Skill",
     "SkillCreate",
     "SkillCreateLabels",
+    "SkillDuplicate",
+    "SkillDuplicateLabelsType0",
     "SkillFile",
     "SkillLabels",
     "SkillManifest",
@@ -1764,6 +1776,8 @@ __all__ = (
     "TemplateConfigRecipe",
     "TemplateCreate",
     "TemplateCreateLabels",
+    "TemplateDuplicate",
+    "TemplateDuplicateLabelsType0",
     "TemplateLabels",
     "TemplatePage",
     "TemplateUpdate",

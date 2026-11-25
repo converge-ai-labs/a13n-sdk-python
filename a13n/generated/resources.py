@@ -146,6 +146,7 @@ from .api.environments import (
     create_environment,
     create_environment_template,
     delete_environment,
+    duplicate_environment_template,
     get_collector_status,
     get_desktop_control,
     get_environment,
@@ -253,6 +254,7 @@ from .api.metrics_data_sources import (
 )
 from .api.models import (
     create_model,
+    duplicate_model,
     get_media_defaults,
     get_model,
     get_model_catalog,
@@ -371,6 +373,7 @@ from .api.schedules import (
     archive_schedule,
     create_schedule,
     dispatch_schedule,
+    duplicate_schedule,
     enable_schedule,
     get_schedule,
     get_schedule_occurrence,
@@ -385,6 +388,7 @@ from .api.skills import (
     archive_skill,
     create_skill,
     create_skill_revision,
+    duplicate_skill,
     get_skill,
     get_skill_revision,
     list_skill_revisions,
@@ -2895,6 +2899,16 @@ class EnvironmentTemplatesTemplateId(Resource):
             )
         )
 
+    async def duplicate(
+        self, *, body: wire.TemplateDuplicate, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.Template]:
+        """Duplicate Environment Template. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: duplicate_environment_template.asyncio_detailed(
+                client=client, template_id=self._bindings["template_id"], body=body, x_workspace_id=x_workspace_id
+            )
+        )
+
 
 class Environments(Resource):
     """Bound Native resource: /environments."""
@@ -5197,6 +5211,16 @@ class ModelsKey(Resource):
             )
         )
 
+    async def duplicate(
+        self, *, body: wire.ModelDuplicate, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.Model]:
+        """Duplicate Model. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: duplicate_model.asyncio_detailed(
+                client=client, key=self._bindings["key"], body=body, x_workspace_id=x_workspace_id
+            )
+        )
+
 
 class Organizations(Resource):
     """Bound Native resource: /organizations."""
@@ -6485,6 +6509,16 @@ class SchedulesScheduleId(Resource):
             )
         )
 
+    async def duplicate(
+        self, *, body: wire.ScheduleDuplicate, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.Schedule]:
+        """Duplicate Schedule. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: duplicate_schedule.asyncio_detailed(
+                client=client, schedule_id=self._bindings["schedule_id"], body=body, x_workspace_id=x_workspace_id
+            )
+        )
+
     async def enable(
         self,
         *,
@@ -7067,6 +7101,16 @@ class SkillsSkillId(Resource):
         return await self._call(
             lambda client: archive_skill.asyncio_detailed(
                 client=client, skill_id=self._bindings["skill_id"], if_match=if_match, x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def duplicate(
+        self, *, body: wire.SkillDuplicate, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.Skill]:
+        """Duplicate Skill. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: duplicate_skill.asyncio_detailed(
+                client=client, skill_id=self._bindings["skill_id"], body=body, x_workspace_id=x_workspace_id
             )
         )
 
