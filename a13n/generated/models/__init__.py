@@ -410,7 +410,13 @@ from .managed_environment_create_metrics_labels import ManagedEnvironmentCreateM
 from .mcp_auth import McpAuth
 from .mcp_config import McpConfig
 from .mcp_config_object_ref_tools import McpConfigObjectRefTools
+from .mcp_elicitation import McpElicitation
+from .mcp_elicitation_mode import McpElicitationMode
+from .mcp_elicitation_schema_type_0 import McpElicitationSchemaType0
 from .mcp_headers import McpHeaders
+from .mcp_input_response import McpInputResponse
+from .mcp_input_response_action import McpInputResponseAction
+from .mcp_input_response_content_type_0 import McpInputResponseContentType0
 from .mcp_server import McpServer
 from .mcp_server_page import McpServerPage
 from .media_defaults import MediaDefaults
@@ -581,6 +587,7 @@ from .pending import Pending
 from .pending_call import PendingCall
 from .pending_call_arguments import PendingCallArguments
 from .pending_call_presentation_type_0 import PendingCallPresentationType0
+from .pending_interactions import PendingInteractions
 from .platform_group import PlatformGroup
 from .plugin_catalog import PluginCatalog
 from .plugin_selection import PluginSelection
@@ -1357,7 +1364,13 @@ __all__ = (
     "McpAuth",
     "McpConfig",
     "McpConfigObjectRefTools",
+    "McpElicitation",
+    "McpElicitationMode",
+    "McpElicitationSchemaType0",
     "McpHeaders",
+    "McpInputResponse",
+    "McpInputResponseAction",
+    "McpInputResponseContentType0",
     "McpServer",
     "McpServerPage",
     "MediaDefaults",
@@ -1528,6 +1541,7 @@ __all__ = (
     "PendingCall",
     "PendingCallArguments",
     "PendingCallPresentationType0",
+    "PendingInteractions",
     "PlatformGroup",
     "PluginCatalog",
     "PluginSelection",

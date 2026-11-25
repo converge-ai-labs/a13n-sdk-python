@@ -170,6 +170,8 @@ WORKSPACE_PATHS = (
     re.compile("/api/v1/runs/[^/]+/items\\Z"),
     re.compile("/api/v1/runs/[^/]+/items/[^/]+/content\\Z"),
     re.compile("/api/v1/runs/[^/]+/lineage\\Z"),
+    re.compile("/api/v1/runs/[^/]+/mcp\\-inputs\\Z"),
+    re.compile("/api/v1/runs/[^/]+/mcp\\-inputs/[^/]+/response\\Z"),
     re.compile("/api/v1/runs/[^/]+/resume\\Z"),
     re.compile("/api/v1/schedules\\Z"),
     re.compile("/api/v1/schedules/preview\\Z"),

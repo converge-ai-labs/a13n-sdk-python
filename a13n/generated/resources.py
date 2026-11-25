@@ -342,6 +342,7 @@ from .api.runs import (
     interrupt_run,
     list_attempt_spans,
     list_inbox,
+    list_mcp_inputs,
     list_run_attempts,
     list_run_items,
     list_runs,
@@ -358,6 +359,7 @@ from .api.runs import (
     read_run_item_content,
     read_span_content,
     reorder_inbox,
+    respond_to_mcp_input,
     resume_run,
     run_image,
     search_traces,
@@ -5872,6 +5874,10 @@ class Run(Resource):
     def lineage(self) -> RunsRunIdLineage:
         return RunsRunIdLineage(self._client, self._bindings)
 
+    @property
+    def mcp_inputs(self) -> RunsRunIdMcpInputs:
+        return RunsRunIdMcpInputs(self._client, self._bindings)
+
     async def resume(
         self, *, body: wire.Resume, idempotency_key: str, x_workspace_id: str | Unset | None = UNSET
     ) -> Result[wire.RunView]:
@@ -6335,6 +6341,39 @@ class RunsRunIdLineage(Resource):
             item
             async for page in self.pages(cursor=cursor, limit=limit, x_workspace_id=x_workspace_id)
             for item in page.value.items
+        )
+
+
+class RunsRunIdMcpInputs(Resource):
+    """Bound Native resource: /runs / {run_id} / mcp-inputs."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[list[wire.McpElicitation]]:
+        """List Mcp Inputs. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: list_mcp_inputs.asyncio_detailed(
+                client=client, run_id=self._bindings["run_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+    def __call__(self, request_id: str) -> RunsRunIdMcpInputsRequestId:
+        return RunsRunIdMcpInputsRequestId(self._client, self._bind("request_id", request_id))
+
+
+class RunsRunIdMcpInputsRequestId(Resource):
+    """Bound Native resource: /runs / {run_id} / mcp-inputs / {request_id}."""
+
+    async def response(
+        self, *, body: wire.McpInputResponse, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[None]:
+        """Respond To Mcp Input. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: respond_to_mcp_input.asyncio_detailed(
+                client=client,
+                run_id=self._bindings["run_id"],
+                request_id=self._bindings["request_id"],
+                body=body,
+                x_workspace_id=x_workspace_id,
+            )
         )
 
 
