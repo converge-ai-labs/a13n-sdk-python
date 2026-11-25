@@ -7,7 +7,7 @@ from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
 if TYPE_CHECKING:
-    from ..models.asset import Asset
+    from ..models.listed_asset import ListedAsset
 
 
 T = TypeVar("T", bound="AssetPage")
@@ -17,12 +17,14 @@ T = TypeVar("T", bound="AssetPage")
 class AssetPage:
     """
     Attributes:
-        items (list[Asset]):
+        items (list[ListedAsset]):
         next_cursor (None | str):
+        total_count (int):
     """
 
-    items: list[Asset]
+    items: list[ListedAsset]
     next_cursor: str | None
+    total_count: int
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -34,12 +36,15 @@ class AssetPage:
         next_cursor: str | None
         next_cursor = self.next_cursor
 
+        total_count = self.total_count
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
                 "items": items,
                 "next_cursor": next_cursor,
+                "total_count": total_count,
             }
         )
 
@@ -47,13 +52,13 @@ class AssetPage:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.asset import Asset
+        from ..models.listed_asset import ListedAsset
 
         d = dict(src_dict)
         items = []
         _items = d.pop("items")
         for items_item_data in _items:
-            items_item = Asset.from_dict(items_item_data)
+            items_item = ListedAsset.from_dict(items_item_data)
 
             items.append(items_item)
 
@@ -64,9 +69,12 @@ class AssetPage:
 
         next_cursor = _parse_next_cursor(d.pop("next_cursor"))
 
+        total_count = d.pop("total_count")
+
         asset_page = cls(
             items=items,
             next_cursor=next_cursor,
+            total_count=total_count,
         )
 
         asset_page.additional_properties = d

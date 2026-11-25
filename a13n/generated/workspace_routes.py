@@ -193,6 +193,7 @@ WORKSPACE_PATHS = (
     re.compile("/api/v1/skills/[^/]+/revisions/[^/]+/files/[^/]+\\Z"),
     re.compile("/api/v1/skills/[^/]+/revisions/[^/]+/set\\-default\\Z"),
     re.compile("/api/v1/skills/[^/]+/unarchive\\Z"),
+    re.compile("/api/v1/storage\\Z"),
     re.compile("/api/v1/subscriptions\\Z"),
     re.compile("/api/v1/subscriptions/[^/]+\\Z"),
     re.compile("/api/v1/subscriptions/[^/]+/deliveries\\Z"),

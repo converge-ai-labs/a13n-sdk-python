@@ -38,7 +38,15 @@ from .api.agents import (
     validate_agent,
 )
 from .api.app_plugins import list_app_plugins, update_app_plugin
-from .api.assets import create_asset, create_upload, get_asset, list_assets, read_asset_content, retire_asset
+from .api.assets import (
+    create_asset,
+    create_upload,
+    get_asset,
+    get_workspace_storage,
+    list_assets,
+    read_asset_content,
+    retire_asset,
+)
 from .api.auth import (
     accept,
     auth_configuration,
@@ -620,6 +628,10 @@ class ServiceResources(Resource):
         return Skills(self._client, self._bindings)
 
     @property
+    def storage(self) -> Storage:
+        return Storage(self._client, self._bindings)
+
+    @property
     def subscriptions(self) -> Subscriptions:
         return Subscriptions(self._client, self._bindings)
 
@@ -1068,12 +1080,25 @@ class Assets(Resource):
         *,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        created_by_id: str | Unset | None = UNSET,
+        source_kind: wire.ListAssetsSourceKindType0 | Unset | None = UNSET,
+        status: wire.ListAssetsStatus | Unset = UNSET,
+        order: wire.ListAssetsOrder | Unset = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> Result[wire.AssetPage]:
         """List Assets. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: list_assets.asyncio_detailed(
-                client=client, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
+                client=client,
+                limit=limit,
+                cursor=cursor,
+                query=query,
+                created_by_id=created_by_id,
+                source_kind=source_kind,
+                status=status,
+                order=order,
+                x_workspace_id=x_workspace_id,
             )
         )
 
@@ -1082,11 +1107,25 @@ class Assets(Resource):
         *,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        created_by_id: str | Unset | None = UNSET,
+        source_kind: wire.ListAssetsSourceKindType0 | Unset | None = UNSET,
+        status: wire.ListAssetsStatus | Unset = UNSET,
+        order: wire.ListAssetsOrder | Unset = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> AsyncIterator[Result[wire.AssetPage]]:
         """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
-            lambda next_cursor: self.list(limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor),
+            lambda next_cursor: self.list(
+                limit=limit,
+                query=query,
+                created_by_id=created_by_id,
+                source_kind=source_kind,
+                status=status,
+                order=order,
+                x_workspace_id=x_workspace_id,
+                cursor=next_cursor,
+            ),
             lambda value: value.next_cursor,
             cursor,
         )
@@ -1096,12 +1135,26 @@ class Assets(Resource):
         *,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
+        query: str | Unset | None = UNSET,
+        created_by_id: str | Unset | None = UNSET,
+        source_kind: wire.ListAssetsSourceKindType0 | Unset | None = UNSET,
+        status: wire.ListAssetsStatus | Unset = UNSET,
+        order: wire.ListAssetsOrder | Unset = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
-    ) -> AsyncIterator[wire.Asset]:
+    ) -> AsyncIterator[wire.ListedAsset]:
         """Yield ordinary wire values lazily with a filter snapshot and server order."""
         return (
             item
-            async for page in self.pages(limit=limit, cursor=cursor, x_workspace_id=x_workspace_id)
+            async for page in self.pages(
+                limit=limit,
+                cursor=cursor,
+                query=query,
+                created_by_id=created_by_id,
+                source_kind=source_kind,
+                status=status,
+                order=order,
+                x_workspace_id=x_workspace_id,
+            )
             for item in page.value.items
         )
 
@@ -7155,6 +7208,16 @@ class SkillsSkillIdRevisionsRevisionIdFilesPath(Resource):
                 path=self._bindings["path"],
                 x_workspace_id=x_workspace_id,
             )
+        )
+
+
+class Storage(Resource):
+    """Bound Native resource: /storage."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.WorkspaceStorage]:
+        """Get Workspace Storage. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_workspace_storage.asyncio_detailed(client=client, x_workspace_id=x_workspace_id)
         )
 
 
