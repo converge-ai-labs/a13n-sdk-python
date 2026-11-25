@@ -9,6 +9,7 @@ from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.daytona_volume_mount import DaytonaVolumeMount
+    from ..models.modal_volume_mount import ModalVolumeMount
     from ..models.recipe_overrides_volume_mounts import RecipeOverridesVolumeMounts
 
 
@@ -20,23 +21,31 @@ class RecipeOverrides:
     """
     Attributes:
         volume_mounts (RecipeOverridesVolumeMounts | Unset):
-        volumes (list[DaytonaVolumeMount] | Unset):
+        volumes (list[DaytonaVolumeMount] | list[ModalVolumeMount] | Unset):
     """
 
     volume_mounts: RecipeOverridesVolumeMounts | Unset = UNSET
-    volumes: list[DaytonaVolumeMount] | Unset = UNSET
+    volumes: list[DaytonaVolumeMount] | list[ModalVolumeMount] | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
         volume_mounts: dict[str, Any] | Unset = UNSET
         if not isinstance(self.volume_mounts, Unset):
             volume_mounts = self.volume_mounts.to_dict()
 
-        volumes: list[dict[str, Any]] | Unset = UNSET
-        if not isinstance(self.volumes, Unset):
+        volumes: list[dict[str, Any]] | Unset
+        if isinstance(self.volumes, Unset):
+            volumes = UNSET
+        elif isinstance(self.volumes, list):
             volumes = []
-            for volumes_item_data in self.volumes:
-                volumes_item = volumes_item_data.to_dict()
-                volumes.append(volumes_item)
+            for volumes_type_0_item_data in self.volumes:
+                volumes_type_0_item = volumes_type_0_item_data.to_dict()
+                volumes.append(volumes_type_0_item)
+
+        else:
+            volumes = []
+            for volumes_type_1_item_data in self.volumes:
+                volumes_type_1_item = volumes_type_1_item_data.to_dict()
+                volumes.append(volumes_type_1_item)
 
         field_dict: dict[str, Any] = {}
 
@@ -51,6 +60,7 @@ class RecipeOverrides:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.daytona_volume_mount import DaytonaVolumeMount
+        from ..models.modal_volume_mount import ModalVolumeMount
         from ..models.recipe_overrides_volume_mounts import RecipeOverridesVolumeMounts
 
         d = dict(src_dict)
@@ -61,14 +71,34 @@ class RecipeOverrides:
         else:
             volume_mounts = RecipeOverridesVolumeMounts.from_dict(_volume_mounts)
 
-        _volumes = d.pop("volumes", UNSET)
-        volumes: list[DaytonaVolumeMount] | Unset = UNSET
-        if _volumes is not UNSET:
-            volumes = []
-            for volumes_item_data in _volumes:
-                volumes_item = DaytonaVolumeMount.from_dict(volumes_item_data)
+        def _parse_volumes(data: object) -> list[DaytonaVolumeMount] | list[ModalVolumeMount] | Unset:
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, list):
+                    raise TypeError()
+                volumes_type_0 = []
+                _volumes_type_0 = data
+                for volumes_type_0_item_data in _volumes_type_0:
+                    volumes_type_0_item = DaytonaVolumeMount.from_dict(volumes_type_0_item_data)
 
-                volumes.append(volumes_item)
+                    volumes_type_0.append(volumes_type_0_item)
+
+                return volumes_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            if not isinstance(data, list):
+                raise TypeError()
+            volumes_type_1 = []
+            _volumes_type_1 = data
+            for volumes_type_1_item_data in _volumes_type_1:
+                volumes_type_1_item = ModalVolumeMount.from_dict(volumes_type_1_item_data)
+
+                volumes_type_1.append(volumes_type_1_item)
+
+            return volumes_type_1
+
+        volumes = _parse_volumes(d.pop("volumes", UNSET))
 
         recipe_overrides = cls(
             volume_mounts=volume_mounts,

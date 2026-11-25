@@ -475,6 +475,7 @@ from .metrics_application import MetricsApplication
 from .metrics_application_collection import MetricsApplicationCollection
 from .metrics_sample import MetricsSample
 from .metrics_sample_filesystems import MetricsSampleFilesystems
+from .modal_volume_mount import ModalVolumeMount
 from .model import Model
 from .model_capability import ModelCapability
 from .model_catalog import ModelCatalog
@@ -1420,6 +1421,7 @@ __all__ = (
     "MetricsApplicationCollection",
     "MetricsSample",
     "MetricsSampleFilesystems",
+    "ModalVolumeMount",
     "Model",
     "ModelCapability",
     "ModelCatalog",
