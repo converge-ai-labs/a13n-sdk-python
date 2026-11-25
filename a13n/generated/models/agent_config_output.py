@@ -60,6 +60,7 @@ class AgentConfigOutput:
         model_settings (AgentConfigOutputModelSettings | Unset):
         output_spec (None | OutputSpec | Unset):
         plugins (list[PluginSelection] | Unset):
+        respect_mcp_annotations (bool | Unset):
         retries (None | RetryConfig | Unset):
         reviewer (AgentReviewer | None | Unset):
         skill_sync (IsolatedSkillSync | SharedSkillSync | Unset):
@@ -89,6 +90,7 @@ class AgentConfigOutput:
     model_settings: AgentConfigOutputModelSettings | Unset = UNSET
     output_spec: OutputSpec | Unset | None = UNSET
     plugins: list[PluginSelection] | Unset = UNSET
+    respect_mcp_annotations: bool | Unset = UNSET
     retries: RetryConfig | Unset | None = UNSET
     reviewer: AgentReviewer | Unset | None = UNSET
     skill_sync: IsolatedSkillSync | SharedSkillSync | Unset = UNSET
@@ -203,6 +205,8 @@ class AgentConfigOutput:
                 plugins_item = plugins_item_data.to_dict()
                 plugins.append(plugins_item)
 
+        respect_mcp_annotations = self.respect_mcp_annotations
+
         retries: dict[str, Any] | Unset | None
         if isinstance(self.retries, Unset):
             retries = UNSET
@@ -297,6 +301,8 @@ class AgentConfigOutput:
             field_dict["output_spec"] = output_spec
         if plugins is not UNSET:
             field_dict["plugins"] = plugins
+        if respect_mcp_annotations is not UNSET:
+            field_dict["respect_mcp_annotations"] = respect_mcp_annotations
         if retries is not UNSET:
             field_dict["retries"] = retries
         if reviewer is not UNSET:
@@ -505,6 +511,8 @@ class AgentConfigOutput:
 
                 plugins.append(plugins_item)
 
+        respect_mcp_annotations = d.pop("respect_mcp_annotations", UNSET)
+
         def _parse_retries(data: object) -> RetryConfig | Unset | None:
             if data is None:
                 return data
@@ -629,6 +637,7 @@ class AgentConfigOutput:
             model_settings=model_settings,
             output_spec=output_spec,
             plugins=plugins,
+            respect_mcp_annotations=respect_mcp_annotations,
             retries=retries,
             reviewer=reviewer,
             skill_sync=skill_sync,
