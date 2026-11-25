@@ -723,6 +723,8 @@ from .schedule_update_labels_type_0 import ScheduleUpdateLabelsType0
 from .search_traces_direction import SearchTracesDirection
 from .search_traces_order_by import SearchTracesOrderBy
 from .secret_reference import SecretReference
+from .security_advisory import SecurityAdvisory
+from .security_advisory_severity import SecurityAdvisorySeverity
 from .selected_trace import SelectedTrace
 from .selection import Selection
 from .selection_metrics_labels import SelectionMetricsLabels
@@ -793,6 +795,7 @@ from .span_status import SpanStatus
 from .span_summary import SpanSummary
 from .span_summary_status import SpanSummaryStatus
 from .span_usage import SpanUsage
+from .stable_release import StableRelease
 from .startup_error_policy import StartupErrorPolicy
 from .state import State
 from .status import Status
@@ -890,6 +893,7 @@ from .typed_query_metric_type_1 import TypedQueryMetricType1
 from .unavailable_configuration import UnavailableConfiguration
 from .unlimited_cpu_limit import UnlimitedCpuLimit
 from .unlimited_memory_limit import UnlimitedMemoryLimit
+from .update_notices import UpdateNotices
 from .upload import Upload
 from .upload_create import UploadCreate
 from .upload_source import UploadSource
@@ -1650,6 +1654,8 @@ __all__ = (
     "SearchTracesDirection",
     "SearchTracesOrderBy",
     "SecretReference",
+    "SecurityAdvisory",
+    "SecurityAdvisorySeverity",
     "SelectedTrace",
     "Selection",
     "SelectionMetricsLabels",
@@ -1720,6 +1726,7 @@ __all__ = (
     "SpanSummary",
     "SpanSummaryStatus",
     "SpanUsage",
+    "StableRelease",
     "StartupErrorPolicy",
     "State",
     "Status",
@@ -1817,6 +1824,7 @@ __all__ = (
     "UnavailableConfiguration",
     "UnlimitedCpuLimit",
     "UnlimitedMemoryLimit",
+    "UpdateNotices",
     "Upload",
     "UploadCreate",
     "UploadSource",

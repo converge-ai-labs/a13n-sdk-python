@@ -423,6 +423,7 @@ from .api.tenancy import (
     get_organization,
     get_organization_icon,
     get_service_account,
+    get_update_notices,
     get_workspace,
     get_workspace_icon,
     list_members,
@@ -5248,6 +5249,10 @@ class Organization(Resource):
         return OrganizationsOrganizationIdMembers(self._client, self._bindings)
 
     @property
+    def update_notices(self) -> OrganizationsOrganizationIdUpdateNotices:
+        return OrganizationsOrganizationIdUpdateNotices(self._client, self._bindings)
+
+    @property
     def workspaces(self) -> OrganizationsOrganizationIdWorkspaces:
         return OrganizationsOrganizationIdWorkspaces(self._client, self._bindings)
 
@@ -5515,6 +5520,18 @@ class OrganizationsOrganizationIdMembersUserId(Resource):
         return await self._call(
             lambda client: reset_member_password.asyncio_detailed(
                 client=client, organization_id=self._bindings["organization_id"], user_id=self._bindings["user_id"]
+            )
+        )
+
+
+class OrganizationsOrganizationIdUpdateNotices(Resource):
+    """Bound Native resource: /organizations / {organization_id} / update-notices."""
+
+    async def get(self) -> Result[wire.UpdateNotices]:
+        """Get Update Notices. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_update_notices.asyncio_detailed(
+                client=client, organization_id=self._bindings["organization_id"]
             )
         )
 
