@@ -9,6 +9,7 @@ from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.managed_environment_create_metrics_labels import ManagedEnvironmentCreateMetricsLabels
+    from ..models.recipe_overrides import RecipeOverrides
 
 
 T = TypeVar("T", bound="ManagedEnvironmentCreate")
@@ -23,12 +24,14 @@ class ManagedEnvironmentCreate:
         metrics_data_source_id (None | str | Unset):
         metrics_labels (ManagedEnvironmentCreateMetricsLabels | Unset):
         name (None | str | Unset):
+        recipe_overrides (RecipeOverrides | Unset):
     """
 
     template_id: str
     metrics_data_source_id: str | Unset | None = UNSET
     metrics_labels: ManagedEnvironmentCreateMetricsLabels | Unset = UNSET
     name: str | Unset | None = UNSET
+    recipe_overrides: RecipeOverrides | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
         template_id = self.template_id
@@ -49,6 +52,10 @@ class ManagedEnvironmentCreate:
         else:
             name = self.name
 
+        recipe_overrides: dict[str, Any] | Unset = UNSET
+        if not isinstance(self.recipe_overrides, Unset):
+            recipe_overrides = self.recipe_overrides.to_dict()
+
         field_dict: dict[str, Any] = {}
 
         field_dict.update(
@@ -62,6 +69,8 @@ class ManagedEnvironmentCreate:
             field_dict["metrics_labels"] = metrics_labels
         if name is not UNSET:
             field_dict["name"] = name
+        if recipe_overrides is not UNSET:
+            field_dict["recipe_overrides"] = recipe_overrides
 
         return field_dict
 
@@ -70,6 +79,7 @@ class ManagedEnvironmentCreate:
         from ..models.managed_environment_create_metrics_labels import (
             ManagedEnvironmentCreateMetricsLabels,
         )
+        from ..models.recipe_overrides import RecipeOverrides
 
         d = dict(src_dict)
         template_id = d.pop("template_id")
@@ -99,11 +109,19 @@ class ManagedEnvironmentCreate:
 
         name = _parse_name(d.pop("name", UNSET))
 
+        _recipe_overrides = d.pop("recipe_overrides", UNSET)
+        recipe_overrides: RecipeOverrides | Unset
+        if isinstance(_recipe_overrides, Unset):
+            recipe_overrides = UNSET
+        else:
+            recipe_overrides = RecipeOverrides.from_dict(_recipe_overrides)
+
         managed_environment_create = cls(
             template_id=template_id,
             metrics_data_source_id=metrics_data_source_id,
             metrics_labels=metrics_labels,
             name=name,
+            recipe_overrides=recipe_overrides,
         )
 
         return managed_environment_create

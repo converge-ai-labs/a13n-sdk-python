@@ -640,6 +640,8 @@ from .range_query import RangeQuery
 from .read_run_item_content_field import ReadRunItemContentField
 from .read_span_content_section import ReadSpanContentSection
 from .read_view import ReadView
+from .recipe_overrides import RecipeOverrides
+from .recipe_overrides_volume_mounts import RecipeOverridesVolumeMounts
 from .reclamation import Reclamation
 from .recognition import Recognition
 from .record_source import RecordSource
@@ -1580,6 +1582,8 @@ __all__ = (
     "ReadRunItemContentField",
     "ReadSpanContentSection",
     "ReadView",
+    "RecipeOverrides",
+    "RecipeOverridesVolumeMounts",
     "Reclamation",
     "Recognition",
     "RecordSource",
