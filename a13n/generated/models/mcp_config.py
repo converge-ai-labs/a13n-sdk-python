@@ -21,6 +21,7 @@ class McpConfig:
     """
     Attributes:
         url (str):
+        durable_tasks (bool | Unset):
         forward_context_headers (bool | Unset):
         headers (list[str] | Unset):
         oauth (None | OAuthSettings | Unset):
@@ -32,6 +33,7 @@ class McpConfig:
     """
 
     url: str
+    durable_tasks: bool | Unset = UNSET
     forward_context_headers: bool | Unset = UNSET
     headers: list[str] | Unset = UNSET
     oauth: OAuthSettings | Unset | None = UNSET
@@ -43,6 +45,8 @@ class McpConfig:
         from ..models.o_auth_settings import OAuthSettings
 
         url = self.url
+
+        durable_tasks = self.durable_tasks
 
         forward_context_headers = self.forward_context_headers
 
@@ -82,6 +86,8 @@ class McpConfig:
                 "url": url,
             }
         )
+        if durable_tasks is not UNSET:
+            field_dict["durable_tasks"] = durable_tasks
         if forward_context_headers is not UNSET:
             field_dict["forward_context_headers"] = forward_context_headers
         if headers is not UNSET:
@@ -104,6 +110,8 @@ class McpConfig:
 
         d = dict(src_dict)
         url = d.pop("url")
+
+        durable_tasks = d.pop("durable_tasks", UNSET)
 
         forward_context_headers = d.pop("forward_context_headers", UNSET)
 
@@ -159,6 +167,7 @@ class McpConfig:
 
         mcp_config = cls(
             url=url,
+            durable_tasks=durable_tasks,
             forward_context_headers=forward_context_headers,
             headers=headers,
             oauth=oauth,
