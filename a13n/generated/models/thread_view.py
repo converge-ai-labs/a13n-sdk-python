@@ -40,6 +40,7 @@ class ThreadView:
         updated_at (datetime.datetime):
         version (int):
         workspace_id (str):
+        app_id (None | str | Unset):
         execution (ExecutionOverride | None | Unset):
         purpose (ThreadViewPurpose | Unset):
         schedule_occurrence_id (None | str | Unset):
@@ -61,6 +62,7 @@ class ThreadView:
     updated_at: datetime.datetime
     version: int
     workspace_id: str
+    app_id: str | Unset | None = UNSET
     execution: ExecutionOverride | Unset | None = UNSET
     purpose: ThreadViewPurpose | Unset = UNSET
     schedule_occurrence_id: str | Unset | None = UNSET
@@ -111,6 +113,12 @@ class ThreadView:
 
         workspace_id = self.workspace_id
 
+        app_id: str | Unset | None
+        if isinstance(self.app_id, Unset):
+            app_id = UNSET
+        else:
+            app_id = self.app_id
+
         execution: dict[str, Any] | Unset | None
         if isinstance(self.execution, Unset):
             execution = UNSET
@@ -151,6 +159,8 @@ class ThreadView:
                 "workspace_id": workspace_id,
             }
         )
+        if app_id is not UNSET:
+            field_dict["app_id"] = app_id
         if execution is not UNSET:
             field_dict["execution"] = execution
         if purpose is not UNSET:
@@ -243,6 +253,15 @@ class ThreadView:
 
         workspace_id = d.pop("workspace_id")
 
+        def _parse_app_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        app_id = _parse_app_id(d.pop("app_id", UNSET))
+
         def _parse_execution(data: object) -> ExecutionOverride | Unset | None:
             if data is None:
                 return data
@@ -293,6 +312,7 @@ class ThreadView:
             updated_at=updated_at,
             version=version,
             workspace_id=workspace_id,
+            app_id=app_id,
             execution=execution,
             purpose=purpose,
             schedule_occurrence_id=schedule_occurrence_id,

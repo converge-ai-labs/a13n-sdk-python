@@ -46,6 +46,7 @@ class EnvironmentView:
         updated_at (datetime.datetime):
         version (int):
         workspace_id (str):
+        app_id (None | str | Unset):
         client_connection (ClientConnectionObservation | None | Unset):
         debug_hold_until (datetime.datetime | None | Unset):
         desktop_preview (EnvironmentViewDesktopPreview | Unset):
@@ -77,6 +78,7 @@ class EnvironmentView:
     updated_at: datetime.datetime
     version: int
     workspace_id: str
+    app_id: str | Unset | None = UNSET
     client_connection: ClientConnectionObservation | Unset | None = UNSET
     debug_hold_until: datetime.datetime | Unset | None = UNSET
     desktop_preview: EnvironmentViewDesktopPreview | Unset = UNSET
@@ -151,6 +153,12 @@ class EnvironmentView:
         version = self.version
 
         workspace_id = self.workspace_id
+
+        app_id: str | Unset | None
+        if isinstance(self.app_id, Unset):
+            app_id = UNSET
+        else:
+            app_id = self.app_id
 
         client_connection: dict[str, Any] | Unset | None
         if isinstance(self.client_connection, Unset):
@@ -247,6 +255,8 @@ class EnvironmentView:
                 "workspace_id": workspace_id,
             }
         )
+        if app_id is not UNSET:
+            field_dict["app_id"] = app_id
         if client_connection is not UNSET:
             field_dict["client_connection"] = client_connection
         if debug_hold_until is not UNSET:
@@ -386,6 +396,15 @@ class EnvironmentView:
         version = d.pop("version")
 
         workspace_id = d.pop("workspace_id")
+
+        def _parse_app_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        app_id = _parse_app_id(d.pop("app_id", UNSET))
 
         def _parse_client_connection(data: object) -> ClientConnectionObservation | Unset | None:
             if data is None:
@@ -549,6 +568,7 @@ class EnvironmentView:
             updated_at=updated_at,
             version=version,
             workspace_id=workspace_id,
+            app_id=app_id,
             client_connection=client_connection,
             debug_hold_until=debug_hold_until,
             desktop_preview=desktop_preview,

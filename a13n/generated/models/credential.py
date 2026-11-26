@@ -31,7 +31,7 @@ class Credential:
         updated_by_id (str):
         version (int):
         workspace_id (str):
-        owner_app_id (None | str | Unset):
+        app_id (None | str | Unset):
     """
 
     allowed_hosts: list[str]
@@ -48,7 +48,7 @@ class Credential:
     updated_by_id: str
     version: int
     workspace_id: str
-    owner_app_id: str | Unset | None = UNSET
+    app_id: str | Unset | None = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -84,11 +84,11 @@ class Credential:
 
         workspace_id = self.workspace_id
 
-        owner_app_id: str | Unset | None
-        if isinstance(self.owner_app_id, Unset):
-            owner_app_id = UNSET
+        app_id: str | Unset | None
+        if isinstance(self.app_id, Unset):
+            app_id = UNSET
         else:
-            owner_app_id = self.owner_app_id
+            app_id = self.app_id
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
@@ -110,8 +110,8 @@ class Credential:
                 "workspace_id": workspace_id,
             }
         )
-        if owner_app_id is not UNSET:
-            field_dict["owner_app_id"] = owner_app_id
+        if app_id is not UNSET:
+            field_dict["app_id"] = app_id
 
         return field_dict
 
@@ -159,14 +159,14 @@ class Credential:
 
         workspace_id = d.pop("workspace_id")
 
-        def _parse_owner_app_id(data: object) -> str | Unset | None:
+        def _parse_app_id(data: object) -> str | Unset | None:
             if data is None:
                 return data
             if isinstance(data, Unset):
                 return data
             return cast(str | Unset | None, data)
 
-        owner_app_id = _parse_owner_app_id(d.pop("owner_app_id", UNSET))
+        app_id = _parse_app_id(d.pop("app_id", UNSET))
 
         credential = cls(
             allowed_hosts=allowed_hosts,
@@ -183,7 +183,7 @@ class Credential:
             updated_by_id=updated_by_id,
             version=version,
             workspace_id=workspace_id,
-            owner_app_id=owner_app_id,
+            app_id=app_id,
         )
 
         credential.additional_properties = d

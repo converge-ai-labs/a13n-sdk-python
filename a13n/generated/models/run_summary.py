@@ -54,8 +54,10 @@ class RunSummary:
         version (int):
         wait_reason (None | WaitReason):
         workspace_id (str):
+        app_id (None | str | Unset):
         omitted_sections (list[str] | Unset):
         schedule_origin (None | ScheduleOrigin | Unset):
+        trigger_app_id (None | str | Unset):
         view (Literal['compact'] | Unset):
     """
 
@@ -86,8 +88,10 @@ class RunSummary:
     version: int
     wait_reason: WaitReason | None
     workspace_id: str
+    app_id: str | Unset | None = UNSET
     omitted_sections: list[str] | Unset = UNSET
     schedule_origin: ScheduleOrigin | Unset | None = UNSET
+    trigger_app_id: str | Unset | None = UNSET
     view: Literal["compact"] | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -170,6 +174,12 @@ class RunSummary:
 
         workspace_id = self.workspace_id
 
+        app_id: str | Unset | None
+        if isinstance(self.app_id, Unset):
+            app_id = UNSET
+        else:
+            app_id = self.app_id
+
         omitted_sections: list[str] | Unset = UNSET
         if not isinstance(self.omitted_sections, Unset):
             omitted_sections = self.omitted_sections
@@ -181,6 +191,12 @@ class RunSummary:
             schedule_origin = self.schedule_origin.to_dict()
         else:
             schedule_origin = self.schedule_origin
+
+        trigger_app_id: str | Unset | None
+        if isinstance(self.trigger_app_id, Unset):
+            trigger_app_id = UNSET
+        else:
+            trigger_app_id = self.trigger_app_id
 
         view = self.view
 
@@ -217,10 +233,14 @@ class RunSummary:
                 "workspace_id": workspace_id,
             }
         )
+        if app_id is not UNSET:
+            field_dict["app_id"] = app_id
         if omitted_sections is not UNSET:
             field_dict["omitted_sections"] = omitted_sections
         if schedule_origin is not UNSET:
             field_dict["schedule_origin"] = schedule_origin
+        if trigger_app_id is not UNSET:
+            field_dict["trigger_app_id"] = trigger_app_id
         if view is not UNSET:
             field_dict["view"] = view
 
@@ -364,6 +384,15 @@ class RunSummary:
 
         workspace_id = d.pop("workspace_id")
 
+        def _parse_app_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        app_id = _parse_app_id(d.pop("app_id", UNSET))
+
         omitted_sections = cast(list[str], d.pop("omitted_sections", UNSET))
 
         def _parse_schedule_origin(data: object) -> ScheduleOrigin | Unset | None:
@@ -382,6 +411,15 @@ class RunSummary:
             return cast(ScheduleOrigin | Unset | None, data)
 
         schedule_origin = _parse_schedule_origin(d.pop("schedule_origin", UNSET))
+
+        def _parse_trigger_app_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        trigger_app_id = _parse_trigger_app_id(d.pop("trigger_app_id", UNSET))
 
         view = cast(Literal["compact"] | Unset, d.pop("view", UNSET))
         if view != "compact" and not isinstance(view, Unset):
@@ -415,8 +453,10 @@ class RunSummary:
             version=version,
             wait_reason=wait_reason,
             workspace_id=workspace_id,
+            app_id=app_id,
             omitted_sections=omitted_sections,
             schedule_origin=schedule_origin,
+            trigger_app_id=trigger_app_id,
             view=view,
         )
 

@@ -10,6 +10,7 @@ from attrs import field as _attrs_field
 from ..models.delivery import Delivery
 from ..models.entry_status import EntryStatus
 from ..models.entry_view_kind import EntryViewKind
+from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.entry_view_payload import EntryViewPayload
@@ -43,6 +44,7 @@ class EntryView:
         principal_id (str):
         status (EntryStatus):
         thread_id (str):
+        app_id (None | str | Unset):
     """
 
     agent_id: str | None
@@ -63,6 +65,7 @@ class EntryView:
     principal_id: str
     status: EntryStatus
     thread_id: str
+    app_id: str | Unset | None = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -118,6 +121,12 @@ class EntryView:
 
         thread_id = self.thread_id
 
+        app_id: str | Unset | None
+        if isinstance(self.app_id, Unset):
+            app_id = UNSET
+        else:
+            app_id = self.app_id
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -142,6 +151,8 @@ class EntryView:
                 "thread_id": thread_id,
             }
         )
+        if app_id is not UNSET:
+            field_dict["app_id"] = app_id
 
         return field_dict
 
@@ -245,6 +256,15 @@ class EntryView:
 
         thread_id = d.pop("thread_id")
 
+        def _parse_app_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        app_id = _parse_app_id(d.pop("app_id", UNSET))
+
         entry_view = cls(
             agent_id=agent_id,
             agent_revision_id=agent_revision_id,
@@ -264,6 +284,7 @@ class EntryView:
             principal_id=principal_id,
             status=status,
             thread_id=thread_id,
+            app_id=app_id,
         )
 
         entry_view.additional_properties = d

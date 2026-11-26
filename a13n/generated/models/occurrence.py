@@ -45,6 +45,7 @@ class Occurrence:
         trigger (ScheduleTrigger):
         updated_at (datetime.datetime):
         version (int):
+        app_id (None | str | Unset):
         completed_at (datetime.datetime | None | Unset):
         completion_run_id (None | str | Unset):
         execution (None | OccurrenceExecution | Unset):
@@ -73,6 +74,7 @@ class Occurrence:
     trigger: ScheduleTrigger
     updated_at: datetime.datetime
     version: int
+    app_id: str | Unset | None = UNSET
     completed_at: datetime.datetime | Unset | None = UNSET
     completion_run_id: str | Unset | None = UNSET
     execution: OccurrenceExecution | Unset | None = UNSET
@@ -146,6 +148,12 @@ class Occurrence:
 
         version = self.version
 
+        app_id: str | Unset | None
+        if isinstance(self.app_id, Unset):
+            app_id = UNSET
+        else:
+            app_id = self.app_id
+
         completed_at: str | Unset | None
         if isinstance(self.completed_at, Unset):
             completed_at = UNSET
@@ -204,6 +212,8 @@ class Occurrence:
                 "version": version,
             }
         )
+        if app_id is not UNSET:
+            field_dict["app_id"] = app_id
         if completed_at is not UNSET:
             field_dict["completed_at"] = completed_at
         if completion_run_id is not UNSET:
@@ -343,6 +353,15 @@ class Occurrence:
 
         version = d.pop("version")
 
+        def _parse_app_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        app_id = _parse_app_id(d.pop("app_id", UNSET))
+
         def _parse_completed_at(data: object) -> datetime.datetime | Unset | None:
             if data is None:
                 return data
@@ -426,6 +445,7 @@ class Occurrence:
             trigger=trigger,
             updated_at=updated_at,
             version=version,
+            app_id=app_id,
             completed_at=completed_at,
             completion_run_id=completion_run_id,
             execution=execution,

@@ -11,6 +11,7 @@ from ..models.lineage import Lineage
 from ..models.run_status import RunStatus
 from ..models.trigger import Trigger
 from ..models.wait_reason import WaitReason
+from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.run_input_preview import RunInputPreview
@@ -50,6 +51,8 @@ class ThreadRunItem:
         version (int):
         wait_reason (None | WaitReason):
         workspace_id (str):
+        app_id (None | str | Unset):
+        trigger_app_id (None | str | Unset):
     """
 
     agent_id: str
@@ -78,6 +81,8 @@ class ThreadRunItem:
     version: int
     wait_reason: WaitReason | None
     workspace_id: str
+    app_id: str | Unset | None = UNSET
+    trigger_app_id: str | Unset | None = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -150,6 +155,18 @@ class ThreadRunItem:
 
         workspace_id = self.workspace_id
 
+        app_id: str | Unset | None
+        if isinstance(self.app_id, Unset):
+            app_id = UNSET
+        else:
+            app_id = self.app_id
+
+        trigger_app_id: str | Unset | None
+        if isinstance(self.trigger_app_id, Unset):
+            trigger_app_id = UNSET
+        else:
+            trigger_app_id = self.trigger_app_id
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -182,6 +199,10 @@ class ThreadRunItem:
                 "workspace_id": workspace_id,
             }
         )
+        if app_id is not UNSET:
+            field_dict["app_id"] = app_id
+        if trigger_app_id is not UNSET:
+            field_dict["trigger_app_id"] = trigger_app_id
 
         return field_dict
 
@@ -306,6 +327,24 @@ class ThreadRunItem:
 
         workspace_id = d.pop("workspace_id")
 
+        def _parse_app_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        app_id = _parse_app_id(d.pop("app_id", UNSET))
+
+        def _parse_trigger_app_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        trigger_app_id = _parse_trigger_app_id(d.pop("trigger_app_id", UNSET))
+
         thread_run_item = cls(
             agent_id=agent_id,
             agent_revision_id=agent_revision_id,
@@ -333,6 +372,8 @@ class ThreadRunItem:
             version=version,
             wait_reason=wait_reason,
             workspace_id=workspace_id,
+            app_id=app_id,
+            trigger_app_id=trigger_app_id,
         )
 
         thread_run_item.additional_properties = d

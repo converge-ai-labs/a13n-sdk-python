@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
+from ..types import UNSET, Unset
+
 if TYPE_CHECKING:
     from ..models.file_memory_guidance import FileMemoryGuidance
     from ..models.memory_space_labels import MemorySpaceLabels
@@ -39,6 +41,7 @@ class MemorySpace:
         updated_by_id (str):
         version (int):
         workspace_id (str):
+        app_id (None | str | Unset):
     """
 
     always_load: list[str]
@@ -60,6 +63,7 @@ class MemorySpace:
     updated_by_id: str
     version: int
     workspace_id: str
+    app_id: str | Unset | None = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -102,6 +106,12 @@ class MemorySpace:
 
         workspace_id = self.workspace_id
 
+        app_id: str | Unset | None
+        if isinstance(self.app_id, Unset):
+            app_id = UNSET
+        else:
+            app_id = self.app_id
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -127,6 +137,8 @@ class MemorySpace:
                 "workspace_id": workspace_id,
             }
         )
+        if app_id is not UNSET:
+            field_dict["app_id"] = app_id
 
         return field_dict
 
@@ -180,6 +192,15 @@ class MemorySpace:
 
         workspace_id = d.pop("workspace_id")
 
+        def _parse_app_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        app_id = _parse_app_id(d.pop("app_id", UNSET))
+
         memory_space = cls(
             always_load=always_load,
             content_bytes=content_bytes,
@@ -200,6 +221,7 @@ class MemorySpace:
             updated_by_id=updated_by_id,
             version=version,
             workspace_id=workspace_id,
+            app_id=app_id,
         )
 
         memory_space.additional_properties = d

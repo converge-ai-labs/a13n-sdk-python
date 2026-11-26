@@ -71,10 +71,12 @@ class RunView:
         version (int):
         wait_reason (None | WaitReason):
         workspace_id (str):
+        app_id (None | str | Unset):
         browser_binding (BrowserBinding | None | Unset):
         finding_analysis_id (None | str | Unset):
         input_ (None | RunViewInputType0 | Unset):
         schedule_origin (None | ScheduleOrigin | Unset):
+        trigger_app_id (None | str | Unset):
     """
 
     agent_id: str
@@ -110,10 +112,12 @@ class RunView:
     version: int
     wait_reason: WaitReason | None
     workspace_id: str
+    app_id: str | Unset | None = UNSET
     browser_binding: BrowserBinding | Unset | None = UNSET
     finding_analysis_id: str | Unset | None = UNSET
     input_: RunViewInputType0 | Unset | None = UNSET
     schedule_origin: ScheduleOrigin | Unset | None = UNSET
+    trigger_app_id: str | Unset | None = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -244,6 +248,12 @@ class RunView:
 
         workspace_id = self.workspace_id
 
+        app_id: str | Unset | None
+        if isinstance(self.app_id, Unset):
+            app_id = UNSET
+        else:
+            app_id = self.app_id
+
         browser_binding: dict[str, Any] | Unset | None
         if isinstance(self.browser_binding, Unset):
             browser_binding = UNSET
@@ -273,6 +283,12 @@ class RunView:
             schedule_origin = self.schedule_origin.to_dict()
         else:
             schedule_origin = self.schedule_origin
+
+        trigger_app_id: str | Unset | None
+        if isinstance(self.trigger_app_id, Unset):
+            trigger_app_id = UNSET
+        else:
+            trigger_app_id = self.trigger_app_id
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
@@ -313,6 +329,8 @@ class RunView:
                 "workspace_id": workspace_id,
             }
         )
+        if app_id is not UNSET:
+            field_dict["app_id"] = app_id
         if browser_binding is not UNSET:
             field_dict["browser_binding"] = browser_binding
         if finding_analysis_id is not UNSET:
@@ -321,6 +339,8 @@ class RunView:
             field_dict["input"] = input_
         if schedule_origin is not UNSET:
             field_dict["schedule_origin"] = schedule_origin
+        if trigger_app_id is not UNSET:
+            field_dict["trigger_app_id"] = trigger_app_id
 
         return field_dict
 
@@ -577,6 +597,15 @@ class RunView:
 
         workspace_id = d.pop("workspace_id")
 
+        def _parse_app_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        app_id = _parse_app_id(d.pop("app_id", UNSET))
+
         def _parse_browser_binding(data: object) -> BrowserBinding | Unset | None:
             if data is None:
                 return data
@@ -637,6 +666,15 @@ class RunView:
 
         schedule_origin = _parse_schedule_origin(d.pop("schedule_origin", UNSET))
 
+        def _parse_trigger_app_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        trigger_app_id = _parse_trigger_app_id(d.pop("trigger_app_id", UNSET))
+
         run_view = cls(
             agent_id=agent_id,
             agent_revision_id=agent_revision_id,
@@ -671,10 +709,12 @@ class RunView:
             version=version,
             wait_reason=wait_reason,
             workspace_id=workspace_id,
+            app_id=app_id,
             browser_binding=browser_binding,
             finding_analysis_id=finding_analysis_id,
             input_=input_,
             schedule_origin=schedule_origin,
+            trigger_app_id=trigger_app_id,
         )
 
         run_view.additional_properties = d
