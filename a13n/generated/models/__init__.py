@@ -3,9 +3,11 @@
 from .account_disable import AccountDisable
 from .agent import Agent
 from .agent_config_input import AgentConfigInput
+from .agent_config_input_lazy_environment_type_0 import AgentConfigInputLazyEnvironmentType0
 from .agent_config_input_model_settings import AgentConfigInputModelSettings
 from .agent_config_input_toolsets import AgentConfigInputToolsets
 from .agent_config_output import AgentConfigOutput
+from .agent_config_output_lazy_environment_type_0 import AgentConfigOutputLazyEnvironmentType0
 from .agent_config_output_model_settings import AgentConfigOutputModelSettings
 from .agent_config_output_toolsets import AgentConfigOutputToolsets
 from .agent_create import AgentCreate
@@ -15,9 +17,11 @@ from .agent_duplicate_labels import AgentDuplicateLabels
 from .agent_labels import AgentLabels
 from .agent_model_characteristics import AgentModelCharacteristics
 from .agent_override_input import AgentOverrideInput
+from .agent_override_input_lazy_environment_type_0 import AgentOverrideInputLazyEnvironmentType0
 from .agent_override_input_model_settings_type_0 import AgentOverrideInputModelSettingsType0
 from .agent_override_input_toolsets_type_0 import AgentOverrideInputToolsetsType0
 from .agent_override_output import AgentOverrideOutput
+from .agent_override_output_lazy_environment_type_0 import AgentOverrideOutputLazyEnvironmentType0
 from .agent_override_output_model_settings_type_0 import AgentOverrideOutputModelSettingsType0
 from .agent_override_output_toolsets_type_0 import AgentOverrideOutputToolsetsType0
 from .agent_page import AgentPage
@@ -957,9 +961,11 @@ __all__ = (
     "AccountDisable",
     "Agent",
     "AgentConfigInput",
+    "AgentConfigInputLazyEnvironmentType0",
     "AgentConfigInputModelSettings",
     "AgentConfigInputToolsets",
     "AgentConfigOutput",
+    "AgentConfigOutputLazyEnvironmentType0",
     "AgentConfigOutputModelSettings",
     "AgentConfigOutputToolsets",
     "AgentCreate",
@@ -969,9 +975,11 @@ __all__ = (
     "AgentLabels",
     "AgentModelCharacteristics",
     "AgentOverrideInput",
+    "AgentOverrideInputLazyEnvironmentType0",
     "AgentOverrideInputModelSettingsType0",
     "AgentOverrideInputToolsetsType0",
     "AgentOverrideOutput",
+    "AgentOverrideOutputLazyEnvironmentType0",
     "AgentOverrideOutputModelSettingsType0",
     "AgentOverrideOutputToolsetsType0",
     "AgentPage",

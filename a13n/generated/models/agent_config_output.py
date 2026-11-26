@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any, Literal, TypeVar, cast
 
 from attrs import define as _attrs_define
 
+from ..models.agent_config_output_lazy_environment_type_0 import AgentConfigOutputLazyEnvironmentType0
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
@@ -49,7 +50,7 @@ class AgentConfigOutput:
         default_session_configuration (None | SessionConfiguration | Unset):
         execution (ExecutionOverride | None | Unset):
         instructions (str | Unset):
-        lazy_environment (bool | Unset):
+        lazy_environment (AgentConfigOutputLazyEnvironmentType0 | bool | Unset):
         media_understanding (MediaUnderstandingSelection | Unset): The model, by key, describing each media kind a model
             cannot read; a kind without one is unavailable.
         memory (SessionMemorySettings | Unset): Participation and complete Space selection; policy belongs to each
@@ -82,7 +83,7 @@ class AgentConfigOutput:
     default_session_configuration: SessionConfiguration | Unset | None = UNSET
     execution: ExecutionOverride | Unset | None = UNSET
     instructions: str | Unset = UNSET
-    lazy_environment: bool | Unset = UNSET
+    lazy_environment: AgentConfigOutputLazyEnvironmentType0 | bool | Unset = UNSET
     media_understanding: MediaUnderstandingSelection | Unset = UNSET
     memory: SessionMemorySettings | Unset = UNSET
     memory_mounts: list[MemoryMount] | Unset = UNSET
@@ -165,7 +166,13 @@ class AgentConfigOutput:
 
         instructions = self.instructions
 
-        lazy_environment = self.lazy_environment
+        lazy_environment: bool | str | Unset
+        if isinstance(self.lazy_environment, Unset):
+            lazy_environment = UNSET
+        elif isinstance(self.lazy_environment, AgentConfigOutputLazyEnvironmentType0):
+            lazy_environment = self.lazy_environment.value
+        else:
+            lazy_environment = self.lazy_environment
 
         media_understanding: dict[str, Any] | Unset = UNSET
         if not isinstance(self.media_understanding, Unset):
@@ -446,7 +453,20 @@ class AgentConfigOutput:
 
         instructions = d.pop("instructions", UNSET)
 
-        lazy_environment = d.pop("lazy_environment", UNSET)
+        def _parse_lazy_environment(data: object) -> AgentConfigOutputLazyEnvironmentType0 | bool | Unset:
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, str):
+                    raise TypeError()
+                lazy_environment_type_0 = AgentConfigOutputLazyEnvironmentType0(data)
+
+                return lazy_environment_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(AgentConfigOutputLazyEnvironmentType0 | bool | Unset, data)
+
+        lazy_environment = _parse_lazy_environment(d.pop("lazy_environment", UNSET))
 
         _media_understanding = d.pop("media_understanding", UNSET)
         media_understanding: MediaUnderstandingSelection | Unset
