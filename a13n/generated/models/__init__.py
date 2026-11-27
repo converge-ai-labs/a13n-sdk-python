@@ -3,9 +3,11 @@
 from .account_disable import AccountDisable
 from .agent import Agent
 from .agent_config_input import AgentConfigInput
+from .agent_config_input_lazy_environment_type_0 import AgentConfigInputLazyEnvironmentType0
 from .agent_config_input_model_settings import AgentConfigInputModelSettings
 from .agent_config_input_toolsets import AgentConfigInputToolsets
 from .agent_config_output import AgentConfigOutput
+from .agent_config_output_lazy_environment_type_0 import AgentConfigOutputLazyEnvironmentType0
 from .agent_config_output_model_settings import AgentConfigOutputModelSettings
 from .agent_config_output_toolsets import AgentConfigOutputToolsets
 from .agent_create import AgentCreate
@@ -15,9 +17,11 @@ from .agent_duplicate_labels import AgentDuplicateLabels
 from .agent_labels import AgentLabels
 from .agent_model_characteristics import AgentModelCharacteristics
 from .agent_override_input import AgentOverrideInput
+from .agent_override_input_lazy_environment_type_0 import AgentOverrideInputLazyEnvironmentType0
 from .agent_override_input_model_settings_type_0 import AgentOverrideInputModelSettingsType0
 from .agent_override_input_toolsets_type_0 import AgentOverrideInputToolsetsType0
 from .agent_override_output import AgentOverrideOutput
+from .agent_override_output_lazy_environment_type_0 import AgentOverrideOutputLazyEnvironmentType0
 from .agent_override_output_model_settings_type_0 import AgentOverrideOutputModelSettingsType0
 from .agent_override_output_toolsets_type_0 import AgentOverrideOutputToolsetsType0
 from .agent_page import AgentPage
@@ -87,6 +91,7 @@ from .automatic_tool_search import AutomaticToolSearch
 from .background_compaction_policy import BackgroundCompactionPolicy
 from .bearer_credential import BearerCredential
 from .bootstrap_input import BootstrapInput
+from .boxd_volume_mount import BoxdVolumeMount
 from .browser import Browser
 from .browser_attach import BrowserAttach
 from .browser_attach_headers import BrowserAttachHeaders
@@ -185,6 +190,7 @@ from .created_subscription import CreatedSubscription
 from .creation_progress import CreationProgress
 from .creation_progress_profile import CreationProgressProfile
 from .creation_progress_stage import CreationProgressStage
+from .creator_storage import CreatorStorage
 from .credential import Credential
 from .credential_create import CredentialCreate
 from .credential_mode import CredentialMode
@@ -207,6 +213,7 @@ from .data_source import DataSource
 from .data_source_create import DataSourceCreate
 from .data_source_page import DataSourcePage
 from .data_source_update import DataSourceUpdate
+from .daytona_volume_mount import DaytonaVolumeMount
 from .debug_hold import DebugHold
 from .definition import Definition
 from .definition_definition import DefinitionDefinition
@@ -375,6 +382,9 @@ from .lifecycle_kind import LifecycleKind
 from .limited_cpu_limit import LimitedCpuLimit
 from .limited_memory_limit import LimitedMemoryLimit
 from .lineage import Lineage
+from .list_assets_order import ListAssetsOrder
+from .list_assets_source_kind_type_0 import ListAssetsSourceKindType0
+from .list_assets_status import ListAssetsStatus
 from .list_attempt_spans_status_type_0 import ListAttemptSpansStatusType0
 from .list_inbox_kind_type_0 import ListInboxKindType0
 from .list_members_kind_type_0 import ListMembersKindType0
@@ -390,18 +400,28 @@ from .list_threads_origin_type_0_item import ListThreadsOriginType0Item
 from .list_trace_spans_status_type_0 import ListTraceSpansStatusType0
 from .list_trace_spans_view import ListTraceSpansView
 from .list_traces_status_type_0 import ListTracesStatusType0
+from .listed_asset import ListedAsset
+from .listed_asset_source_type_0 import ListedAssetSourceType0
 from .local_result import LocalResult
 from .login_input import LoginInput
 from .login_output import LoginOutput
 from .login_session import LoginSession
 from .login_session_page import LoginSessionPage
+from .logout_redirect import LogoutRedirect
 from .logs import Logs
 from .managed_environment_create import ManagedEnvironmentCreate
 from .managed_environment_create_metrics_labels import ManagedEnvironmentCreateMetricsLabels
 from .mcp_auth import McpAuth
 from .mcp_config import McpConfig
+from .mcp_config_authority import McpConfigAuthority
 from .mcp_config_object_ref_tools import McpConfigObjectRefTools
+from .mcp_elicitation import McpElicitation
+from .mcp_elicitation_mode import McpElicitationMode
+from .mcp_elicitation_schema_type_0 import McpElicitationSchemaType0
 from .mcp_headers import McpHeaders
+from .mcp_input_response import McpInputResponse
+from .mcp_input_response_action import McpInputResponseAction
+from .mcp_input_response_content_type_0 import McpInputResponseContentType0
 from .mcp_server import McpServer
 from .mcp_server_page import McpServerPage
 from .media_defaults import MediaDefaults
@@ -467,6 +487,7 @@ from .metrics_application import MetricsApplication
 from .metrics_application_collection import MetricsApplicationCollection
 from .metrics_sample import MetricsSample
 from .metrics_sample_filesystems import MetricsSampleFilesystems
+from .modal_volume_mount import ModalVolumeMount
 from .model import Model
 from .model_capability import ModelCapability
 from .model_catalog import ModelCatalog
@@ -482,6 +503,7 @@ from .model_config_output_extra_body import ModelConfigOutputExtraBody
 from .model_config_output_extra_headers import ModelConfigOutputExtraHeaders
 from .model_config_output_settings import ModelConfigOutputSettings
 from .model_create import ModelCreate
+from .model_duplicate import ModelDuplicate
 from .model_metrics import ModelMetrics
 from .model_page import ModelPage
 from .model_price_rule_input import ModelPriceRuleInput
@@ -569,6 +591,7 @@ from .pending import Pending
 from .pending_call import PendingCall
 from .pending_call_arguments import PendingCallArguments
 from .pending_call_presentation_type_0 import PendingCallPresentationType0
+from .pending_interactions import PendingInteractions
 from .platform_group import PlatformGroup
 from .plugin_catalog import PluginCatalog
 from .plugin_selection import PluginSelection
@@ -631,6 +654,8 @@ from .range_query import RangeQuery
 from .read_run_item_content_field import ReadRunItemContentField
 from .read_span_content_section import ReadSpanContentSection
 from .read_view import ReadView
+from .recipe_overrides import RecipeOverrides
+from .recipe_overrides_volume_mounts import RecipeOverridesVolumeMounts
 from .reclamation import Reclamation
 from .recognition import Recognition
 from .record_source import RecordSource
@@ -697,6 +722,8 @@ from .schedule_configuration import ScheduleConfiguration
 from .schedule_create import ScheduleCreate
 from .schedule_create_labels import ScheduleCreateLabels
 from .schedule_create_state import ScheduleCreateState
+from .schedule_duplicate import ScheduleDuplicate
+from .schedule_duplicate_labels_type_0 import ScheduleDuplicateLabelsType0
 from .schedule_event import ScheduleEvent
 from .schedule_invocation_input import ScheduleInvocationInput
 from .schedule_invocation_output import ScheduleInvocationOutput
@@ -717,6 +744,8 @@ from .schedule_update_labels_type_0 import ScheduleUpdateLabelsType0
 from .search_traces_direction import SearchTracesDirection
 from .search_traces_order_by import SearchTracesOrderBy
 from .secret_reference import SecretReference
+from .security_advisory import SecurityAdvisory
+from .security_advisory_severity import SecurityAdvisorySeverity
 from .selected_trace import SelectedTrace
 from .selection import Selection
 from .selection_metrics_labels import SelectionMetricsLabels
@@ -756,6 +785,8 @@ from .shell_preview import ShellPreview
 from .skill import Skill
 from .skill_create import SkillCreate
 from .skill_create_labels import SkillCreateLabels
+from .skill_duplicate import SkillDuplicate
+from .skill_duplicate_labels_type_0 import SkillDuplicateLabelsType0
 from .skill_file import SkillFile
 from .skill_labels import SkillLabels
 from .skill_manifest import SkillManifest
@@ -787,6 +818,7 @@ from .span_status import SpanStatus
 from .span_summary import SpanSummary
 from .span_summary_status import SpanSummaryStatus
 from .span_usage import SpanUsage
+from .stable_release import StableRelease
 from .startup_error_policy import StartupErrorPolicy
 from .state import State
 from .status import Status
@@ -820,6 +852,8 @@ from .template_config import TemplateConfig
 from .template_config_recipe import TemplateConfigRecipe
 from .template_create import TemplateCreate
 from .template_create_labels import TemplateCreateLabels
+from .template_duplicate import TemplateDuplicate
+from .template_duplicate_labels_type_0 import TemplateDuplicateLabelsType0
 from .template_labels import TemplateLabels
 from .template_page import TemplatePage
 from .template_update import TemplateUpdate
@@ -884,6 +918,7 @@ from .typed_query_metric_type_1 import TypedQueryMetricType1
 from .unavailable_configuration import UnavailableConfiguration
 from .unlimited_cpu_limit import UnlimitedCpuLimit
 from .unlimited_memory_limit import UnlimitedMemoryLimit
+from .update_notices import UpdateNotices
 from .upload import Upload
 from .upload_create import UploadCreate
 from .upload_source import UploadSource
@@ -919,15 +954,18 @@ from .workspace import Workspace
 from .workspace_create import WorkspaceCreate
 from .workspace_page import WorkspacePage
 from .workspace_settings import WorkspaceSettings
+from .workspace_storage import WorkspaceStorage
 from .workspace_update import WorkspaceUpdate
 
 __all__ = (
     "AccountDisable",
     "Agent",
     "AgentConfigInput",
+    "AgentConfigInputLazyEnvironmentType0",
     "AgentConfigInputModelSettings",
     "AgentConfigInputToolsets",
     "AgentConfigOutput",
+    "AgentConfigOutputLazyEnvironmentType0",
     "AgentConfigOutputModelSettings",
     "AgentConfigOutputToolsets",
     "AgentCreate",
@@ -937,9 +975,11 @@ __all__ = (
     "AgentLabels",
     "AgentModelCharacteristics",
     "AgentOverrideInput",
+    "AgentOverrideInputLazyEnvironmentType0",
     "AgentOverrideInputModelSettingsType0",
     "AgentOverrideInputToolsetsType0",
     "AgentOverrideOutput",
+    "AgentOverrideOutputLazyEnvironmentType0",
     "AgentOverrideOutputModelSettingsType0",
     "AgentOverrideOutputToolsetsType0",
     "AgentPage",
@@ -1009,6 +1049,7 @@ __all__ = (
     "BackgroundCompactionPolicy",
     "BearerCredential",
     "BootstrapInput",
+    "BoxdVolumeMount",
     "Browser",
     "BrowserAttach",
     "BrowserAttachHeaders",
@@ -1107,6 +1148,7 @@ __all__ = (
     "CreationProgress",
     "CreationProgressProfile",
     "CreationProgressStage",
+    "CreatorStorage",
     "Credential",
     "CredentialCreate",
     "CredentialMode",
@@ -1129,6 +1171,7 @@ __all__ = (
     "DataSourceCreate",
     "DataSourcePage",
     "DataSourceUpdate",
+    "DaytonaVolumeMount",
     "DebugHold",
     "Definition",
     "DefinitionDefinition",
@@ -1297,6 +1340,9 @@ __all__ = (
     "LimitedCpuLimit",
     "LimitedMemoryLimit",
     "Lineage",
+    "ListAssetsOrder",
+    "ListAssetsSourceKindType0",
+    "ListAssetsStatus",
     "ListAttemptSpansStatusType0",
     "ListInboxKindType0",
     "ListMembersKindType0",
@@ -1312,18 +1358,28 @@ __all__ = (
     "ListTraceSpansStatusType0",
     "ListTraceSpansView",
     "ListTracesStatusType0",
+    "ListedAsset",
+    "ListedAssetSourceType0",
     "LocalResult",
     "LoginInput",
     "LoginOutput",
     "LoginSession",
     "LoginSessionPage",
+    "LogoutRedirect",
     "Logs",
     "ManagedEnvironmentCreate",
     "ManagedEnvironmentCreateMetricsLabels",
     "McpAuth",
     "McpConfig",
+    "McpConfigAuthority",
     "McpConfigObjectRefTools",
+    "McpElicitation",
+    "McpElicitationMode",
+    "McpElicitationSchemaType0",
     "McpHeaders",
+    "McpInputResponse",
+    "McpInputResponseAction",
+    "McpInputResponseContentType0",
     "McpServer",
     "McpServerPage",
     "MediaDefaults",
@@ -1389,6 +1445,7 @@ __all__ = (
     "MetricsApplicationCollection",
     "MetricsSample",
     "MetricsSampleFilesystems",
+    "ModalVolumeMount",
     "Model",
     "ModelCapability",
     "ModelCatalog",
@@ -1404,6 +1461,7 @@ __all__ = (
     "ModelConfigOutputExtraHeaders",
     "ModelConfigOutputSettings",
     "ModelCreate",
+    "ModelDuplicate",
     "ModelMetrics",
     "ModelPage",
     "ModelPriceRuleInput",
@@ -1491,6 +1549,7 @@ __all__ = (
     "PendingCall",
     "PendingCallArguments",
     "PendingCallPresentationType0",
+    "PendingInteractions",
     "PlatformGroup",
     "PluginCatalog",
     "PluginSelection",
@@ -1551,6 +1610,8 @@ __all__ = (
     "ReadRunItemContentField",
     "ReadSpanContentSection",
     "ReadView",
+    "RecipeOverrides",
+    "RecipeOverridesVolumeMounts",
     "Reclamation",
     "Recognition",
     "RecordSource",
@@ -1617,6 +1678,8 @@ __all__ = (
     "ScheduleCreate",
     "ScheduleCreateLabels",
     "ScheduleCreateState",
+    "ScheduleDuplicate",
+    "ScheduleDuplicateLabelsType0",
     "ScheduleEvent",
     "ScheduleInvocationInput",
     "ScheduleInvocationOutput",
@@ -1637,6 +1700,8 @@ __all__ = (
     "SearchTracesDirection",
     "SearchTracesOrderBy",
     "SecretReference",
+    "SecurityAdvisory",
+    "SecurityAdvisorySeverity",
     "SelectedTrace",
     "Selection",
     "SelectionMetricsLabels",
@@ -1676,6 +1741,8 @@ __all__ = (
     "Skill",
     "SkillCreate",
     "SkillCreateLabels",
+    "SkillDuplicate",
+    "SkillDuplicateLabelsType0",
     "SkillFile",
     "SkillLabels",
     "SkillManifest",
@@ -1707,6 +1774,7 @@ __all__ = (
     "SpanSummary",
     "SpanSummaryStatus",
     "SpanUsage",
+    "StableRelease",
     "StartupErrorPolicy",
     "State",
     "Status",
@@ -1740,6 +1808,8 @@ __all__ = (
     "TemplateConfigRecipe",
     "TemplateCreate",
     "TemplateCreateLabels",
+    "TemplateDuplicate",
+    "TemplateDuplicateLabelsType0",
     "TemplateLabels",
     "TemplatePage",
     "TemplateUpdate",
@@ -1804,6 +1874,7 @@ __all__ = (
     "UnavailableConfiguration",
     "UnlimitedCpuLimit",
     "UnlimitedMemoryLimit",
+    "UpdateNotices",
     "Upload",
     "UploadCreate",
     "UploadSource",
@@ -1839,5 +1910,6 @@ __all__ = (
     "WorkspaceCreate",
     "WorkspacePage",
     "WorkspaceSettings",
+    "WorkspaceStorage",
     "WorkspaceUpdate",
 )

@@ -76,6 +76,7 @@ def test_every_pinned_named_model_and_inline_schema_has_generated_coverage() -> 
     schemas = document["components"]["schemas"]
     # Primitive aliases, arrays and unions are inlined into consuming signatures.
     inline = {
+        "AppIdFilter",
         "ApprovalDecision",
         "BuiltinSkillName",
         "CallResult",
@@ -129,6 +130,7 @@ def test_session_only_models_share_native_types_without_changing_native_inventor
     combined = augmented["components"]["schemas"]
     assert combined.keys() - native.keys() == {
         "AppReady",
+        "PendingInteractions",
         "ScheduleConfiguration",
         "Progress",
         "ScheduleEvent",
@@ -227,7 +229,33 @@ def test_browser_navigation_projection_preserves_contract_and_all_other_operatio
         }
 
     before, after = operations(document), operations(projected)
-    assert {operation[2] for operation in before - after} == {"start_oidc_sign_in", "finish_oidc_sign_in"}
-    assert len(before - after) == 2 and not after - before
+    assert {operation[2] for operation in before - after} == {
+        "start_oidc_sign_in",
+        "finish_oidc_sign_in",
+        "oidc_backchannel_logout",
+    }
+    assert len(before - after) == 3 and not after - before
     assert projected["components"] == document["components"]
     assert document == original
+
+
+def test_recipe_overrides_volume_array_alternatives_round_trip() -> None:
+    from a13n.generated.models.boxd_volume_mount import BoxdVolumeMount
+    from a13n.generated.models.daytona_volume_mount import DaytonaVolumeMount
+    from a13n.generated.models.modal_volume_mount import ModalVolumeMount
+    from a13n.generated.models.recipe_overrides import RecipeOverrides
+    from a13n.generated.types import UNSET
+
+    assert RecipeOverrides().to_dict() == {}
+    assert RecipeOverrides.from_dict({}).volumes is UNSET
+    assert RecipeOverrides.from_dict({"volumes": []}).to_dict() == {"volumes": []}
+    for mount in (
+        DaytonaVolumeMount(mount_path="/data", volume_id="vol"),
+        ModalVolumeMount(mount_path="/data", volume_name="vol"),
+        BoxdVolumeMount(mount_path="/data", disk_id="disk"),
+    ):
+        payload = {"volumes": [mount.to_dict()]}
+        parsed = RecipeOverrides.from_dict(payload)
+        assert isinstance(parsed.volumes, list)
+        assert type(parsed.volumes[0]) is type(mount)
+        assert parsed.to_dict() == payload

@@ -42,6 +42,7 @@ class Schedule:
         updated_by_id (str):
         version (int):
         workspace_id (str):
+        app_id (None | str | Unset):
         description (None | str | Unset):
         labels (ScheduleLabels | Unset):
         max_lateness_seconds (int | Unset):
@@ -64,6 +65,7 @@ class Schedule:
     updated_by_id: str
     version: int
     workspace_id: str
+    app_id: str | Unset | None = UNSET
     description: str | Unset | None = UNSET
     labels: ScheduleLabels | Unset = UNSET
     max_lateness_seconds: int | Unset = UNSET
@@ -117,6 +119,12 @@ class Schedule:
 
         workspace_id = self.workspace_id
 
+        app_id: str | Unset | None
+        if isinstance(self.app_id, Unset):
+            app_id = UNSET
+        else:
+            app_id = self.app_id
+
         description: str | Unset | None
         if isinstance(self.description, Unset):
             description = UNSET
@@ -152,6 +160,8 @@ class Schedule:
                 "workspace_id": workspace_id,
             }
         )
+        if app_id is not UNSET:
+            field_dict["app_id"] = app_id
         if description is not UNSET:
             field_dict["description"] = description
         if labels is not UNSET:
@@ -246,6 +256,15 @@ class Schedule:
 
         workspace_id = d.pop("workspace_id")
 
+        def _parse_app_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        app_id = _parse_app_id(d.pop("app_id", UNSET))
+
         def _parse_description(data: object) -> str | Unset | None:
             if data is None:
                 return data
@@ -282,6 +301,7 @@ class Schedule:
             updated_by_id=updated_by_id,
             version=version,
             workspace_id=workspace_id,
+            app_id=app_id,
             description=description,
             labels=labels,
             max_lateness_seconds=max_lateness_seconds,

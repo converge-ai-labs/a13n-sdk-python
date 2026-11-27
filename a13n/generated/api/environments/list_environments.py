@@ -12,6 +12,7 @@ from ...types import UNSET, Response, Unset
 def build_request(
     *,
     status: str | Unset | None = UNSET,
+    app_id: str | Unset | None = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
@@ -28,6 +29,13 @@ def build_request(
     else:
         json_status = status
     params["status"] = json_status
+
+    json_app_id: str | Unset | None
+    if isinstance(app_id, Unset):
+        json_app_id = UNSET
+    else:
+        json_app_id = app_id
+    params["app_id"] = json_app_id
 
     params["limit"] = limit
 
@@ -88,6 +96,7 @@ def sync_detailed(
     *,
     client: AuthenticatedClient,
     status: str | Unset | None = UNSET,
+    app_id: str | Unset | None = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
@@ -96,6 +105,7 @@ def sync_detailed(
 
     Args:
         status (None | str | Unset):
+        app_id (None | str | Unset):
         limit (int | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
@@ -112,6 +122,7 @@ def sync_detailed(
 
     kwargs = build_request(
         status=status,
+        app_id=app_id,
         limit=limit,
         cursor=cursor,
         x_workspace_id=x_workspace_id,
@@ -128,6 +139,7 @@ def sync(
     *,
     client: AuthenticatedClient,
     status: str | Unset | None = UNSET,
+    app_id: str | Unset | None = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
@@ -136,6 +148,7 @@ def sync(
 
     Args:
         status (None | str | Unset):
+        app_id (None | str | Unset):
         limit (int | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
@@ -153,6 +166,7 @@ def sync(
     return sync_detailed(
         client=client,
         status=status,
+        app_id=app_id,
         limit=limit,
         cursor=cursor,
         x_workspace_id=x_workspace_id,
@@ -163,6 +177,7 @@ async def asyncio_detailed(
     *,
     client: AuthenticatedClient,
     status: str | Unset | None = UNSET,
+    app_id: str | Unset | None = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
@@ -171,6 +186,7 @@ async def asyncio_detailed(
 
     Args:
         status (None | str | Unset):
+        app_id (None | str | Unset):
         limit (int | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
@@ -187,6 +203,7 @@ async def asyncio_detailed(
 
     kwargs = build_request(
         status=status,
+        app_id=app_id,
         limit=limit,
         cursor=cursor,
         x_workspace_id=x_workspace_id,
@@ -201,6 +218,7 @@ async def asyncio(
     *,
     client: AuthenticatedClient,
     status: str | Unset | None = UNSET,
+    app_id: str | Unset | None = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
@@ -209,6 +227,7 @@ async def asyncio(
 
     Args:
         status (None | str | Unset):
+        app_id (None | str | Unset):
         limit (int | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
@@ -227,6 +246,7 @@ async def asyncio(
         await asyncio_detailed(
             client=client,
             status=status,
+            app_id=app_id,
             limit=limit,
             cursor=cursor,
             x_workspace_id=x_workspace_id,

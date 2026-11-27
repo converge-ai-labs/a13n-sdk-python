@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any, Literal, TypeVar, cast
 
 from attrs import define as _attrs_define
 
+from ..models.agent_override_input_lazy_environment_type_0 import AgentOverrideInputLazyEnvironmentType0
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
@@ -41,7 +42,7 @@ class AgentOverrideInput:
             client_tools (list[ClientToolDefinition] | None | Unset):
             connection_tools (list[ConnectionSelection] | None | Unset):
             instructions (None | str | Unset):
-            lazy_environment (bool | None | Unset):
+            lazy_environment (AgentOverrideInputLazyEnvironmentType0 | bool | None | Unset):
             media_understanding (MediaUnderstandingSelection | None | Unset):
             model (None | str | Unset):
             model_characteristics (AgentModelCharacteristics | None | Unset):
@@ -61,7 +62,7 @@ class AgentOverrideInput:
     client_tools: list[ClientToolDefinition] | Unset | None = UNSET
     connection_tools: list[ConnectionSelection] | Unset | None = UNSET
     instructions: str | Unset | None = UNSET
-    lazy_environment: bool | Unset | None = UNSET
+    lazy_environment: AgentOverrideInputLazyEnvironmentType0 | bool | Unset | None = UNSET
     media_understanding: MediaUnderstandingSelection | Unset | None = UNSET
     model: str | Unset | None = UNSET
     model_characteristics: AgentModelCharacteristics | Unset | None = UNSET
@@ -131,9 +132,11 @@ class AgentOverrideInput:
         else:
             instructions = self.instructions
 
-        lazy_environment: bool | Unset | None
+        lazy_environment: bool | str | Unset | None
         if isinstance(self.lazy_environment, Unset):
             lazy_environment = UNSET
+        elif isinstance(self.lazy_environment, AgentOverrideInputLazyEnvironmentType0):
+            lazy_environment = self.lazy_environment.value
         else:
             lazy_environment = self.lazy_environment
 
@@ -394,12 +397,20 @@ class AgentOverrideInput:
 
         instructions = _parse_instructions(d.pop("instructions", UNSET))
 
-        def _parse_lazy_environment(data: object) -> bool | Unset | None:
+        def _parse_lazy_environment(data: object) -> AgentOverrideInputLazyEnvironmentType0 | bool | Unset | None:
             if data is None:
                 return data
             if isinstance(data, Unset):
                 return data
-            return cast(bool | Unset | None, data)
+            try:
+                if not isinstance(data, str):
+                    raise TypeError()
+                lazy_environment_type_0 = AgentOverrideInputLazyEnvironmentType0(data)
+
+                return lazy_environment_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(AgentOverrideInputLazyEnvironmentType0 | bool | Unset | None, data)
 
         lazy_environment = _parse_lazy_environment(d.pop("lazy_environment", UNSET))
 

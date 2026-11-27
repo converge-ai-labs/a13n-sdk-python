@@ -115,3 +115,85 @@ def test_agent_summarize_preserves_explicit_false():
         config = wire.AgentConfigInput.from_dict({"model": "test", "summarize": enabled})
         assert config.summarize is enabled
         assert config.to_dict()["summarize"] is enabled
+
+
+def test_browser_app_filter_is_retained_across_cursor_pages():
+    async def scenario():
+        requests = []
+
+        def respond(request):
+            requests.append(request)
+            assert request.url.params["app_id"] == "demo.app"
+            assert request.url.params["limit"] == "2"
+            if len(requests) == 2:
+                assert request.url.params["cursor"] == "next"
+            return httpx2.Response(200, json={"items": [], "next_cursor": "next" if len(requests) == 1 else None})
+
+        async with Client("https://service.test", transport=httpx2.MockTransport(respond)) as client:
+            pages = client.api.browsers.pages(app_id="demo.app", limit=2)
+            assert len([page async for page in pages]) == 2
+            assert len(requests) == 2
+
+    asyncio.run(scenario())
+
+
+def test_mcp_input_read_and_explicit_response_use_native_routes():
+    import json
+
+    async def scenario():
+        requests = []
+        item = {
+            "request_id": "req_1",
+            "thread_id": "thr_1",
+            "server_id": "mcp_1",
+            "mode": "url",
+            "message": "Confirm",
+            "expires_at": "2026-11-27T12:00:00Z",
+            "url": "https://example.com/confirm",
+        }
+
+        def respond(request):
+            requests.append(request)
+            if request.method == "GET":
+                return httpx2.Response(200, json=[item])
+            assert request.method == "POST"
+            assert request.url.path == "/api/v1/runs/run_1/mcp-inputs/req_1/response"
+            assert json.loads(request.content) == {"action": "decline"}
+            return httpx2.Response(204)
+
+        async with Client("https://service.test", transport=httpx2.MockTransport(respond)) as client:
+            inputs = client.api.runs("run_1").mcp_inputs
+            result = await inputs.get()
+            assert result.value[0].request_id == "req_1"
+            assert result.value[0].url == "https://example.com/confirm"
+            assert len(requests) == 1
+            await inputs("req_1").response(body=wire.McpInputResponse(action=wire.McpInputResponseAction.DECLINE))
+            assert len(requests) == 2
+
+    asyncio.run(scenario())
+
+
+def test_logout_preserves_both_success_shapes_and_response_evidence():
+    async def scenario(status):
+        requests = []
+
+        def respond(request):
+            requests.append(request)
+            assert request.method == "POST" and request.url.path == "/api/v1/auth/logout"
+            if status == 200:
+                return httpx2.Response(
+                    200, headers={"X-Request-ID": "logout"}, json={"logout_url": "https://identity.example/logout"}
+                )
+            return httpx2.Response(204, headers={"X-Request-ID": "logout"})
+
+        async with Client("https://service.test", transport=httpx2.MockTransport(respond)) as client:
+            result = await client.api.auth.logout()
+            assert result.status_code == status and result.request_id == "logout"
+            if status == 200:
+                assert result.value.logout_url == "https://identity.example/logout"
+            else:
+                assert result.value is None
+            assert len(requests) == 1
+
+    for status in (200, 204):
+        asyncio.run(scenario(status))

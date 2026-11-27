@@ -13,6 +13,7 @@ def build_request(
     *,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
+    app_id: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> dict[str, Any]:
     headers: dict[str, Any] = {}
@@ -29,6 +30,13 @@ def build_request(
     else:
         json_cursor = cursor
     params["cursor"] = json_cursor
+
+    json_app_id: str | Unset | None
+    if isinstance(app_id, Unset):
+        json_app_id = UNSET
+    else:
+        json_app_id = app_id
+    params["app_id"] = json_app_id
 
     params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
 
@@ -79,6 +87,7 @@ def sync_detailed(
     client: AuthenticatedClient,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
+    app_id: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> Response[BrowserPage | ErrorEnvelope]:
     """List Browsers
@@ -86,6 +95,7 @@ def sync_detailed(
     Args:
         limit (int | Unset):
         cursor (None | str | Unset):
+        app_id (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
@@ -101,6 +111,7 @@ def sync_detailed(
     kwargs = build_request(
         limit=limit,
         cursor=cursor,
+        app_id=app_id,
         x_workspace_id=x_workspace_id,
     )
 
@@ -116,6 +127,7 @@ def sync(
     client: AuthenticatedClient,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
+    app_id: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> BrowserPage | ErrorEnvelope | None:
     """List Browsers
@@ -123,6 +135,7 @@ def sync(
     Args:
         limit (int | Unset):
         cursor (None | str | Unset):
+        app_id (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
@@ -139,6 +152,7 @@ def sync(
         client=client,
         limit=limit,
         cursor=cursor,
+        app_id=app_id,
         x_workspace_id=x_workspace_id,
     ).parsed
 
@@ -148,6 +162,7 @@ async def asyncio_detailed(
     client: AuthenticatedClient,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
+    app_id: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> Response[BrowserPage | ErrorEnvelope]:
     """List Browsers
@@ -155,6 +170,7 @@ async def asyncio_detailed(
     Args:
         limit (int | Unset):
         cursor (None | str | Unset):
+        app_id (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
@@ -170,6 +186,7 @@ async def asyncio_detailed(
     kwargs = build_request(
         limit=limit,
         cursor=cursor,
+        app_id=app_id,
         x_workspace_id=x_workspace_id,
     )
 
@@ -183,6 +200,7 @@ async def asyncio(
     client: AuthenticatedClient,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
+    app_id: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
 ) -> BrowserPage | ErrorEnvelope | None:
     """List Browsers
@@ -190,6 +208,7 @@ async def asyncio(
     Args:
         limit (int | Unset):
         cursor (None | str | Unset):
+        app_id (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
             with a login session. An API key acts in its own workspace and needs none; naming another
             is forbidden.
@@ -207,6 +226,7 @@ async def asyncio(
             client=client,
             limit=limit,
             cursor=cursor,
+            app_id=app_id,
             x_workspace_id=x_workspace_id,
         )
     ).parsed

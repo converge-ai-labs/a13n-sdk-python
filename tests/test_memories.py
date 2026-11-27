@@ -58,7 +58,7 @@ def test_every_supported_operation_has_a_generated_resource_method() -> None:
         and node.func.attr == "asyncio_detailed"
         and isinstance(node.func.value, ast.Name)
     }
-    excluded = {"start_oidc_sign_in", "finish_oidc_sign_in"}
+    excluded = {"start_oidc_sign_in", "finish_oidc_sign_in", "oidc_backchannel_logout"}
     assert excluded <= expected
     assert called == expected - excluded
     for name in excluded:

@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any, Literal, TypeVar, cast
 
 from attrs import define as _attrs_define
 
+from ..models.agent_config_input_lazy_environment_type_0 import AgentConfigInputLazyEnvironmentType0
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
@@ -49,7 +50,7 @@ class AgentConfigInput:
         default_session_configuration (None | SessionConfiguration | Unset):
         execution (ExecutionOverride | None | Unset):
         instructions (str | Unset):
-        lazy_environment (bool | Unset):
+        lazy_environment (AgentConfigInputLazyEnvironmentType0 | bool | Unset):
         media_understanding (MediaUnderstandingSelection | Unset): The model, by key, describing each media kind a model
             cannot read; a kind without one is unavailable.
         memory (SessionMemorySettings | Unset): Participation and complete Space selection; policy belongs to each
@@ -60,6 +61,7 @@ class AgentConfigInput:
         model_settings (AgentConfigInputModelSettings | Unset):
         output_spec (None | OutputSpec | Unset):
         plugins (list[PluginSelection] | Unset):
+        respect_mcp_annotations (bool | Unset):
         retries (None | RetryConfig | Unset):
         reviewer (AgentReviewer | None | Unset):
         skill_sync (IsolatedSkillSync | SharedSkillSync | Unset):
@@ -81,7 +83,7 @@ class AgentConfigInput:
     default_session_configuration: SessionConfiguration | Unset | None = UNSET
     execution: ExecutionOverride | Unset | None = UNSET
     instructions: str | Unset = UNSET
-    lazy_environment: bool | Unset = UNSET
+    lazy_environment: AgentConfigInputLazyEnvironmentType0 | bool | Unset = UNSET
     media_understanding: MediaUnderstandingSelection | Unset = UNSET
     memory: SessionMemorySettings | Unset = UNSET
     memory_mounts: list[MemoryMount] | Unset = UNSET
@@ -89,6 +91,7 @@ class AgentConfigInput:
     model_settings: AgentConfigInputModelSettings | Unset = UNSET
     output_spec: OutputSpec | Unset | None = UNSET
     plugins: list[PluginSelection] | Unset = UNSET
+    respect_mcp_annotations: bool | Unset = UNSET
     retries: RetryConfig | Unset | None = UNSET
     reviewer: AgentReviewer | Unset | None = UNSET
     skill_sync: IsolatedSkillSync | SharedSkillSync | Unset = UNSET
@@ -163,7 +166,13 @@ class AgentConfigInput:
 
         instructions = self.instructions
 
-        lazy_environment = self.lazy_environment
+        lazy_environment: bool | str | Unset
+        if isinstance(self.lazy_environment, Unset):
+            lazy_environment = UNSET
+        elif isinstance(self.lazy_environment, AgentConfigInputLazyEnvironmentType0):
+            lazy_environment = self.lazy_environment.value
+        else:
+            lazy_environment = self.lazy_environment
 
         media_understanding: dict[str, Any] | Unset = UNSET
         if not isinstance(self.media_understanding, Unset):
@@ -202,6 +211,8 @@ class AgentConfigInput:
             for plugins_item_data in self.plugins:
                 plugins_item = plugins_item_data.to_dict()
                 plugins.append(plugins_item)
+
+        respect_mcp_annotations = self.respect_mcp_annotations
 
         retries: dict[str, Any] | Unset | None
         if isinstance(self.retries, Unset):
@@ -297,6 +308,8 @@ class AgentConfigInput:
             field_dict["output_spec"] = output_spec
         if plugins is not UNSET:
             field_dict["plugins"] = plugins
+        if respect_mcp_annotations is not UNSET:
+            field_dict["respect_mcp_annotations"] = respect_mcp_annotations
         if retries is not UNSET:
             field_dict["retries"] = retries
         if reviewer is not UNSET:
@@ -440,7 +453,20 @@ class AgentConfigInput:
 
         instructions = d.pop("instructions", UNSET)
 
-        lazy_environment = d.pop("lazy_environment", UNSET)
+        def _parse_lazy_environment(data: object) -> AgentConfigInputLazyEnvironmentType0 | bool | Unset:
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, str):
+                    raise TypeError()
+                lazy_environment_type_0 = AgentConfigInputLazyEnvironmentType0(data)
+
+                return lazy_environment_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(AgentConfigInputLazyEnvironmentType0 | bool | Unset, data)
+
+        lazy_environment = _parse_lazy_environment(d.pop("lazy_environment", UNSET))
 
         _media_understanding = d.pop("media_understanding", UNSET)
         media_understanding: MediaUnderstandingSelection | Unset
@@ -504,6 +530,8 @@ class AgentConfigInput:
                 plugins_item = PluginSelection.from_dict(plugins_item_data)
 
                 plugins.append(plugins_item)
+
+        respect_mcp_annotations = d.pop("respect_mcp_annotations", UNSET)
 
         def _parse_retries(data: object) -> RetryConfig | Unset | None:
             if data is None:
@@ -629,6 +657,7 @@ class AgentConfigInput:
             model_settings=model_settings,
             output_spec=output_spec,
             plugins=plugins,
+            respect_mcp_annotations=respect_mcp_annotations,
             retries=retries,
             reviewer=reviewer,
             skill_sync=skill_sync,

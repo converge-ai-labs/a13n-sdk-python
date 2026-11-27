@@ -36,6 +36,7 @@ class SessionView:
         updated_at (datetime.datetime):
         version (int):
         workspace_id (str):
+        app_id (None | str | Unset):
         memory (SessionMemorySettings | Unset): Participation and complete Space selection; policy belongs to each
             Space.
         origin (None | SessionOrigin | Unset):
@@ -57,6 +58,7 @@ class SessionView:
     updated_at: datetime.datetime
     version: int
     workspace_id: str
+    app_id: str | Unset | None = UNSET
     memory: SessionMemorySettings | Unset = UNSET
     origin: SessionOrigin | Unset | None = UNSET
     preview: SessionPreview | Unset | None = UNSET
@@ -94,6 +96,12 @@ class SessionView:
         version = self.version
 
         workspace_id = self.workspace_id
+
+        app_id: str | Unset | None
+        if isinstance(self.app_id, Unset):
+            app_id = UNSET
+        else:
+            app_id = self.app_id
 
         memory: dict[str, Any] | Unset = UNSET
         if not isinstance(self.memory, Unset):
@@ -149,6 +157,8 @@ class SessionView:
                 "workspace_id": workspace_id,
             }
         )
+        if app_id is not UNSET:
+            field_dict["app_id"] = app_id
         if memory is not UNSET:
             field_dict["memory"] = memory
         if origin is not UNSET:
@@ -205,6 +215,15 @@ class SessionView:
         version = d.pop("version")
 
         workspace_id = d.pop("workspace_id")
+
+        def _parse_app_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        app_id = _parse_app_id(d.pop("app_id", UNSET))
 
         _memory = d.pop("memory", UNSET)
         memory: SessionMemorySettings | Unset
@@ -285,6 +304,7 @@ class SessionView:
             updated_at=updated_at,
             version=version,
             workspace_id=workspace_id,
+            app_id=app_id,
             memory=memory,
             origin=origin,
             preview=preview,

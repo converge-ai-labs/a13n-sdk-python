@@ -10,6 +10,7 @@ from attrs import field as _attrs_field
 from ..models.browser_source import BrowserSource
 from ..models.browser_status import BrowserStatus
 from ..models.control_status import ControlStatus
+from ..types import UNSET, Unset
 
 T = TypeVar("T", bound="Browser")
 
@@ -37,6 +38,7 @@ class Browser:
         updated_at (datetime.datetime):
         version (int):
         workspace_id (str):
+        app_id (None | str | Unset):
     """
 
     control: ControlStatus
@@ -58,6 +60,7 @@ class Browser:
     updated_at: datetime.datetime
     version: int
     workspace_id: str
+    app_id: str | Unset | None = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -112,6 +115,12 @@ class Browser:
 
         workspace_id = self.workspace_id
 
+        app_id: str | Unset | None
+        if isinstance(self.app_id, Unset):
+            app_id = UNSET
+        else:
+            app_id = self.app_id
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -137,6 +146,8 @@ class Browser:
                 "workspace_id": workspace_id,
             }
         )
+        if app_id is not UNSET:
+            field_dict["app_id"] = app_id
 
         return field_dict
 
@@ -232,6 +243,15 @@ class Browser:
 
         workspace_id = d.pop("workspace_id")
 
+        def _parse_app_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        app_id = _parse_app_id(d.pop("app_id", UNSET))
+
         browser = cls(
             control=control,
             control_expires_at=control_expires_at,
@@ -252,6 +272,7 @@ class Browser:
             updated_at=updated_at,
             version=version,
             workspace_id=workspace_id,
+            app_id=app_id,
         )
 
         browser.additional_properties = d

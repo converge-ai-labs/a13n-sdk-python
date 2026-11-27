@@ -13,6 +13,7 @@ def build_request(
     *,
     label: list[str] | Unset | None = UNSET,
     enabled: bool | Unset | None = UNSET,
+    app_id: str | Unset | None = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
@@ -39,6 +40,13 @@ def build_request(
     else:
         json_enabled = enabled
     params["enabled"] = json_enabled
+
+    json_app_id: str | Unset | None
+    if isinstance(app_id, Unset):
+        json_app_id = UNSET
+    else:
+        json_app_id = app_id
+    params["app_id"] = json_app_id
 
     params["limit"] = limit
 
@@ -100,6 +108,7 @@ def sync_detailed(
     client: AuthenticatedClient,
     label: list[str] | Unset | None = UNSET,
     enabled: bool | Unset | None = UNSET,
+    app_id: str | Unset | None = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
@@ -109,6 +118,7 @@ def sync_detailed(
     Args:
         label (list[str] | None | Unset):
         enabled (bool | None | Unset):
+        app_id (None | str | Unset):
         limit (int | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
@@ -126,6 +136,7 @@ def sync_detailed(
     kwargs = build_request(
         label=label,
         enabled=enabled,
+        app_id=app_id,
         limit=limit,
         cursor=cursor,
         x_workspace_id=x_workspace_id,
@@ -143,6 +154,7 @@ def sync(
     client: AuthenticatedClient,
     label: list[str] | Unset | None = UNSET,
     enabled: bool | Unset | None = UNSET,
+    app_id: str | Unset | None = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
@@ -152,6 +164,7 @@ def sync(
     Args:
         label (list[str] | None | Unset):
         enabled (bool | None | Unset):
+        app_id (None | str | Unset):
         limit (int | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
@@ -170,6 +183,7 @@ def sync(
         client=client,
         label=label,
         enabled=enabled,
+        app_id=app_id,
         limit=limit,
         cursor=cursor,
         x_workspace_id=x_workspace_id,
@@ -181,6 +195,7 @@ async def asyncio_detailed(
     client: AuthenticatedClient,
     label: list[str] | Unset | None = UNSET,
     enabled: bool | Unset | None = UNSET,
+    app_id: str | Unset | None = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
@@ -190,6 +205,7 @@ async def asyncio_detailed(
     Args:
         label (list[str] | None | Unset):
         enabled (bool | None | Unset):
+        app_id (None | str | Unset):
         limit (int | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
@@ -207,6 +223,7 @@ async def asyncio_detailed(
     kwargs = build_request(
         label=label,
         enabled=enabled,
+        app_id=app_id,
         limit=limit,
         cursor=cursor,
         x_workspace_id=x_workspace_id,
@@ -222,6 +239,7 @@ async def asyncio(
     client: AuthenticatedClient,
     label: list[str] | Unset | None = UNSET,
     enabled: bool | Unset | None = UNSET,
+    app_id: str | Unset | None = UNSET,
     limit: int | Unset = UNSET,
     cursor: str | Unset | None = UNSET,
     x_workspace_id: str | Unset | None = UNSET,
@@ -231,6 +249,7 @@ async def asyncio(
     Args:
         label (list[str] | None | Unset):
         enabled (bool | None | Unset):
+        app_id (None | str | Unset):
         limit (int | Unset):
         cursor (None | str | Unset):
         x_workspace_id (None | str | Unset): The workspace ID a login session acts in; required
@@ -250,6 +269,7 @@ async def asyncio(
             client=client,
             label=label,
             enabled=enabled,
+            app_id=app_id,
             limit=limit,
             cursor=cursor,
             x_workspace_id=x_workspace_id,

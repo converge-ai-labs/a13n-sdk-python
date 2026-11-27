@@ -2,7 +2,7 @@
 
 ## Design Position
 
-The `a13n` Python SDK is a typed client for managed Agents and the public Native Service resources around them. One finite Agent interaction is the primary application interface; generated typed resource and operation access remains available for advanced use, except browser-navigation OIDC start and callback.
+The `a13n` Python SDK is a typed client for managed Agents and the public Native Service resources around them. One finite Agent interaction is the primary application interface; generated typed resource and operation access remains available for advanced use, except browser-navigation OIDC start and callback, and the IdP-to-Service OIDC backchannel logout endpoint.
 
 - Python operations and iteration are async-first, with explicit local resource lifetime.
 - Service owns durable resources, authorization, acceptance, execution, and protocol semantics.

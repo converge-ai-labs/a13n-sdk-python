@@ -40,6 +40,7 @@ class EntrySummary:
         principal_id (str):
         status (EntryStatus):
         thread_id (str):
+        app_id (None | str | Unset):
         omitted_sections (list[str] | Unset):
         view (Literal['compact'] | Unset):
     """
@@ -60,6 +61,7 @@ class EntrySummary:
     principal_id: str
     status: EntryStatus
     thread_id: str
+    app_id: str | Unset | None = UNSET
     omitted_sections: list[str] | Unset = UNSET
     view: Literal["compact"] | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
@@ -112,6 +114,12 @@ class EntrySummary:
 
         thread_id = self.thread_id
 
+        app_id: str | Unset | None
+        if isinstance(self.app_id, Unset):
+            app_id = UNSET
+        else:
+            app_id = self.app_id
+
         omitted_sections: list[str] | Unset = UNSET
         if not isinstance(self.omitted_sections, Unset):
             omitted_sections = self.omitted_sections
@@ -140,6 +148,8 @@ class EntrySummary:
                 "thread_id": thread_id,
             }
         )
+        if app_id is not UNSET:
+            field_dict["app_id"] = app_id
         if omitted_sections is not UNSET:
             field_dict["omitted_sections"] = omitted_sections
         if view is not UNSET:
@@ -237,6 +247,15 @@ class EntrySummary:
 
         thread_id = d.pop("thread_id")
 
+        def _parse_app_id(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        app_id = _parse_app_id(d.pop("app_id", UNSET))
+
         omitted_sections = cast(list[str], d.pop("omitted_sections", UNSET))
 
         view = cast(Literal["compact"] | Unset, d.pop("view", UNSET))
@@ -260,6 +279,7 @@ class EntrySummary:
             principal_id=principal_id,
             status=status,
             thread_id=thread_id,
+            app_id=app_id,
             omitted_sections=omitted_sections,
             view=view,
         )
