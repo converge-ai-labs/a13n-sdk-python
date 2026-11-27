@@ -423,3 +423,26 @@ def test_session_thread_snapshot_preserves_no_environment_and_new_platform_group
     options["environment"] = {"mode": "unknown"}
     with pytest.raises(ProtocolError):
         _session_frame("thread", [json.dumps(payload)], None)
+
+
+def test_interactions_frames_replace_and_clear_pending_without_dispatch() -> None:
+    request = {
+        "request_id": "req_1",
+        "thread_id": "thr_1",
+        "server_id": "mcp_1",
+        "mode": "form",
+        "message": "Choose",
+        "expires_at": "2026-11-27T12:00:00+00:00",
+        "schema": {"type": "object"},
+    }
+    url_request = {**request, "request_id": "req_2", "mode": "url", "url": "https://example.com/confirm"}
+    payload = {"thread_id": "thr_1", "requests": [request, url_request]}
+    frame = _session_frame("interactions", [json.dumps(payload)], None)
+    assert frame is not None and frame.event_type == "interactions"
+    assert frame.data.to_dict() == payload
+    cleared = _session_frame("interactions", ['{"thread_id":"thr_1","requests":[]}'], None)
+    assert cleared is not None and cleared.data.to_dict() == {"thread_id": "thr_1", "requests": []}
+    with pytest.raises(ProtocolError):
+        _session_frame("interactions", ['{"thread_id":"thr_1"}'], None)
+    with pytest.raises(ProtocolError):
+        _session_frame("interactions", [json.dumps(payload)], "unexpected-id")

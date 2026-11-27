@@ -36,23 +36,11 @@ class RecipeOverrides:
         volumes: list[dict[str, Any]] | Unset
         if isinstance(self.volumes, Unset):
             volumes = UNSET
-        elif isinstance(self.volumes, list):
+        else:
             volumes = []
             for volumes_type_0_item_data in self.volumes:
                 volumes_type_0_item = volumes_type_0_item_data.to_dict()
                 volumes.append(volumes_type_0_item)
-
-        elif isinstance(self.volumes, list):
-            volumes = []
-            for volumes_type_1_item_data in self.volumes:
-                volumes_type_1_item = volumes_type_1_item_data.to_dict()
-                volumes.append(volumes_type_1_item)
-
-        else:
-            volumes = []
-            for volumes_type_2_item_data in self.volumes:
-                volumes_type_2_item = volumes_type_2_item_data.to_dict()
-                volumes.append(volumes_type_2_item)
 
         field_dict: dict[str, Any] = {}
 

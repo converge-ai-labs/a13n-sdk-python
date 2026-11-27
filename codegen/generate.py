@@ -236,9 +236,9 @@ def with_session_models(document: dict, session: dict) -> dict:
 
 
 def project_operations(document: dict) -> dict:
-    """Omit browser navigation from callable bindings without changing the contract."""
+    """Omit provider protocol endpoints from callable bindings without changing the contract."""
     document = json.loads(json.dumps(document))
-    excluded = {"start_oidc_sign_in", "finish_oidc_sign_in"}
+    excluded = {"start_oidc_sign_in", "finish_oidc_sign_in", "oidc_backchannel_logout"}
     methods = {"get", "put", "post", "delete", "options", "head", "patch", "trace"}
     for path, item in list(document["paths"].items()):
         removed = False
@@ -297,6 +297,15 @@ def generate(document: dict, work: Path, session: bytes | None = None) -> Path:
         text = text.replace("@_attrs_define\n", "@_attrs_define(repr=False)\n").replace(
             "@define\n", "@define(repr=False)\n"
         )
+        if path.name == "recipe_overrides.py":
+            # All array alternatives serialize identically. Runtime list checks
+            # cannot distinguish their item types, and repeated checks make later
+            # branches unreachable to type checkers. Keep the array union intact.
+            branch = "        elif isinstance(self.volumes, list):\n"
+            first = text.index(branch)
+            start = text.index(branch, first + len(branch))
+            end = text.index("        field_dict: dict[str, Any] = {}", start)
+            text = text[:first] + "        else:\n" + text[first + len(branch) : start] + "\n" + text[end:]
         if path.name == "run_view.py":
             # The union's legacy request-shaped member accepts unknown keys.
             # Prefer the frozen response member when the host supplied its fields.
