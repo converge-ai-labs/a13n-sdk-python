@@ -413,6 +413,7 @@ from .managed_environment_create import ManagedEnvironmentCreate
 from .managed_environment_create_metrics_labels import ManagedEnvironmentCreateMetricsLabels
 from .mcp_auth import McpAuth
 from .mcp_config import McpConfig
+from .mcp_config_authority import McpConfigAuthority
 from .mcp_config_object_ref_tools import McpConfigObjectRefTools
 from .mcp_elicitation import McpElicitation
 from .mcp_elicitation_mode import McpElicitationMode
@@ -1371,6 +1372,7 @@ __all__ = (
     "ManagedEnvironmentCreateMetricsLabels",
     "McpAuth",
     "McpConfig",
+    "McpConfigAuthority",
     "McpConfigObjectRefTools",
     "McpElicitation",
     "McpElicitationMode",

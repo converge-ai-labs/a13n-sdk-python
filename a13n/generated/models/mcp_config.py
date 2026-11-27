@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 
+from ..models.mcp_config_authority import McpConfigAuthority
 from ..models.startup_error_policy import StartupErrorPolicy
 from ..types import UNSET, Unset
 
@@ -21,6 +22,7 @@ class McpConfig:
     """
     Attributes:
         url (str):
+        authority (McpConfigAuthority | Unset):
         durable_tasks (bool | Unset):
         forward_context_headers (bool | Unset):
         headers (list[str] | Unset):
@@ -33,6 +35,7 @@ class McpConfig:
     """
 
     url: str
+    authority: McpConfigAuthority | Unset = UNSET
     durable_tasks: bool | Unset = UNSET
     forward_context_headers: bool | Unset = UNSET
     headers: list[str] | Unset = UNSET
@@ -45,6 +48,10 @@ class McpConfig:
         from ..models.o_auth_settings import OAuthSettings
 
         url = self.url
+
+        authority: str | Unset = UNSET
+        if not isinstance(self.authority, Unset):
+            authority = self.authority.value
 
         durable_tasks = self.durable_tasks
 
@@ -86,6 +93,8 @@ class McpConfig:
                 "url": url,
             }
         )
+        if authority is not UNSET:
+            field_dict["authority"] = authority
         if durable_tasks is not UNSET:
             field_dict["durable_tasks"] = durable_tasks
         if forward_context_headers is not UNSET:
@@ -110,6 +119,13 @@ class McpConfig:
 
         d = dict(src_dict)
         url = d.pop("url")
+
+        _authority = d.pop("authority", UNSET)
+        authority: McpConfigAuthority | Unset
+        if isinstance(_authority, Unset):
+            authority = UNSET
+        else:
+            authority = McpConfigAuthority(_authority)
 
         durable_tasks = d.pop("durable_tasks", UNSET)
 
@@ -167,6 +183,7 @@ class McpConfig:
 
         mcp_config = cls(
             url=url,
+            authority=authority,
             durable_tasks=durable_tasks,
             forward_context_headers=forward_context_headers,
             headers=headers,
