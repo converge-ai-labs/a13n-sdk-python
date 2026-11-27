@@ -1429,12 +1429,13 @@ class Browsers(Resource):
         *,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
+        app_id: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> Result[wire.BrowserPage]:
         """List Browsers. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: list_browsers.asyncio_detailed(
-                client=client, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
+                client=client, limit=limit, cursor=cursor, app_id=app_id, x_workspace_id=x_workspace_id
             )
         )
 
@@ -1443,11 +1444,14 @@ class Browsers(Resource):
         *,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
+        app_id: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> AsyncIterator[Result[wire.BrowserPage]]:
         """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
-            lambda next_cursor: self.list(limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor),
+            lambda next_cursor: self.list(
+                limit=limit, app_id=app_id, x_workspace_id=x_workspace_id, cursor=next_cursor
+            ),
             lambda value: value.next_cursor,
             cursor,
         )
@@ -1457,12 +1461,13 @@ class Browsers(Resource):
         *,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
+        app_id: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> AsyncIterator[wire.Browser]:
         """Yield ordinary wire values lazily with a filter snapshot and server order."""
         return (
             item
-            async for page in self.pages(limit=limit, cursor=cursor, x_workspace_id=x_workspace_id)
+            async for page in self.pages(limit=limit, cursor=cursor, app_id=app_id, x_workspace_id=x_workspace_id)
             for item in page.value.items
         )
 
@@ -2487,12 +2492,13 @@ class EgressCredentials(Resource):
         *,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
+        app_id: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> Result[wire.CredentialPage]:
         """List Egress Credentials. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: list_egress_credentials.asyncio_detailed(
-                client=client, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
+                client=client, limit=limit, cursor=cursor, app_id=app_id, x_workspace_id=x_workspace_id
             )
         )
 
@@ -2501,11 +2507,14 @@ class EgressCredentials(Resource):
         *,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
+        app_id: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> AsyncIterator[Result[wire.CredentialPage]]:
         """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
-            lambda next_cursor: self.list(limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor),
+            lambda next_cursor: self.list(
+                limit=limit, app_id=app_id, x_workspace_id=x_workspace_id, cursor=next_cursor
+            ),
             lambda value: value.next_cursor,
             cursor,
         )
@@ -2515,12 +2524,13 @@ class EgressCredentials(Resource):
         *,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
+        app_id: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
     ) -> AsyncIterator[wire.Credential]:
         """Yield ordinary wire values lazily with a filter snapshot and server order."""
         return (
             item
-            async for page in self.pages(limit=limit, cursor=cursor, x_workspace_id=x_workspace_id)
+            async for page in self.pages(limit=limit, cursor=cursor, app_id=app_id, x_workspace_id=x_workspace_id)
             for item in page.value.items
         )
 
@@ -2919,6 +2929,7 @@ class Environments(Resource):
         self,
         *,
         status: str | Unset | None = UNSET,
+        app_id: str | Unset | None = UNSET,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
@@ -2926,7 +2937,7 @@ class Environments(Resource):
         """List Environments. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: list_environments.asyncio_detailed(
-                client=client, status=status, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
+                client=client, status=status, app_id=app_id, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
             )
         )
 
@@ -2934,6 +2945,7 @@ class Environments(Resource):
         self,
         *,
         status: str | Unset | None = UNSET,
+        app_id: str | Unset | None = UNSET,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
@@ -2941,7 +2953,7 @@ class Environments(Resource):
         """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
         return pages(
             lambda next_cursor: self.list(
-                status=status, limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor
+                status=status, app_id=app_id, limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor
             ),
             lambda value: value.next_cursor,
             cursor,
@@ -2951,6 +2963,7 @@ class Environments(Resource):
         self,
         *,
         status: str | Unset | None = UNSET,
+        app_id: str | Unset | None = UNSET,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
@@ -2958,7 +2971,9 @@ class Environments(Resource):
         """Yield ordinary wire values lazily with a filter snapshot and server order."""
         return (
             item
-            async for page in self.pages(status=status, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id)
+            async for page in self.pages(
+                status=status, app_id=app_id, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
+            )
             for item in page.value.items
         )
 
@@ -4411,6 +4426,7 @@ class MemorySpaces(Resource):
         *,
         label: list[str] | Unset | None = UNSET,
         enabled: bool | Unset | None = UNSET,
+        app_id: str | Unset | None = UNSET,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
@@ -4418,7 +4434,13 @@ class MemorySpaces(Resource):
         """List Spaces. One HTTP request; no automatic replay."""
         return await self._call(
             lambda client: list_spaces.asyncio_detailed(
-                client=client, label=label, enabled=enabled, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
+                client=client,
+                label=label,
+                enabled=enabled,
+                app_id=app_id,
+                limit=limit,
+                cursor=cursor,
+                x_workspace_id=x_workspace_id,
             )
         )
 
@@ -4427,6 +4449,7 @@ class MemorySpaces(Resource):
         *,
         label: list[str] | Unset | None = UNSET,
         enabled: bool | Unset | None = UNSET,
+        app_id: str | Unset | None = UNSET,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
@@ -4435,7 +4458,12 @@ class MemorySpaces(Resource):
         label = label.copy() if isinstance(label, list) else label
         return pages(
             lambda next_cursor: self.list(
-                label=label, enabled=enabled, limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor
+                label=label,
+                enabled=enabled,
+                app_id=app_id,
+                limit=limit,
+                x_workspace_id=x_workspace_id,
+                cursor=next_cursor,
             ),
             lambda value: value.next_cursor,
             cursor,
@@ -4446,6 +4474,7 @@ class MemorySpaces(Resource):
         *,
         label: list[str] | Unset | None = UNSET,
         enabled: bool | Unset | None = UNSET,
+        app_id: str | Unset | None = UNSET,
         limit: int | Unset = UNSET,
         cursor: str | Unset | None = UNSET,
         x_workspace_id: str | Unset | None = UNSET,
@@ -4454,7 +4483,7 @@ class MemorySpaces(Resource):
         return (
             item
             async for page in self.pages(
-                label=label, enabled=enabled, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
+                label=label, enabled=enabled, app_id=app_id, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
             )
             for item in page.value.items
         )
@@ -6384,6 +6413,7 @@ class Schedules(Resource):
         self,
         *,
         limit: int | Unset = UNSET,
+        app_id: str | Unset | None = UNSET,
         cursor: str | Unset | None = UNSET,
         state: wire.ScheduleState | Unset | None = UNSET,
         agent_id: str | Unset | None = UNSET,
@@ -6397,6 +6427,7 @@ class Schedules(Resource):
             lambda client: list_schedules.asyncio_detailed(
                 client=client,
                 limit=limit,
+                app_id=app_id,
                 cursor=cursor,
                 state=state,
                 agent_id=agent_id,
@@ -6411,6 +6442,7 @@ class Schedules(Resource):
         self,
         *,
         limit: int | Unset = UNSET,
+        app_id: str | Unset | None = UNSET,
         cursor: str | Unset | None = UNSET,
         state: wire.ScheduleState | Unset | None = UNSET,
         agent_id: str | Unset | None = UNSET,
@@ -6424,6 +6456,7 @@ class Schedules(Resource):
         return pages(
             lambda next_cursor: self.list(
                 limit=limit,
+                app_id=app_id,
                 state=state,
                 agent_id=agent_id,
                 principal_id=principal_id,
@@ -6440,6 +6473,7 @@ class Schedules(Resource):
         self,
         *,
         limit: int | Unset = UNSET,
+        app_id: str | Unset | None = UNSET,
         cursor: str | Unset | None = UNSET,
         state: wire.ScheduleState | Unset | None = UNSET,
         agent_id: str | Unset | None = UNSET,
@@ -6453,6 +6487,7 @@ class Schedules(Resource):
             item
             async for page in self.pages(
                 limit=limit,
+                app_id=app_id,
                 cursor=cursor,
                 state=state,
                 agent_id=agent_id,
@@ -6739,6 +6774,7 @@ class Sessions(Resource):
         text_query: str | Unset | None = UNSET,
         q: str | Unset | None = UNSET,
         application: str | Unset | None = UNSET,
+        app_id: str | Unset | None = UNSET,
         agent_id: str | Unset | None = UNSET,
         status: list[wire.RunStatus] | Unset = UNSET,
         trigger: list[wire.Trigger] | Unset = UNSET,
@@ -6758,6 +6794,7 @@ class Sessions(Resource):
                 text_query=text_query,
                 q=q,
                 application=application,
+                app_id=app_id,
                 agent_id=agent_id,
                 status=status,
                 trigger=trigger,
@@ -6778,6 +6815,7 @@ class Sessions(Resource):
         text_query: str | Unset | None = UNSET,
         q: str | Unset | None = UNSET,
         application: str | Unset | None = UNSET,
+        app_id: str | Unset | None = UNSET,
         agent_id: str | Unset | None = UNSET,
         status: list[wire.RunStatus] | Unset = UNSET,
         trigger: list[wire.Trigger] | Unset = UNSET,
@@ -6799,6 +6837,7 @@ class Sessions(Resource):
                 text_query=text_query,
                 q=q,
                 application=application,
+                app_id=app_id,
                 agent_id=agent_id,
                 status=status,
                 trigger=trigger,
@@ -6821,6 +6860,7 @@ class Sessions(Resource):
         text_query: str | Unset | None = UNSET,
         q: str | Unset | None = UNSET,
         application: str | Unset | None = UNSET,
+        app_id: str | Unset | None = UNSET,
         agent_id: str | Unset | None = UNSET,
         status: list[wire.RunStatus] | Unset = UNSET,
         trigger: list[wire.Trigger] | Unset = UNSET,
@@ -6840,6 +6880,7 @@ class Sessions(Resource):
                 text_query=text_query,
                 q=q,
                 application=application,
+                app_id=app_id,
                 agent_id=agent_id,
                 status=status,
                 trigger=trigger,

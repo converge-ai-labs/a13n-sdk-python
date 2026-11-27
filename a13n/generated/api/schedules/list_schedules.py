@@ -13,6 +13,7 @@ from ...types import UNSET, Response, Unset
 def build_request(
     *,
     limit: int | Unset = UNSET,
+    app_id: str | Unset | None = UNSET,
     cursor: str | Unset | None = UNSET,
     state: ScheduleState | Unset | None = UNSET,
     agent_id: str | Unset | None = UNSET,
@@ -28,6 +29,13 @@ def build_request(
     params: dict[str, Any] = {}
 
     params["limit"] = limit
+
+    json_app_id: str | Unset | None
+    if isinstance(app_id, Unset):
+        json_app_id = UNSET
+    else:
+        json_app_id = app_id
+    params["app_id"] = json_app_id
 
     json_cursor: str | Unset | None
     if isinstance(cursor, Unset):
@@ -120,6 +128,7 @@ def sync_detailed(
     *,
     client: AuthenticatedClient,
     limit: int | Unset = UNSET,
+    app_id: str | Unset | None = UNSET,
     cursor: str | Unset | None = UNSET,
     state: ScheduleState | Unset | None = UNSET,
     agent_id: str | Unset | None = UNSET,
@@ -132,6 +141,7 @@ def sync_detailed(
 
     Args:
         limit (int | Unset):
+        app_id (None | str | Unset):
         cursor (None | str | Unset):
         state (None | ScheduleState | Unset):
         agent_id (None | str | Unset):
@@ -152,6 +162,7 @@ def sync_detailed(
 
     kwargs = build_request(
         limit=limit,
+        app_id=app_id,
         cursor=cursor,
         state=state,
         agent_id=agent_id,
@@ -172,6 +183,7 @@ def sync(
     *,
     client: AuthenticatedClient,
     limit: int | Unset = UNSET,
+    app_id: str | Unset | None = UNSET,
     cursor: str | Unset | None = UNSET,
     state: ScheduleState | Unset | None = UNSET,
     agent_id: str | Unset | None = UNSET,
@@ -184,6 +196,7 @@ def sync(
 
     Args:
         limit (int | Unset):
+        app_id (None | str | Unset):
         cursor (None | str | Unset):
         state (None | ScheduleState | Unset):
         agent_id (None | str | Unset):
@@ -205,6 +218,7 @@ def sync(
     return sync_detailed(
         client=client,
         limit=limit,
+        app_id=app_id,
         cursor=cursor,
         state=state,
         agent_id=agent_id,
@@ -219,6 +233,7 @@ async def asyncio_detailed(
     *,
     client: AuthenticatedClient,
     limit: int | Unset = UNSET,
+    app_id: str | Unset | None = UNSET,
     cursor: str | Unset | None = UNSET,
     state: ScheduleState | Unset | None = UNSET,
     agent_id: str | Unset | None = UNSET,
@@ -231,6 +246,7 @@ async def asyncio_detailed(
 
     Args:
         limit (int | Unset):
+        app_id (None | str | Unset):
         cursor (None | str | Unset):
         state (None | ScheduleState | Unset):
         agent_id (None | str | Unset):
@@ -251,6 +267,7 @@ async def asyncio_detailed(
 
     kwargs = build_request(
         limit=limit,
+        app_id=app_id,
         cursor=cursor,
         state=state,
         agent_id=agent_id,
@@ -269,6 +286,7 @@ async def asyncio(
     *,
     client: AuthenticatedClient,
     limit: int | Unset = UNSET,
+    app_id: str | Unset | None = UNSET,
     cursor: str | Unset | None = UNSET,
     state: ScheduleState | Unset | None = UNSET,
     agent_id: str | Unset | None = UNSET,
@@ -281,6 +299,7 @@ async def asyncio(
 
     Args:
         limit (int | Unset):
+        app_id (None | str | Unset):
         cursor (None | str | Unset):
         state (None | ScheduleState | Unset):
         agent_id (None | str | Unset):
@@ -303,6 +322,7 @@ async def asyncio(
         await asyncio_detailed(
             client=client,
             limit=limit,
+            app_id=app_id,
             cursor=cursor,
             state=state,
             agent_id=agent_id,

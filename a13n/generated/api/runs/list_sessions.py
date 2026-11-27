@@ -19,6 +19,7 @@ def build_request(
     text_query: str | Unset | None = UNSET,
     q: str | Unset | None = UNSET,
     application: str | Unset | None = UNSET,
+    app_id: str | Unset | None = UNSET,
     agent_id: str | Unset | None = UNSET,
     status: list[RunStatus] | Unset = UNSET,
     trigger: list[Trigger] | Unset = UNSET,
@@ -57,6 +58,13 @@ def build_request(
     else:
         json_application = application
     params["application"] = json_application
+
+    json_app_id: str | Unset | None
+    if isinstance(app_id, Unset):
+        json_app_id = UNSET
+    else:
+        json_app_id = app_id
+    params["app_id"] = json_app_id
 
     json_agent_id: str | Unset | None
     if isinstance(agent_id, Unset):
@@ -178,6 +186,7 @@ def sync_detailed(
     text_query: str | Unset | None = UNSET,
     q: str | Unset | None = UNSET,
     application: str | Unset | None = UNSET,
+    app_id: str | Unset | None = UNSET,
     agent_id: str | Unset | None = UNSET,
     status: list[RunStatus] | Unset = UNSET,
     trigger: list[Trigger] | Unset = UNSET,
@@ -198,6 +207,7 @@ def sync_detailed(
         q (None | str | Unset): Session/thread ID, title, origin, label value or retained
             conversation text
         application (None | str | Unset):
+        app_id (None | str | Unset):
         agent_id (None | str | Unset):
         status (list[RunStatus] | Unset):
         trigger (list[Trigger] | Unset):
@@ -224,6 +234,7 @@ def sync_detailed(
         text_query=text_query,
         q=q,
         application=application,
+        app_id=app_id,
         agent_id=agent_id,
         status=status,
         trigger=trigger,
@@ -250,6 +261,7 @@ def sync(
     text_query: str | Unset | None = UNSET,
     q: str | Unset | None = UNSET,
     application: str | Unset | None = UNSET,
+    app_id: str | Unset | None = UNSET,
     agent_id: str | Unset | None = UNSET,
     status: list[RunStatus] | Unset = UNSET,
     trigger: list[Trigger] | Unset = UNSET,
@@ -270,6 +282,7 @@ def sync(
         q (None | str | Unset): Session/thread ID, title, origin, label value or retained
             conversation text
         application (None | str | Unset):
+        app_id (None | str | Unset):
         agent_id (None | str | Unset):
         status (list[RunStatus] | Unset):
         trigger (list[Trigger] | Unset):
@@ -297,6 +310,7 @@ def sync(
         text_query=text_query,
         q=q,
         application=application,
+        app_id=app_id,
         agent_id=agent_id,
         status=status,
         trigger=trigger,
@@ -317,6 +331,7 @@ async def asyncio_detailed(
     text_query: str | Unset | None = UNSET,
     q: str | Unset | None = UNSET,
     application: str | Unset | None = UNSET,
+    app_id: str | Unset | None = UNSET,
     agent_id: str | Unset | None = UNSET,
     status: list[RunStatus] | Unset = UNSET,
     trigger: list[Trigger] | Unset = UNSET,
@@ -337,6 +352,7 @@ async def asyncio_detailed(
         q (None | str | Unset): Session/thread ID, title, origin, label value or retained
             conversation text
         application (None | str | Unset):
+        app_id (None | str | Unset):
         agent_id (None | str | Unset):
         status (list[RunStatus] | Unset):
         trigger (list[Trigger] | Unset):
@@ -363,6 +379,7 @@ async def asyncio_detailed(
         text_query=text_query,
         q=q,
         application=application,
+        app_id=app_id,
         agent_id=agent_id,
         status=status,
         trigger=trigger,
@@ -387,6 +404,7 @@ async def asyncio(
     text_query: str | Unset | None = UNSET,
     q: str | Unset | None = UNSET,
     application: str | Unset | None = UNSET,
+    app_id: str | Unset | None = UNSET,
     agent_id: str | Unset | None = UNSET,
     status: list[RunStatus] | Unset = UNSET,
     trigger: list[Trigger] | Unset = UNSET,
@@ -407,6 +425,7 @@ async def asyncio(
         q (None | str | Unset): Session/thread ID, title, origin, label value or retained
             conversation text
         application (None | str | Unset):
+        app_id (None | str | Unset):
         agent_id (None | str | Unset):
         status (list[RunStatus] | Unset):
         trigger (list[Trigger] | Unset):
@@ -435,6 +454,7 @@ async def asyncio(
             text_query=text_query,
             q=q,
             application=application,
+            app_id=app_id,
             agent_id=agent_id,
             status=status,
             trigger=trigger,
