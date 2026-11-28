@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
+from ..types import UNSET, Unset
+
 if TYPE_CHECKING:
     from ..models.catalog_ref import CatalogRef
     from ..models.harness_model_characteristics_output import HarnessModelCharacteristicsOutput
@@ -29,6 +31,7 @@ class CatalogModel:
         provider_name (str):
         ref (CatalogRef): A models.dev channel and the model ID it lists there.
         release_date (datetime.date):
+        model_api (None | str | Unset):
     """
 
     characteristics: HarnessModelCharacteristicsOutput
@@ -39,6 +42,7 @@ class CatalogModel:
     provider_name: str
     ref: CatalogRef
     release_date: datetime.date
+    model_api: str | Unset | None = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -65,6 +69,12 @@ class CatalogModel:
 
         release_date = self.release_date.isoformat()
 
+        model_api: str | Unset | None
+        if isinstance(self.model_api, Unset):
+            model_api = UNSET
+        else:
+            model_api = self.model_api
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -79,6 +89,8 @@ class CatalogModel:
                 "release_date": release_date,
             }
         )
+        if model_api is not UNSET:
+            field_dict["model_api"] = model_api
 
         return field_dict
 
@@ -123,6 +135,15 @@ class CatalogModel:
 
         release_date = datetime.date.fromisoformat(d.pop("release_date"))
 
+        def _parse_model_api(data: object) -> str | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(str | Unset | None, data)
+
+        model_api = _parse_model_api(d.pop("model_api", UNSET))
+
         catalog_model = cls(
             characteristics=characteristics,
             identity=identity,
@@ -132,6 +153,7 @@ class CatalogModel:
             provider_name=provider_name,
             ref=ref,
             release_date=release_date,
+            model_api=model_api,
         )
 
         catalog_model.additional_properties = d

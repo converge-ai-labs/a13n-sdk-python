@@ -127,7 +127,22 @@ from .api.connections import (
     test_connection,
     update_connection,
 )
-from .api.default import health, ready
+from .api.connector_events import (
+    configure_connector_event_webhook,
+    create_connector_trigger,
+    get_connector_event,
+    get_connector_event_type,
+    get_connector_event_webhook,
+    get_connector_trigger,
+    list_connector_event_types,
+    list_connector_events,
+    list_connector_triggers,
+    receive_connector_webhook,
+    retry_connector_event,
+    transition_connector_trigger,
+    update_connector_trigger,
+)
+from .api.default import create_realtime_session, health, ready, realtime_availability
 from .api.egress_credentials import (
     create_egress_credential,
     get_egress_credential,
@@ -517,8 +532,20 @@ class ServiceResources(Resource):
         return Connections(self._client, self._bindings)
 
     @property
+    def connector_events(self) -> ConnectorEvents:
+        return ConnectorEvents(self._client, self._bindings)
+
+    @property
     def connector_providers(self) -> ConnectorProviders:
         return ConnectorProviders(self._client, self._bindings)
+
+    @property
+    def connector_triggers(self) -> ConnectorTriggers:
+        return ConnectorTriggers(self._client, self._bindings)
+
+    @property
+    def connector_webhooks(self) -> ConnectorWebhooks:
+        return ConnectorWebhooks(self._client, self._bindings)
 
     @property
     def devices(self) -> Devices:
@@ -617,6 +644,10 @@ class ServiceResources(Resource):
     @property
     def provider_types(self) -> ProviderTypes:
         return ProviderTypes(self._client, self._bindings)
+
+    @property
+    def realtime(self) -> Realtime:
+        return Realtime(self._client, self._bindings)
 
     @property
     def runs(self) -> Runs:
@@ -2060,6 +2091,84 @@ class ConnectionsConnectionIdToolsIndex(Resource):
         )
 
 
+class ConnectorEvents(Resource):
+    """Bound Native resource: /connector-events."""
+
+    async def list(
+        self,
+        *,
+        trigger_id: str | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.EventPage]:
+        """List Connector Events. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: list_connector_events.asyncio_detailed(
+                client=client, trigger_id=trigger_id, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
+            )
+        )
+
+    def pages(
+        self,
+        *,
+        trigger_id: str | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[Result[wire.EventPage]]:
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        return pages(
+            lambda next_cursor: self.list(
+                trigger_id=trigger_id, limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor
+            ),
+            lambda value: value.next_cursor,
+            cursor,
+        )
+
+    def iter(
+        self,
+        *,
+        trigger_id: str | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[wire.ConnectorEvent]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(
+                trigger_id=trigger_id, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
+            )
+            for item in page.value.items
+        )
+
+    def __call__(self, event_id: str) -> ConnectorEventsEventId:
+        return ConnectorEventsEventId(self._client, self._bind("event_id", event_id))
+
+
+class ConnectorEventsEventId(Resource):
+    """Bound Native resource: /connector-events / {event_id}."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ConnectorEvent]:
+        """Get Connector Event. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_connector_event.asyncio_detailed(
+                client=client, event_id=self._bindings["event_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def retry(
+        self, *, if_match: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.ConnectorEvent]:
+        """Retry Connector Event. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: retry_connector_event.asyncio_detailed(
+                client=client, event_id=self._bindings["event_id"], if_match=if_match, x_workspace_id=x_workspace_id
+            )
+        )
+
+
 class ConnectorProviders(Resource):
     """Bound Native resource: /connector-providers."""
 
@@ -2165,6 +2274,10 @@ class ConnectorProvidersProviderId(Resource):
     def apps(self) -> ConnectorProvidersProviderIdApps:
         return ConnectorProvidersProviderIdApps(self._client, self._bindings)
 
+    @property
+    def event_webhook(self) -> ConnectorProvidersProviderIdEventWebhook:
+        return ConnectorProvidersProviderIdEventWebhook(self._client, self._bindings)
+
     async def test(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ProviderTest]:
         """Test connector provider. One HTTP request; no automatic replay."""
         return await self._call(
@@ -2257,6 +2370,10 @@ class ConnectorProvidersProviderIdAppsApp(Resource):
     def actions(self) -> ConnectorProvidersProviderIdAppsAppActions:
         return ConnectorProvidersProviderIdAppsAppActions(self._client, self._bindings)
 
+    @property
+    def event_types(self) -> ConnectorProvidersProviderIdAppsAppEventTypes:
+        return ConnectorProvidersProviderIdAppsAppEventTypes(self._client, self._bindings)
+
 
 class ConnectorProvidersProviderIdAppsAppActions(Resource):
     """Bound Native resource: /connector-providers / {provider_id} / apps / {app} / actions."""
@@ -2331,6 +2448,211 @@ class ConnectorProvidersProviderIdAppsAppActionsIndex(Resource):
                 limit=limit,
                 cursor=cursor,
                 x_workspace_id=x_workspace_id,
+            )
+        )
+
+
+class ConnectorProvidersProviderIdAppsAppEventTypes(Resource):
+    """Bound Native resource: /connector-providers / {provider_id} / apps / {app} / event-types."""
+
+    async def list(
+        self, *, refresh: bool | Unset = UNSET, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.EventTypePage]:
+        """List Connector Event Types. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: list_connector_event_types.asyncio_detailed(
+                client=client,
+                provider_id=self._bindings["provider_id"],
+                app=self._bindings["app"],
+                refresh=refresh,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    def __call__(self, event_type: str) -> ConnectorProvidersProviderIdAppsAppEventTypesEventType:
+        return ConnectorProvidersProviderIdAppsAppEventTypesEventType(
+            self._client, self._bind("event_type", event_type)
+        )
+
+
+class ConnectorProvidersProviderIdAppsAppEventTypesEventType(Resource):
+    """Bound Native resource: /connector-providers / {provider_id} / apps / {app} / event-types / {event_type}."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.EventType]:
+        """Get Connector Event Type. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_connector_event_type.asyncio_detailed(
+                client=client,
+                provider_id=self._bindings["provider_id"],
+                app=self._bindings["app"],
+                event_type=self._bindings["event_type"],
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+
+class ConnectorProvidersProviderIdEventWebhook(Resource):
+    """Bound Native resource: /connector-providers / {provider_id} / event-webhook."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.Webhook]:
+        """Get Connector Event Webhook. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_connector_event_webhook.asyncio_detailed(
+                client=client, provider_id=self._bindings["provider_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def create(
+        self,
+        *,
+        rotate: bool | Unset = UNSET,
+        if_match: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.Webhook]:
+        """Configure Connector Event Webhook. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: configure_connector_event_webhook.asyncio_detailed(
+                client=client,
+                provider_id=self._bindings["provider_id"],
+                rotate=rotate,
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+
+class ConnectorTriggers(Resource):
+    """Bound Native resource: /connector-triggers."""
+
+    async def list(
+        self,
+        *,
+        connection_id: str | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.TriggerPage]:
+        """List Connector Triggers. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: list_connector_triggers.asyncio_detailed(
+                client=client, connection_id=connection_id, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
+            )
+        )
+
+    def pages(
+        self,
+        *,
+        connection_id: str | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[Result[wire.TriggerPage]]:
+        """Iterate lazily with a filter snapshot, retaining each page and HTTP evidence."""
+        return pages(
+            lambda next_cursor: self.list(
+                connection_id=connection_id, limit=limit, x_workspace_id=x_workspace_id, cursor=next_cursor
+            ),
+            lambda value: value.next_cursor,
+            cursor,
+        )
+
+    def iter(
+        self,
+        *,
+        connection_id: str | Unset | None = UNSET,
+        limit: int | Unset = UNSET,
+        cursor: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> AsyncIterator[wire.ConnectorTrigger]:
+        """Yield ordinary wire values lazily with a filter snapshot and server order."""
+        return (
+            item
+            async for page in self.pages(
+                connection_id=connection_id, limit=limit, cursor=cursor, x_workspace_id=x_workspace_id
+            )
+            for item in page.value.items
+        )
+
+    async def create(
+        self, *, body: wire.TriggerCreate, idempotency_key: str, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.ConnectorTrigger]:
+        """Create Connector Trigger. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: create_connector_trigger.asyncio_detailed(
+                client=client, body=body, idempotency_key=idempotency_key, x_workspace_id=x_workspace_id
+            )
+        )
+
+    def __call__(self, trigger_id: str) -> ConnectorTriggersTriggerId:
+        return ConnectorTriggersTriggerId(self._client, self._bind("trigger_id", trigger_id))
+
+
+class ConnectorTriggersTriggerId(Resource):
+    """Bound Native resource: /connector-triggers / {trigger_id}."""
+
+    async def get(self, *, x_workspace_id: str | Unset | None = UNSET) -> Result[wire.ConnectorTrigger]:
+        """Get Connector Trigger. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: get_connector_trigger.asyncio_detailed(
+                client=client, trigger_id=self._bindings["trigger_id"], x_workspace_id=x_workspace_id
+            )
+        )
+
+    async def update(
+        self,
+        *,
+        body: wire.TriggerUpdate,
+        if_match: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.ConnectorTrigger]:
+        """Update Connector Trigger. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: update_connector_trigger.asyncio_detailed(
+                client=client,
+                trigger_id=self._bindings["trigger_id"],
+                body=body,
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    def __call__(self, command: wire.TransitionConnectorTriggerCommand) -> ConnectorTriggersTriggerIdCommand:
+        return ConnectorTriggersTriggerIdCommand(self._client, self._bind("command", str(command)))
+
+
+class ConnectorTriggersTriggerIdCommand(Resource):
+    """Bound Native resource: /connector-triggers / {trigger_id} / {command}."""
+
+    async def create(
+        self, *, if_match: str | Unset | None = UNSET, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.ConnectorTrigger]:
+        """Transition Connector Trigger. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: transition_connector_trigger.asyncio_detailed(
+                client=client,
+                trigger_id=self._bindings["trigger_id"],
+                command=wire.TransitionConnectorTriggerCommand(self._bindings["command"]),
+                if_match=if_match,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+
+class ConnectorWebhooks(Resource):
+    """Bound Native resource: /connector-webhooks."""
+
+    def __call__(self, provider_id: str) -> ConnectorWebhooksProviderId:
+        return ConnectorWebhooksProviderId(self._client, self._bind("provider_id", provider_id))
+
+
+class ConnectorWebhooksProviderId(Resource):
+    """Bound Native resource: /connector-webhooks / {provider_id}."""
+
+    async def create(self) -> Result[None]:
+        """Receive Connector Webhook. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: receive_connector_webhook.asyncio_detailed(
+                client=client, provider_id=self._bindings["provider_id"]
             )
         )
 
@@ -5650,6 +5972,51 @@ class ProviderTypesKind(Resource):
         return await self._call(
             lambda client: list_provider_types.asyncio_detailed(
                 client=client, kind=wire.ListProviderTypesKind(self._bindings["kind"])
+            )
+        )
+
+
+class Realtime(Resource):
+    """Bound Native resource: /realtime."""
+
+    async def get(
+        self,
+        *,
+        agent_id: str,
+        agent_revision_id: str | Unset | None = UNSET,
+        thread_id: str | Unset | None = UNSET,
+        fork_run_id: str | Unset | None = UNSET,
+        model: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.RealtimeAvailability]:
+        """Realtime Availability. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: realtime_availability.asyncio_detailed(
+                client=client,
+                agent_id=agent_id,
+                agent_revision_id=agent_revision_id,
+                thread_id=thread_id,
+                fork_run_id=fork_run_id,
+                model=model,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    @property
+    def sessions(self) -> RealtimeSessions:
+        return RealtimeSessions(self._client, self._bindings)
+
+
+class RealtimeSessions(Resource):
+    """Bound Native resource: /realtime / sessions."""
+
+    async def create(
+        self, *, body: wire.RealtimeSessionCreate, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.RealtimeSessionTicket]:
+        """Create Realtime Session. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: create_realtime_session.asyncio_detailed(
+                client=client, body=body, x_workspace_id=x_workspace_id
             )
         )
 

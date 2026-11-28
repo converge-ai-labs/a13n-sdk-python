@@ -129,6 +129,9 @@ from .cgroup_metrics import CgroupMetrics
 from .change_count_trigger import ChangeCountTrigger
 from .child_environment_policy import ChildEnvironmentPolicy
 from .child_environment_policy_mode import ChildEnvironmentPolicyMode
+from .citation import Citation
+from .citation_anchor import CitationAnchor
+from .citation_anchor_kind import CitationAnchorKind
 from .claim_result import ClaimResult
 from .claim_result_state import ClaimResultState
 from .client_authentication import ClientAuthentication
@@ -178,6 +181,12 @@ from .connector_app_page import ConnectorAppPage
 from .connector_app_setup_schema import ConnectorAppSetupSchema
 from .connector_config import ConnectorConfig
 from .connector_config_setup import ConnectorConfigSetup
+from .connector_event import ConnectorEvent
+from .connector_event_payload_type_0 import ConnectorEventPayloadType0
+from .connector_event_state import ConnectorEventState
+from .connector_trigger import ConnectorTrigger
+from .connector_trigger_parameters import ConnectorTriggerParameters
+from .connector_trigger_state import ConnectorTriggerState
 from .content_ref import ContentRef
 from .content_ref_media_type import ContentRefMediaType
 from .content_summary import ContentSummary
@@ -256,7 +265,9 @@ from .disk_metrics import DiskMetrics
 from .disk_metrics_devices import DiskMetricsDevices
 from .display_continuation import DisplayContinuation
 from .display_continuation_memory_sources import DisplayContinuationMemorySources
+from .display_continuation_open_request_items import DisplayContinuationOpenRequestItems
 from .display_continuation_response_groups import DisplayContinuationResponseGroups
+from .document_citation_source import DocumentCitationSource
 from .dynamic_subagents_input import DynamicSubagentsInput
 from .dynamic_subagents_output import DynamicSubagentsOutput
 from .egress_configuration import EgressConfiguration
@@ -295,6 +306,12 @@ from .error_body_details import ErrorBodyDetails
 from .error_code import ErrorCode
 from .error_envelope import ErrorEnvelope
 from .event import Event
+from .event_page import EventPage
+from .event_thread_target import EventThreadTarget
+from .event_type import EventType
+from .event_type_config_schema import EventTypeConfigSchema
+from .event_type_page import EventTypePage
+from .event_type_payload_schema_type_0 import EventTypePayloadSchemaType0
 from .evidence import Evidence
 from .execution_observation import ExecutionObservation
 from .execution_observation_source import ExecutionObservationSource
@@ -535,6 +552,7 @@ from .observer_continuation import ObserverContinuation
 from .observer_state import ObserverState
 from .observer_state_children import ObserverStateChildren
 from .observer_state_parts import ObserverStateParts
+from .observer_state_text_message_ids import ObserverStateTextMessageIds
 from .observer_state_threads import ObserverStateThreads
 from .occurrence import Occurrence
 from .occurrence_event import OccurrenceEvent
@@ -654,6 +672,9 @@ from .range_query import RangeQuery
 from .read_run_item_content_field import ReadRunItemContentField
 from .read_span_content_section import ReadSpanContentSection
 from .read_view import ReadView
+from .realtime_availability import RealtimeAvailability
+from .realtime_session_create import RealtimeSessionCreate
+from .realtime_session_ticket import RealtimeSessionTicket
 from .recipe_overrides import RecipeOverrides
 from .recipe_overrides_volume_mounts import RecipeOverridesVolumeMounts
 from .reclamation import Reclamation
@@ -825,6 +846,7 @@ from .status import Status
 from .status_change import StatusChange
 from .status_change_status import StatusChangeStatus
 from .steering import Steering
+from .store_only import StoreOnly
 from .stream_position import StreamPosition
 from .structured_output_alternative import StructuredOutputAlternative
 from .structured_output_alternative_resources import StructuredOutputAlternativeResources
@@ -910,7 +932,13 @@ from .trace_backend import TraceBackend
 from .trace_backend_type_type_0 import TraceBackendTypeType0
 from .trace_search_item import TraceSearchItem
 from .trace_search_page import TraceSearchPage
+from .transition_connector_trigger_command import TransitionConnectorTriggerCommand
+from .transport import Transport
 from .trigger import Trigger
+from .trigger_create import TriggerCreate
+from .trigger_create_parameters import TriggerCreateParameters
+from .trigger_page import TriggerPage
+from .trigger_update import TriggerUpdate
 from .typed_query import TypedQuery
 from .typed_query_history import TypedQueryHistory
 from .typed_query_metric_type_0 import TypedQueryMetricType0
@@ -946,7 +974,9 @@ from .vm_backend import VmBackend
 from .vm_isolation import VmIsolation
 from .vm_mount import VmMount
 from .wait_reason import WaitReason
+from .web_citation_source import WebCitationSource
 from .web_operation import WebOperation
+from .webhook import Webhook
 from .webhook_delivery import WebhookDelivery
 from .webhook_delivery_payload import WebhookDeliveryPayload
 from .webhook_delivery_status import WebhookDeliveryStatus
@@ -1087,6 +1117,9 @@ __all__ = (
     "ChangeCountTrigger",
     "ChildEnvironmentPolicy",
     "ChildEnvironmentPolicyMode",
+    "Citation",
+    "CitationAnchor",
+    "CitationAnchorKind",
     "ClaimResult",
     "ClaimResultState",
     "ClientAuthentication",
@@ -1136,6 +1169,12 @@ __all__ = (
     "ConnectorAppSetupSchema",
     "ConnectorConfig",
     "ConnectorConfigSetup",
+    "ConnectorEvent",
+    "ConnectorEventPayloadType0",
+    "ConnectorEventState",
+    "ConnectorTrigger",
+    "ConnectorTriggerParameters",
+    "ConnectorTriggerState",
     "ContentRef",
     "ContentRefMediaType",
     "ContentSummary",
@@ -1214,7 +1253,9 @@ __all__ = (
     "DiskMetricsDevices",
     "DisplayContinuation",
     "DisplayContinuationMemorySources",
+    "DisplayContinuationOpenRequestItems",
     "DisplayContinuationResponseGroups",
+    "DocumentCitationSource",
     "DynamicSubagentsInput",
     "DynamicSubagentsOutput",
     "EgressConfiguration",
@@ -1253,6 +1294,12 @@ __all__ = (
     "ErrorCode",
     "ErrorEnvelope",
     "Event",
+    "EventPage",
+    "EventThreadTarget",
+    "EventType",
+    "EventTypeConfigSchema",
+    "EventTypePage",
+    "EventTypePayloadSchemaType0",
     "Evidence",
     "ExecutionObservation",
     "ExecutionObservationSource",
@@ -1495,6 +1542,7 @@ __all__ = (
     "ObserverState",
     "ObserverStateChildren",
     "ObserverStateParts",
+    "ObserverStateTextMessageIds",
     "ObserverStateThreads",
     "Occurrence",
     "OccurrenceEvent",
@@ -1610,6 +1658,9 @@ __all__ = (
     "ReadRunItemContentField",
     "ReadSpanContentSection",
     "ReadView",
+    "RealtimeAvailability",
+    "RealtimeSessionCreate",
+    "RealtimeSessionTicket",
     "RecipeOverrides",
     "RecipeOverridesVolumeMounts",
     "Reclamation",
@@ -1781,6 +1832,7 @@ __all__ = (
     "StatusChange",
     "StatusChangeStatus",
     "Steering",
+    "StoreOnly",
     "StreamPosition",
     "StructuredOutputAlternative",
     "StructuredOutputAlternativeResources",
@@ -1866,7 +1918,13 @@ __all__ = (
     "TraceBackendTypeType0",
     "TraceSearchItem",
     "TraceSearchPage",
+    "TransitionConnectorTriggerCommand",
+    "Transport",
     "Trigger",
+    "TriggerCreate",
+    "TriggerCreateParameters",
+    "TriggerPage",
+    "TriggerUpdate",
     "TypedQuery",
     "TypedQueryHistory",
     "TypedQueryMetricType0",
@@ -1902,7 +1960,9 @@ __all__ = (
     "VmIsolation",
     "VmMount",
     "WaitReason",
+    "WebCitationSource",
     "WebOperation",
+    "Webhook",
     "WebhookDelivery",
     "WebhookDeliveryPayload",
     "WebhookDeliveryStatus",

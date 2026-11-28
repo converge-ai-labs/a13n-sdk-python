@@ -11,6 +11,7 @@ from ..models.item_state import ItemState
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
+    from ..models.citation import Citation
     from ..models.item_ref_failure_type_0 import ItemRefFailureType0
     from ..models.memory_source import MemorySource
 
@@ -26,6 +27,7 @@ class ItemRef:
         id (str):
         kind (ItemKind):
         state (ItemState):
+        citations (list[Citation] | None | Unset):
         failure (ItemRefFailureType0 | None | Unset):
         memory_sources (list[MemorySource] | None | Unset):
         ordinal (int | None | Unset):
@@ -35,6 +37,7 @@ class ItemRef:
     id: str
     kind: ItemKind
     state: ItemState
+    citations: list[Citation] | Unset | None = UNSET
     failure: ItemRefFailureType0 | Unset | None = UNSET
     memory_sources: list[MemorySource] | Unset | None = UNSET
     ordinal: int | Unset | None = UNSET
@@ -49,6 +52,18 @@ class ItemRef:
         kind = self.kind.value
 
         state = self.state.value
+
+        citations: list[dict[str, Any]] | Unset | None
+        if isinstance(self.citations, Unset):
+            citations = UNSET
+        elif isinstance(self.citations, list):
+            citations = []
+            for citations_type_0_item_data in self.citations:
+                citations_type_0_item = citations_type_0_item_data.to_dict()
+                citations.append(citations_type_0_item)
+
+        else:
+            citations = self.citations
 
         failure: dict[str, Any] | Unset | None
         if isinstance(self.failure, Unset):
@@ -91,6 +106,8 @@ class ItemRef:
                 "state": state,
             }
         )
+        if citations is not UNSET:
+            field_dict["citations"] = citations
         if failure is not UNSET:
             field_dict["failure"] = failure
         if memory_sources is not UNSET:
@@ -104,6 +121,7 @@ class ItemRef:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.citation import Citation
         from ..models.item_ref_failure_type_0 import ItemRefFailureType0
         from ..models.memory_source import MemorySource
 
@@ -113,6 +131,28 @@ class ItemRef:
         kind = ItemKind(d.pop("kind"))
 
         state = ItemState(d.pop("state"))
+
+        def _parse_citations(data: object) -> list[Citation] | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, list):
+                    raise TypeError()
+                citations_type_0 = []
+                _citations_type_0 = data
+                for citations_type_0_item_data in _citations_type_0:
+                    citations_type_0_item = Citation.from_dict(citations_type_0_item_data)
+
+                    citations_type_0.append(citations_type_0_item)
+
+                return citations_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(list[Citation] | Unset | None, data)
+
+        citations = _parse_citations(d.pop("citations", UNSET))
 
         def _parse_failure(data: object) -> ItemRefFailureType0 | Unset | None:
             if data is None:
@@ -175,6 +215,7 @@ class ItemRef:
             id=id,
             kind=kind,
             state=state,
+            citations=citations,
             failure=failure,
             memory_sources=memory_sources,
             ordinal=ordinal,
