@@ -178,6 +178,12 @@ from .connector_app_page import ConnectorAppPage
 from .connector_app_setup_schema import ConnectorAppSetupSchema
 from .connector_config import ConnectorConfig
 from .connector_config_setup import ConnectorConfigSetup
+from .connector_event import ConnectorEvent
+from .connector_event_payload_type_0 import ConnectorEventPayloadType0
+from .connector_event_state import ConnectorEventState
+from .connector_trigger import ConnectorTrigger
+from .connector_trigger_parameters import ConnectorTriggerParameters
+from .connector_trigger_state import ConnectorTriggerState
 from .content_ref import ContentRef
 from .content_ref_media_type import ContentRefMediaType
 from .content_summary import ContentSummary
@@ -295,6 +301,12 @@ from .error_body_details import ErrorBodyDetails
 from .error_code import ErrorCode
 from .error_envelope import ErrorEnvelope
 from .event import Event
+from .event_page import EventPage
+from .event_thread_target import EventThreadTarget
+from .event_type import EventType
+from .event_type_config_schema import EventTypeConfigSchema
+from .event_type_page import EventTypePage
+from .event_type_payload_schema_type_0 import EventTypePayloadSchemaType0
 from .evidence import Evidence
 from .execution_observation import ExecutionObservation
 from .execution_observation_source import ExecutionObservationSource
@@ -828,6 +840,7 @@ from .status import Status
 from .status_change import StatusChange
 from .status_change_status import StatusChangeStatus
 from .steering import Steering
+from .store_only import StoreOnly
 from .stream_position import StreamPosition
 from .structured_output_alternative import StructuredOutputAlternative
 from .structured_output_alternative_resources import StructuredOutputAlternativeResources
@@ -913,8 +926,13 @@ from .trace_backend import TraceBackend
 from .trace_backend_type_type_0 import TraceBackendTypeType0
 from .trace_search_item import TraceSearchItem
 from .trace_search_page import TraceSearchPage
+from .transition_connector_trigger_command import TransitionConnectorTriggerCommand
 from .transport import Transport
 from .trigger import Trigger
+from .trigger_create import TriggerCreate
+from .trigger_create_parameters import TriggerCreateParameters
+from .trigger_page import TriggerPage
+from .trigger_update import TriggerUpdate
 from .typed_query import TypedQuery
 from .typed_query_history import TypedQueryHistory
 from .typed_query_metric_type_0 import TypedQueryMetricType0
@@ -951,6 +969,7 @@ from .vm_isolation import VmIsolation
 from .vm_mount import VmMount
 from .wait_reason import WaitReason
 from .web_operation import WebOperation
+from .webhook import Webhook
 from .webhook_delivery import WebhookDelivery
 from .webhook_delivery_payload import WebhookDeliveryPayload
 from .webhook_delivery_status import WebhookDeliveryStatus
@@ -1140,6 +1159,12 @@ __all__ = (
     "ConnectorAppSetupSchema",
     "ConnectorConfig",
     "ConnectorConfigSetup",
+    "ConnectorEvent",
+    "ConnectorEventPayloadType0",
+    "ConnectorEventState",
+    "ConnectorTrigger",
+    "ConnectorTriggerParameters",
+    "ConnectorTriggerState",
     "ContentRef",
     "ContentRefMediaType",
     "ContentSummary",
@@ -1257,6 +1282,12 @@ __all__ = (
     "ErrorCode",
     "ErrorEnvelope",
     "Event",
+    "EventPage",
+    "EventThreadTarget",
+    "EventType",
+    "EventTypeConfigSchema",
+    "EventTypePage",
+    "EventTypePayloadSchemaType0",
     "Evidence",
     "ExecutionObservation",
     "ExecutionObservationSource",
@@ -1788,6 +1819,7 @@ __all__ = (
     "StatusChange",
     "StatusChangeStatus",
     "Steering",
+    "StoreOnly",
     "StreamPosition",
     "StructuredOutputAlternative",
     "StructuredOutputAlternativeResources",
@@ -1873,8 +1905,13 @@ __all__ = (
     "TraceBackendTypeType0",
     "TraceSearchItem",
     "TraceSearchPage",
+    "TransitionConnectorTriggerCommand",
     "Transport",
     "Trigger",
+    "TriggerCreate",
+    "TriggerCreateParameters",
+    "TriggerPage",
+    "TriggerUpdate",
     "TypedQuery",
     "TypedQueryHistory",
     "TypedQueryMetricType0",
@@ -1911,6 +1948,7 @@ __all__ = (
     "VmMount",
     "WaitReason",
     "WebOperation",
+    "Webhook",
     "WebhookDelivery",
     "WebhookDeliveryPayload",
     "WebhookDeliveryStatus",
