@@ -129,6 +129,9 @@ from .cgroup_metrics import CgroupMetrics
 from .change_count_trigger import ChangeCountTrigger
 from .child_environment_policy import ChildEnvironmentPolicy
 from .child_environment_policy_mode import ChildEnvironmentPolicyMode
+from .citation import Citation
+from .citation_anchor import CitationAnchor
+from .citation_anchor_kind import CitationAnchorKind
 from .claim_result import ClaimResult
 from .claim_result_state import ClaimResultState
 from .client_authentication import ClientAuthentication
@@ -262,7 +265,9 @@ from .disk_metrics import DiskMetrics
 from .disk_metrics_devices import DiskMetricsDevices
 from .display_continuation import DisplayContinuation
 from .display_continuation_memory_sources import DisplayContinuationMemorySources
+from .display_continuation_open_request_items import DisplayContinuationOpenRequestItems
 from .display_continuation_response_groups import DisplayContinuationResponseGroups
+from .document_citation_source import DocumentCitationSource
 from .dynamic_subagents_input import DynamicSubagentsInput
 from .dynamic_subagents_output import DynamicSubagentsOutput
 from .egress_configuration import EgressConfiguration
@@ -547,6 +552,7 @@ from .observer_continuation import ObserverContinuation
 from .observer_state import ObserverState
 from .observer_state_children import ObserverStateChildren
 from .observer_state_parts import ObserverStateParts
+from .observer_state_text_message_ids import ObserverStateTextMessageIds
 from .observer_state_threads import ObserverStateThreads
 from .occurrence import Occurrence
 from .occurrence_event import OccurrenceEvent
@@ -968,6 +974,7 @@ from .vm_backend import VmBackend
 from .vm_isolation import VmIsolation
 from .vm_mount import VmMount
 from .wait_reason import WaitReason
+from .web_citation_source import WebCitationSource
 from .web_operation import WebOperation
 from .webhook import Webhook
 from .webhook_delivery import WebhookDelivery
@@ -1110,6 +1117,9 @@ __all__ = (
     "ChangeCountTrigger",
     "ChildEnvironmentPolicy",
     "ChildEnvironmentPolicyMode",
+    "Citation",
+    "CitationAnchor",
+    "CitationAnchorKind",
     "ClaimResult",
     "ClaimResultState",
     "ClientAuthentication",
@@ -1243,7 +1253,9 @@ __all__ = (
     "DiskMetricsDevices",
     "DisplayContinuation",
     "DisplayContinuationMemorySources",
+    "DisplayContinuationOpenRequestItems",
     "DisplayContinuationResponseGroups",
+    "DocumentCitationSource",
     "DynamicSubagentsInput",
     "DynamicSubagentsOutput",
     "EgressConfiguration",
@@ -1530,6 +1542,7 @@ __all__ = (
     "ObserverState",
     "ObserverStateChildren",
     "ObserverStateParts",
+    "ObserverStateTextMessageIds",
     "ObserverStateThreads",
     "Occurrence",
     "OccurrenceEvent",
@@ -1947,6 +1960,7 @@ __all__ = (
     "VmIsolation",
     "VmMount",
     "WaitReason",
+    "WebCitationSource",
     "WebOperation",
     "Webhook",
     "WebhookDelivery",

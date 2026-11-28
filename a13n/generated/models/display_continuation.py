@@ -10,6 +10,7 @@ from ..types import UNSET, Unset
 if TYPE_CHECKING:
     from ..models.arguments import Arguments
     from ..models.display_continuation_memory_sources import DisplayContinuationMemorySources
+    from ..models.display_continuation_open_request_items import DisplayContinuationOpenRequestItems
     from ..models.display_continuation_response_groups import DisplayContinuationResponseGroups
     from ..models.fragment_state import FragmentState
     from ..models.observer_continuation import ObserverContinuation
@@ -33,6 +34,7 @@ class DisplayContinuation:
         memory_sources (DisplayContinuationMemorySources | Unset):
         observer (ObserverContinuation | Unset): Native conversion cursors required to resume mid-part, without raw
             history.
+        open_request_items (DisplayContinuationOpenRequestItems | Unset):
         response_groups (DisplayContinuationResponseGroups | Unset):
     """
 
@@ -44,6 +46,7 @@ class DisplayContinuation:
     full_content: bool | Unset = UNSET
     memory_sources: DisplayContinuationMemorySources | Unset = UNSET
     observer: ObserverContinuation | Unset = UNSET
+    open_request_items: DisplayContinuationOpenRequestItems | Unset = UNSET
     response_groups: DisplayContinuationResponseGroups | Unset = UNSET
 
     def to_dict(self) -> dict[str, Any]:
@@ -77,6 +80,10 @@ class DisplayContinuation:
         if not isinstance(self.observer, Unset):
             observer = self.observer.to_dict()
 
+        open_request_items: dict[str, Any] | Unset = UNSET
+        if not isinstance(self.open_request_items, Unset):
+            open_request_items = self.open_request_items.to_dict()
+
         response_groups: dict[str, Any] | Unset = UNSET
         if not isinstance(self.response_groups, Unset):
             response_groups = self.response_groups.to_dict()
@@ -100,6 +107,8 @@ class DisplayContinuation:
             field_dict["memory_sources"] = memory_sources
         if observer is not UNSET:
             field_dict["observer"] = observer
+        if open_request_items is not UNSET:
+            field_dict["open_request_items"] = open_request_items
         if response_groups is not UNSET:
             field_dict["response_groups"] = response_groups
 
@@ -109,6 +118,9 @@ class DisplayContinuation:
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.arguments import Arguments
         from ..models.display_continuation_memory_sources import DisplayContinuationMemorySources
+        from ..models.display_continuation_open_request_items import (
+            DisplayContinuationOpenRequestItems,
+        )
         from ..models.display_continuation_response_groups import DisplayContinuationResponseGroups
         from ..models.fragment_state import FragmentState
         from ..models.observer_continuation import ObserverContinuation
@@ -161,6 +173,13 @@ class DisplayContinuation:
         else:
             observer = ObserverContinuation.from_dict(_observer)
 
+        _open_request_items = d.pop("open_request_items", UNSET)
+        open_request_items: DisplayContinuationOpenRequestItems | Unset
+        if isinstance(_open_request_items, Unset):
+            open_request_items = UNSET
+        else:
+            open_request_items = DisplayContinuationOpenRequestItems.from_dict(_open_request_items)
+
         _response_groups = d.pop("response_groups", UNSET)
         response_groups: DisplayContinuationResponseGroups | Unset
         if isinstance(_response_groups, Unset):
@@ -177,6 +196,7 @@ class DisplayContinuation:
             full_content=full_content,
             memory_sources=memory_sources,
             observer=observer,
+            open_request_items=open_request_items,
             response_groups=response_groups,
         )
 
