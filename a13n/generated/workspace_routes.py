@@ -154,6 +154,8 @@ WORKSPACE_PATHS = (
     re.compile("/api/v1/models/[^/]+\\Z"),
     re.compile("/api/v1/models/[^/]+/duplicate\\Z"),
     re.compile("/api/v1/plugins\\Z"),
+    re.compile("/api/v1/realtime\\Z"),
+    re.compile("/api/v1/realtime/sessions\\Z"),
     re.compile("/api/v1/runs\\Z"),
     re.compile("/api/v1/runs/[^/]+\\Z"),
     re.compile("/api/v1/runs/[^/]+/agent\\Z"),

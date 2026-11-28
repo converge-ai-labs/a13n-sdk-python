@@ -654,6 +654,9 @@ from .range_query import RangeQuery
 from .read_run_item_content_field import ReadRunItemContentField
 from .read_span_content_section import ReadSpanContentSection
 from .read_view import ReadView
+from .realtime_availability import RealtimeAvailability
+from .realtime_session_create import RealtimeSessionCreate
+from .realtime_session_ticket import RealtimeSessionTicket
 from .recipe_overrides import RecipeOverrides
 from .recipe_overrides_volume_mounts import RecipeOverridesVolumeMounts
 from .reclamation import Reclamation
@@ -910,6 +913,7 @@ from .trace_backend import TraceBackend
 from .trace_backend_type_type_0 import TraceBackendTypeType0
 from .trace_search_item import TraceSearchItem
 from .trace_search_page import TraceSearchPage
+from .transport import Transport
 from .trigger import Trigger
 from .typed_query import TypedQuery
 from .typed_query_history import TypedQueryHistory
@@ -1610,6 +1614,9 @@ __all__ = (
     "ReadRunItemContentField",
     "ReadSpanContentSection",
     "ReadView",
+    "RealtimeAvailability",
+    "RealtimeSessionCreate",
+    "RealtimeSessionTicket",
     "RecipeOverrides",
     "RecipeOverridesVolumeMounts",
     "Reclamation",
@@ -1866,6 +1873,7 @@ __all__ = (
     "TraceBackendTypeType0",
     "TraceSearchItem",
     "TraceSearchPage",
+    "Transport",
     "Trigger",
     "TypedQuery",
     "TypedQueryHistory",

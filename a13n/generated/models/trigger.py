@@ -8,6 +8,7 @@ class Trigger(StrEnum):
     DESKTOP_HANDBACK = "desktop_handback"
     INPUT = "input"
     QUEUED = "queued"
+    REALTIME = "realtime"
     RESUME = "resume"
     SPAWNED = "spawned"
     TOOL_RESULT = "tool_result"

@@ -42,6 +42,7 @@ class ProviderType:
         model_apis (list[str] | None | Unset):
         oauth_scheme (None | str | Unset):
         operations (list[WebOperation] | None | Unset):
+        realtime_model_apis (list[str] | None | Unset):
         settings_schemas (None | ProviderTypeSettingsSchemasType0 | Unset):
         supports_destroy (bool | None | Unset):
         supports_model_discovery (bool | Unset):
@@ -65,6 +66,7 @@ class ProviderType:
     model_apis: list[str] | Unset | None = UNSET
     oauth_scheme: str | Unset | None = UNSET
     operations: list[WebOperation] | Unset | None = UNSET
+    realtime_model_apis: list[str] | Unset | None = UNSET
     settings_schemas: ProviderTypeSettingsSchemasType0 | Unset | None = UNSET
     supports_destroy: bool | Unset | None = UNSET
     supports_model_discovery: bool | Unset = UNSET
@@ -167,6 +169,15 @@ class ProviderType:
         else:
             operations = self.operations
 
+        realtime_model_apis: list[str] | Unset | None
+        if isinstance(self.realtime_model_apis, Unset):
+            realtime_model_apis = UNSET
+        elif isinstance(self.realtime_model_apis, list):
+            realtime_model_apis = self.realtime_model_apis
+
+        else:
+            realtime_model_apis = self.realtime_model_apis
+
         settings_schemas: dict[str, Any] | Unset | None
         if isinstance(self.settings_schemas, Unset):
             settings_schemas = UNSET
@@ -225,6 +236,8 @@ class ProviderType:
             field_dict["oauth_scheme"] = oauth_scheme
         if operations is not UNSET:
             field_dict["operations"] = operations
+        if realtime_model_apis is not UNSET:
+            field_dict["realtime_model_apis"] = realtime_model_apis
         if settings_schemas is not UNSET:
             field_dict["settings_schemas"] = settings_schemas
         if supports_destroy is not UNSET:
@@ -415,6 +428,23 @@ class ProviderType:
 
         operations = _parse_operations(d.pop("operations", UNSET))
 
+        def _parse_realtime_model_apis(data: object) -> list[str] | Unset | None:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, list):
+                    raise TypeError()
+                realtime_model_apis_type_0 = cast(list[str], data)
+
+                return realtime_model_apis_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(list[str] | Unset | None, data)
+
+        realtime_model_apis = _parse_realtime_model_apis(d.pop("realtime_model_apis", UNSET))
+
         def _parse_settings_schemas(data: object) -> ProviderTypeSettingsSchemasType0 | Unset | None:
             if data is None:
                 return data
@@ -478,6 +508,7 @@ class ProviderType:
             model_apis=model_apis,
             oauth_scheme=oauth_scheme,
             operations=operations,
+            realtime_model_apis=realtime_model_apis,
             settings_schemas=settings_schemas,
             supports_destroy=supports_destroy,
             supports_model_discovery=supports_model_discovery,

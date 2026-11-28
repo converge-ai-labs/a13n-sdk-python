@@ -127,7 +127,7 @@ from .api.connections import (
     test_connection,
     update_connection,
 )
-from .api.default import health, ready
+from .api.default import create_realtime_session, health, ready, realtime_availability
 from .api.egress_credentials import (
     create_egress_credential,
     get_egress_credential,
@@ -617,6 +617,10 @@ class ServiceResources(Resource):
     @property
     def provider_types(self) -> ProviderTypes:
         return ProviderTypes(self._client, self._bindings)
+
+    @property
+    def realtime(self) -> Realtime:
+        return Realtime(self._client, self._bindings)
 
     @property
     def runs(self) -> Runs:
@@ -5650,6 +5654,51 @@ class ProviderTypesKind(Resource):
         return await self._call(
             lambda client: list_provider_types.asyncio_detailed(
                 client=client, kind=wire.ListProviderTypesKind(self._bindings["kind"])
+            )
+        )
+
+
+class Realtime(Resource):
+    """Bound Native resource: /realtime."""
+
+    async def get(
+        self,
+        *,
+        agent_id: str,
+        agent_revision_id: str | Unset | None = UNSET,
+        thread_id: str | Unset | None = UNSET,
+        fork_run_id: str | Unset | None = UNSET,
+        model: str | Unset | None = UNSET,
+        x_workspace_id: str | Unset | None = UNSET,
+    ) -> Result[wire.RealtimeAvailability]:
+        """Realtime Availability. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: realtime_availability.asyncio_detailed(
+                client=client,
+                agent_id=agent_id,
+                agent_revision_id=agent_revision_id,
+                thread_id=thread_id,
+                fork_run_id=fork_run_id,
+                model=model,
+                x_workspace_id=x_workspace_id,
+            )
+        )
+
+    @property
+    def sessions(self) -> RealtimeSessions:
+        return RealtimeSessions(self._client, self._bindings)
+
+
+class RealtimeSessions(Resource):
+    """Bound Native resource: /realtime / sessions."""
+
+    async def create(
+        self, *, body: wire.RealtimeSessionCreate, x_workspace_id: str | Unset | None = UNSET
+    ) -> Result[wire.RealtimeSessionTicket]:
+        """Create Realtime Session. One HTTP request; no automatic replay."""
+        return await self._call(
+            lambda client: create_realtime_session.asyncio_detailed(
+                client=client, body=body, x_workspace_id=x_workspace_id
             )
         )
 
